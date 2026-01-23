@@ -15,24 +15,22 @@
 - **构建体系**：Rslib
 - **测试体系**：Vitest
 - **代码质量**：Biome（lint/format）
-- **职责**：
-  - 维护 SDK 核心能力与公开 API
-  - 保持 UI 与各个逻辑层稳定
-  - 保持构建与测试流程稳定
-  - 遵循现有工程约定与代码规范
 
 ## 职责范围
+
+- 维护 SDK 核心能力与公开 API
+- 保持 UI 与各个逻辑层稳定
+- 保持构建与测试流程稳定
+- 遵循现有工程约定与代码规范
 
 ### 渲染层
 
 - 顶部工具栏 (ChannelToolsList) - 策略落地点
 按钮不是写死的，根据 strategy.allowedChannels 渲染。
-
   - 逻辑：
     - 订阅 state.strategy.allowedChannels (例如 ['sms', 'whatsapp'])。
     - 订阅 state.currentStatus (例如 in_call)。
     - 互斥逻辑：如果 in_call 为 true，则 VoIP 按钮显示为“挂断”或禁用其他语音渠道。
-
   - 组件结构：
     ```tsx
     const ChannelToolbar = () => {
@@ -52,10 +50,8 @@
       );
     }
     ```
-
   - 中间消息流 (ChatMessageList) - 核心交互
     最复杂的部分，需要处理多种消息类型和高性能滚动。
-
     - MessageFactory (渲染工厂)：建立一个消息类型映射表，使用策略模式寻找目标组件，使用工厂模式渲染。
       ```tsx
       const BubbleMap = {
@@ -75,30 +71,23 @@
       - Sending (乐观更新): 消息气泡显示半透明 + 转圈 Loading。
       - Failed: 显示红色感叹号 + “重试”按钮。
       - Read: 比如说像 WhatsApp 渠道特有的“双蓝勾”。某些 Channel 没有该状态或者是否需要该状态？
-
 - 输入框 (Composer Strategy) - 基于策略模式渲染
 需要知道当前选中的是哪个渠道，以解决“同一个组件在不同渠道下表现不同”的问题。
-
   - 动态切换：
-
     - SMS：禁止上传视频，禁止富文本，显示“剩余字符数 / 计费条数”。
     - WhatsApp：允许发送图片、文件，显示“模板选择”按钮。
     - Email：显示富文本编辑器 (Subject + Body)。
-
   - 状态展示:
-
     - WhatsApp 有双钩，展示已读
     - SMS 短信通常只有“已发送”
     - IM 有已读/未读
     - VoIP 有已接听/未接听/挂断/呼叫失败等
-
 - 右侧上下文 (ContextPanel) - 辅助作业区，可选
   - Tab 页签设计：
     - Profile: 客户画像（从 CRM 拉取）。
     - Templates: 话术模板（点击直接填充到 Composer）。
     - Other: 比如 History 历史记录？？？。
     - 交互：点击模板列表中的一项 -> 触发 useStore.getState().setInputText(templateContent)。
-
 - 技术栈 (Tech Stack)
   - Virtual Scroll: react-virtuoso 或 react-window (处理无限滚动的最佳实践)。
   - Date Processing: dayjs (轻量级处理时间戳显示)。
@@ -106,19 +95,14 @@
   - DOM: React.createRoot / Shadow DOM
   - Icons: @ant-design/icons 和 lucide-react (轻量、统一的图标库)
 
-
-
-
 ### 逻辑层
 
 - ClientBus(Client-side Event Bus) & Store (交互与状态层) 暴露客户端 SDK API 以及使用 Store (Zustand) 管理 UI 渲染层的 状态(Store)和行为 (Action)。
-
 - DataLayer (Repository/Service): 调度与缓存层。决定“用哪个渠道 Channel”，它决定是走 HTTP 还是 Socket。它不关心数据长什么样，只关心业务动作。
   - Offline Queue (离线队列)：如果 NetLayer 反馈网络断开，Repo 会自动把消息塞入 IndexedDB / localStorage / 内存队列，等网络恢复后自动重发。
   - 乐观 UI (Optimistic UI)：Repo 被调用时，先通知 Store “假装发送成功” 让 UI 变绿，如果 NetLayer 报错，再回滚状态。
   - 协调调度：管理和注册当前支持的策略以及渠道适配器 ChannelAdapter 等，调用对应的方法。
   - 去重：去掉同一时间内重复发送的相同的文本消息。
-
 - ChannelAdapter 渠道适配器 & DataMapper (Translator  翻译器)：渠道适配及数据映射层。通过 ChannelAdapter 调用 Channel 内部实现的 Mapper 方法映射到标准的 DTO，抹平不同触达服务请求体的差异性。
   - 协议选择：根据当前的策略 strategy 调用对应的 ChannelAdapter 渠道适配器及 NetLayer 发送消息。
   - ChannelAdapter(执行者)：每个渠道一个独立的 Adapter 类（如 WhatsAppAdapter, SMSAdapter）。SMS/VoIP/WhatsApp/Email/Waba 等，支持快速横向扩展新的渠道。
@@ -128,7 +112,6 @@
     - Strict Types (类型守卫)：Mapper 层强制进行 Schema 校验（Zod），防止脏数据污染 Store。
     - 解耦：Mapper 是纯函数（Pure Function）。便于单元测试。
     - 防腐：后端的字段名如果从 msg_text 变成了 body_content，你只需要修改 Mapper 这一层，Store 和 UI 代码一行都不用动。
-
 - NetLayer (Infrastructure): 网络层。把最终组装好的消息 Payload 发出去，不管是 Socket 还是 HTTP，它只负责字节传输。
   - Protocol Switcher (协议热切)：NetLayer 支持根据策略环境自动切换 Socket/SSE/Polling。
   - 接口化：NetLayer 暴露统一的接口 interface INetwork { connect(); send(); }。
@@ -150,6 +133,7 @@
 - **Storybook**：
   - `pnpm run storybook` 启动组件示例
   - 示例需要与组件 API 保持一致
+  - 添加新组件需要生成新的 storybook
 
 ## 代码规范
 
