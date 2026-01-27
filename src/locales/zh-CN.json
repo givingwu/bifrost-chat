@@ -1,0 +1,29 @@
+{
+  "toolbar": {
+    "channel": {
+      "sms": "短信",
+      "whatsapp": "WhatsApp",
+      "email": "邮件",
+      "voip": "语音",
+      "waba": "WABA"
+    }
+  },
+  "composer": {
+    "placeholder": {
+      "default": "输入内容",
+      "channel": "输入 {{channel}} 内容"
+    },
+    "send": "发送"
+  },
+  "message": {
+    "type": {
+      "text": "文本消息",
+      "image": "图片消息"
+    }
+  },
+  "Gateway": {
+    "Plugin": {
+      "statusChangeConfirm": "确认将插件 \"{{name}}\" 的状态更改为 {{status}} 吗？"
+    }
+  }
+}

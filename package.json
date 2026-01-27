@@ -1,5 +1,5 @@
 {
-  "name": "Bifrost-Chat",
+  "name": "bifrost-chat",
   "version": "1.0.0",
   "type": "module",
   "exports": {
@@ -32,17 +32,23 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.1",
     "@types/react": "^19.2.8",
+    "autoprefixer": "^10.4.21",
     "jsdom": "^26.1.0",
+    "postcss": "^8.5.3",
     "react": "^19.2.3",
     "storybook": "^10.1.11",
     "storybook-addon-rslib": "^3.2.2",
     "storybook-react-rsbuild": "^3.2.2",
+    "tailwindcss": "^4.1.18",
     "typescript": "^5.9.3",
     "vitest": "^4.0.17"
+  },
+  "dependencies": {
+    "@tailwindcss/postcss": "^4.1.18",
+    "zustand": "^4.5.2"
   },
   "peerDependencies": {
     "react": ">=16.9.0",
     "react-dom": ">=16.9.0"
-  },
-  "private": true
+  }
 }

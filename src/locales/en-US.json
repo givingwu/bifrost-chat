@@ -1,0 +1,29 @@
+{
+  "toolbar": {
+    "channel": {
+      "sms": "SMS",
+      "whatsapp": "WhatsApp",
+      "email": "Email",
+      "voip": "VoIP",
+      "waba": "WABA"
+    }
+  },
+  "composer": {
+    "placeholder": {
+      "default": "Enter message",
+      "channel": "Enter {{channel}} message"
+    },
+    "send": "Send"
+  },
+  "message": {
+    "type": {
+      "text": "Text message",
+      "image": "Image message"
+    }
+  },
+  "Gateway": {
+    "Plugin": {
+      "statusChangeConfirm": "Confirm changing plugin \"{{name}}\" status to {{status}}?"
+    }
+  }
+}

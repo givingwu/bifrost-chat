@@ -1,10 +1,14 @@
 import { render, screen } from '@testing-library/react';
 import { expect, test } from 'vitest';
-import { Button } from '../src/Button';
+import { ComposerStrategy } from '../src/components/composer/ComposerStrategy';
 
 test('The button should have correct background color', async () => {
-  render(<Button backgroundColor="#ccc" label="Demo Button" />);
-  const button = screen.getByText('Demo Button');
+  render(
+    <ComposerStrategy value="Test" channel="sms" onChange={console.log} />,
+  );
+
+  const button = screen.getByText('sms');
+
   expect(button).toHaveStyle({
     backgroundColor: '#ccc',
   });
