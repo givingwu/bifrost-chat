@@ -1,130 +1,62 @@
-import { create, type StateCreator } from 'zustand';
-import type { AgentStatus } from '@/interfaces/agent.interface';
-import type { ChannelType } from '@/interfaces/channel.interface';
-import type { StandardMessage } from '@/interfaces/message.interface';
-import {
-  type NetworkState,
-  NetworkStatus,
-} from '@/interfaces/network.interface';
-import { ThemeMode, type ThemeState } from '@/interfaces/theme.interface';
+import { create } from 'zustand';
+import type { ContextSlice, ContextState } from './slices/context.slice';
+import { createContextSlice } from './slices/context.slice';
+import type {
+  ConversationSlice,
+  ConversationState,
+} from './slices/conversation.slice';
+import { createConversationSlice } from './slices/conversation.slice';
+import type { LanguageSlice } from './slices/language.slice';
+import { createLanguageSlice } from './slices/language.slice';
+import type { NetworkSlice } from './slices/network.slice';
+import { createNetworkSlice } from './slices/network.slice';
+import type { StrategySlice, StrategyState } from './slices/strategy.slice';
+import { createStrategySlice } from './slices/strategy.slice';
+import type { ThemeSlice } from './slices/theme.slice';
+import { createThemeSlice } from './slices/theme.slice';
+import type { UiSlice, UiState } from './slices/ui.slice';
+import { createUiSlice } from './slices/ui.slice';
 
-/**
- * UI Slice：控制聊天框显隐、加载态等 UI 状态
- */
-export interface UiState {
-  /** 是否打开聊天窗口 */
-  isOpen: boolean;
-  /** 是否最小化 */
-  isMinimized: boolean;
-  /** 是否处于加载态 */
-  loading: boolean;
-  /** UI 层错误提示 */
-  error?: string;
-}
+export type { UiState, StrategyState, ConversationState, ContextState };
 
-/**
- * Strategy Slice：渠道策略与坐席状态
- */
-export interface StrategyState {
-  /** 允许的渠道列表（由 strategy.allowedChannels 约束） */
-  allowedChannels: ChannelType[];
-  /** 当前激活渠道 */
-  activeChannel?: ChannelType;
-  /** 坐席状态（用于 in_call 互斥策略） */
-  agentStatus?: AgentStatus;
-}
-
-/**
- * Conversation Slice：消息流与会话状态
- */
-export interface ConversationState {
-  /** 当前消息流（按时间排序） */
-  messages: StandardMessage[];
-}
-
-/**
- * Context Slice：宿主上下文（客户画像、模板等）
- */
-export interface ContextState extends Record<string, unknown> {
-  /** 客户画像或业务上下文 */
-  profile?: Record<string, unknown>;
-  /** 模板列表（可注入 Composer） */
-  templates?: Array<{ id: string; content: string }>;
-}
-
-/**
- * ChatStoreState：聚合 Slice 的单一 Store
- */
-export interface ChatStoreState {
-  /** UI Slice */
-  ui: UiState;
-  /** Strategy Slice */
-  strategy: StrategyState;
-  /** Network Slice */
-  network: NetworkState;
-  /** Theme Slice */
-  theme: ThemeState;
-  /** Conversation Slice */
-  conversation: ConversationState;
-  /** Context Slice */
-  context: ContextState;
-  /** Store Actions */
-  actions: {
-    /** 更新 UI 状态 */
-    setUi: (payload: Partial<UiState>) => void;
-    /** 更新策略状态 */
-    setStrategy: (payload: Partial<StrategyState>) => void;
-    /** 更新网络状态 */
-    setNetwork: (payload: Partial<NetworkState>) => void;
-    /** 更新主题模式 */
-    setTheme: (payload: Partial<ThemeState>) => void;
-    /** 追加消息（Optimistic UI） */
-    appendMessage: (message: StandardMessage) => void;
-    /** 更新上下文数据 */
-    setContext: (payload: Partial<ContextState>) => void;
-  };
-}
+export type ChatStoreState = UiSlice &
+  StrategySlice &
+  NetworkSlice &
+  ThemeSlice &
+  LanguageSlice &
+  ConversationSlice &
+  ContextSlice;
 
 /**
  * useChatStore：SDK 内部 Zustand Store（Singleton）
  */
-export const useChatStore = create<ChatStoreState>(((set) => ({
-  ui: {
-    isOpen: true,
-    isMinimized: false,
-    loading: false,
-  },
-  strategy: {
-    allowedChannels: [],
-  },
-  network: {
-    status: NetworkStatus.Disconnected,
-  },
-  theme: {
-    mode: ThemeMode.System,
-  },
-  conversation: {
-    messages: [],
-  },
-  context: {},
+export const useChatStore = create<ChatStoreState>()((...args) => ({
+  ...(() => {
+    const uiSlice = createUiSlice(...args);
+    const strategySlice = createStrategySlice(...args);
+    const networkSlice = createNetworkSlice(...args);
+    const themeSlice = createThemeSlice(...args);
+    const languageSlice = createLanguageSlice(...args);
+    const conversationSlice = createConversationSlice(...args);
+    const contextSlice = createContextSlice(...args);
 
-  actions: {
-    setUi: (payload: Partial<UiState>) =>
-      set((state) => ({ ui: { ...state.ui, ...payload } })),
-    setStrategy: (payload: Partial<StrategyState>) =>
-      set((state) => ({ strategy: { ...state.strategy, ...payload } })),
-    setNetwork: (payload: Partial<NetworkState>) =>
-      set((state) => ({ network: { ...state.network, ...payload } })),
-    setTheme: (payload: Partial<ThemeState>) =>
-      set((state) => ({ theme: { ...state.theme, ...payload } })),
-    appendMessage: (message: StandardMessage) =>
-      set((state) => ({
-        conversation: {
-          ...state.conversation,
-          messages: [...state.conversation.messages, message],
-        },
-      })),
-    setContext: (payload: Partial<ContextState>) =>
-      set((state) => ({ context: { ...state.context, ...payload } })),
-  },
-})) as StateCreator<ChatStoreState>);
+    return {
+      ...uiSlice,
+      ...strategySlice,
+      ...networkSlice,
+      ...themeSlice,
+      ...languageSlice,
+      ...conversationSlice,
+      ...contextSlice,
+      actions: {
+        ...uiSlice.actions,
+        ...strategySlice.actions,
+        ...networkSlice.actions,
+        ...themeSlice.actions,
+        ...languageSlice.actions,
+        ...conversationSlice.actions,
+        ...contextSlice.actions,
+      },
+    };
+  })(),
+}));
