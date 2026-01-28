@@ -12,6 +12,11 @@
 
 ### 2.1 UI 渲染层
 
+- **ChatContainer**：SDK 根容器，提供 I18n/Theme，承载顶部工具栏。
+- **ChatTopbar**：顶部栏，左侧渠道工具，右侧网络状态与主题切换。
+- **NetworkStatus**：网络连接状态展示（connected/disconnected/connecting）。
+- **ThemeSwitcher**：主题切换（system/light/dark）。
+- **LanguageSwitcher**：语言切换（en-US/zh-CN），未传入语言时使用浏览器语言。
 - **ChannelToolsList**：根据 `strategy.allowedChannels` 渲染按钮，`in_call` 互斥。
 - **ChatMessageList**：虚拟列表 + MessageFactory（消息类型到 Bubble 组件映射）。
 - **Composer Strategy**：SMS/WhatsApp/Email 输入能力按策略切换。
@@ -22,7 +27,7 @@
 
 - **ClientBus**：Host ↔ SDK 唯一入口。
 - **SDK API**：`init/destroy/openContext/closeContext/on/emit`。
-- **Store (Zustand)**：UI/Strategy/Conversation/Context Slice。
+- **Store (Zustand)**：UI/Strategy/Network/Theme/Language/Conversation/Context Slice。
 - **单向数据流**：Host → Action → Store → UI。
 
 ### 2.3 调度与缓存层（DataLayer）

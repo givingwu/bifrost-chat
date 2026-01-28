@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { ComposerStrategy } from '@/components/composer/ComposerStrategy';
+import { ChatContainer } from '@/components/layout/ChatContainer';
 import { ChatTopbar } from '@/components/layout/ChatTopbar';
 import { ChatMessageList } from '@/components/messages/ChatMessageList';
 import { ChannelToolsList } from '@/components/toolbar/ChannelToolsList';
@@ -8,6 +9,7 @@ import {
   AvailableChannelTypes,
   ChannelType,
 } from '@/interfaces/channel.interface';
+import { LanguageCode } from '@/interfaces/language.interface';
 import {
   MessageDirection,
   MessageStatus,
@@ -16,13 +18,20 @@ import {
 import { NetworkStatus } from '@/interfaces/network.interface';
 import { ThemeMode } from '@/interfaces/theme.interface';
 import enUSMessages from '@/locales/en-US.json';
+import zhCNMessages from '@/locales/zh-CN.json';
 import { I18nProvider, useTranslation } from '@/providers/I18n.provider';
+import { useChatStore } from '@/store';
 
 const meta: Meta = {
   title: 'Chat/Components',
 };
 
 export default meta;
+
+const languageMessages = {
+  [LanguageCode.EnUS]: enUSMessages,
+  [LanguageCode.ZhCN]: zhCNMessages,
+};
 
 export const Toolbar: StoryObj = {
   render: () => (
@@ -43,7 +52,9 @@ export const Topbar: StoryObj = {
         status={AgentStatus.Online}
         networkStatus={NetworkStatus.Connected}
         themeMode={ThemeMode.System}
+        language={LanguageCode.EnUS}
         onThemeChange={console.log}
+        onLanguageChange={console.log}
       />
     </ThemeSection>
   ),
@@ -101,6 +112,55 @@ export const TranslationExample: StoryObj = {
   ),
 };
 
+export const CompositionExample: StoryObj = {
+  render: () => (
+    <ThemeSection theme="system" title="Composition">
+      <ChatContainer
+        locale={LanguageCode.EnUS}
+        messages={languageMessages}
+        channels={AvailableChannelTypes}
+        onThemeChange={console.log}
+        onLanguageChange={console.log}
+      >
+        <div className="space-y-4">
+          <ChatMessageList
+            messages={[
+              {
+                id: '1',
+                direction: MessageDirection.Incoming,
+                channelType: ChannelType.SMS,
+                status: MessageStatus.Sent,
+                timestamp: Date.now(),
+                type: MessageType.Text,
+                content: { text: 'Hello' },
+              },
+              {
+                id: '2',
+                direction: MessageDirection.Outgoing,
+                channelType: ChannelType.WhatsApp,
+                status: MessageStatus.Delivered,
+                timestamp: Date.now(),
+                type: MessageType.Image,
+                content: {
+                  url: 'https://gw.alipayobjects.com/zos/antfincdn/efFD%24IOql2/weixintupian_20170331104822.jpg',
+                  mimeType: 'image/png',
+                },
+              },
+            ]}
+          />
+          <ComposerStrategy
+            channel={ChannelType.SMS}
+            value=""
+            onChange={() => {}}
+          />
+        </div>
+        <ThemeModePreview />
+        <LanguagePreview />
+      </ChatContainer>
+    </ThemeSection>
+  ),
+};
+
 const TranslationPreview = () => {
   const { t } = useTranslation();
   return (
@@ -112,6 +172,24 @@ const TranslationPreview = () => {
         name: 'Demo',
         status: 'Enabled',
       })}
+    </div>
+  );
+};
+
+const ThemeModePreview = () => {
+  const themeMode = useChatStore((state) => state.theme.mode);
+  return (
+    <div className="rounded-lg border border-border bg-card px-3 py-2 text-xs text-text-muted">
+      Current theme: {themeMode}
+    </div>
+  );
+};
+
+const LanguagePreview = () => {
+  const language = useChatStore((state) => state.language.code);
+  return (
+    <div className="rounded-lg border border-border bg-card px-3 py-2 text-xs text-text-muted">
+      Current language: {language}
     </div>
   );
 };
