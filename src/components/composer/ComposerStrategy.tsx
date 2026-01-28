@@ -1,5 +1,5 @@
-import type { ChannelType } from '@/interfaces/chat.interface';
-import { useTranslation } from '@/providers/I18nProvider';
+import type { ChannelType } from '@/interfaces/channel.interface';
+import { useTranslation } from '@/providers/I18n.provider';
 
 export interface ComposerStrategyProps {
   /** 当前激活渠道 */
@@ -23,6 +23,7 @@ export const ComposerStrategy = ({
   const placeholder = channel
     ? t('composer.placeholder.channel', { channel })
     : t('composer.placeholder.default');
+
   return (
     <div
       data-component="composer"

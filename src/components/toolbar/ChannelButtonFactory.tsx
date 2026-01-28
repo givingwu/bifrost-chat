@@ -1,5 +1,5 @@
-import type { ChannelType } from '@/interfaces/chat.interface';
-import { useTranslation } from '@/providers/I18nProvider';
+import type { ChannelType } from '@/interfaces/channel.interface';
+import { useTranslation } from '@/providers/I18n.provider';
 
 export interface ChannelButtonFactoryProps {
   /** 渠道类型 */

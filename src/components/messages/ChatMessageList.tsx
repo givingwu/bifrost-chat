@@ -1,4 +1,4 @@
-import type { StandardMessage } from '@/interfaces/chat.interface';
+import type { StandardMessage } from '@/interfaces/message.interface';
 import { MessageRendererFactory } from './MessageRendererFactory';
 
 export interface ChatMessageListProps {

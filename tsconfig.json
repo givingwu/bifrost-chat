@@ -10,8 +10,9 @@
     "resolveJsonModule": true,
     "moduleResolution": "bundler",
     "useDefineForClassFields": true,
+    "baseUrl": "./",
     "paths": {
-      "@/*": ["./src"]
+      "@/*": ["src/*"]
     }
   },
   "include":  ["src", ".storybook", "stories"]

@@ -1,8 +1,15 @@
 import { create, type StateCreator } from 'zustand';
-import type { ChannelType, StandardMessage } from '@/interfaces/chat.interface';
+import type { AgentStatus } from '@/interfaces/agent.interface';
+import type { ChannelType } from '@/interfaces/channel.interface';
+import type { StandardMessage } from '@/interfaces/message.interface';
+import {
+  type NetworkState,
+  NetworkStatus,
+} from '@/interfaces/network.interface';
+import { ThemeMode, type ThemeState } from '@/interfaces/theme.interface';
 
 /**
- * UI Slice：控制聊天框显隐、加载态等 UI 状态。
+ * UI Slice：控制聊天框显隐、加载态等 UI 状态
  */
 export interface UiState {
   /** 是否打开聊天窗口 */
@@ -16,7 +23,7 @@ export interface UiState {
 }
 
 /**
- * Strategy Slice：渠道策略与坐席状态。
+ * Strategy Slice：渠道策略与坐席状态
  */
 export interface StrategyState {
   /** 允许的渠道列表（由 strategy.allowedChannels 约束） */
@@ -24,11 +31,11 @@ export interface StrategyState {
   /** 当前激活渠道 */
   activeChannel?: ChannelType;
   /** 坐席状态（用于 in_call 互斥策略） */
-  agentStatus?: 'online' | 'offline' | 'in_call';
+  agentStatus?: AgentStatus;
 }
 
 /**
- * Conversation Slice：消息流与会话状态。
+ * Conversation Slice：消息流与会话状态
  */
 export interface ConversationState {
   /** 当前消息流（按时间排序） */
@@ -36,9 +43,9 @@ export interface ConversationState {
 }
 
 /**
- * Context Slice：宿主上下文（客户画像、模板等）。
+ * Context Slice：宿主上下文（客户画像、模板等）
  */
-export interface ContextState {
+export interface ContextState extends Record<string, unknown> {
   /** 客户画像或业务上下文 */
   profile?: Record<string, unknown>;
   /** 模板列表（可注入 Composer） */
@@ -46,13 +53,17 @@ export interface ContextState {
 }
 
 /**
- * ChatStoreState：聚合 Slice 的单一 Store。
+ * ChatStoreState：聚合 Slice 的单一 Store
  */
 export interface ChatStoreState {
   /** UI Slice */
   ui: UiState;
   /** Strategy Slice */
   strategy: StrategyState;
+  /** Network Slice */
+  network: NetworkState;
+  /** Theme Slice */
+  theme: ThemeState;
   /** Conversation Slice */
   conversation: ConversationState;
   /** Context Slice */
@@ -63,6 +74,10 @@ export interface ChatStoreState {
     setUi: (payload: Partial<UiState>) => void;
     /** 更新策略状态 */
     setStrategy: (payload: Partial<StrategyState>) => void;
+    /** 更新网络状态 */
+    setNetwork: (payload: Partial<NetworkState>) => void;
+    /** 更新主题模式 */
+    setTheme: (payload: Partial<ThemeState>) => void;
     /** 追加消息（Optimistic UI） */
     appendMessage: (message: StandardMessage) => void;
     /** 更新上下文数据 */
@@ -71,7 +86,7 @@ export interface ChatStoreState {
 }
 
 /**
- * useChatStore：SDK 内部 Zustand Store（Singleton）。
+ * useChatStore：SDK 内部 Zustand Store（Singleton）
  */
 export const useChatStore = create<ChatStoreState>(((set) => ({
   ui: {
@@ -82,15 +97,26 @@ export const useChatStore = create<ChatStoreState>(((set) => ({
   strategy: {
     allowedChannels: [],
   },
+  network: {
+    status: NetworkStatus.Disconnected,
+  },
+  theme: {
+    mode: ThemeMode.System,
+  },
   conversation: {
     messages: [],
   },
   context: {},
+
   actions: {
     setUi: (payload: Partial<UiState>) =>
       set((state) => ({ ui: { ...state.ui, ...payload } })),
     setStrategy: (payload: Partial<StrategyState>) =>
       set((state) => ({ strategy: { ...state.strategy, ...payload } })),
+    setNetwork: (payload: Partial<NetworkState>) =>
+      set((state) => ({ network: { ...state.network, ...payload } })),
+    setTheme: (payload: Partial<ThemeState>) =>
+      set((state) => ({ theme: { ...state.theme, ...payload } })),
     appendMessage: (message: StandardMessage) =>
       set((state) => ({
         conversation: {

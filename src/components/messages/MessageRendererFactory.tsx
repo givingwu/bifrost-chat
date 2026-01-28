@@ -1,4 +1,7 @@
-import type { StandardMessage } from '@/interfaces/chat.interface';
+import {
+  MessageDirection,
+  type StandardMessage,
+} from '@/interfaces/message.interface';
 
 export interface MessageRendererFactoryProps {
   /** 标准消息 */
@@ -13,9 +16,9 @@ export const MessageRendererFactory = ({
   message,
 }: MessageRendererFactoryProps) => {
   const bubbleAlignment =
-    message.direction === 'outbound' ? 'ml-auto' : 'mr-auto';
+    message.direction === MessageDirection.Outgoing ? 'ml-auto' : 'mr-auto';
   const bubbleTone =
-    message.direction === 'outbound'
+    message.direction === MessageDirection.Outgoing
       ? 'bg-primary text-primary-foreground'
       : 'bg-surface text-text border border-border';
 

@@ -1,11 +1,7 @@
-export { ComposerStrategy } from './components/composer/ComposerStrategy';
-export { ChatMessageList } from './components/messages/ChatMessageList';
-export { MessageRendererFactory } from './components/messages/MessageRendererFactory';
-export { ChannelButtonFactory } from './components/toolbar/ChannelButtonFactory';
-export { ChannelToolsList } from './components/toolbar/ChannelToolsList';
-export { ClientBus } from './events/ClientBus.event';
-export * from './interfaces/Chat.interface';
+export { ClientBus } from './events/client-bus.event';
+
 export { default as enUSMessages } from './locales/en-US.json';
 export { default as zhCNMessages } from './locales/zh-CN.json';
+
 export { I18nProvider, useTranslation } from './providers/I18n.provider';
 export { useChatStore } from './store';

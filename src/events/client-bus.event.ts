@@ -1,4 +1,4 @@
-import type { SDKEvent } from '@/interfaces/chat.inteface';
+import type { SDKEvent } from '@/interfaces/sdk.interface';
 
 type Listener<T> = (payload: T) => void;
 
@@ -27,6 +27,7 @@ export class ClientBus {
     if (!existing) {
       return;
     }
+
     existing.delete(callback as Listener<unknown>);
     if (existing.size === 0) {
       this.listeners.delete(event);
@@ -38,9 +39,11 @@ export class ClientBus {
    */
   emit<T>(event: SDKEvent, payload: T) {
     const existing = this.listeners.get(event);
+
     if (!existing) {
       return;
     }
+
     for (const callback of existing) {
       callback(payload as unknown);
     }

@@ -1,11 +1,12 @@
-import type { ChannelType } from '@/interfaces/chat.interface';
+import { AgentStatus } from '@/interfaces/agent.interface';
+import type { ChannelType } from '@/interfaces/channel.interface';
 import { ChannelButtonFactory } from './ChannelButtonFactory';
 
 export interface ChannelToolsListProps {
   /** 允许的渠道列表 */
   channels: ChannelType[];
   /** 坐席状态（in_call 时触发互斥逻辑） */
-  status?: 'online' | 'offline' | 'in_call';
+  status?: AgentStatus;
   /** 点击渠道按钮回调 */
   onChannelClick?: (type: ChannelType) => void;
 }
@@ -14,7 +15,7 @@ const isDisabled = (
   type: ChannelType,
   status?: ChannelToolsListProps['status'],
 ) => {
-  if (status !== 'in_call') {
+  if (status !== AgentStatus.InCall) {
     return false;
   }
 

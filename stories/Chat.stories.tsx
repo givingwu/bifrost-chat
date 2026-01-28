@@ -1,12 +1,25 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { ComposerStrategy } from '../src/components/composer/ComposerStrategy';
-import { ChatMessageList } from '../src/components/messages/ChatMessageList';
-import { ChannelToolsList } from '../src/components/toolbar/ChannelToolsList';
-import enUSMessages from '../src/locales/en-US.json';
-import { I18nProvider, useTranslation } from '../src/providers/I18n.provider';
+import { ComposerStrategy } from '@/components/composer/ComposerStrategy';
+import { ChatTopbar } from '@/components/layout/ChatTopbar';
+import { ChatMessageList } from '@/components/messages/ChatMessageList';
+import { ChannelToolsList } from '@/components/toolbar/ChannelToolsList';
+import { AgentStatus } from '@/interfaces/agent.interface';
+import {
+  AvailableChannelTypes,
+  ChannelType,
+} from '@/interfaces/channel.interface';
+import {
+  MessageDirection,
+  MessageStatus,
+  MessageType,
+} from '@/interfaces/message.interface';
+import { NetworkStatus } from '@/interfaces/network.interface';
+import { ThemeMode } from '@/interfaces/theme.interface';
+import enUSMessages from '@/locales/en-US.json';
+import { I18nProvider, useTranslation } from '@/providers/I18n.provider';
 
 const meta: Meta = {
-  title: 'Bifrost-Chat/Components',
+  title: 'Chat/Components',
 };
 
 export default meta;
@@ -15,8 +28,22 @@ export const Toolbar: StoryObj = {
   render: () => (
     <ThemeSection theme="light" title="Light">
       <ChannelToolsList
-        channels={['sms', 'whatsapp', 'email', 'voip']}
-        status="online"
+        channels={AvailableChannelTypes}
+        status={AgentStatus.Online}
+      />
+    </ThemeSection>
+  ),
+};
+
+export const Topbar: StoryObj = {
+  render: () => (
+    <ThemeSection theme="system" title="Topbar">
+      <ChatTopbar
+        channels={AvailableChannelTypes}
+        status={AgentStatus.Online}
+        networkStatus={NetworkStatus.Connected}
+        themeMode={ThemeMode.System}
+        onThemeChange={console.log}
       />
     </ThemeSection>
   ),
@@ -29,21 +56,24 @@ export const MessageList: StoryObj = {
         messages={[
           {
             id: '1',
-            direction: 'inbound',
-            channelType: 'sms',
-            status: 'sent',
+            direction: MessageDirection.Incoming,
+            channelType: ChannelType.SMS,
+            status: MessageStatus.Sent,
             timestamp: Date.now(),
-            type: 'text',
+            type: MessageType.Text,
             content: { text: 'Hello' },
           },
           {
             id: '2',
-            direction: 'outbound',
-            channelType: 'whatsapp',
-            status: 'delivered',
+            direction: MessageDirection.Outgoing,
+            channelType: ChannelType.WhatsApp,
+            status: MessageStatus.Delivered,
             timestamp: Date.now(),
-            type: 'image',
-            content: { url: 'https://example.com', mimeType: 'image/png' },
+            type: MessageType.Image,
+            content: {
+              url: 'https://gw.alipayobjects.com/zos/antfincdn/efFD%24IOql2/weixintupian_20170331104822.jpg',
+              mimeType: 'image/png',
+            },
           },
         ]}
       />
@@ -54,7 +84,11 @@ export const MessageList: StoryObj = {
 export const Composer: StoryObj = {
   render: () => (
     <ThemeSection theme="system" title="System">
-      <ComposerStrategy channel="sms" value="" onChange={() => {}} />
+      <ComposerStrategy
+        channel={ChannelType.SMS}
+        value=""
+        onChange={() => {}}
+      />
     </ThemeSection>
   ),
 };
