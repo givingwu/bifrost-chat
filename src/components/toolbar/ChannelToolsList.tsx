@@ -34,7 +34,7 @@ export const ChannelToolsList = ({
   return (
     <div
       data-component="channel-tools"
-      className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-card p-3 shadow-soft"
+      className="flex flex-wrap items-center gap-2 rounded-xl bg-muted/60 p-1.5"
     >
       {channels.map((channel) => (
         <ChannelButtonFactory

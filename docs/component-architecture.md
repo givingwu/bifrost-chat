@@ -16,14 +16,12 @@ ChatContainer
     ├── ChannelToolsList
     ├── NetworkStatus
     └── ThemeSwitcher
-└── ChatLayout (可选 Layout 容器)
+└── ChatLayout (三栏布局容器)
     ├── ConversationList
     ├── ChatMessageList
-    ├── ComposerStrategy
+    ├── ComposerToolbar
     └── ContextPanel
 ```
-
-> 备注：ChatLayout 未在本轮新增，保留为布局壳。
 
 ## 3. 组件职责与 Props
 
@@ -31,12 +29,12 @@ ChatContainer
 
 - **职责**：SDK 根容器，初始化 Provider，绑定 Store。
 - **输入**：locale/messages/channels/onChannelClick/onThemeChange。
-- **输出**：渲染 ChatTopbar + children，并输出 data-theme。
+- **输出**：渲染 ChatTopbar + ChatLayout（支持 conversation/context/composer 插槽）。
 
 ### 3.2 ChatTopbar
 
 - **职责**：顶部工具栏（左渠道，右网络/主题）。
-- **输入**：channels/status/networkStatus/themeMode。
+- **输入**：channels/status/networkStatus/themeMode/title/subtitle/avatarUrl。
 - **输出**：ChannelToolsList + NetworkStatus + ThemeSwitcher。
 
 ### 3.3 ChannelToolsList
@@ -65,7 +63,9 @@ ChatContainer
 | NetworkStatus | NetLayer -> Store.network | 连接管理器写入 Store。
 | ThemeSwitcher | Theme Slice | UI 触发 -> Store 更新。
 | ChatMessageList | DataLayer -> Store.conversation | 标准化消息流渲染。
-| ComposerStrategy | Strategy Slice | 按渠道切换输入能力。
+| ComposerToolbar | Strategy Slice | 按渠道切换输入能力，UI 对齐 DEMO。
+| ContextPanel | Context Slice | 默认模板 + 自定义渲染。
+| ConversationList | Conversation Slice | 会话列表展示与切换。
 
 ## 5. 关键数据流
 

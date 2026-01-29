@@ -7,6 +7,7 @@ import {
 import type { ThemeMode } from '@/interfaces/theme.interface';
 import { I18nProvider } from '@/providers/I18n.provider';
 import { useChatStore } from '@/store';
+import { ChatLayout } from './ChatLayout';
 import { ChatTopbar } from './ChatTopbar';
 
 export interface ChatContainerProps {
@@ -17,6 +18,12 @@ export interface ChatContainerProps {
   onChannelClick?: (type: ChannelType) => void;
   onThemeChange?: (mode: ThemeMode) => void;
   onLanguageChange?: (language: LanguageCode) => void;
+  /** 左侧会话列表区域 */
+  conversationList?: ReactNode;
+  /** 右侧上下文面板 */
+  contextPanel?: ReactNode;
+  /** 输入区组件 */
+  composer?: ReactNode;
 }
 
 /**
@@ -30,8 +37,12 @@ export const ChatContainer = ({
   onChannelClick,
   onThemeChange,
   onLanguageChange,
+  conversationList,
+  contextPanel,
+  composer,
 }: ChatContainerProps) => {
-  const { strategy, network, theme, language, actions } = useChatStore();
+  const { strategy, network, theme, language, actions, conversation } =
+    useChatStore();
   const resolvedLanguage = useMemo(() => {
     if (locale) {
       return locale;
@@ -61,6 +72,9 @@ export const ChatContainer = ({
     },
     [actions, onLanguageChange],
   );
+  const conversationTitle = conversation.activeConversation?.user?.name;
+  const conversationSubtitle = conversation.activeConversation?.channel;
+  const conversationAvatar = conversation.activeConversation?.user?.avatarUrl;
 
   return (
     <I18nProvider locale={resolvedLanguage} messages={languageMessages}>
@@ -68,19 +82,29 @@ export const ChatContainer = ({
         data-component="chat-container"
         data-theme={theme.mode}
         data-language={resolvedLanguage}
-        className="space-y-4"
+        className="flex h-screen items-center justify-center bg-background p-6"
       >
-        <ChatTopbar
-          channels={channels}
-          status={strategy.agentStatus}
-          networkStatus={network.status}
-          themeMode={theme.mode}
-          language={language.code ?? resolvedLanguage}
-          onChannelClick={onChannelClick}
-          onThemeChange={handleThemeChange}
-          onLanguageChange={handleLanguageChange}
-        />
-        {children}
+        <div className="flex w-full max-w-[1400px] flex-col gap-4">
+          <ChatTopbar
+            channels={channels}
+            status={strategy.agentStatus}
+            networkStatus={network.status}
+            themeMode={theme.mode}
+            language={language.code ?? resolvedLanguage}
+            onChannelClick={onChannelClick}
+            onThemeChange={handleThemeChange}
+            onLanguageChange={handleLanguageChange}
+            title={conversationTitle}
+            subtitle={conversationSubtitle}
+            avatarUrl={conversationAvatar}
+          />
+          <ChatLayout
+            conversation={conversationList}
+            messages={children}
+            composer={composer ?? <div />}
+            contextPanel={contextPanel}
+          />
+        </div>
       </div>
     </I18nProvider>
   );

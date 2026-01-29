@@ -8,6 +8,8 @@ export interface ContextState extends Record<string, unknown> {
   profile?: Record<string, unknown>;
   /** 模板列表（可注入 Composer） */
   templates?: Array<{ id: string; content: string }>;
+  /** 自定义上下文面板渲染 */
+  renderContextPanel?: () => React.ReactNode;
 }
 
 export interface ContextSlice {

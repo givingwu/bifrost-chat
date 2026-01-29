@@ -1,10 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { ComposerToolbar } from '@/components/composer/ComposerToolbar';
-import { ChatContainer } from '@/components/layout/ChatContainer';
-import { ChatLayout } from '@/components/layout/ChatLayout';
+import { ChatTopbar } from '@/components/layout/ChatTopbar';
 import { ContextPanel } from '@/components/layout/ContextPanel';
 import { ConversationList } from '@/components/layout/ConversationList';
 import { ChatMessageList } from '@/components/messages/ChatMessageList';
+import { ChannelToolsList } from '@/components/toolbar/ChannelToolsList';
+import { AgentStatus } from '@/interfaces/agent.interface';
 import {
   AvailableChannelTypes,
   ChannelType,
@@ -16,26 +17,22 @@ import {
   MessageStatus,
   MessageType,
 } from '@/interfaces/message.interface';
+import { NetworkStatus } from '@/interfaces/network.interface';
+import { ThemeMode } from '@/interfaces/theme.interface';
 import enUSMessages from '@/locales/en-US.json';
-import zhCNMessages from '@/locales/zh-CN.json';
 import { I18nProvider } from '@/providers/I18n.provider';
 import { useChatStore } from '@/store';
 import '@/styles/theme.css';
 
 const meta: Meta = {
-  title: 'Chat',
+  title: 'Chat/Components',
 };
 
 export default meta;
 
-const languageMessages = {
-  [LanguageCode.EnUS]: enUSMessages,
-  [LanguageCode.ZhCN]: zhCNMessages,
-};
-
 const mockConversations: Conversation[] = [
   {
-    id: 'conv-1',
+    id: '1',
     user: {
       id: 'user-1',
       name: 'Liam Walker',
@@ -49,7 +46,7 @@ const mockConversations: Conversation[] = [
     isActive: true,
   },
   {
-    id: 'conv-2',
+    id: '2',
     user: {
       id: 'user-2',
       name: 'Sophia Reed',
@@ -62,7 +59,7 @@ const mockConversations: Conversation[] = [
     channel: ChannelType.SMS,
   },
   {
-    id: 'conv-3',
+    id: '3',
     user: {
       id: 'user-3',
       name: 'Evelyn Carter',
@@ -131,50 +128,80 @@ const mockProfile = {
   localTime: '10:45 AM',
 };
 
-export const CompositionExample: StoryObj = {
+export const Toolbar: StoryObj = {
   render: () => (
-    <ThemeSection theme="system" title="Composition">
-      <ChatContainer
-        locale={LanguageCode.EnUS}
-        messages={languageMessages}
+    <ThemeSection theme="light" title="Light">
+      <ChannelToolsList
         channels={AvailableChannelTypes}
-        onThemeChange={console.log}
-        onLanguageChange={console.log}
-        conversationList={
-          <ConversationList conversations={mockConversations} />
-        }
-        contextPanel={<ContextPanel profile={mockProfile} />}
-        composer={
-          <ComposerToolbar
-            channel={ChannelType.WhatsApp}
-            value=""
-            onChange={() => {}}
-          />
-        }
-      >
-        <ChatMessageList messages={mockMessages} />
-        <ThemeModePreview />
-        <LanguagePreview />
-      </ChatContainer>
+        status={AgentStatus.Online}
+      />
     </ThemeSection>
   ),
 };
 
-export const FullChat: StoryObj = {
+export const Topbar: StoryObj = {
   render: () => (
-    <ThemeSection theme="system" title="Chat">
-      <ChatLayout
-        conversation={<ConversationList conversations={mockConversations} />}
-        messages={<ChatMessageList messages={mockMessages} />}
-        composer={
-          <ComposerToolbar
-            channel={ChannelType.WhatsApp}
-            value=""
-            onChange={() => {}}
-          />
-        }
-        contextPanel={<ContextPanel profile={mockProfile} />}
+    <ThemeSection theme="system" title="Topbar">
+      <ChatTopbar
+        channels={AvailableChannelTypes}
+        status={AgentStatus.Online}
+        networkStatus={NetworkStatus.Connected}
+        themeMode={ThemeMode.System}
+        language={LanguageCode.EnUS}
+        title="Liam Walker"
+        subtitle="via WhatsApp"
+        avatarUrl="https://i.pravatar.cc/150?img=12"
+        onThemeChange={console.log}
+        onLanguageChange={console.log}
       />
+    </ThemeSection>
+  ),
+};
+
+export const MessageList: StoryObj = {
+  render: () => (
+    <ThemeSection theme="dark" title="Dark">
+      <ChatMessageList messages={mockMessages} />
+    </ThemeSection>
+  ),
+};
+
+export const Composer: StoryObj = {
+  render: () => (
+    <ThemeSection theme="system" title="System">
+      <ComposerToolbar channel={ChannelType.SMS} value="" onChange={() => {}} />
+    </ThemeSection>
+  ),
+};
+
+export const ConversationListStory: StoryObj = {
+  render: () => (
+    <ThemeSection theme="light" title="Conversations">
+      <div className="h-[520px]">
+        <ConversationList conversations={mockConversations} />
+      </div>
+    </ThemeSection>
+  ),
+};
+
+export const ContextPanelStory: StoryObj = {
+  render: () => (
+    <ThemeSection theme="light" title="Context Panel">
+      <div className="h-[520px]">
+        <ContextPanel
+          profile={mockProfile}
+          onTemplateClick={(template) => console.log(template)}
+        />
+      </div>
+    </ThemeSection>
+  ),
+};
+
+export const ThemePreview: StoryObj = {
+  render: () => (
+    <ThemeSection theme="system" title="Theme/Language">
+      <ThemeModePreview />
+      <LanguagePreview />
     </ThemeSection>
   ),
 };

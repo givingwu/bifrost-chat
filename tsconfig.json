@@ -10,10 +10,12 @@
     "resolveJsonModule": true,
     "moduleResolution": "bundler",
     "useDefineForClassFields": true,
+    "ignoreDeprecations": "6.0",
     "baseUrl": "./",
     "paths": {
       "@/*": ["src/*"]
     }
   },
-  "include":  ["src", ".storybook", "stories"]
+  "include": ["src", ".storybook", "stories"],
+  "exclude": ["tests"]
 }

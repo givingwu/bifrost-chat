@@ -3,6 +3,7 @@ import type { ChannelType } from '@/interfaces/channel.interface';
 import type { LanguageCode } from '@/interfaces/language.interface';
 import type { NetworkStatus as NetworkStatusEnum } from '@/interfaces/network.interface';
 import type { ThemeMode } from '@/interfaces/theme.interface';
+import { cn } from '@/utils/class.util';
 import { ChannelToolsList } from '../toolbar/ChannelToolsList';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { NetworkStatus } from './NetworkStatus';
@@ -17,6 +18,12 @@ export interface ChatTopbarProps {
   onChannelClick?: (type: ChannelType) => void;
   onThemeChange?: (mode: ThemeMode) => void;
   onLanguageChange?: (language: LanguageCode) => void;
+  /** 当前会话标题 */
+  title?: string;
+  /** 当前会话副标题 */
+  subtitle?: string;
+  /** 会话头像 */
+  avatarUrl?: string;
 }
 
 /**
@@ -31,12 +38,38 @@ export const ChatTopbar = ({
   onChannelClick,
   onThemeChange,
   onLanguageChange,
+  title,
+  subtitle,
+  avatarUrl,
 }: ChatTopbarProps) => {
   return (
     <header
       data-component="chat-topbar"
-      className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-border bg-card p-3 shadow-soft"
+      className={cn(
+        'flex flex-wrap items-center justify-between gap-4 rounded-2xl',
+        'border border-border bg-card/80 px-6 py-3 shadow-soft backdrop-blur-md',
+      )}
     >
+      <div className="flex items-center gap-3">
+        {avatarUrl && (
+          <div className="relative">
+            <img
+              src={avatarUrl}
+              alt={title ?? 'conversation'}
+              className="h-10 w-10 rounded-full object-cover shadow-soft"
+            />
+            <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-card bg-green-500" />
+          </div>
+        )}
+        <div>
+          <div className="text-sm font-semibold text-text">
+            {title ?? 'Conversation'}
+          </div>
+          {subtitle && (
+            <div className="text-xs text-text-muted">{subtitle}</div>
+          )}
+        </div>
+      </div>
       <ChannelToolsList
         channels={channels}
         status={status}
