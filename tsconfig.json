@@ -5,17 +5,17 @@
     "module": "ESNext",
     "jsx": "react-jsx",
     "strict": true,
+    "esModuleInterop": true,
     "skipLibCheck": true,
-    "isolatedModules": true,
+    "forceConsistentCasingInFileNames": true,
+    "experimentalDecorators": true,
     "resolveJsonModule": true,
     "moduleResolution": "bundler",
     "useDefineForClassFields": true,
-    "ignoreDeprecations": "6.0",
-    "baseUrl": "./",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["./src/*"]
     }
   },
   "include": ["src", ".storybook", "stories"],
-  "exclude": ["tests"]
+  "exclude": ["tests", "node_modules" ]
 }
