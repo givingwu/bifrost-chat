@@ -1,3 +1,4 @@
+import type { AgentStatus } from './agent.interface';
 import type { ChannelType } from './channel.interface';
 
 /** 用户接口 */
@@ -9,7 +10,7 @@ export interface User {
   /** 用户头像 URL */
   avatarUrl: string;
   /** 用户状态 */
-  status: 'online' | 'offline' | 'busy';
+  status: AgentStatus;
 }
 
 /** 会话接口 */

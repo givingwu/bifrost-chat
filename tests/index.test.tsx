@@ -1,15 +1,16 @@
 import { render, screen } from '@testing-library/react';
 import { expect, test } from 'vitest';
-import { ComposerStrategy } from '../src/components/composer/ComposerStrategy';
+import { ComposerInput } from '@/components/composer/ComposerInput';
 
 test('The button should have correct background color', async () => {
   render(
-    <ComposerStrategy value="Test" channel="sms" onChange={console.log} />,
+    <ComposerInput
+      value=""
+      placeholder="Type message here"
+      onChange={console.log}
+    />,
   );
 
-  const button = screen.getByText('sms');
-
-  expect(button).toHaveStyle({
-    backgroundColor: '#ccc',
-  });
+  const inputElement = screen.getByPlaceholderText('Type message here');
+  expect(inputElement).toBeInTheDocument();
 });

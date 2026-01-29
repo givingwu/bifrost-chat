@@ -8,4 +8,6 @@ export enum AgentStatus {
   Offline = 'offline',
   /** Agent is currently in a call */
   InCall = 'in_call',
+  /** Agent is busy */
+  Busy = 'busy',
 }

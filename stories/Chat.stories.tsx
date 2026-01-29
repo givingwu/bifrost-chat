@@ -21,6 +21,7 @@ import zhCNMessages from '@/locales/zh-CN.json';
 import { I18nProvider } from '@/providers/I18n.provider';
 import { useChatStore } from '@/store';
 import '@/styles/theme.css';
+import type { AgentStatus } from '@/interfaces/agent.interface';
 
 const meta: Meta = {
   title: 'Chat',
@@ -40,7 +41,7 @@ const mockConversations: Conversation[] = [
       id: 'user-1',
       name: 'Liam Walker',
       avatarUrl: 'https://i.pravatar.cc/150?img=12',
-      status: 'online',
+      status: 'online' as AgentStatus,
     },
     lastMessage: 'Thanks for the update! 👋',
     lastMessageTime: '09:42 AM',
@@ -54,7 +55,7 @@ const mockConversations: Conversation[] = [
       id: 'user-2',
       name: 'Sophia Reed',
       avatarUrl: 'https://i.pravatar.cc/150?img=48',
-      status: 'busy',
+      status: 'busy' as AgentStatus,
     },
     lastMessage: 'Need help with my order.',
     lastMessageTime: '09:10 AM',
@@ -67,7 +68,7 @@ const mockConversations: Conversation[] = [
       id: 'user-3',
       name: 'Evelyn Carter',
       avatarUrl: 'https://i.pravatar.cc/150?img=16',
-      status: 'offline',
+      status: 'offline' as AgentStatus,
     },
     lastMessage: 'Invoice sent via email.',
     lastMessageTime: 'Yesterday',
