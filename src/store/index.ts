@@ -60,3 +60,13 @@ export const useChatStore = create<ChatStoreState>()((...args) => ({
     };
   })(),
 }));
+
+export const useUI = () => useChatStore((state) => state.ui);
+export const useStrategy = () => useChatStore((state) => state.strategy);
+export const useNetwork = () => useChatStore((state) => state.network);
+export const useTheme = () => useChatStore((state) => state.theme);
+export const useLanguage = () => useChatStore((state) => state.language);
+export const useConversation = () =>
+  useChatStore((state) => state.conversation);
+
+export const useActions = () => useChatStore((state) => state.actions);

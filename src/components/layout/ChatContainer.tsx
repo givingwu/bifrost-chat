@@ -1,9 +1,6 @@
 import { type ReactNode, useCallback, useMemo } from 'react';
 import type { ChannelType } from '@/interfaces/channel.interface';
-import {
-  LanguageCode,
-  type LanguageState,
-} from '@/interfaces/language.interface';
+import { LanguageCode } from '@/interfaces/language.interface';
 import type { ThemeMode } from '@/interfaces/theme.interface';
 import { I18nProvider } from '@/providers/I18n.provider';
 import { useChatStore } from '@/store';
@@ -49,6 +46,7 @@ export const ChatContainer = ({
     }
     if (typeof navigator !== 'undefined') {
       const browserLanguage = navigator.language as LanguageCode;
+
       if (Object.values(LanguageCode).includes(browserLanguage)) {
         return browserLanguage;
       }
@@ -60,18 +58,19 @@ export const ChatContainer = ({
   }, [messages, resolvedLanguage]);
   const handleThemeChange = useCallback(
     (mode: ThemeMode) => {
-      actions.setTheme({ mode });
+      actions.setTheme(mode);
       onThemeChange?.(mode);
     },
     [actions, onThemeChange],
   );
   const handleLanguageChange = useCallback(
     (code: LanguageCode) => {
-      actions.setLanguage({ code } as Partial<LanguageState>);
+      actions.setLanguage(code);
       onLanguageChange?.(code);
     },
     [actions, onLanguageChange],
   );
+
   const conversationTitle = conversation.activeConversation?.user?.name;
   const conversationSubtitle = conversation.activeConversation?.channel;
   const conversationAvatar = conversation.activeConversation?.user?.avatarUrl;

@@ -27,6 +27,7 @@ export const LanguageSwitcher = ({
     >
       {AvailableLanguageCodes.map((code) => {
         const active = value === code;
+
         return (
           <button
             key={code}

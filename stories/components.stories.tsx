@@ -21,8 +21,10 @@ import { NetworkStatus } from '@/interfaces/network.interface';
 import { ThemeMode } from '@/interfaces/theme.interface';
 import enUSMessages from '@/locales/en-US.json';
 import { I18nProvider } from '@/providers/I18n.provider';
-import { useChatStore } from '@/store';
+import { useActions, useLanguage, useStrategy, useTheme } from '@/store';
 import '@/styles/theme.css';
+import { LanguageSwitcher } from '@/components/layout/LanguageSwitcher';
+import { ThemeSwitcher } from '@/components/layout/ThemeSwitcher';
 
 const meta: Meta = {
   title: 'Chat/Components',
@@ -128,15 +130,20 @@ const mockProfile = {
   localTime: '10:45 AM',
 };
 
-export const Toolbar: StoryObj = {
-  render: () => (
+export const ToolsList = () => {
+  const { activeChannel } = useStrategy();
+  const { setActiveChannel } = useActions();
+
+  return (
     <ThemeSection theme="light" title="Light">
       <ChannelToolsList
+        activeChannel={activeChannel}
+        onChannelClick={setActiveChannel}
         channels={AvailableChannelTypes}
         status={AgentStatus.Online}
       />
     </ThemeSection>
-  ),
+  );
 };
 
 export const Topbar: StoryObj = {
@@ -174,7 +181,7 @@ export const Composer: StoryObj = {
   ),
 };
 
-export const ConversationListStory: StoryObj = {
+export const Conversations: StoryObj = {
   render: () => (
     <ThemeSection theme="light" title="Conversations">
       <div className="h-[520px]">
@@ -184,7 +191,7 @@ export const ConversationListStory: StoryObj = {
   ),
 };
 
-export const ContextPanelStory: StoryObj = {
+export const ContextPanels: StoryObj = {
   render: () => (
     <ThemeSection theme="light" title="Context Panel">
       <div className="h-[520px]">
@@ -207,19 +214,25 @@ export const ThemePreview: StoryObj = {
 };
 
 const ThemeModePreview = () => {
-  const themeMode = useChatStore((state) => state.theme.mode);
+  const theme = useTheme();
+  const { setTheme } = useActions();
+
   return (
-    <div className="rounded-lg border border-border bg-card px-3 py-2 text-xs text-text-muted">
-      Current theme: {themeMode}
+    <div className="flex gap-2 items-center rounded-lg border border-border bg-card px-3 py-2 text-xs">
+      <ThemeSwitcher value={theme.mode} onChange={setTheme} />
+      <div>Current theme: {theme.mode}</div>
     </div>
   );
 };
 
 const LanguagePreview = () => {
-  const language = useChatStore((state) => state.language.code);
+  const language = useLanguage();
+  const { setLanguage } = useActions();
+
   return (
-    <div className="rounded-lg border border-border bg-card px-3 py-2 text-xs text-text-muted">
-      Current language: {language}
+    <div className="flex gap-2 items-center rounded-lg border border-border bg-card px-3 py-2 text-xs text-text-muted">
+      <LanguageSwitcher value={language.code} onChange={setLanguage} />
+      <div>Current language: {language.code}</div>
     </div>
   );
 };

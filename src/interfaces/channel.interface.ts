@@ -9,10 +9,6 @@ export enum ChannelType {
   WhatsApp = 'whatsapp',
   /** Email Channel */
   Email = 'email',
-  /** VoIP Channel */
-  VoIP = 'voip',
-  /** Facebook Messenger Channel */
-  FacebookMessenger = 'facebook_messenger',
 }
 
 /**
@@ -22,6 +18,4 @@ export const AvailableChannelTypes: ChannelType[] = [
   ChannelType.SMS,
   ChannelType.WhatsApp,
   ChannelType.Email,
-  ChannelType.VoIP,
-  ChannelType.FacebookMessenger,
 ];

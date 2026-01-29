@@ -7,7 +7,7 @@ import { ThemeMode, type ThemeState } from '@/interfaces/theme.interface';
 export interface ThemeSlice {
   theme: ThemeState;
   actions: {
-    setTheme: (payload: Partial<ThemeState>) => void;
+    setTheme: (mode: ThemeMode) => void;
   };
 }
 
@@ -18,9 +18,9 @@ export const createThemeSlice: StateCreator<ThemeSlice, [], [], ThemeSlice> = (
     mode: ThemeMode.System,
   },
   actions: {
-    setTheme: (payload: Partial<ThemeState>) =>
+    setTheme: (mode: ThemeMode) =>
       set((state) => ({
-        theme: { ...state.theme, ...payload },
+        theme: { ...state.theme, mode },
       })),
   },
 });

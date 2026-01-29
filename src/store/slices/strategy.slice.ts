@@ -1,6 +1,6 @@
 import type { StateCreator } from 'zustand';
 import type { AgentStatus } from '@/interfaces/agent.interface';
-import type { ChannelType } from '@/interfaces/channel.interface';
+import { ChannelType } from '@/interfaces/channel.interface';
 
 /**
  * Strategy Slice：渠道策略与坐席状态。
@@ -18,6 +18,7 @@ export interface StrategySlice {
   strategy: StrategyState;
   actions: {
     setStrategy: (payload: Partial<StrategyState>) => void;
+    setActiveChannel: (channel: ChannelType) => void;
   };
 }
 
@@ -29,11 +30,16 @@ export const createStrategySlice: StateCreator<
 > = (set) => ({
   strategy: {
     allowedChannels: [],
+    activeChannel: ChannelType.SMS,
   },
   actions: {
     setStrategy: (payload: Partial<StrategyState>) =>
       set((state) => ({
         strategy: { ...state.strategy, ...payload },
+      })),
+    setActiveChannel: (channel: ChannelType) =>
+      set((state) => ({
+        strategy: { ...state.strategy, activeChannel: channel },
       })),
   },
 });

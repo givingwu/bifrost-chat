@@ -1,17 +1,13 @@
-import {
-  Mail,
-  MessageSquare,
-  MessagesSquare,
-  Phone,
-  Smartphone,
-} from 'lucide-react';
-import type { ChannelType } from '@/interfaces/channel.interface';
+import { Mail, MessageSquare, Smartphone } from 'lucide-react';
+import { ChannelType } from '@/interfaces/channel.interface';
 import { useTranslation } from '@/providers/I18n.provider';
 import { cn } from '@/utils/class.util';
 
 export interface ChannelButtonFactoryProps {
   /** 渠道类型 */
-  type: ChannelType;
+  channel: ChannelType;
+  /** 当前激活的渠道 */
+  active?: boolean;
   /** 是否禁用 */
   disabled?: boolean;
   /** 点击回调 */
@@ -23,34 +19,34 @@ export interface ChannelButtonFactoryProps {
  * - 仅提供骨架，具体样式由上层接入方覆盖。
  */
 export const ChannelButtonFactory = ({
-  type,
+  channel,
+  active,
   disabled,
   onClick,
 }: ChannelButtonFactoryProps) => {
   const { t } = useTranslation();
-  const labelKey = `toolbar.channel.${type}`;
+
+  const labelKey = `toolbar.channel.${channel}`;
   const iconMap: Record<ChannelType, React.ReactNode> = {
-    sms: <Smartphone className="h-4 w-4" />,
-    whatsapp: <MessageSquare className="h-4 w-4" />,
-    email: <Mail className="h-4 w-4" />,
-    voip: <Phone className="h-4 w-4" />,
-    facebook_messenger: <MessagesSquare className="h-4 w-4" />,
+    [ChannelType.SMS]: <Smartphone className="h-4 w-4" />,
+    [ChannelType.WhatsApp]: <MessageSquare className="h-4 w-4" />,
+    [ChannelType.Email]: <Mail className="h-4 w-4" />,
   };
+
   return (
     <button
       type="button"
-      data-channel={type}
+      data-channel={channel}
       disabled={disabled}
       className={cn(
-        'inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium transition',
-        'border border-border bg-muted/60 text-text',
-        disabled
-          ? 'cursor-not-allowed border-border/60 text-text-muted'
-          : 'hover:border-primary hover:bg-card hover:text-primary',
+        'flex items-center space-x-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200',
+        active
+          ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm'
+          : 'text-gray-500 dark:text-gray-400 hover:bg-gray-200/50 dark:hover:bg-white/5',
       )}
-      onClick={() => onClick?.(type)}
+      onClick={() => onClick?.(channel)}
     >
-      {iconMap[type]}
+      {iconMap[channel]}
       <span>{t(labelKey)}</span>
     </button>
   );

@@ -10,7 +10,7 @@ import {
 export interface LanguageSlice {
   language: LanguageState;
   actions: {
-    setLanguage: (payload: Partial<LanguageState>) => void;
+    setLanguage: (code: LanguageCode) => void;
   };
 }
 
@@ -24,9 +24,9 @@ export const createLanguageSlice: StateCreator<
     code: LanguageCode.EnUS,
   },
   actions: {
-    setLanguage: (payload: Partial<LanguageState>) =>
+    setLanguage: (code: LanguageCode) =>
       set((state) => ({
-        language: { ...state.language, ...payload },
+        language: { ...state.language, code },
       })),
   },
 });
