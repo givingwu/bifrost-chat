@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import {
   AvailableLanguageCodes,
   LanguageCode,
@@ -9,8 +10,8 @@ export interface LanguageSwitcherProps {
 }
 
 const languageLabelMap: Record<LanguageCode, string> = {
-  [LanguageCode.EnUS]: 'English',
-  [LanguageCode.ZhCN]: '中文',
+  [LanguageCode.EnUS]: 'EN',
+  [LanguageCode.ZhCN]: 'ZH',
 };
 
 /**
@@ -20,29 +21,25 @@ export const LanguageSwitcher = ({
   value,
   onChange,
 }: LanguageSwitcherProps) => {
-  return (
-    <div
-      data-component="language-switcher"
-      className="inline-flex items-center gap-1 rounded-full border border-border bg-surface p-1"
-    >
-      {AvailableLanguageCodes.map((code) => {
-        const active = value === code;
+  const nextLanguage = useCallback(() => {
+    const currentIndex = AvailableLanguageCodes.indexOf(value);
+    const nextIndex = (currentIndex + 1) % AvailableLanguageCodes.length;
+    onChange?.(AvailableLanguageCodes[nextIndex]);
+  }, [value, onChange]);
 
-        return (
-          <button
-            key={code}
-            type="button"
-            className={`rounded-full px-2.5 py-1 text-xs font-medium transition ${
-              active
-                ? 'bg-accent text-accent-foreground'
-                : 'text-text-muted hover:text-text'
-            }`}
-            onClick={() => onChange?.(code)}
-          >
-            {languageLabelMap[code]}
-          </button>
-        );
-      })}
-    </div>
+  return (
+    <button
+      type="button"
+      data-component="language-switcher"
+      aria-label={`Language: ${languageLabelMap[value]}`}
+      onClick={nextLanguage}
+      className={`flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
+        value === LanguageCode.EnUS
+          ? 'text-text-muted hover:border-border hover:bg-muted/60 hover:text-text'
+          : 'text-primary hover:border-primary/30 hover:bg-primary/10'
+      }`}
+    >
+      <span className="w-4 text-center">{languageLabelMap[value]}</span>
+    </button>
   );
 };
