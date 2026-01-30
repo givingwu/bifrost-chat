@@ -1,46 +1,23 @@
-import type { AgentStatus } from '@/interfaces/agent.interface';
-import type { ChannelType } from '@/interfaces/channel.interface';
-import type { LanguageCode } from '@/interfaces/language.interface';
-import type { NetworkStatus as NetworkStatusEnum } from '@/interfaces/network.interface';
-import type { ThemeMode } from '@/interfaces/theme.interface';
 import { cn } from '@/utils/class.util';
-import { ChannelFilter } from '../toolbar/ChannelFilter';
-import { LanguageSwitcher } from '../toolbar/LanguageSwitcher';
-import { NetworkStatus } from '../toolbar/NetworkStatus';
-import { ThemeSwitcher } from '../toolbar/ThemeSwitcher';
 
 export interface ChatTopbarProps {
-  channels: ChannelType[];
-  status?: AgentStatus;
-  networkStatus: NetworkStatusEnum;
-  themeMode: ThemeMode;
-  language: LanguageCode;
-  onChannelClick?: (type: ChannelType) => void;
-  onThemeChange?: (mode: ThemeMode) => void;
-  onLanguageChange?: (language: LanguageCode) => void;
   /** 当前会话标题 */
   title?: string;
   /** 当前会话副标题 */
   subtitle?: string;
   /** 会话头像 */
   avatarUrl?: string;
+  extra?: React.ReactNode;
 }
 
 /**
  * ChatTopbar：顶部工具栏（左侧渠道工具、右侧网络/主题状态）
  */
 export const ChatTopbar = ({
-  channels,
-  status,
-  networkStatus,
-  themeMode,
-  language,
-  onChannelClick,
-  onThemeChange,
-  onLanguageChange,
   title,
   subtitle,
   avatarUrl,
+  extra,
 }: ChatTopbarProps) => {
   return (
     <header
@@ -73,20 +50,7 @@ export const ChatTopbar = ({
         </div>
       </div>
 
-      <ChannelFilter
-        channels={channels}
-        status={status}
-        onChannelClick={onChannelClick}
-      />
-
-      <div className="flex items-center gap-2">
-        <NetworkStatus status={networkStatus} />
-
-        <div className="flex gap-1">
-          <LanguageSwitcher value={language} onChange={onLanguageChange} />
-          <ThemeSwitcher value={themeMode} onChange={onThemeChange} />
-        </div>
-      </div>
+      {extra}
     </header>
   );
 };

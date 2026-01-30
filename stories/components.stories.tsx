@@ -12,14 +12,12 @@ import {
   ChannelType,
 } from '@/interfaces/channel.interface';
 import type { Conversation } from '@/interfaces/conversation.interface';
-import { LanguageCode } from '@/interfaces/language.interface';
 import {
   MessageDirection,
   MessageStatus,
   MessageType,
 } from '@/interfaces/message.interface';
 import { NetworkStatus as NetworkStatusEnum } from '@/interfaces/network.interface';
-import { ThemeMode } from '@/interfaces/theme.interface';
 import enUSMessages from '@/locales/en-US.json';
 import { I18nProvider } from '@/providers/I18n.provider';
 import {
@@ -157,16 +155,9 @@ export const Topbar: StoryObj = {
   render: () => (
     <ThemeSection theme="system" title="Topbar">
       <ChatTopbar
-        channels={AvailableChannelTypes}
-        status={AgentStatus.Online}
-        networkStatus={NetworkStatusEnum.Connected}
-        themeMode={ThemeMode.System}
-        language={LanguageCode.EnUS}
         title="Liam Walker"
         subtitle="via WhatsApp"
         avatarUrl="https://i.pravatar.cc/150?img=12"
-        onThemeChange={console.log}
-        onLanguageChange={console.log}
       />
     </ThemeSection>
   ),
@@ -211,12 +202,26 @@ export const ContextPanels: StoryObj = {
   ),
 };
 
+export const NetworkStatusPreview: StoryObj = {
+  render: () => (
+    <ThemeSection theme="system" title="Network Status">
+      <NetStatusPreview />
+    </ThemeSection>
+  ),
+};
+
+export const LanguageSwitcherPreview: StoryObj = {
+  render: () => (
+    <ThemeSection theme="system" title="Language">
+      <LanguagePreview />
+    </ThemeSection>
+  ),
+};
+
 export const ThemePreview: StoryObj = {
   render: () => (
     <ThemeSection theme="system" title="Theme/Language">
       <ThemeModePreview />
-      <LanguagePreview />
-      <NetStatusPreview />
     </ThemeSection>
   ),
 };

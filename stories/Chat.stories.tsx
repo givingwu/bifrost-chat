@@ -9,7 +9,6 @@ import {
   AvailableChannelTypes,
   ChannelType,
 } from '@/interfaces/channel.interface';
-import type { Conversation } from '@/interfaces/conversation.interface';
 import { LanguageCode } from '@/interfaces/language.interface';
 import {
   MessageDirection,
@@ -17,7 +16,6 @@ import {
   MessageType,
 } from '@/interfaces/message.interface';
 import enUSMessages from '@/locales/en-US.json';
-import zhCNMessages from '@/locales/zh-CN.json';
 import { I18nProvider } from '@/providers/I18n.provider';
 import '@/styles/theme.css';
 import { ConversationHeader } from '@/components/conversation/ConversationHeader';
@@ -31,12 +29,7 @@ const meta: Meta = {
 
 export default meta;
 
-const languageMessages = {
-  [LanguageCode.EnUS]: enUSMessages,
-  [LanguageCode.ZhCN]: zhCNMessages,
-};
-
-const mockConversations: Conversation[] = [
+const mockConversations = [
   {
     id: 'conv-1',
     user: {
@@ -134,15 +127,42 @@ const mockProfile = {
   localTime: '10:45 AM',
 };
 
-export const Composition: StoryObj = {
+export const ChatPreview: StoryObj = {
   render: () => (
     <ThemeSection theme="system" title="Composition">
       <ChatContainer
         locale={LanguageCode.EnUS}
-        messages={languageMessages}
-        channels={AvailableChannelTypes}
         onThemeChange={console.log}
         onLanguageChange={console.log}
+        conversationPanel={
+          <ConversationPanel
+            header={
+              <ConversationHeader title="Messages">
+                <ChannelFilter
+                  channels={AvailableChannelTypes}
+                  activeChannel={ChannelType.SMS}
+                  onChannelClick={(channel) =>
+                    console.log('Channel clicked:', channel)
+                  }
+                />
+              </ConversationHeader>
+            }
+          >
+            <ConversationList conversations={mockConversations} />
+          </ConversationPanel>
+        }
+        contextPanel={<ContextPanel profile={mockProfile} />}
+      >
+        <ChatMessageList messages={mockMessages} />
+      </ChatContainer>
+    </ThemeSection>
+  ),
+};
+
+export const ChatLayoutPreview: StoryObj = {
+  render: () => (
+    <ThemeSection theme="system" title="Chat">
+      <ChatLayout
         conversationPanel={
           <ConversationPanel
             header={
@@ -157,7 +177,6 @@ export const Composition: StoryObj = {
             <ConversationList conversations={mockConversations} />
           </ConversationPanel>
         }
-        contextPanel={<ContextPanel profile={mockProfile} />}
         composer={
           <ComposerToolbar
             channel={ChannelType.WhatsApp}
@@ -165,30 +184,15 @@ export const Composition: StoryObj = {
             onChange={() => {}}
           />
         }
+        contextPanel={<ContextPanel profile={mockProfile} />}
       >
         <ChatMessageList messages={mockMessages} />
-      </ChatContainer>
-    </ThemeSection>
-  ),
-};
-
-export const FullChat: StoryObj = {
-  render: () => (
-    <ThemeSection theme="system" title="Chat">
-      <ChatLayout
-        conversationPanel={
-          <ConversationList conversations={mockConversations} />
-        }
-        messages={<ChatMessageList messages={mockMessages} />}
-        composer={
-          <ComposerToolbar
-            channel={ChannelType.WhatsApp}
-            value=""
-            onChange={() => {}}
-          />
-        }
-        contextPanel={<ContextPanel profile={mockProfile} />}
-      />
+        <ComposerToolbar
+          channel={ChannelType.WhatsApp}
+          value=""
+          onChange={() => {}}
+        />
+      </ChatLayout>
     </ThemeSection>
   ),
 };

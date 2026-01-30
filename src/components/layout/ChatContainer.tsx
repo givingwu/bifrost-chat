@@ -1,49 +1,57 @@
 import { type ReactNode, useCallback, useMemo } from 'react';
-import type { ChannelType } from '@/interfaces/channel.interface';
+import { enUSMessages, zhCNMessages } from '@/index';
+import {
+  AvailableChannelTypes,
+  type ChannelType,
+} from '@/interfaces/channel.interface';
 import { LanguageCode } from '@/interfaces/language.interface';
 import type { ThemeMode } from '@/interfaces/theme.interface';
 import { I18nProvider } from '@/providers/I18n.provider';
 import { useChatStore } from '@/store';
-import { ChatLayout } from './ChatLayout';
+import { ComposerToolbar } from '../composer/ComposerToolbar';
+import { ConversationHeader } from '../conversation/ConversationHeader';
+import { ConversationList } from '../conversation/ConversationList';
+import { ConversationPanel } from '../conversation/ConversationPanel';
+import { ChannelFilter } from '../toolbar/ChannelFilter';
+import { LanguageSwitcher } from '../toolbar/LanguageSwitcher';
+import { NetworkStatus } from '../toolbar/NetworkStatus';
+import { ThemeSwitcher } from '../toolbar/ThemeSwitcher';
+import { ChatLayout, type ChatLayoutProps } from './ChatLayout';
 import { ChatTopbar } from './ChatTopbar';
 
-export interface ChatContainerProps {
+export interface ChatContainerProps extends Omit<ChatLayoutProps, 'topbar'> {
+  topbar?: boolean;
   locale?: LanguageCode;
-  messages: Record<string, Record<string, unknown>>;
   children: ReactNode;
-  channels: ChannelType[];
-  /** 左侧会话列表区域 */
-  conversationPanel?: ReactNode;
-  /** 右侧上下文面板 */
-  contextPanel?: ReactNode;
-  /** 输入区组件 */
-  composer?: ReactNode;
   onChannelClick?: (type: ChannelType) => void;
   onThemeChange?: (mode: ThemeMode) => void;
   onLanguageChange?: (language: LanguageCode) => void;
 }
 
+export const LanguageMessages = {
+  [LanguageCode.EnUS]: enUSMessages,
+  [LanguageCode.ZhCN]: zhCNMessages,
+};
+
 /**
  * ChatContainer：SDK 根容器（Provider + Store 绑定 + 顶部栏）。
  */
 export const ChatContainer = ({
+  topbar = true,
   locale,
-  messages,
   children,
-  channels,
   onChannelClick,
   onThemeChange,
   onLanguageChange,
-  conversationPanel,
-  contextPanel,
-  composer,
 }: ChatContainerProps) => {
   const { strategy, network, theme, language, actions, conversation } =
     useChatStore();
+
   const resolvedLanguage = useMemo(() => {
     if (locale) {
       return locale;
     }
+
     if (typeof navigator !== 'undefined') {
       const browserLanguage = navigator.language as LanguageCode;
 
@@ -53,9 +61,10 @@ export const ChatContainer = ({
     }
     return LanguageCode.EnUS;
   }, [locale]);
-  const languageMessages = useMemo(() => {
-    return messages[resolvedLanguage] ?? messages[LanguageCode.EnUS] ?? {};
-  }, [messages, resolvedLanguage]);
+  const finalMessages = useMemo(() => {
+    return LanguageMessages[resolvedLanguage] || enUSMessages;
+  }, [resolvedLanguage]);
+
   const handleThemeChange = useCallback(
     (mode: ThemeMode) => {
       actions.setTheme(mode);
@@ -70,6 +79,13 @@ export const ChatContainer = ({
     },
     [actions, onLanguageChange],
   );
+  const handleChannelClick = useCallback(
+    (channel: ChannelType) => {
+      actions.setActiveChannel(channel);
+      onChannelClick?.(channel);
+    },
+    [actions, onChannelClick],
+  );
 
   const conversationTitle = conversation.activeConversation?.user?.name;
   const conversationSubtitle = conversation.activeConversation?.channel;
@@ -81,29 +97,61 @@ export const ChatContainer = ({
       data-theme={theme.mode}
       data-language={resolvedLanguage}
       locale={resolvedLanguage}
-      messages={languageMessages}
+      messages={finalMessages}
     >
       <ChatLayout
+        className="max-w-[1400px]"
         topbar={
-          <ChatTopbar
-            channels={channels}
-            status={strategy.agentStatus}
-            networkStatus={network.status}
-            themeMode={theme.mode}
-            language={language.code ?? resolvedLanguage}
-            onChannelClick={onChannelClick}
-            onThemeChange={handleThemeChange}
-            onLanguageChange={handleLanguageChange}
-            title={conversationTitle}
-            subtitle={conversationSubtitle}
-            avatarUrl={conversationAvatar}
+          topbar && (
+            <ChatTopbar
+              title={conversationTitle}
+              subtitle={conversationSubtitle}
+              avatarUrl={conversationAvatar}
+              extra={
+                <div className="flex items-center gap-2">
+                  <NetworkStatus status={network.status} />
+
+                  <div className="flex gap-1">
+                    <LanguageSwitcher
+                      value={language.code ?? resolvedLanguage}
+                      onChange={handleLanguageChange}
+                    />
+                    <ThemeSwitcher
+                      value={theme.mode}
+                      onChange={handleThemeChange}
+                    />
+                  </div>
+                </div>
+              }
+            />
+          )
+        }
+        conversationPanel={
+          <ConversationPanel
+            header={
+              <ConversationHeader title={finalMessages.title}>
+                <ChannelFilter
+                  channels={AvailableChannelTypes}
+                  activeChannel={strategy.activeChannel}
+                  onChannelClick={handleChannelClick}
+                />
+              </ConversationHeader>
+            }
+          >
+            <ConversationList conversations={conversation.conversations} />
+          </ConversationPanel>
+        }
+        composer={
+          <ComposerToolbar
+            channel={strategy.activeChannel}
+            value={''}
+            onChange={() => {}}
           />
         }
-        conversationPanel={conversationPanel}
-        messages={children}
-        composer={composer}
-        contextPanel={contextPanel}
-      />
+        // contextPanel={contextPanel}
+      >
+        {children}
+      </ChatLayout>
     </I18nProvider>
   );
 };
