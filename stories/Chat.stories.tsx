@@ -1,9 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { ComposerToolbar } from '@/components/composer/ComposerToolbar';
+import { ContextPanel } from '@/components/context/ContextPanel';
+import { ConversationList } from '@/components/conversation/ConversationList';
 import { ChatContainer } from '@/components/layout/ChatContainer';
 import { ChatLayout } from '@/components/layout/ChatLayout';
-import { ContextPanel } from '@/components/layout/ContextPanel';
-import { ConversationList } from '@/components/layout/ConversationList';
 import { ChatMessageList } from '@/components/messages/ChatMessageList';
 import {
   AvailableChannelTypes,
@@ -19,8 +19,10 @@ import {
 import enUSMessages from '@/locales/en-US.json';
 import zhCNMessages from '@/locales/zh-CN.json';
 import { I18nProvider } from '@/providers/I18n.provider';
-import { useChatStore } from '@/store';
 import '@/styles/theme.css';
+import { ConversationHeader } from '@/components/conversation/ConversationHeader';
+import { ConversationPanel } from '@/components/conversation/ConversationPanel';
+import { ChannelFilter } from '@/components/toolbar/ChannelFilter';
 import type { AgentStatus } from '@/interfaces/agent.interface';
 
 const meta: Meta = {
@@ -141,8 +143,19 @@ export const Composition: StoryObj = {
         channels={AvailableChannelTypes}
         onThemeChange={console.log}
         onLanguageChange={console.log}
-        conversationList={
-          <ConversationList conversations={mockConversations} />
+        conversationPanel={
+          <ConversationPanel
+            header={
+              <ConversationHeader title="Messages">
+                <ChannelFilter
+                  channels={AvailableChannelTypes}
+                  activeChannel={ChannelType.SMS}
+                />
+              </ConversationHeader>
+            }
+          >
+            <ConversationList conversations={mockConversations} />
+          </ConversationPanel>
         }
         contextPanel={<ContextPanel profile={mockProfile} />}
         composer={
@@ -154,8 +167,6 @@ export const Composition: StoryObj = {
         }
       >
         <ChatMessageList messages={mockMessages} />
-        <ThemeModePreview />
-        <LanguagePreview />
       </ChatContainer>
     </ThemeSection>
   ),
@@ -165,7 +176,9 @@ export const FullChat: StoryObj = {
   render: () => (
     <ThemeSection theme="system" title="Chat">
       <ChatLayout
-        conversation={<ConversationList conversations={mockConversations} />}
+        conversationPanel={
+          <ConversationList conversations={mockConversations} />
+        }
         messages={<ChatMessageList messages={mockMessages} />}
         composer={
           <ComposerToolbar
@@ -178,24 +191,6 @@ export const FullChat: StoryObj = {
       />
     </ThemeSection>
   ),
-};
-
-const ThemeModePreview = () => {
-  const themeMode = useChatStore((state) => state.theme.mode);
-  return (
-    <div className="rounded-lg border border-border bg-card px-3 py-2 text-xs text-text-muted">
-      Current theme: {themeMode}
-    </div>
-  );
-};
-
-const LanguagePreview = () => {
-  const language = useChatStore((state) => state.language.code);
-  return (
-    <div className="rounded-lg border border-border bg-card px-3 py-2 text-xs text-text-muted">
-      Current language: {language}
-    </div>
-  );
 };
 
 const ThemeSection = ({

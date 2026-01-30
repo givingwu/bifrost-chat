@@ -12,15 +12,15 @@ export interface ChatContainerProps {
   messages: Record<string, Record<string, unknown>>;
   children: ReactNode;
   channels: ChannelType[];
-  onChannelClick?: (type: ChannelType) => void;
-  onThemeChange?: (mode: ThemeMode) => void;
-  onLanguageChange?: (language: LanguageCode) => void;
   /** 左侧会话列表区域 */
-  conversationList?: ReactNode;
+  conversationPanel?: ReactNode;
   /** 右侧上下文面板 */
   contextPanel?: ReactNode;
   /** 输入区组件 */
   composer?: ReactNode;
+  onChannelClick?: (type: ChannelType) => void;
+  onThemeChange?: (mode: ThemeMode) => void;
+  onLanguageChange?: (language: LanguageCode) => void;
 }
 
 /**
@@ -34,7 +34,7 @@ export const ChatContainer = ({
   onChannelClick,
   onThemeChange,
   onLanguageChange,
-  conversationList,
+  conversationPanel,
   contextPanel,
   composer,
 }: ChatContainerProps) => {
@@ -76,14 +76,15 @@ export const ChatContainer = ({
   const conversationAvatar = conversation.activeConversation?.user?.avatarUrl;
 
   return (
-    <I18nProvider locale={resolvedLanguage} messages={languageMessages}>
-      <div
-        data-component="chat-container"
-        data-theme={theme.mode}
-        data-language={resolvedLanguage}
-        className="flex h-screen items-center justify-center bg-background p-6"
-      >
-        <div className="flex w-full max-w-[1400px] flex-col gap-4">
+    <I18nProvider
+      data-component="chat-container"
+      data-theme={theme.mode}
+      data-language={resolvedLanguage}
+      locale={resolvedLanguage}
+      messages={languageMessages}
+    >
+      <ChatLayout
+        topbar={
           <ChatTopbar
             channels={channels}
             status={strategy.agentStatus}
@@ -97,14 +98,12 @@ export const ChatContainer = ({
             subtitle={conversationSubtitle}
             avatarUrl={conversationAvatar}
           />
-          <ChatLayout
-            conversation={conversationList}
-            messages={children}
-            composer={composer ?? <div />}
-            contextPanel={contextPanel}
-          />
-        </div>
-      </div>
+        }
+        conversationPanel={conversationPanel}
+        messages={children}
+        composer={composer}
+        contextPanel={contextPanel}
+      />
     </I18nProvider>
   );
 };

@@ -2,6 +2,7 @@ import { Mail, MessageSquare, Smartphone } from 'lucide-react';
 import { ChannelType } from '@/interfaces/channel.interface';
 import { useTranslation } from '@/providers/I18n.provider';
 import { cn } from '@/utils/class.util';
+import { Button } from '../Button';
 
 export interface ChannelButtonFactoryProps {
   /** 渠道类型 */
@@ -25,7 +26,6 @@ export const ChannelButtonFactory = ({
   onClick,
 }: ChannelButtonFactoryProps) => {
   const { t } = useTranslation();
-
   const labelKey = `toolbar.channel.${channel}`;
   const iconMap: Record<ChannelType, React.ReactNode> = {
     [ChannelType.SMS]: <Smartphone className="h-4 w-4" />,
@@ -34,20 +34,20 @@ export const ChannelButtonFactory = ({
   };
 
   return (
-    <button
-      type="button"
+    <Button
+      key={channel}
       data-channel={channel}
       disabled={disabled}
       className={cn(
-        'flex items-center space-x-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200',
+        'shrink-0 flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 border',
         active
-          ? 'bg-card text-primary shadow-sm dark:bg-card/80'
-          : 'text-text-muted hover:bg-muted/60',
+          ? 'bg-blue-500 border-blue-600 text-white shadow-md shadow-blue-500/20'
+          : 'bg-white dark:bg-white/5 border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/10',
       )}
       onClick={() => onClick?.(channel)}
     >
       {iconMap[channel]}
       <span>{t(labelKey)}</span>
-    </button>
+    </Button>
   );
 };

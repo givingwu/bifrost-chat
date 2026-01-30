@@ -1,5 +1,7 @@
 import { Monitor, Moon, Sun } from 'lucide-react';
+import { useCallback } from 'react';
 import { ThemeMode } from '@/interfaces/theme.interface';
+import { CircularButton } from '../Button';
 
 export interface ThemeSwitcherProps {
   value: ThemeMode;
@@ -12,16 +14,10 @@ const themeOrder = [ThemeMode.System, ThemeMode.Light, ThemeMode.Dark];
  * To switch between light, dark, and system themes.
  */
 export const ThemeSwitcher = ({ value, onChange }: ThemeSwitcherProps) => {
-  const nextTheme = () => {
-    const currentIndex = themeOrder.indexOf(value);
-    const nextIndex = (currentIndex + 1) % themeOrder.length;
-    onChange?.(themeOrder[nextIndex]);
-  };
-
   const iconMap = {
-    [ThemeMode.System]: <Monitor className="h-5 w-5" />,
-    [ThemeMode.Light]: <Sun className="h-5 w-5" />,
-    [ThemeMode.Dark]: <Moon className="h-5 w-5" />,
+    [ThemeMode.System]: <Monitor className="h-4 w-4" />,
+    [ThemeMode.Light]: <Sun className="h-4 w-4" />,
+    [ThemeMode.Dark]: <Moon className="h-4 w-4" />,
   } satisfies Record<ThemeMode, React.ReactNode>;
 
   const labelMap = {
@@ -30,19 +26,24 @@ export const ThemeSwitcher = ({ value, onChange }: ThemeSwitcherProps) => {
     [ThemeMode.Dark]: 'Dark',
   } satisfies Record<ThemeMode, string>;
 
+  const nextTheme = useCallback(() => {
+    const currentIndex = themeOrder.indexOf(value);
+    const nextIndex = (currentIndex + 1) % themeOrder.length;
+    onChange?.(themeOrder[nextIndex]);
+  }, [value, onChange]);
+
   return (
-    <button
-      type="button"
+    <CircularButton
       data-component="theme-switcher"
       aria-label={`Theme: ${labelMap[value]}`}
       onClick={nextTheme}
-      className={`rounded-full p-2 text-text-muted transition-colors hover:bg-muted/60 hover:text-text ${
+      className={
         value !== ThemeMode.System
           ? 'text-primary hover:border-primary/30 hover:bg-primary/10'
           : ''
-      }`}
+      }
     >
       {iconMap[value]}
-    </button>
+    </CircularButton>
   );
 };

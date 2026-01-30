@@ -3,6 +3,7 @@ import {
   AvailableLanguageCodes,
   LanguageCode,
 } from '@/interfaces/language.interface';
+import { CircularButton } from '../Button';
 
 export interface LanguageSwitcherProps {
   value: LanguageCode;
@@ -28,18 +29,17 @@ export const LanguageSwitcher = ({
   }, [value, onChange]);
 
   return (
-    <button
-      type="button"
+    <CircularButton
       data-component="language-switcher"
       aria-label={`Language: ${languageLabelMap[value]}`}
       onClick={nextLanguage}
-      className={`flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
+      className={
         value === LanguageCode.EnUS
           ? 'text-text-muted hover:border-border hover:bg-muted/60 hover:text-text'
           : 'text-primary hover:border-primary/30 hover:bg-primary/10'
-      }`}
+      }
     >
-      <span className="w-4 text-center">{languageLabelMap[value]}</span>
-    </button>
+      <span className="text-sm font-semibold">{languageLabelMap[value]}</span>
+    </CircularButton>
   );
 };

@@ -1,6 +1,7 @@
 import type { Conversation } from '@/interfaces/conversation.interface';
 import { cn } from '@/utils/class.util';
 import { ChannelBadge } from '../toolbar/ChannelBadge';
+import { ConversationAvatar } from './ConversationAvatar';
 
 export const ConversationItem = ({
   conversation,
@@ -15,23 +16,18 @@ export const ConversationItem = ({
       type="button"
       onClick={() => onSelect?.(conversation.id)}
       className={cn(
-        'w-full flex items-start p-3 rounded-xl transition-all duration-200 text-left group relative',
+        'w-full flex items-start p-3 rounded-xl transition-all duration-200 text-left group relative ',
         conversation.isActive
-          ? 'bg-primary shadow-md shadow-primary/20'
+          ? ' bg-blue-500 shadow-md shadow-blue-500/20'
           : 'hover:bg-gray-200/50 dark:hover:bg-white/5 bg-transparent',
       )}
     >
       <div className="flex items-start gap-3">
-        <div className="relative">
-          <img
-            src={conversation.user.avatarUrl}
-            alt={conversation.user.name}
-            className="h-12 w-12 rounded-full object-cover"
-          />
-          <div className="absolute -bottom-1 -right-1 rounded-full border-2 border-card">
-            <ChannelBadge type={conversation.channel} />
-          </div>
-        </div>
+        <ConversationAvatar
+          url={conversation.user.avatarUrl}
+          name={conversation.user.name}
+          channel={conversation.channel}
+        />
         <div className="min-w-0 flex-1">
           <div className="flex items-baseline justify-between gap-2">
             <h4

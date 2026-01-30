@@ -35,7 +35,7 @@ export const NetworkStatus = ({ status }: NetworkState) => {
   return (
     <div
       className={cn(
-        'flex items-center space-x-2 rounded-full px-3 py-1.5 text-xs font-medium',
+        'flex items-center justify-center space-x-2 rounded-full px-3 py-1.5 text-xs font-medium',
         statusClassMap[status].container,
       )}
     >

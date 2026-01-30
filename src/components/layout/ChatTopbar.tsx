@@ -4,10 +4,10 @@ import type { LanguageCode } from '@/interfaces/language.interface';
 import type { NetworkStatus as NetworkStatusEnum } from '@/interfaces/network.interface';
 import type { ThemeMode } from '@/interfaces/theme.interface';
 import { cn } from '@/utils/class.util';
-import { ChannelToolsList } from '../toolbar/ChannelToolsList';
-import { LanguageSwitcher } from './LanguageSwitcher';
-import { NetworkStatus } from './NetworkStatus';
-import { ThemeSwitcher } from './ThemeSwitcher';
+import { ChannelFilter } from '../toolbar/ChannelFilter';
+import { LanguageSwitcher } from '../toolbar/LanguageSwitcher';
+import { NetworkStatus } from '../toolbar/NetworkStatus';
+import { ThemeSwitcher } from '../toolbar/ThemeSwitcher';
 
 export interface ChatTopbarProps {
   channels: ChannelType[];
@@ -46,8 +46,10 @@ export const ChatTopbar = ({
     <header
       data-component="chat-topbar"
       className={cn(
-        'flex flex-wrap items-center justify-between gap-4 rounded-2xl',
-        'border border-border bg-card/80 px-6 py-3 shadow-soft backdrop-blur-md',
+        'flex flex-wrap items-center justify-between gap-4',
+        'border-b border-gray-200/50 dark:border-white/10',
+        'flex items-center justify-between px-6 py-3',
+        'shadow-soft dark:bg-gray-900/50 bg-card/80 backdrop-blur-md z-10',
       )}
     >
       <div className="flex items-center gap-3">
@@ -70,15 +72,20 @@ export const ChatTopbar = ({
           )}
         </div>
       </div>
-      <ChannelToolsList
+
+      <ChannelFilter
         channels={channels}
         status={status}
         onChannelClick={onChannelClick}
       />
-      <div className="flex items-center gap-3">
+
+      <div className="flex items-center gap-2">
         <NetworkStatus status={networkStatus} />
-        <ThemeSwitcher value={themeMode} onChange={onThemeChange} />
-        <LanguageSwitcher value={language} onChange={onLanguageChange} />
+
+        <div className="flex gap-1">
+          <LanguageSwitcher value={language} onChange={onLanguageChange} />
+          <ThemeSwitcher value={themeMode} onChange={onThemeChange} />
+        </div>
       </div>
     </header>
   );

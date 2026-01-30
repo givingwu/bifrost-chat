@@ -1,11 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { ComposerToolbar } from '@/components/composer/ComposerToolbar';
+import { ContextPanel } from '@/components/context/ContextPanel';
+import { ConversationList } from '@/components/conversation/ConversationList';
 import { ChatTopbar } from '@/components/layout/ChatTopbar';
-import { ContextPanel } from '@/components/layout/ContextPanel';
-import { ConversationList } from '@/components/layout/ConversationList';
-import { NetworkStatus } from '@/components/layout/NetworkStatus';
 import { ChatMessageList } from '@/components/messages/ChatMessageList';
-import { ChannelToolsList } from '@/components/toolbar/ChannelToolsList';
+import { ChannelFilter } from '@/components/toolbar/ChannelFilter';
+import { NetworkStatus } from '@/components/toolbar/NetworkStatus';
 import { AgentStatus } from '@/interfaces/agent.interface';
 import {
   AvailableChannelTypes,
@@ -30,8 +30,8 @@ import {
   useTheme,
 } from '@/store';
 import '@/styles/theme.css';
-import { LanguageSwitcher } from '@/components/layout/LanguageSwitcher';
-import { ThemeSwitcher } from '@/components/layout/ThemeSwitcher';
+import { LanguageSwitcher } from '@/components/toolbar/LanguageSwitcher';
+import { ThemeSwitcher } from '@/components/toolbar/ThemeSwitcher';
 
 const meta: Meta = {
   title: 'Chat/Components',
@@ -143,7 +143,7 @@ export const ToolsList = () => {
 
   return (
     <ThemeSection theme="light" title="Light">
-      <ChannelToolsList
+      <ChannelFilter
         activeChannel={activeChannel}
         onChannelClick={setActiveChannel}
         channels={AvailableChannelTypes}
