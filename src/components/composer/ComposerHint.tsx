@@ -20,7 +20,7 @@ export const ComposerHint = ({ channel }: { channel?: ChannelType }) => {
   return (
     <div className="flex items-center gap-1 text-[10px] text-text-muted">
       {channel === 'whatsapp' && (
-        <ShieldCheck className="h-3 w-3 text-green-500" />
+        <ShieldCheck className="h-3 w-3 text-success" />
       )}
       <span>{hint}</span>
     </div>

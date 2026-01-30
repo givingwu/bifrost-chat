@@ -26,10 +26,10 @@ const StatusIndicator = ({ status }: { status?: MessageStatus }) => {
     return <Loader2 className="h-3 w-3 animate-spin text-white/70" />;
   }
   if (status === MessageStatus.Failed) {
-    return <AlertCircle className="h-4 w-4 text-red-500" />;
+    return <AlertCircle className="h-4 w-4 text-error" />;
   }
   if (status === MessageStatus.Read) {
-    return <CheckCheck className="h-4 w-4 text-blue-300" />;
+    return <CheckCheck className="h-4 w-4 text-primary/80" />;
   }
   if (status === MessageStatus.Delivered) {
     return <CheckCheck className="h-4 w-4 text-white/50" />;
@@ -173,7 +173,7 @@ export const MessageRendererFactory = ({
         </div>
         <div className="mt-1 flex items-center gap-1 px-1">
           {message.status === MessageStatus.Failed && (
-            <span className="text-xs font-medium text-red-500">Retry</span>
+            <span className="text-xs font-medium text-error">Retry</span>
           )}
           <span className="text-[10px] text-text-muted">{timestamp}</span>
           {isMe && <StatusIndicator status={message.status} />}

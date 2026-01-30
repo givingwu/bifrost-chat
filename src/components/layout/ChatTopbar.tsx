@@ -58,7 +58,7 @@ export const ChatTopbar = ({
               alt={title ?? 'conversation'}
               className="h-10 w-10 rounded-full object-cover shadow-soft"
             />
-            <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-card bg-green-500" />
+            <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-card bg-success" />
           </div>
         )}
         <div>

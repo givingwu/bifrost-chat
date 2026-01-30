@@ -3,6 +3,7 @@ import { ComposerToolbar } from '@/components/composer/ComposerToolbar';
 import { ChatTopbar } from '@/components/layout/ChatTopbar';
 import { ContextPanel } from '@/components/layout/ContextPanel';
 import { ConversationList } from '@/components/layout/ConversationList';
+import { NetworkStatus } from '@/components/layout/NetworkStatus';
 import { ChatMessageList } from '@/components/messages/ChatMessageList';
 import { ChannelToolsList } from '@/components/toolbar/ChannelToolsList';
 import { AgentStatus } from '@/interfaces/agent.interface';
@@ -17,11 +18,17 @@ import {
   MessageStatus,
   MessageType,
 } from '@/interfaces/message.interface';
-import { NetworkStatus } from '@/interfaces/network.interface';
+import { NetworkStatus as NetworkStatusEnum } from '@/interfaces/network.interface';
 import { ThemeMode } from '@/interfaces/theme.interface';
 import enUSMessages from '@/locales/en-US.json';
 import { I18nProvider } from '@/providers/I18n.provider';
-import { useActions, useLanguage, useStrategy, useTheme } from '@/store';
+import {
+  useActions,
+  useLanguage,
+  useNetwork,
+  useStrategy,
+  useTheme,
+} from '@/store';
 import '@/styles/theme.css';
 import { LanguageSwitcher } from '@/components/layout/LanguageSwitcher';
 import { ThemeSwitcher } from '@/components/layout/ThemeSwitcher';
@@ -152,7 +159,7 @@ export const Topbar: StoryObj = {
       <ChatTopbar
         channels={AvailableChannelTypes}
         status={AgentStatus.Online}
-        networkStatus={NetworkStatus.Connected}
+        networkStatus={NetworkStatusEnum.Connected}
         themeMode={ThemeMode.System}
         language={LanguageCode.EnUS}
         title="Liam Walker"
@@ -209,8 +216,24 @@ export const ThemePreview: StoryObj = {
     <ThemeSection theme="system" title="Theme/Language">
       <ThemeModePreview />
       <LanguagePreview />
+      <NetStatusPreview />
     </ThemeSection>
   ),
+};
+
+const NetStatusPreview = () => {
+  const network = useNetwork();
+
+  return (
+    <div className="flex gap-2 items-center rounded-lg border border-border bg-card px-3 py-2 text-xs">
+      <div className="flex flex-col gap-4">
+        <NetworkStatus status={NetworkStatusEnum.Connected} />
+        <NetworkStatus status={NetworkStatusEnum.Connecting} />
+        <NetworkStatus status={NetworkStatusEnum.Disconnected} />
+      </div>
+      <div>Network status: {network.status}</div>
+    </div>
+  );
 };
 
 const ThemeModePreview = () => {

@@ -17,7 +17,7 @@ export const ConversationItem = ({
       className={cn(
         'w-full flex items-start p-3 rounded-xl transition-all duration-200 text-left group relative',
         conversation.isActive
-          ? 'bg-blue-500 shadow-md shadow-blue-500/20'
+          ? 'bg-primary shadow-md shadow-primary/20'
           : 'hover:bg-gray-200/50 dark:hover:bg-white/5 bg-transparent',
       )}
     >

@@ -132,7 +132,7 @@ const mockProfile = {
   localTime: '10:45 AM',
 };
 
-export const CompositionExample: StoryObj = {
+export const Composition: StoryObj = {
   render: () => (
     <ThemeSection theme="system" title="Composition">
       <ChatContainer

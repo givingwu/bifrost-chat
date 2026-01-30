@@ -2,6 +2,7 @@ import type {
   NetworkState,
   NetworkStatus as NetworkStatusEnum,
 } from '@/interfaces/network.interface';
+import { cn } from '@/utils/class.util';
 
 const statusMap: Record<NetworkStatusEnum, string> = {
   connected: 'Connected',
@@ -9,10 +10,22 @@ const statusMap: Record<NetworkStatusEnum, string> = {
   disconnected: 'Disconnected',
 };
 
-const statusClassMap: Record<NetworkStatusEnum, string> = {
-  connected: 'bg-success/15 text-success',
-  connecting: 'bg-warning/15 text-warning',
-  disconnected: 'bg-danger/15 text-danger',
+const statusClassMap: Record<
+  NetworkStatusEnum,
+  { container: string; dot: string }
+> = {
+  connected: {
+    container: 'bg-success/10 text-success',
+    dot: 'bg-success',
+  },
+  connecting: {
+    container: 'bg-warning/10 text-warning',
+    dot: 'bg-warning animate-pulse',
+  },
+  disconnected: {
+    container: 'bg-error/10 text-error',
+    dot: 'bg-error',
+  },
 };
 
 /**
@@ -21,10 +34,12 @@ const statusClassMap: Record<NetworkStatusEnum, string> = {
 export const NetworkStatus = ({ status }: NetworkState) => {
   return (
     <div
-      data-component="network-status"
-      className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium ${statusClassMap[status]}`}
+      className={cn(
+        'flex items-center space-x-2 rounded-full px-3 py-1.5 text-xs font-medium',
+        statusClassMap[status].container,
+      )}
     >
-      <span className="h-2 w-2 rounded-full bg-current" />
+      <div className={cn('h-2 w-2 rounded-full', statusClassMap[status].dot)} />
       <span>{statusMap[status]}</span>
     </div>
   );

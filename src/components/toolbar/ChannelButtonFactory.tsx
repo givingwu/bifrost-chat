@@ -41,8 +41,8 @@ export const ChannelButtonFactory = ({
       className={cn(
         'flex items-center space-x-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200',
         active
-          ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm'
-          : 'text-gray-500 dark:text-gray-400 hover:bg-gray-200/50 dark:hover:bg-white/5',
+          ? 'bg-card text-primary shadow-sm dark:bg-card/80'
+          : 'text-text-muted hover:bg-muted/60',
       )}
       onClick={() => onClick?.(channel)}
     >
