@@ -1,6 +1,7 @@
 import type { StateCreator } from 'zustand';
 import type { Conversation } from '@/interfaces/conversation.interface';
 import type { StandardMessage } from '@/interfaces/message.interface';
+import { defaultConversations, defaultMessages } from '../mock/chat.default';
 
 /**
  * Conversation Slice：消息流与会话状态。
@@ -30,8 +31,9 @@ export const createConversationSlice: StateCreator<
   ConversationSlice
 > = (set) => ({
   conversation: {
-    messages: [],
-    conversations: [],
+    messages: defaultMessages,
+    conversations: defaultConversations,
+    activeConversation: defaultConversations[0],
   },
   actions: {
     appendMessage: (message: StandardMessage) =>

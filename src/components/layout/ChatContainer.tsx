@@ -9,6 +9,7 @@ import type { ThemeMode } from '@/interfaces/theme.interface';
 import { I18nProvider } from '@/providers/I18n.provider';
 import { useChatStore } from '@/store';
 import { ComposerToolbar } from '../composer/ComposerToolbar';
+import { ContextPanel } from '../context/ContextPanel';
 import { ConversationHeader } from '../conversation/ConversationHeader';
 import { ConversationList } from '../conversation/ConversationList';
 import { ConversationPanel } from '../conversation/ConversationPanel';
@@ -44,7 +45,7 @@ export const ChatContainer = ({
   onThemeChange,
   onLanguageChange,
 }: ChatContainerProps) => {
-  const { strategy, network, theme, language, actions, conversation } =
+  const { strategy, network, theme, language, actions, conversation, context } =
     useChatStore();
 
   const resolvedLanguage = useMemo(() => {
@@ -108,7 +109,7 @@ export const ChatContainer = ({
               subtitle={conversationSubtitle}
               avatarUrl={conversationAvatar}
               extra={
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-4">
                   <NetworkStatus status={network.status} />
 
                   <div className="flex gap-1">
@@ -148,7 +149,13 @@ export const ChatContainer = ({
             onChange={() => {}}
           />
         }
-        // contextPanel={contextPanel}
+        contextPanel={
+          <ContextPanel
+            profile={context.profile}
+            templates={context.templates}
+            renderCustom={context.renderContextPanel}
+          />
+        }
       >
         {children}
       </ChatLayout>
