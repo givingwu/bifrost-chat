@@ -20,7 +20,7 @@ ChatContainer
     ├── ConversationList
     ├── ChatMessageList
     ├── ComposerToolbar
-    └── ContextPanel
+    └── Profile
 ```
 
 ## 3. 组件职责与 Props
@@ -64,8 +64,7 @@ ChatContainer
 | ThemeSwitcher | Theme Slice | UI 触发 -> Store 更新。
 | ChatMessageList | DataLayer -> Store.conversation | 标准化消息流渲染。
 | ComposerToolbar | Strategy Slice | 按渠道切换输入能力，UI 对齐 DEMO。
-| ContextPanel | Context Slice | 默认模板 + 自定义渲染。
-| ConversationList | Conversation Slice | 会话列表展示与切换。
+| Profile | Profile Slice | 默认模板 + 自定义渲染。 | ConversationList | Conversation Slice | 会话列表展示与切换。
 
 ## 5. 关键数据流
 

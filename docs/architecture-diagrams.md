@@ -28,7 +28,7 @@ graph TB
             CT[ChatTopbar]
             CL[ChatLayout]
             CM[ChatMessageList]
-            CP[ContextPanel]
+            CP[Profile]
             CS[ComposerToolbar]
             CF[ChannelFilter]
             NS[NetworkStatus]
@@ -45,7 +45,7 @@ graph TB
             TH[ThemeSlice]
             LG[LanguageSlice]
             CSV[ConversationSlice]
-            CX[ContextSlice]
+            CX[ProfileSlice]
         end
 
         subgraph DataLayer[调度与缓存层 DataLayer]
@@ -134,7 +134,7 @@ graph TB
         R2[ChatTopbar]
         R3[ChatMessageList]
         R4[ComposerToolbar]
-        R5[ContextPanel]
+        R5[Profile]
     end
 
     subgraph Level2[Level 2: 交互与状态层 Logic]
@@ -514,15 +514,15 @@ graph TB
     CL --> CList[ConversationList]
     CL --> CML[ChatMessageList]
     CL --> CTB[ComposerToolbar]
-    CL --> CP[ContextPanel]
+    CL --> CP[Profile]
 
     CF --> CBF[ChannelButtonFactory]
     CML --> MRF[MessageRendererFactory]
 
-    CP --> CPH[ContextPanelHeader]
-    CP --> CPS[ContextPanelSearch]
-    CP --> CPI[ContextPanelInfoList]
-    CP --> CPT[ContextPanelTemplates]
+    CP --> CPH[ProfileHeader]
+    CP --> CPS[ProfileSearch]
+    CP --> CPI[ProfileInfoList]
+    CP --> CPT[ProfileTemplates]
 
     CTB --> CTA[ComposerActions]
     CTB --> CAtts[ComposerAttachments]
@@ -540,7 +540,7 @@ graph TB
     Store --> Theme[ThemeSlice]
     Store --> Language[LanguageSlice]
     Store --> Conversation[ConversationSlice]
-    Store --> Context[ContextSlice]
+    Store --> Profile[ProfileSlice]
 
     UI --> UIActions[actions.setUI]
     Strategy --> StrategyActions[actions.setStrategy]

@@ -107,8 +107,8 @@
 - `src/components/toolbar`：ChannelToolsList + ChannelButtonFactory
 - `src/components/messages`：ChatMessageList + MessageRendererFactory + BubbleMap
 - `src/components/composer`：ComposerStrategy
-- `src/components/context`：ContextPanel
-- `src/store/`：UI/Strategy/Conversation/Context Slices
+- `src/components/profile`：Profile
+- `src/store/`：UI/Strategy/Conversation/Profile Slices
 - `src/datalayer/`：Repository + OfflineQueue + Retry
 - `src/adapter/`：SMSAdapter / WhatsAppAdapter / EmailAdapter / VoIPAdapter
 - `src/mapper/`：各渠道 Mapper + Zod Schema

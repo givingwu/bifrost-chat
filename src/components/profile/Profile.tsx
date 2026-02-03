@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { isValidElement, type ReactNode } from 'react';
 import type {
   ProfileData,
   ProfileTemplate,
@@ -12,7 +12,7 @@ export interface ProfileProps {
   /** 默认模板列表 */
   templates?: ProfileTemplate[];
   /** 自定义渲染（优先级最高） */
-  renderCustom?: () => ReactNode;
+  render?: (templates: ProfileTemplate[]) => ReactNode;
   /** 点击模板回调 */
   onTemplateClick?: (template: ProfileTemplate) => void;
   /** 用户信息 */
@@ -25,13 +25,14 @@ export interface ProfileProps {
  */
 export const Profile = ({
   templates = [],
-  renderCustom,
+  render,
   onTemplateClick,
   profile,
 }: ProfileProps) => {
-  const custom = renderCustom?.();
-  if (custom) {
-    return <>{custom}</>;
+  const custom = render?.(templates);
+
+  if (isValidElement(custom)) {
+    return custom;
   }
 
   if (templates.length === 0) {

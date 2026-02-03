@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { ComposerToolbar } from '@/components/composer/ComposerToolbar';
 import { ConversationList } from '@/components/conversation/ConversationList';
 import { ChatContainer } from '@/components/layout/ChatContainer';
-import { ChatLayout } from '@/components/layout/ChatLayout';
+import { ChatLayout as CustomChatLayout } from '@/components/layout/ChatLayout';
 import { ChatMessageList } from '@/components/messages/ChatMessageList';
 import {
   AvailableChannelTypes,
@@ -14,8 +14,10 @@ import { I18nProvider } from '@/providers/I18n.provider';
 import '@/styles/theme.css';
 import { ConversationHeader } from '@/components/conversation/ConversationHeader';
 import { ConversationPanel } from '@/components/conversation/ConversationPanel';
+import { DefaultTools } from '@/components/layout/DefaultChatLayout';
+import { Profile } from '@/components/profile/Profile';
 import { ChannelFilter } from '@/components/toolbar/ChannelFilter';
-import { ChatTopbar } from '@/index';
+import { ChatTopbar, DefaultChatLayout as DefaultChat } from '@/index';
 import { useConversation } from '@/store';
 
 const meta: Meta = {
@@ -24,45 +26,30 @@ const meta: Meta = {
 
 export default meta;
 
-export const ChatPreview: StoryObj = {
+export const DefaultChatLayout: StoryObj = {
   render: () => {
-    const { conversations, messages } = useConversation();
+    const { messages } = useConversation();
 
     return (
       <ThemeSection theme="system" title="Composition">
         <ChatContainer locale={LanguageCode.EnUS}>
-          <ChatLayout
-            topbar={<ChatTopbar title="Chat ChatTopbar" />}
-            conversationPanel={
-              <ConversationPanel
-                header={
-                  <ConversationHeader title="Messages">
-                    <ChannelFilter
-                      channels={AvailableChannelTypes}
-                      activeChannel={ChannelType.SMS}
-                    />
-                  </ConversationHeader>
-                }
-              >
-                <ConversationList conversations={conversations} />
-              </ConversationPanel>
-            }
-          >
+          <DefaultChat>
             <ChatMessageList messages={messages} />
-          </ChatLayout>
+          </DefaultChat>
         </ChatContainer>
       </ThemeSection>
     );
   },
 };
 
-export const ChatLayoutPreview: StoryObj = {
+export const ChatLayout: StoryObj = {
   render: () => {
     const { conversations, messages } = useConversation();
 
     return (
       <ThemeSection theme="system" title="Chat">
-        <ChatLayout
+        <CustomChatLayout
+          topbar={<ChatTopbar extra={<DefaultTools />} />}
           conversationPanel={
             <ConversationPanel
               header={
@@ -77,21 +64,11 @@ export const ChatLayoutPreview: StoryObj = {
               <ConversationList conversations={conversations} />
             </ConversationPanel>
           }
-          composer={
-            <ComposerToolbar
-              channel={ChannelType.WhatsApp}
-              value=""
-              onChange={() => {}}
-            />
-          }
+          composer={<ComposerToolbar channel={ChannelType.WhatsApp} />}
+          profilePanel={<Profile />}
         >
           <ChatMessageList messages={messages} />
-          <ComposerToolbar
-            channel={ChannelType.WhatsApp}
-            value=""
-            onChange={() => {}}
-          />
-        </ChatLayout>
+        </CustomChatLayout>
       </ThemeSection>
     );
   },

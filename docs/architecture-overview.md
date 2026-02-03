@@ -48,7 +48,7 @@ graph TB
             CT[ChatTopbar]
             CL[ChatLayout]
             CM[ChatMessageList]
-            CP[ContextPanel]
+            CP[Profile]
             CS[ComposerToolbar]
         end
 
@@ -125,7 +125,7 @@ ChatContainer (根容器)
     ├── ConversationList (会话列表)
     ├── ChatMessageList (消息列表)
     ├── ComposerToolbar (输入工具栏)
-    └── ContextPanel (上下文面板)
+    └── Profile (上下文面板)
 ```
 
 #### 2.1.2 核心组件
@@ -139,7 +139,7 @@ ChatContainer (根容器)
 | [`ChatMessageList`](src/components/messages/ChatMessageList.tsx) | 消息虚拟列表 | DataLayer -> Store.conversation | react-virtuoso/react-window |
 | [`MessageRendererFactory`](src/components/messages/MessageRendererFactory.tsx) | 消息渲染工厂 | MessageType 映射 | 策略模式 + 工厂模式 |
 | [`ComposerToolbar`](src/components/composer/ComposerToolbar.tsx) | 输入工具栏 | Strategy Slice | 按渠道动态切换 |
-| [`ContextPanel`](src/components/context/ContextPanel.tsx) | 上下文面板 | Context Slice | Profile/Templates/Other |
+| [`Profile`](src/components/profile/Profile.tsx) | 上下文面板 | Profile Slice | Profile/Templates/Other |
 
 #### 2.1.3 UI 灵活性设计
 
@@ -167,7 +167,7 @@ ChatContainer (根容器)
     topbar={<CustomTopbar />}
     conversationPanel={<CustomConversationPanel />}
     composer={<CustomComposer />}
-    contextPanel={<CustomContextPanel />}
+    profilePanel={<CustomProfile />}
   >
     <CustomMessageList />
   </ChatLayout>
@@ -234,7 +234,7 @@ Store 使用 Zustand 管理 UI 状态，包含以下 Slice：
 | [`ThemeSlice`](src/store/slices/theme.slice.ts) | 主题状态 | `mode`（system/light/dark） |
 | [`LanguageSlice`](src/store/slices/language.slice.ts) | 语言状态 | `locale`（en-US/zh-CN） |
 | [`ConversationSlice`](src/store/slices/conversation.slice.ts) | 会话状态 | 会话列表、当前会话 |
-| [`ContextSlice`](src/store/slices/context.slice.ts) | 上下文状态 | Profile、Templates、Other |
+| [`ProfileSlice`](src/store/slices/profile.slice.ts) | 上下文状态 | Profile、Templates、Other |
 
 **数据流**：Host → Action → Store → UI（单向数据流）
 

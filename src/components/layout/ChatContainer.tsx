@@ -30,7 +30,7 @@ export const LanguageMessages = {
  *     topbar={<CustomTopbar />}
  *     conversationPanel={<CustomConversationPanel />}
  *     composer={<CustomComposer />}
- *     contextPanel={<CustomContextPanel />}
+ *     contextPanel={<CustomProfile />}
  *   >
  *     <CustomMessageList />
  *   </ChatLayout>
@@ -38,12 +38,12 @@ export const LanguageMessages = {
  *
  * @example All-in-One 模式（开箱即用，通过特定组件自定义）
  * <ChatContainer locale="zh-CN">
- *   <DefaultChatLayout contextPanel={<CustomContextPanel />} />
+ *   <DefaultChatLayout contextPanel={<CustomProfile />} />
  * </ChatContainer>
  *
  * @example Render Props 模式（显式传递状态）
  * <ChatContainer locale="zh-CN">
- *   {({ store, actions, strategy, network, theme, language, conversation, context }) => (
+ *   {({ store, actions, strategy, network, theme, language, conversation, profile }) => (
  *     <CustomLayout
  *       store={store}
  *       actions={actions}
@@ -52,7 +52,7 @@ export const LanguageMessages = {
  *       theme={theme}
  *       language={language}
  *       conversation={conversation}
- *       context={context}
+ *       profile={profile}
  *     />
  *   )}
  * </ChatContainer>

@@ -1,9 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { ComposerToolbar } from '@/components/composer/ComposerToolbar';
-import { ContextPanel } from '@/components/context/ContextPanel';
 import { ConversationList } from '@/components/conversation/ConversationList';
 import { ChatTopbar } from '@/components/layout/ChatTopbar';
 import { ChatMessageList } from '@/components/messages/ChatMessageList';
+import { Profile } from '@/components/profile/Profile';
 import { ChannelFilter } from '@/components/toolbar/ChannelFilter';
 import { NetworkStatus } from '@/components/toolbar/NetworkStatus';
 import { AgentStatus } from '@/interfaces/agent.interface';
@@ -28,6 +28,7 @@ import {
   useTheme,
 } from '@/store';
 import '@/styles/theme.css';
+import { DefaultTools as DefaultToolsComponent } from '@/components/layout/DefaultChatLayout';
 import { LanguageSwitcher } from '@/components/toolbar/LanguageSwitcher';
 import { ThemeSwitcher } from '@/components/toolbar/ThemeSwitcher';
 
@@ -163,18 +164,10 @@ export const Topbar: StoryObj = {
   ),
 };
 
-export const MessageList: StoryObj = {
+export const DefaultTools: StoryObj = {
   render: () => (
-    <ThemeSection theme="dark" title="Dark">
-      <ChatMessageList messages={mockMessages} />
-    </ThemeSection>
-  ),
-};
-
-export const Composer: StoryObj = {
-  render: () => (
-    <ThemeSection theme="system" title="System">
-      <ComposerToolbar channel={ChannelType.SMS} value="" onChange={() => {}} />
+    <ThemeSection theme="light" title="Light">
+      <DefaultToolsComponent />
     </ThemeSection>
   ),
 };
@@ -189,11 +182,27 @@ export const Conversations: StoryObj = {
   ),
 };
 
-export const ContextPanels: StoryObj = {
+export const MessageList: StoryObj = {
   render: () => (
-    <ThemeSection theme="light" title="Context Panel">
+    <ThemeSection theme="dark" title="Dark">
+      <ChatMessageList messages={mockMessages} />
+    </ThemeSection>
+  ),
+};
+
+export const Composer: StoryObj = {
+  render: () => (
+    <ThemeSection theme="system" title="System">
+      <ComposerToolbar channel={ChannelType.SMS} onSend={console.log} />
+    </ThemeSection>
+  ),
+};
+
+export const Profiles: StoryObj = {
+  render: () => (
+    <ThemeSection theme="light" title="Profile Panel">
       <div className="h-[520px]">
-        <ContextPanel
+        <Profile
           profile={mockProfile}
           onTemplateClick={(template) => console.log(template)}
         />

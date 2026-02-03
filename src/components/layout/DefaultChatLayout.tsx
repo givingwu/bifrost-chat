@@ -10,10 +10,10 @@ import {
   useTheme,
 } from '@/store';
 import { ComposerToolbar } from '../composer/ComposerToolbar';
-import { ContextPanel } from '../context/ContextPanel';
 import { ConversationHeader } from '../conversation/ConversationHeader';
 import { ConversationList } from '../conversation/ConversationList';
 import { ConversationPanel } from '../conversation/ConversationPanel';
+import { Profile } from '../profile/Profile';
 import { ChannelFilter } from '../toolbar/ChannelFilter';
 import { LanguageSwitcher } from '../toolbar/LanguageSwitcher';
 import { NetworkStatus } from '../toolbar/NetworkStatus';
@@ -109,7 +109,7 @@ export const DefaultChatLayout = ({ children }: DefaultChatLayoutProps) => {
         />
       }
       profilePanel={
-        <ContextPanel
+        <Profile
           profile={profileState.profile}
           templates={profileState.templates}
         />

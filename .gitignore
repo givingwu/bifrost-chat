@@ -6,6 +6,8 @@
 # Dist
 node_modules
 dist/
+demo/
+plans/
 storybook-static
 
 # IDE
