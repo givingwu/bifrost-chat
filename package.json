@@ -26,6 +26,7 @@
     "@rsbuild/core": "~1.7.2",
     "@rsbuild/plugin-react": "^1.4.3",
     "@rslib/core": "^0.19.3",
+    "@tailwindcss/postcss": "^4.1.18",
     "@storybook/addon-docs": "^10.1.11",
     "@storybook/addon-onboarding": "^10.1.11",
     "@storybook/react": "^10.1.11",
@@ -44,7 +45,6 @@
     "vitest": "^4.0.17"
   },
   "dependencies": {
-    "@tailwindcss/postcss": "^4.1.18",
     "clsx": "^2.1.1",
     "lucide-react": "^0.563.0",
     "tailwind-merge": "^3.4.0",
