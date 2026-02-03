@@ -1,6 +1,5 @@
 import type { Conversation } from '@/interfaces/conversation.interface';
 import { cn } from '@/utils/class.util';
-import { ChannelBadge } from '../toolbar/ChannelBadge';
 import { ConversationAvatar } from './ConversationAvatar';
 
 export const ConversationItem = ({
