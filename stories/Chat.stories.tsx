@@ -15,7 +15,8 @@ import '@/styles/theme.css';
 import { ConversationHeader } from '@/components/conversation/ConversationHeader';
 import { ConversationPanel } from '@/components/conversation/ConversationPanel';
 import { ChannelFilter } from '@/components/toolbar/ChannelFilter';
-import { useChatStore } from '@/store';
+import { ChatTopbar } from '@/index';
+import { useConversation } from '@/store';
 
 const meta: Meta = {
   title: 'Chat',
@@ -23,44 +24,32 @@ const meta: Meta = {
 
 export default meta;
 
-const useStoryChatStore = () => {
-  const { conversation } = useChatStore();
-
-  return {
-    conversations: conversation.conversations,
-    messages: conversation.messages,
-  };
-};
-
 export const ChatPreview: StoryObj = {
   render: () => {
-    const { conversations, messages } = useStoryChatStore();
+    const { conversations, messages } = useConversation();
 
     return (
       <ThemeSection theme="system" title="Composition">
-        <ChatContainer
-          locale={LanguageCode.EnUS}
-          onThemeChange={console.log}
-          onLanguageChange={console.log}
-          conversationPanel={
-            <ConversationPanel
-              header={
-                <ConversationHeader title="Messages">
-                  <ChannelFilter
-                    channels={AvailableChannelTypes}
-                    activeChannel={ChannelType.SMS}
-                    onChannelClick={(channel) =>
-                      console.log('Channel clicked:', channel)
-                    }
-                  />
-                </ConversationHeader>
-              }
-            >
-              <ConversationList conversations={conversations} />
-            </ConversationPanel>
-          }
-        >
-          <ChatMessageList messages={messages} />
+        <ChatContainer locale={LanguageCode.EnUS}>
+          <ChatLayout
+            topbar={<ChatTopbar title="Chat ChatTopbar" />}
+            conversationPanel={
+              <ConversationPanel
+                header={
+                  <ConversationHeader title="Messages">
+                    <ChannelFilter
+                      channels={AvailableChannelTypes}
+                      activeChannel={ChannelType.SMS}
+                    />
+                  </ConversationHeader>
+                }
+              >
+                <ConversationList conversations={conversations} />
+              </ConversationPanel>
+            }
+          >
+            <ChatMessageList messages={messages} />
+          </ChatLayout>
         </ChatContainer>
       </ThemeSection>
     );
@@ -69,7 +58,7 @@ export const ChatPreview: StoryObj = {
 
 export const ChatLayoutPreview: StoryObj = {
   render: () => {
-    const { conversations, messages } = useStoryChatStore();
+    const { conversations, messages } = useConversation();
 
     return (
       <ThemeSection theme="system" title="Chat">

@@ -202,9 +202,12 @@ const IconGrid = ({ mode }: { mode: 'light' | 'dark' }) => {
               mode === 'dark' ? 'text-gray-200' : 'text-gray-700',
             )}
           >
-            {React.cloneElement(item.icon as React.ReactElement, {
-              className: 'h-6 w-6',
-            })}
+            {React.cloneElement(
+              item.icon as React.ReactElement,
+              {
+                className: 'h-6 w-6',
+              } as React.HTMLAttributes<HTMLElement>,
+            )}
           </div>
           <span className="text-[10px] font-medium opacity-60">
             {item.label}
