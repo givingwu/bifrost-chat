@@ -1,20 +1,20 @@
 import { ChevronRight } from 'lucide-react';
-import type { ContextTemplateItem } from '@/interfaces/context.interface';
+import type { ProfileTemplate } from '@/interfaces/profile.interface';
 import { cn } from '@/utils/class.util';
-import { ContextPanelSectionTitle } from './ContextPanelSectionTitle';
+import { ProfileSectionTitle } from './ProfileSectionTitle';
 
-interface ContextPanelTemplatesProps {
-  templates: ContextTemplateItem[];
-  onTemplateClick?: (template: ContextTemplateItem) => void;
+interface ProfileTemplatesProps {
+  templates: ProfileTemplate[];
+  onTemplateClick?: (template: ProfileTemplate) => void;
 }
 
-export const ContextPanelTemplates = ({
+export const ProfileTemplates = ({
   templates,
   onTemplateClick,
-}: ContextPanelTemplatesProps) => {
+}: ProfileTemplatesProps) => {
   return (
     <div className="flex-1 border-t border-border px-4 py-4">
-      <ContextPanelSectionTitle title="Quick Responses" />
+      <ProfileSectionTitle title="Quick Responses" />
       <div className="mt-3 space-y-2">
         {templates.map((template) => (
           <button

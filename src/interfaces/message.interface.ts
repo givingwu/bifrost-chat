@@ -85,6 +85,8 @@ export interface MessageParticipant {
   app?: string;
   /** 客户端类型（pc/mobile 等） */
   clientType?: string;
+  /** 渠道类型 */
+  channelType?: ChannelType;
 }
 
 /**
@@ -113,4 +115,18 @@ export interface StandardMessage {
   receiver?: MessageParticipant;
   /** 透传协议字段（from/to/ptype 等） */
   metadata?: Record<string, unknown>;
+}
+
+/**
+ * 发送消息的选项
+ */
+export interface SendMessageOptions {
+  /** 消息类型，默认 Text */
+  type?: MessageType;
+  /** 自定义 sender，默认从当前会话推断 */
+  sender?: MessageParticipant;
+  /** 自定义 receiver，默认从当前会话推断 */
+  receiver?: MessageParticipant;
+  /** 自定义 channel，默认从当前策略获取 */
+  channelType?: ChannelType;
 }

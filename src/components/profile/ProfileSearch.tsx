@@ -1,7 +1,7 @@
 import { FileText } from 'lucide-react';
 import { cn } from '@/utils/class.util';
 
-export const ContextPanelSearch = () => {
+export const ProfileSearch = () => {
   return (
     <div className="border-t border-border px-4 py-4">
       <div className="relative">

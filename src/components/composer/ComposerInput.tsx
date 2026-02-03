@@ -1,15 +1,23 @@
 import { Smile } from 'lucide-react';
 import { cn } from '@/utils/class.util';
 
+export interface ComposerInputProps {
+  /** 输入框值 */
+  value: string;
+  /** 输入框值变更回调 */
+  onChange: (value: string) => void;
+  /** 回车回调 */
+  onEnter?: () => void;
+  /** 输入框占位符 */
+  placeholder?: string;
+}
+
 export const ComposerInput = ({
   value,
-  placeholder,
   onChange,
-}: {
-  value: string;
-  placeholder: string;
-  onChange: (value: string) => void;
-}) => {
+  placeholder,
+  onEnter,
+}: ComposerInputProps) => {
   return (
     <div className="relative flex-1">
       <input
@@ -21,6 +29,12 @@ export const ComposerInput = ({
           'focus:ring-2 focus:ring-primary/40',
         )}
         onChange={(event) => onChange(event.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            onEnter?.();
+          }
+        }}
       />
       <button
         type="button"

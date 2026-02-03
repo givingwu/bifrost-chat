@@ -1,6 +1,4 @@
 import { create } from 'zustand';
-import type { ContextSlice, ContextState } from './slices/context.slice';
-import { createContextSlice } from './slices/context.slice';
 import type {
   ConversationSlice,
   ConversationState,
@@ -10,6 +8,8 @@ import type { LanguageSlice } from './slices/language.slice';
 import { createLanguageSlice } from './slices/language.slice';
 import type { NetworkSlice } from './slices/network.slice';
 import { createNetworkSlice } from './slices/network.slice';
+import type { ProfileSlice, ProfileState } from './slices/profile.slice';
+import { createProfileSlice } from './slices/profile.slice';
 import type { StrategySlice, StrategyState } from './slices/strategy.slice';
 import { createStrategySlice } from './slices/strategy.slice';
 import type { ThemeSlice } from './slices/theme.slice';
@@ -17,7 +17,7 @@ import { createThemeSlice } from './slices/theme.slice';
 import type { UiSlice, UiState } from './slices/ui.slice';
 import { createUiSlice } from './slices/ui.slice';
 
-export type { UiState, StrategyState, ConversationState, ContextState };
+export type { UiState, StrategyState, ConversationState, ProfileState };
 
 export type ChatStoreState = UiSlice &
   StrategySlice &
@@ -25,7 +25,7 @@ export type ChatStoreState = UiSlice &
   ThemeSlice &
   LanguageSlice &
   ConversationSlice &
-  ContextSlice;
+  ProfileSlice;
 
 /**
  * useChatStore：SDK 内部 Zustand Store（Singleton）
@@ -38,7 +38,7 @@ export const useChatStore = create<ChatStoreState>()((...args) => ({
     const themeSlice = createThemeSlice(...args);
     const languageSlice = createLanguageSlice(...args);
     const conversationSlice = createConversationSlice(...args);
-    const contextSlice = createContextSlice(...args);
+    const profileSlice = createProfileSlice(...args);
 
     return {
       ...uiSlice,
@@ -47,7 +47,7 @@ export const useChatStore = create<ChatStoreState>()((...args) => ({
       ...themeSlice,
       ...languageSlice,
       ...conversationSlice,
-      ...contextSlice,
+      ...profileSlice,
       actions: {
         ...uiSlice.actions,
         ...strategySlice.actions,
@@ -55,7 +55,7 @@ export const useChatStore = create<ChatStoreState>()((...args) => ({
         ...themeSlice.actions,
         ...languageSlice.actions,
         ...conversationSlice.actions,
-        ...contextSlice.actions,
+        ...profileSlice.actions,
       },
     };
   })(),
@@ -68,5 +68,5 @@ export const useTheme = () => useChatStore((state) => state.theme);
 export const useLanguage = () => useChatStore((state) => state.language);
 export const useConversation = () =>
   useChatStore((state) => state.conversation);
-
+export const useProfile = () => useChatStore((state) => state.profile);
 export const useActions = () => useChatStore((state) => state.actions);

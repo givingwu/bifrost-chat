@@ -1,10 +1,8 @@
-interface ContextPanelSectionTitleProps {
+interface ProfileSectionTitleProps {
   title: string;
 }
 
-export const ContextPanelSectionTitle = ({
-  title,
-}: ContextPanelSectionTitleProps) => {
+export const ProfileSectionTitle = ({ title }: ProfileSectionTitleProps) => {
   return (
     <h3 className="text-xs font-semibold uppercase tracking-wider text-text-muted">
       {title}

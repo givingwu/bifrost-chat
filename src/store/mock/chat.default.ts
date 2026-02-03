@@ -1,9 +1,5 @@
 import { AgentStatus } from '@/interfaces/agent.interface';
 import { ChannelType } from '@/interfaces/channel.interface';
-import type {
-  ContextPanelProfile,
-  ContextTemplateItem,
-} from '@/interfaces/context.interface';
 import type { Conversation } from '@/interfaces/conversation.interface';
 import {
   MessageDirection,
@@ -11,6 +7,10 @@ import {
   MessageType,
   type StandardMessage,
 } from '@/interfaces/message.interface';
+import type {
+  ProfileData,
+  ProfileTemplate,
+} from '@/interfaces/profile.interface';
 
 export const defaultConversations: Conversation[] = [
   {
@@ -101,7 +101,7 @@ export const defaultMessages: StandardMessage[] = [
   },
 ];
 
-export const defaultProfile: ContextPanelProfile = {
+export const defaultProfile: ProfileData = {
   name: 'Liam Walker',
   avatarUrl: 'https://i.pravatar.cc/150?img=12',
   role: 'Customer',
@@ -110,7 +110,7 @@ export const defaultProfile: ContextPanelProfile = {
   localTime: '10:45 AM',
 };
 
-export const defaultTemplates: ContextTemplateItem[] = [
+export const defaultTemplates: ProfileTemplate[] = [
   { id: 'tpl-1', content: 'Hi, how can I help you today?' },
   { id: 'tpl-2', content: 'Your order #12345 has been shipped.' },
   { id: 'tpl-3', content: 'Could you please verify your email?' },

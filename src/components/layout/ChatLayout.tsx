@@ -13,7 +13,7 @@ export interface ChatLayoutProps {
   /** 中间输入区域 */
   composer?: ReactNode;
   /** 右侧上下文面板 */
-  contextPanel?: ReactNode;
+  profilePanel?: ReactNode;
 }
 
 /**
@@ -26,14 +26,14 @@ export const ChatLayout = ({
   children,
   conversationPanel,
   composer,
-  contextPanel,
+  profilePanel,
 }: ChatLayoutProps) => {
   return (
     <div
       data-component="chat-layout"
       className={cn(
-        'flex h-[85vh] w-full overflow-hidden rounded-3xl',
-        'border border-border bg-card/80 shadow-2xl backdrop-blur-2xl',
+        'flex w-full overflow-hidden rounded-3xl shadow-2xl',
+        'border border-border bg-card/80 backdrop-blur-2xl',
         className,
       )}
       style={styles}
@@ -49,9 +49,9 @@ export const ChatLayout = ({
             {composer && <div className="px-6 pb-6">{composer}</div>}
           </section>
 
-          {contextPanel && (
+          {profilePanel && (
             <aside className="hidden w-[300px] flex-col border-l border-border bg-muted/40 xl:flex">
-              {contextPanel}
+              {profilePanel}
             </aside>
           )}
         </main>

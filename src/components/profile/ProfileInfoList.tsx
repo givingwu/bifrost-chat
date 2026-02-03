@@ -1,14 +1,12 @@
 import { Mail, Phone, User as UserIcon } from 'lucide-react';
-import type { ContextPanelProfile } from '@/interfaces/context.interface';
-import { ContextPanelSectionTitle } from './ContextPanelSectionTitle';
+import type { ProfileData } from '@/interfaces/profile.interface';
+import { ProfileSectionTitle } from './ProfileSectionTitle';
 
-interface ContextPanelInfoListProps {
-  profile?: ContextPanelProfile;
+interface ProfileInfoListProps {
+  profile?: ProfileData;
 }
 
-export const ContextPanelInfoList = ({
-  profile,
-}: ContextPanelInfoListProps) => {
+export const ProfileInfoList = ({ profile }: ProfileInfoListProps) => {
   const infoItems = [
     {
       icon: <Mail className="h-4 w-4" />,
@@ -33,7 +31,7 @@ export const ContextPanelInfoList = ({
 
   return (
     <div className="space-y-4 px-4 py-4">
-      <ContextPanelSectionTitle title="Information" />
+      <ProfileSectionTitle title="Information" />
       {infoItems.map((item) => (
         <div key={item.label} className="flex items-center gap-3 text-sm">
           <div className="text-text-muted">{item.icon}</div>

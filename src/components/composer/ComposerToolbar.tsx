@@ -1,3 +1,4 @@
+import { useCallback, useState } from 'react';
 import type { ChannelType } from '@/interfaces/channel.interface';
 import { useTranslation } from '@/providers/I18n.provider';
 import { cn } from '@/utils/class.util';
@@ -9,29 +10,26 @@ import { ComposerInput } from './ComposerInput';
 export interface ComposerToolbarProps {
   /** 当前激活渠道 */
   channel?: ChannelType;
-  /** 输入内容 */
-  value: string;
-  /** 内容变更回调 */
-  onChange: (value: string) => void;
   /** 发送回调 */
-  onSend?: () => void;
+  onSend?: (message?: string) => void;
 }
 
 /**
  * ComposerToolbar：输入框策略工具栏。
- * - 保留原有 props，对齐 DEMO UI 结构。
  */
-export const ComposerToolbar = ({
-  channel,
-  value,
-  onChange,
-  onSend,
-}: ComposerToolbarProps) => {
+export const ComposerToolbar = ({ channel, onSend }: ComposerToolbarProps) => {
   const { t } = useTranslation();
+  const [value, onChange] = useState('');
   const placeholder = channel
     ? t('composer.placeholder.channel', { channel })
     : t('composer.placeholder.default');
   const canSend = value.trim().length > 0;
+  const handleSend = useCallback(() => {
+    if (canSend) {
+      onSend?.(value.trim());
+      onChange('');
+    }
+  }, [canSend, onSend, value]);
 
   return (
     <div
@@ -48,8 +46,9 @@ export const ComposerToolbar = ({
           value={value}
           placeholder={placeholder}
           onChange={onChange}
+          onEnter={handleSend}
         />
-        <ComposerActions canSend={canSend} onSend={onSend} />
+        <ComposerActions canSend={canSend} onSend={handleSend} />
       </div>
       <div className="mt-2 flex items-center justify-between text-[10px] text-text-muted">
         <span className="rounded-full border border-border px-2.5 py-1">

@@ -1,11 +1,11 @@
 import { Mail, Phone, User as UserIcon } from 'lucide-react';
-import type { ContextPanelProfile } from '@/interfaces/context.interface';
+import type { ProfileData } from '@/interfaces/profile.interface';
 
-interface ContextPanelHeaderProps {
-  profile?: ContextPanelProfile;
+interface ProfileHeaderProps {
+  profile?: ProfileData;
 }
 
-export const ContextPanelHeader = ({ profile }: ContextPanelHeaderProps) => {
+export const ProfileHeader = ({ profile }: ProfileHeaderProps) => {
   return (
     <div className="flex flex-col items-center border-b border-border px-6 py-6">
       <div className="mb-4 h-20 w-20 rounded-full border-2 border-border p-1">
