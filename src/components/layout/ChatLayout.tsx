@@ -45,7 +45,7 @@ export const ChatLayout = ({
 
         <main className="flex flex-1">
           <section className="flex min-w-0 flex-1 flex-col bg-card/40">
-            <div className="flex-1 overflow-hidden px-6 py-4">{children}</div>
+            <div className="flex-1 px-6 py-4">{children}</div>
             {composer && <div className="px-6 pb-6">{composer}</div>}
           </section>
 

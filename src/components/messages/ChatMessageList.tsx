@@ -13,10 +13,13 @@ export const ChatMessageList = ({ messages }: ChatMessageListProps) => {
   return (
     <div
       data-component="chat-message-list"
-      className="flex h-full flex-col gap-2 overflow-y-auto rounded-2xl border border-border bg-card/60 p-4 shadow-soft"
+      className="flex h-full flex-col gap-2 rounded-2xl bg-card/60 shadow-soft"
     >
       {messages.map((message) => (
-        <MessageRendererFactory key={message.id} message={message} />
+        <MessageRendererFactory
+          key={message.id ?? message.tempId}
+          message={message}
+        />
       ))}
     </div>
   );
