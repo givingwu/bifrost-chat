@@ -30,6 +30,7 @@
 ```
  收到消息ACK ： msg_receive_ack
  已读消息ACK ： msg_read_ack
+ 消息发送失败ACK：msg_send_failed
 ```
 
 ## 上行协议 demo
