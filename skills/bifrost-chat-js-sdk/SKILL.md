@@ -23,6 +23,7 @@ description: 针对 Bifrost-Chat JS SDK 的功能开发、维护与代码审查�
 
 ## 关键约束
 
+- 当修改或新增 `src/components/` 下的组件时，**必须同步更新对应的 Story 文档**。
 - 不能写死渠道按钮，必须依赖 `strategy.allowedChannels`。
 - 渲染层通过工厂模式/策略模式扩展消息与组件类型。
 - 逻辑层必须遵循 Store/DataLayer/Adapter/NetLayer 分层。
