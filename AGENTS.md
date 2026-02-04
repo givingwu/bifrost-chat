@@ -145,6 +145,12 @@
 
 ## 代码风格与命名约定
 
+- **命名规范**：严格遵循 [`docs/naming-conventions.md`](docs/naming-conventions.md) 中定义的命名规范
+  - 组件使用 PascalCase，无前缀或后缀（如 `Profile`、`Button`）
+  - 类型使用描述性后缀（如 `ProfileData`、`MessageProps`、`NetworkStatusEnum`）
+  - Props 接口使用组件名 + `Props` 后缀（如 `ProfileProps`、`ButtonProps`）
+  - 枚举使用 `Enum` 后缀（如 `MessageStatusEnum`、`ChannelTypeEnum`）
+  - 避免组件名和类型名冲突
 - Biome 统一格式：空格缩进、80 字符换行、TS/JS 使用单引号、JSX 使用双引号。
 - React 组件建议采用函数式写法与 PascalCase 文件名（示例：`UserTable.tsx`），导出命名采用 camelCase。
 - 默认使用 TypeScript，并通过 `tsconfig.json` 约束路径别名；公共环境变量集中在应用的 `src/config`。

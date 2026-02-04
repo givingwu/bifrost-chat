@@ -1,17 +1,56 @@
 {
-  "name": "bifrost-chat",
+  "name": "@feoe/bifrost-chat",
+  "description": "全渠道聊天 JS SDK 组件库 - 基于 React 和 Tailwind CSS",
   "version": "1.0.0",
   "type": "module",
+  "keywords": [
+    "Bifrost-chat",
+    "Bifrost-chat JS SDK",
+    "Omni-channel",
+    "Omni-channel chat",
+    "react Omni-channel",
+    "react Omni-channel chat"
+  ],
+  "author": "mountainwu@kn.group",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://git.kuainiujinke.com/feoe/bifrost-chat"
+  },
+  "homepage": "https://git.kuainiujinke.com/feoe/bifrost-chat#readme",
+  "bugs": {
+    "url": "https://git.kuainiujinke.com/feoe/bifrost-chat/issues"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
-    }
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./styles": {
+      "import": "./dist/styles/index.css",
+      "default": "./dist/styles/index.css"
+    },
+    "./styles/theme": {
+      "import": "./dist/styles/theme.css",
+      "default": "./dist/styles/theme.css"
+    },
+    "./package.json": "./package.json"
   },
   "types": "./dist/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "LICENSE",
+    "README.md",
+    "CHANGELOG.md"
   ],
+  "sideEffects": [
+    "*.css",
+    "dist/styles/*.css"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "rslib build",
     "build:storybook": "storybook build",
@@ -19,7 +58,10 @@
     "dev": "rslib build --watch",
     "format": "biome format --write",
     "storybook": "storybook dev",
-    "test": "vitest run"
+    "test": "vitest run",
+    "prepublishOnly": "pnpm run build && pnpm run test && pnpm run lint",
+    "release": "pnpm run build && pnpm publish",
+    "release:dry": "pnpm run build && pnpm publish --dry-run"
   },
   "devDependencies": {
     "@biomejs/biome": "2.3.8",

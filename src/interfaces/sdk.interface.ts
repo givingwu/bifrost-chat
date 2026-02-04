@@ -28,7 +28,7 @@ export type SDKAction = 'make_call';
 /**
  * SDK 对宿主系统的统一入口（Facade）。
  */
-export interface IChatSDK {
+export interface ChatSDK {
   /** 初始化 SDK 实例 */
   init(config: { endpoint: string; debug?: boolean }): Promise<boolean>;
   /** 销毁 SDK 实例 */
