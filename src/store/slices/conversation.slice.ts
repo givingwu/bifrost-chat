@@ -1,5 +1,5 @@
 import type { StateCreator } from 'zustand';
-import type { ChannelType } from '@/interfaces/channel.interface';
+import type { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import type { Conversation } from '@/interfaces/conversation.interface';
 import type {
   SendMessageOptions,
@@ -52,7 +52,7 @@ export const createConversationSlice: StateCreator<
     sendMessage: (content?: string, options?: SendMessageOptions) => {
       const state = get() as unknown as {
         conversation: ConversationState;
-        strategy: { activeChannel?: ChannelType };
+        strategy: { activeChannel?: ChannelTypeEnum };
         profile: { profile?: { name?: string } };
         actions: { appendMessage: (message: StandardMessage) => void };
       };
@@ -68,7 +68,7 @@ export const createConversationSlice: StateCreator<
       }
 
       // 确定渠道类型
-      const channelType: ChannelType =
+      const channelType: ChannelTypeEnum =
         options?.channelType ?? activeConversation.channel ?? activeChannel;
 
       // 使用 MessageBuilder 构建消息

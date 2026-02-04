@@ -1,7 +1,7 @@
 import type { StateCreator } from 'zustand';
 import {
   type NetworkState,
-  NetworkStatus,
+  NetworkStatusEnum,
 } from '@/interfaces/network.interface';
 
 /**
@@ -21,7 +21,7 @@ export const createNetworkSlice: StateCreator<
   NetworkSlice
 > = (set) => ({
   network: {
-    status: NetworkStatus.Disconnected,
+    status: NetworkStatusEnum.Disconnected,
   },
   actions: {
     setNetwork: (payload: Partial<NetworkState>) =>

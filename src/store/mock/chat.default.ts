@@ -1,10 +1,10 @@
-import { AgentStatus } from '@/interfaces/agent.interface';
-import { ChannelType } from '@/interfaces/channel.interface';
+import { AgentStatusEnum } from '@/interfaces/agent.interface';
+import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import type { Conversation } from '@/interfaces/conversation.interface';
 import {
-  MessageDirection,
-  MessageStatus,
-  MessageType,
+  MessageDirectionEnum,
+  MessageStatusEnum,
+  MessageTypeEnum,
   type StandardMessage,
 } from '@/interfaces/message.interface';
 import type {
@@ -19,12 +19,12 @@ export const defaultConversations: Conversation[] = [
       id: 'user-1',
       name: 'Liam Walker',
       avatarUrl: 'https://i.pravatar.cc/150?img=12',
-      status: AgentStatus.Online,
+      status: AgentStatusEnum.Online,
     },
     lastMessage: 'Thanks for the update! 👋',
     lastMessageTime: '09:42 AM',
     unreadCount: 2,
-    channel: ChannelType.WhatsApp,
+    channel: ChannelTypeEnum.WhatsApp,
     isActive: true,
   },
   {
@@ -33,12 +33,12 @@ export const defaultConversations: Conversation[] = [
       id: 'user-2',
       name: 'Sophia Reed',
       avatarUrl: 'https://i.pravatar.cc/150?img=48',
-      status: AgentStatus.Busy,
+      status: AgentStatusEnum.Busy,
     },
     lastMessage: 'Need help with my order.',
     lastMessageTime: '09:10 AM',
     unreadCount: 0,
-    channel: ChannelType.SMS,
+    channel: ChannelTypeEnum.SMS,
   },
   {
     id: 'conv-3',
@@ -46,41 +46,41 @@ export const defaultConversations: Conversation[] = [
       id: 'user-3',
       name: 'Evelyn Carter',
       avatarUrl: 'https://i.pravatar.cc/150?img=16',
-      status: AgentStatus.Offline,
+      status: AgentStatusEnum.Offline,
     },
     lastMessage: 'Invoice sent via email.',
     lastMessageTime: 'Yesterday',
     unreadCount: 1,
-    channel: ChannelType.Email,
+    channel: ChannelTypeEnum.Email,
   },
 ];
 
 export const defaultMessages: StandardMessage[] = [
   {
     id: 'msg-1',
-    direction: MessageDirection.Incoming,
-    channelType: ChannelType.WhatsApp,
-    status: MessageStatus.Sent,
+    direction: MessageDirectionEnum.Incoming,
+    channelType: ChannelTypeEnum.WhatsApp,
+    status: MessageStatusEnum.Sent,
     timestamp: Date.now() - 1000 * 60 * 60,
-    type: MessageType.Text,
+    type: MessageTypeEnum.Text,
     content: { text: 'Hi! I need help with my order.' },
   },
   {
     id: 'msg-2',
-    direction: MessageDirection.Outgoing,
-    channelType: ChannelType.WhatsApp,
-    status: MessageStatus.Delivered,
+    direction: MessageDirectionEnum.Outgoing,
+    channelType: ChannelTypeEnum.WhatsApp,
+    status: MessageStatusEnum.Delivered,
     timestamp: Date.now() - 1000 * 60 * 45,
-    type: MessageType.Text,
+    type: MessageTypeEnum.Text,
     content: { text: 'Sure! Can you share your order ID?' },
   },
   {
     id: 'msg-3',
-    direction: MessageDirection.Outgoing,
-    channelType: ChannelType.WhatsApp,
-    status: MessageStatus.Read,
+    direction: MessageDirectionEnum.Outgoing,
+    channelType: ChannelTypeEnum.WhatsApp,
+    status: MessageStatusEnum.Read,
     timestamp: Date.now() - 1000 * 60 * 30,
-    type: MessageType.Template,
+    type: MessageTypeEnum.Template,
     content: {
       text: JSON.stringify({
         title: 'Order Update',
@@ -92,11 +92,11 @@ export const defaultMessages: StandardMessage[] = [
   },
   {
     id: 'msg-4',
-    direction: MessageDirection.Incoming,
-    channelType: ChannelType.WhatsApp,
-    status: MessageStatus.Sent,
+    direction: MessageDirectionEnum.Incoming,
+    channelType: ChannelTypeEnum.WhatsApp,
+    status: MessageStatusEnum.Sent,
     timestamp: Date.now() - 1000 * 60 * 20,
-    type: MessageType.Text,
+    type: MessageTypeEnum.Text,
     content: { text: 'Thanks! That helps a lot.' },
   },
 ];

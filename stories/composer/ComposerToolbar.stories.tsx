@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { ComposerToolbar } from '@/components/composer/ComposerToolbar';
 import {
   AvailableChannelTypes,
-  ChannelType,
+  ChannelTypeEnum,
 } from '@/interfaces/channel.interface';
 import zhCN from '@/locales/zh-CN.json';
 import { I18nProvider } from '@/providers/I18n.provider';
@@ -23,7 +23,7 @@ const meta: Meta<typeof ComposerToolbar> = {
   tags: ['autodocs'],
   argTypes: {
     channel: {
-      defaultValue: ChannelType.WhatsApp,
+      defaultValue: ChannelTypeEnum.WhatsApp,
       control: { type: 'select' },
       options: AvailableChannelTypes,
     },
@@ -47,7 +47,7 @@ export const WhatsApp = () => {
     <I18nProvider locale="zh-CN" messages={zhCN}>
       <div className="p-4 bg-muted rounded-lg">
         <ComposerToolbar
-          channel={ChannelType.WhatsApp}
+          channel={ChannelTypeEnum.WhatsApp}
           onSend={(content) => console.log('Send:', content)}
           onAttachmentSelect={(files) => console.log('Files:', files)}
         />
@@ -64,7 +64,7 @@ export const SMS = () => {
     <I18nProvider locale="zh-CN" messages={zhCN}>
       <div className="p-4 bg-muted rounded-lg">
         <ComposerToolbar
-          channel={ChannelType.SMS}
+          channel={ChannelTypeEnum.SMS}
           onSend={(content) => console.log('Send:', content)}
         />
       </div>
@@ -80,7 +80,7 @@ export const Email = () => {
     <I18nProvider locale="zh-CN" messages={zhCN}>
       <div className="p-4 bg-muted rounded-lg">
         <ComposerToolbar
-          channel={ChannelType.Email}
+          channel={ChannelTypeEnum.Email}
           onSend={(content) => console.log('Send:', content)}
         />
       </div>
@@ -96,7 +96,7 @@ export const Disabled = () => {
     <I18nProvider locale="zh-CN" messages={zhCN}>
       <div className="p-4 bg-muted rounded-lg">
         <ComposerToolbar
-          channel={ChannelType.WhatsApp}
+          channel={ChannelTypeEnum.WhatsApp}
           disabled
           onSend={(content) => console.log('Send:', content)}
         />

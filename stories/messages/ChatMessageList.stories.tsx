@@ -1,10 +1,10 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { ChatMessageList } from '@/components/messages/ChatMessageList';
-import { ChannelType } from '@/interfaces/channel.interface';
+import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import {
-  MessageDirection,
-  MessageStatus,
-  MessageType,
+  MessageDirectionEnum,
+  MessageStatusEnum,
+  MessageTypeEnum,
   type StandardMessage,
 } from '@/interfaces/message.interface';
 
@@ -33,15 +33,15 @@ export default meta;
 type Story = StoryObj<typeof ChatMessageList>;
 
 const createMessage = (
-  direction: MessageDirection,
-  type: MessageType,
-  status: MessageStatus,
+  direction: MessageDirectionEnum,
+  type: MessageTypeEnum,
+  status: MessageStatusEnum,
   content: StandardMessage['content'],
   timestamp?: number,
 ): StandardMessage => ({
   id: `msg-${Math.random()}`,
   direction,
-  channelType: ChannelType.WhatsApp,
+  channelType: ChannelTypeEnum.WhatsApp,
   status,
   timestamp: timestamp || Date.now(),
   type,
@@ -50,21 +50,21 @@ const createMessage = (
 
 const mockMessages: StandardMessage[] = [
   createMessage(
-    MessageDirection.Incoming,
-    MessageType.Text,
-    MessageStatus.Sent,
+    MessageDirectionEnum.Incoming,
+    MessageTypeEnum.Text,
+    MessageStatusEnum.Sent,
     { text: 'Hi! How are you?' },
   ),
   createMessage(
-    MessageDirection.Outgoing,
-    MessageType.Text,
-    MessageStatus.Read,
+    MessageDirectionEnum.Outgoing,
+    MessageTypeEnum.Text,
+    MessageStatusEnum.Read,
     { text: 'I am doing well, thanks!' },
   ),
   createMessage(
-    MessageDirection.Incoming,
-    MessageType.Text,
-    MessageStatus.Sent,
+    MessageDirectionEnum.Incoming,
+    MessageTypeEnum.Text,
+    MessageStatusEnum.Sent,
     { text: 'Can you help me with something?' },
   ),
 ];
@@ -98,9 +98,11 @@ export const LongList = () => {
   const messages: StandardMessage[] = Array.from({ length: 20 }, (_, i) => {
     const isIncoming = i % 2 === 0;
     return createMessage(
-      isIncoming ? MessageDirection.Incoming : MessageDirection.Outgoing,
-      MessageType.Text,
-      MessageStatus.Sent,
+      isIncoming
+        ? MessageDirectionEnum.Incoming
+        : MessageDirectionEnum.Outgoing,
+      MessageTypeEnum.Text,
+      MessageStatusEnum.Sent,
       { text: `Message ${i + 1}` },
       Date.now() - (20 - i) * 1000 * 60 * 5,
     );
@@ -119,24 +121,24 @@ export const LongList = () => {
 export const DifferentTypes = () => {
   const messages: StandardMessage[] = [
     createMessage(
-      MessageDirection.Incoming,
-      MessageType.Text,
-      MessageStatus.Sent,
+      MessageDirectionEnum.Incoming,
+      MessageTypeEnum.Text,
+      MessageStatusEnum.Sent,
       { text: 'This is a text message' },
     ),
     createMessage(
-      MessageDirection.Outgoing,
-      MessageType.Image,
-      MessageStatus.Sent,
+      MessageDirectionEnum.Outgoing,
+      MessageTypeEnum.Image,
+      MessageStatusEnum.Sent,
       {
         url: 'https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0?w=300',
         mimeType: 'image/jpeg',
       },
     ),
     createMessage(
-      MessageDirection.Incoming,
-      MessageType.Text,
-      MessageStatus.Sent,
+      MessageDirectionEnum.Incoming,
+      MessageTypeEnum.Text,
+      MessageStatusEnum.Sent,
       { text: 'Thanks for the image!' },
     ),
   ];
@@ -154,30 +156,30 @@ export const DifferentTypes = () => {
 export const ConversationFlow = () => {
   const messages: StandardMessage[] = [
     createMessage(
-      MessageDirection.Incoming,
-      MessageType.Text,
-      MessageStatus.Sent,
+      MessageDirectionEnum.Incoming,
+      MessageTypeEnum.Text,
+      MessageStatusEnum.Sent,
       { text: 'Hello! I need help with my order.' },
       Date.now() - 1000 * 60 * 60 * 2,
     ),
     createMessage(
-      MessageDirection.Outgoing,
-      MessageType.Text,
-      MessageStatus.Read,
+      MessageDirectionEnum.Outgoing,
+      MessageTypeEnum.Text,
+      MessageStatusEnum.Read,
       { text: 'Sure! What is your order number?' },
       Date.now() - 1000 * 60 * 55,
     ),
     createMessage(
-      MessageDirection.Incoming,
-      MessageType.Text,
-      MessageStatus.Sent,
+      MessageDirectionEnum.Incoming,
+      MessageTypeEnum.Text,
+      MessageStatusEnum.Sent,
       { text: 'It is #12345' },
       Date.now() - 1000 * 60 * 30,
     ),
     createMessage(
-      MessageDirection.Outgoing,
-      MessageType.Text,
-      MessageStatus.Delivered,
+      MessageDirectionEnum.Outgoing,
+      MessageTypeEnum.Text,
+      MessageStatusEnum.Delivered,
       { text: 'Let me check that for you...' },
       Date.now() - 1000 * 60 * 5,
     ),
@@ -195,15 +197,15 @@ export const ConversationFlow = () => {
  */
 export const DifferentStatuses = () => {
   const statuses = [
-    MessageStatus.Sending,
-    MessageStatus.Sent,
-    MessageStatus.Delivered,
-    MessageStatus.Read,
-    MessageStatus.Failed,
+    MessageStatusEnum.Sending,
+    MessageStatusEnum.Sent,
+    MessageStatusEnum.Delivered,
+    MessageStatusEnum.Read,
+    MessageStatusEnum.Failed,
   ];
 
   const messages: StandardMessage[] = statuses.map((status) =>
-    createMessage(MessageDirection.Outgoing, MessageType.Text, status, {
+    createMessage(MessageDirectionEnum.Outgoing, MessageTypeEnum.Text, status, {
       text: `Message status: ${status}`,
     }),
   );

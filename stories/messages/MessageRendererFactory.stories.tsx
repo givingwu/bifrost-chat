@@ -1,10 +1,10 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { MessageRendererFactory } from '@/components/messages/MessageRendererFactory';
-import { ChannelType } from '@/interfaces/channel.interface';
+import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import {
-  MessageDirection,
-  MessageStatus,
-  MessageType,
+  MessageDirectionEnum,
+  MessageStatusEnum,
+  MessageTypeEnum,
 } from '@/interfaces/message.interface';
 import '@/styles/theme.css';
 
@@ -26,9 +26,9 @@ export default meta;
 type Story = StoryObj<typeof MessageRendererFactory>;
 
 const baseMessage = {
-  direction: MessageDirection.Incoming,
-  channelType: ChannelType.WhatsApp,
-  status: MessageStatus.Read,
+  direction: MessageDirectionEnum.Incoming,
+  channelType: ChannelTypeEnum.WhatsApp,
+  status: MessageStatusEnum.Read,
   timestamp: Date.now(),
 };
 
@@ -42,7 +42,7 @@ export const IncomingText = () => {
         message={{
           ...baseMessage,
           id: '1',
-          type: MessageType.Text,
+          type: MessageTypeEnum.Text,
           content: { text: '这是一条接收的文本消息' },
         }}
       />
@@ -60,8 +60,8 @@ export const OutgoingText = () => {
         message={{
           ...baseMessage,
           id: '2',
-          direction: MessageDirection.Outgoing,
-          type: MessageType.Text,
+          direction: MessageDirectionEnum.Outgoing,
+          type: MessageTypeEnum.Text,
           content: { text: '这是一条发送的文本消息' },
         }}
       />
@@ -79,7 +79,7 @@ export const ImageMessage = () => {
         message={{
           ...baseMessage,
           id: '3',
-          type: MessageType.Image,
+          type: MessageTypeEnum.Image,
           content: {
             url: 'https://picsum.photos/400/300',
             mimeType: 'image/jpeg',
@@ -100,7 +100,7 @@ export const VideoMessage = () => {
         message={{
           ...baseMessage,
           id: '4',
-          type: MessageType.Video,
+          type: MessageTypeEnum.Video,
           content: {
             url: 'https://example.com/video.mp4',
             mimeType: 'video/mp4',
@@ -121,7 +121,7 @@ export const FileMessage = () => {
         message={{
           ...baseMessage,
           id: '5',
-          type: MessageType.File,
+          type: MessageTypeEnum.File,
           content: {
             url: 'https://example.com/document.pdf',
             mimeType: 'application/pdf',
@@ -142,7 +142,7 @@ export const LocationMessage = () => {
         message={{
           ...baseMessage,
           id: '6',
-          type: MessageType.Location,
+          type: MessageTypeEnum.Location,
           content: {
             text: JSON.stringify({
               latitude: 37.7749,
@@ -166,7 +166,7 @@ export const WhatsAppTemplate = () => {
         message={{
           ...baseMessage,
           id: '7',
-          type: MessageType.Template,
+          type: MessageTypeEnum.Template,
           content: {
             text: JSON.stringify({
               title: '问候模板',
@@ -189,7 +189,7 @@ export const RichMediaMessage = () => {
         message={{
           ...baseMessage,
           id: '8',
-          type: MessageType.RichMedia,
+          type: MessageTypeEnum.RichMedia,
           content: {
             text: JSON.stringify({
               title: '产品推荐',
@@ -213,7 +213,7 @@ export const AudioMessage = () => {
         message={{
           ...baseMessage,
           id: '9',
-          type: MessageType.Audio,
+          type: MessageTypeEnum.Audio,
           content: {
             url: 'https://example.com/audio.mp3',
             mimeType: 'audio/mpeg',
@@ -234,9 +234,9 @@ export const DifferentStatuses = () => {
         message={{
           ...baseMessage,
           id: '10',
-          direction: MessageDirection.Outgoing,
-          type: MessageType.Text,
-          status: MessageStatus.Created,
+          direction: MessageDirectionEnum.Outgoing,
+          type: MessageTypeEnum.Text,
+          status: MessageStatusEnum.Created,
           content: { text: '创建状态' },
         }}
       />
@@ -244,9 +244,9 @@ export const DifferentStatuses = () => {
         message={{
           ...baseMessage,
           id: '11',
-          direction: MessageDirection.Outgoing,
-          type: MessageType.Text,
-          status: MessageStatus.Sending,
+          direction: MessageDirectionEnum.Outgoing,
+          type: MessageTypeEnum.Text,
+          status: MessageStatusEnum.Sending,
           content: { text: '发送中' },
         }}
       />
@@ -254,9 +254,9 @@ export const DifferentStatuses = () => {
         message={{
           ...baseMessage,
           id: '12',
-          direction: MessageDirection.Outgoing,
-          type: MessageType.Text,
-          status: MessageStatus.Sent,
+          direction: MessageDirectionEnum.Outgoing,
+          type: MessageTypeEnum.Text,
+          status: MessageStatusEnum.Sent,
           content: { text: '已发送' },
         }}
       />
@@ -264,9 +264,9 @@ export const DifferentStatuses = () => {
         message={{
           ...baseMessage,
           id: '13',
-          direction: MessageDirection.Outgoing,
-          type: MessageType.Text,
-          status: MessageStatus.Delivered,
+          direction: MessageDirectionEnum.Outgoing,
+          type: MessageTypeEnum.Text,
+          status: MessageStatusEnum.Delivered,
           content: { text: '已送达' },
         }}
       />
@@ -274,9 +274,9 @@ export const DifferentStatuses = () => {
         message={{
           ...baseMessage,
           id: '14',
-          direction: MessageDirection.Outgoing,
-          type: MessageType.Text,
-          status: MessageStatus.Read,
+          direction: MessageDirectionEnum.Outgoing,
+          type: MessageTypeEnum.Text,
+          status: MessageStatusEnum.Read,
           content: { text: '已读' },
         }}
       />
@@ -284,9 +284,9 @@ export const DifferentStatuses = () => {
         message={{
           ...baseMessage,
           id: '15',
-          direction: MessageDirection.Outgoing,
-          type: MessageType.Text,
-          status: MessageStatus.Failed,
+          direction: MessageDirectionEnum.Outgoing,
+          type: MessageTypeEnum.Text,
+          status: MessageStatusEnum.Failed,
           content: { text: '发送失败' },
         }}
       />
@@ -304,8 +304,8 @@ export const ConversationFlow = () => {
         message={{
           ...baseMessage,
           id: '16',
-          direction: MessageDirection.Incoming,
-          type: MessageType.Text,
+          direction: MessageDirectionEnum.Incoming,
+          type: MessageTypeEnum.Text,
           content: { text: '你好，请问有什么可以帮您的？' },
         }}
       />
@@ -313,8 +313,8 @@ export const ConversationFlow = () => {
         message={{
           ...baseMessage,
           id: '17',
-          direction: MessageDirection.Outgoing,
-          type: MessageType.Text,
+          direction: MessageDirectionEnum.Outgoing,
+          type: MessageTypeEnum.Text,
           content: { text: '我想了解一下产品信息' },
         }}
       />
@@ -322,8 +322,8 @@ export const ConversationFlow = () => {
         message={{
           ...baseMessage,
           id: '18',
-          direction: MessageDirection.Incoming,
-          type: MessageType.Image,
+          direction: MessageDirectionEnum.Incoming,
+          type: MessageTypeEnum.Image,
           content: {
             url: 'https://picsum.photos/400/300',
             mimeType: 'image/jpeg',

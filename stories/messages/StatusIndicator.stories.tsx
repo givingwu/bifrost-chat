@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { StatusIndicator } from '@/components/messages/StatusIndicator';
-import { MessageStatus } from '@/interfaces/message.interface';
+import { MessageStatusEnum } from '@/interfaces/message.interface';
 
 /**
  * StatusIndicator 组件 Story 文档
@@ -18,12 +18,12 @@ const meta: Meta<typeof StatusIndicator> = {
     status: {
       control: 'select',
       options: [
-        MessageStatus.Created,
-        MessageStatus.Sending,
-        MessageStatus.Sent,
-        MessageStatus.Delivered,
-        MessageStatus.Read,
-        MessageStatus.Failed,
+        MessageStatusEnum.Created,
+        MessageStatusEnum.Sending,
+        MessageStatusEnum.Sent,
+        MessageStatusEnum.Delivered,
+        MessageStatusEnum.Read,
+        MessageStatusEnum.Failed,
       ],
       description: '消息状态',
     },
@@ -39,7 +39,7 @@ type Story = StoryObj<typeof StatusIndicator>;
 export const Default = () => {
   return (
     <div className="p-4 bg-muted rounded-lg">
-      <StatusIndicator status={MessageStatus.Sent} />
+      <StatusIndicator status={MessageStatusEnum.Sent} />
     </div>
   );
 };
@@ -48,13 +48,13 @@ export const Default = () => {
  * 所有状态 - 展示所有消息状态
  */
 export const AllStatuses = () => {
-  const statuses: MessageStatus[] = [
-    MessageStatus.Created,
-    MessageStatus.Sending,
-    MessageStatus.Sent,
-    MessageStatus.Delivered,
-    MessageStatus.Read,
-    MessageStatus.Failed,
+  const statuses: MessageStatusEnum[] = [
+    MessageStatusEnum.Created,
+    MessageStatusEnum.Sending,
+    MessageStatusEnum.Sent,
+    MessageStatusEnum.Delivered,
+    MessageStatusEnum.Read,
+    MessageStatusEnum.Failed,
   ];
 
   return (
@@ -78,19 +78,27 @@ export const AllStatuses = () => {
 export const StatusDescriptions = () => {
   const statusDescriptions = [
     {
-      status: MessageStatus.Created,
+      status: MessageStatusEnum.Created,
       label: '已创建',
       desc: '消息已创建，等待发送',
     },
-    { status: MessageStatus.Sending, label: '发送中', desc: '消息正在发送' },
-    { status: MessageStatus.Sent, label: '已发送', desc: '消息已发送到服务器' },
     {
-      status: MessageStatus.Delivered,
+      status: MessageStatusEnum.Sending,
+      label: '发送中',
+      desc: '消息正在发送',
+    },
+    {
+      status: MessageStatusEnum.Sent,
+      label: '已发送',
+      desc: '消息已发送到服务器',
+    },
+    {
+      status: MessageStatusEnum.Delivered,
       label: '已送达',
       desc: '消息已送达对方设备',
     },
-    { status: MessageStatus.Read, label: '已读', desc: '对方已查看消息' },
-    { status: MessageStatus.Failed, label: '失败', desc: '消息发送失败' },
+    { status: MessageStatusEnum.Read, label: '已读', desc: '对方已查看消息' },
+    { status: MessageStatusEnum.Failed, label: '失败', desc: '消息发送失败' },
   ];
 
   return (
@@ -124,7 +132,7 @@ export const InMessage = () => {
           <p className="text-sm">Hello!</p>
           <div className="flex items-center justify-end gap-1 mt-1">
             <span className="text-xs opacity-70">10:30</span>
-            <StatusIndicator status={MessageStatus.Read} />
+            <StatusIndicator status={MessageStatusEnum.Read} />
           </div>
         </div>
       </div>
@@ -133,7 +141,7 @@ export const InMessage = () => {
           <p className="text-sm">How are you?</p>
           <div className="flex items-center justify-end gap-1 mt-1">
             <span className="text-xs opacity-70">10:31</span>
-            <StatusIndicator status={MessageStatus.Delivered} />
+            <StatusIndicator status={MessageStatusEnum.Delivered} />
           </div>
         </div>
       </div>

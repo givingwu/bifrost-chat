@@ -1,8 +1,8 @@
-import type { ChannelType } from '@/interfaces/channel.interface';
+import type { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import {
-  MessageDirection,
-  MessageStatus,
-  MessageType,
+  MessageDirectionEnum,
+  MessageStatusEnum,
+  MessageTypeEnum,
   type SendMessageOptions,
   type StandardMessage,
   type StringMessage,
@@ -22,17 +22,17 @@ export class MessageBuilder {
     options: SendMessageOptions & {
       senderId: string;
       receiverId: string;
-      channelType: ChannelType;
+      channelType: ChannelTypeEnum;
     },
   ): StandardMessage {
     return {
       id: MessageBuilder.generateId(),
       tempId: MessageBuilder.generateTempId(),
-      direction: MessageDirection.Outgoing,
+      direction: MessageDirectionEnum.Outgoing,
       channelType: options.channelType,
-      status: MessageStatus.Created,
+      status: MessageStatusEnum.Created,
       timestamp: Date.now(),
-      type: options.type ?? MessageType.Text,
+      type: options.type ?? MessageTypeEnum.Text,
       content: { text } as StringMessage,
       sender: options.sender ?? {
         id: options.senderId,

@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { ComposerHint } from '@/components/composer/ComposerHint';
-import { ChannelType } from '@/interfaces/channel.interface';
+import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import '@/styles/theme.css';
 
 /**
@@ -26,7 +26,7 @@ type Story = StoryObj<typeof ComposerHint>;
 export const WhatsApp = () => {
   return (
     <div className="p-4 bg-muted rounded-lg">
-      <ComposerHint channel={ChannelType.WhatsApp} />
+      <ComposerHint channel={ChannelTypeEnum.WhatsApp} />
     </div>
   );
 };
@@ -37,7 +37,7 @@ export const WhatsApp = () => {
 export const SMS = () => {
   return (
     <div className="p-4 bg-muted rounded-lg">
-      <ComposerHint channel={ChannelType.SMS} />
+      <ComposerHint channel={ChannelTypeEnum.SMS} />
     </div>
   );
 };
@@ -48,7 +48,7 @@ export const SMS = () => {
 export const Email = () => {
   return (
     <div className="p-4 bg-muted rounded-lg">
-      <ComposerHint channel={ChannelType.Email} />
+      <ComposerHint channel={ChannelTypeEnum.Email} />
     </div>
   );
 };
@@ -75,7 +75,7 @@ export const InInputArea = () => {
         placeholder="输入消息..."
         className="px-3 py-2 text-sm border border-border rounded-md bg-card text-text"
       />
-      <ComposerHint channel={ChannelType.WhatsApp} />
+      <ComposerHint channel={ChannelTypeEnum.WhatsApp} />
     </div>
   );
 };

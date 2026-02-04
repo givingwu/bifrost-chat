@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { ChannelFilter } from '@/components/toolbar/ChannelFilter';
 import {
   AvailableChannelTypes,
-  ChannelType,
+  ChannelTypeEnum,
 } from '@/interfaces/channel.interface';
 import '@/styles/theme.css';
 
@@ -27,7 +27,11 @@ const meta: Meta<typeof ChannelFilter> = {
     },
     activeChannel: {
       control: 'select',
-      options: [ChannelType.SMS, ChannelType.WhatsApp, ChannelType.Email],
+      options: [
+        ChannelTypeEnum.SMS,
+        ChannelTypeEnum.WhatsApp,
+        ChannelTypeEnum.Email,
+      ],
       description: '当前激活的渠道',
     },
   },
@@ -44,7 +48,7 @@ export const Default = () => {
     <div className="p-4 bg-muted rounded-lg">
       <ChannelFilter
         channels={AvailableChannelTypes}
-        activeChannel={ChannelType.WhatsApp}
+        activeChannel={ChannelTypeEnum.WhatsApp}
       />
     </div>
   );
@@ -60,21 +64,21 @@ export const ActiveStates = () => {
         <p className="text-xs text-text-muted mb-2">SMS 激活</p>
         <ChannelFilter
           channels={AvailableChannelTypes}
-          activeChannel={ChannelType.SMS}
+          activeChannel={ChannelTypeEnum.SMS}
         />
       </div>
       <div className="p-4 bg-muted rounded-lg">
         <p className="text-xs text-text-muted mb-2">WhatsApp 激活</p>
         <ChannelFilter
           channels={AvailableChannelTypes}
-          activeChannel={ChannelType.WhatsApp}
+          activeChannel={ChannelTypeEnum.WhatsApp}
         />
       </div>
       <div className="p-4 bg-muted rounded-lg">
         <p className="text-xs text-text-muted mb-2">Email 激活</p>
         <ChannelFilter
           channels={AvailableChannelTypes}
-          activeChannel={ChannelType.Email}
+          activeChannel={ChannelTypeEnum.Email}
         />
       </div>
     </div>
@@ -85,7 +89,7 @@ export const ActiveStates = () => {
  * 交互示例 - 点击切换
  */
 export const Interactive = () => {
-  const [activeChannel, setActiveChannel] = useState(ChannelType.WhatsApp);
+  const [activeChannel, setActiveChannel] = useState(ChannelTypeEnum.WhatsApp);
 
   return (
     <div className="space-y-4">
@@ -105,11 +109,11 @@ export const Interactive = () => {
  * 部分渠道 - 展示部分可用渠道
  */
 export const PartialChannels = () => {
-  const channels = [ChannelType.SMS, ChannelType.WhatsApp];
+  const channels = [ChannelTypeEnum.SMS, ChannelTypeEnum.WhatsApp];
 
   return (
     <div className="p-4 bg-muted rounded-lg">
-      <ChannelFilter channels={channels} activeChannel={ChannelType.SMS} />
+      <ChannelFilter channels={channels} activeChannel={ChannelTypeEnum.SMS} />
     </div>
   );
 };
@@ -118,7 +122,7 @@ export const PartialChannels = () => {
  * 在工具栏中使用 - 展示实际应用场景
  */
 export const InToolbar = () => {
-  const [activeChannel, setActiveChannel] = useState(ChannelType.WhatsApp);
+  const [activeChannel, setActiveChannel] = useState(ChannelTypeEnum.WhatsApp);
 
   return (
     <div className="w-full p-4 bg-card rounded-lg shadow-soft">

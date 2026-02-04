@@ -1,6 +1,6 @@
 import type { StateCreator } from 'zustand';
 import {
-  LanguageCode,
+  LanguageCodeEnum,
   type LanguageState,
 } from '@/interfaces/language.interface';
 
@@ -10,7 +10,7 @@ import {
 export interface LanguageSlice {
   language: LanguageState;
   actions: {
-    setLanguage: (code: LanguageCode) => void;
+    setLanguage: (code: LanguageCodeEnum) => void;
   };
 }
 
@@ -21,10 +21,10 @@ export const createLanguageSlice: StateCreator<
   LanguageSlice
 > = (set) => ({
   language: {
-    code: LanguageCode.EnUS,
+    code: LanguageCodeEnum.EnUS,
   },
   actions: {
-    setLanguage: (code: LanguageCode) =>
+    setLanguage: (code: LanguageCodeEnum) =>
       set((state) => ({
         language: { ...state.language, code },
       })),

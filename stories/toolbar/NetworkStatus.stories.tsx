@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { useState } from 'react';
 import { NetworkStatus } from '@/components/toolbar/NetworkStatus';
-import { NetworkStatus as NetworkStatusEnum } from '@/interfaces/network.interface';
+import { NetworkStatusEnum } from '@/interfaces/network.interface';
 import '@/styles/theme.css';
 
 /**
@@ -113,18 +113,21 @@ export const InToolbar = () => {
         </div>
         <div className="flex gap-2">
           <button
+            type="button"
             onClick={() => setStatus(NetworkStatusEnum.Connected)}
             className="px-3 py-1 text-xs bg-green-500 text-white rounded"
           >
             已连接
           </button>
           <button
+            type="button"
             onClick={() => setStatus(NetworkStatusEnum.Connecting)}
             className="px-3 py-1 text-xs bg-yellow-500 text-white rounded"
           >
             连接中
           </button>
           <button
+            type="button"
             onClick={() => setStatus(NetworkStatusEnum.Disconnected)}
             className="px-3 py-1 text-xs bg-red-500 text-white rounded"
           >
@@ -168,6 +171,7 @@ export const StatusTransition = () => {
       </div>
       <div className="flex gap-2">
         <button
+          type="button"
           onClick={handleConnect}
           disabled={status !== NetworkStatusEnum.Disconnected}
           className="px-4 py-2 text-sm bg-primary text-primary-foreground rounded disabled:opacity-50"
@@ -175,6 +179,7 @@ export const StatusTransition = () => {
           连接
         </button>
         <button
+          type="button"
           onClick={handleDisconnect}
           disabled={status !== NetworkStatusEnum.Connected}
           className="px-4 py-2 text-sm bg-secondary text-secondary-foreground rounded disabled:opacity-50"

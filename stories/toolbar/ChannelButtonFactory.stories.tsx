@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { useState } from 'react';
 import { ChannelButtonFactory } from '@/components/toolbar/ChannelButtonFactory';
-import { ChannelType } from '@/interfaces/channel.interface';
+import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import '@/styles/theme.css';
 
 /**
@@ -20,7 +20,11 @@ const meta: Meta<typeof ChannelButtonFactory> = {
   argTypes: {
     channel: {
       control: 'select',
-      options: [ChannelType.SMS, ChannelType.WhatsApp, ChannelType.Email],
+      options: [
+        ChannelTypeEnum.SMS,
+        ChannelTypeEnum.WhatsApp,
+        ChannelTypeEnum.Email,
+      ],
       description: '渠道类型',
     },
     active: {
@@ -44,7 +48,7 @@ export const Default = () => {
   return (
     <div className="p-4 bg-muted rounded-lg">
       <ChannelButtonFactory
-        channel={ChannelType.SMS}
+        channel={ChannelTypeEnum.SMS}
         onClick={(type) => console.log('Clicked:', type)}
       />
     </div>
@@ -55,7 +59,11 @@ export const Default = () => {
  * 所有渠道 - 展示所有可用渠道
  */
 export const AllChannels = () => {
-  const channels = [ChannelType.SMS, ChannelType.WhatsApp, ChannelType.Email];
+  const channels = [
+    ChannelTypeEnum.SMS,
+    ChannelTypeEnum.WhatsApp,
+    ChannelTypeEnum.Email,
+  ];
 
   return (
     <div className="flex gap-2 p-4 bg-muted rounded-lg">
@@ -77,16 +85,16 @@ export const ActiveState = () => {
   return (
     <div className="flex gap-2 p-4 bg-muted rounded-lg">
       <ChannelButtonFactory
-        channel={ChannelType.SMS}
+        channel={ChannelTypeEnum.SMS}
         active
         onClick={(type) => console.log('Clicked:', type)}
       />
       <ChannelButtonFactory
-        channel={ChannelType.WhatsApp}
+        channel={ChannelTypeEnum.WhatsApp}
         onClick={(type) => console.log('Clicked:', type)}
       />
       <ChannelButtonFactory
-        channel={ChannelType.Email}
+        channel={ChannelTypeEnum.Email}
         onClick={(type) => console.log('Clicked:', type)}
       />
     </div>
@@ -100,17 +108,17 @@ export const Disabled = () => {
   return (
     <div className="flex gap-2 p-4 bg-muted rounded-lg">
       <ChannelButtonFactory
-        channel={ChannelType.SMS}
+        channel={ChannelTypeEnum.SMS}
         disabled
         onClick={(type) => console.log('Clicked:', type)}
       />
       <ChannelButtonFactory
-        channel={ChannelType.WhatsApp}
+        channel={ChannelTypeEnum.WhatsApp}
         disabled
         onClick={(type) => console.log('Clicked:', type)}
       />
       <ChannelButtonFactory
-        channel={ChannelType.Email}
+        channel={ChannelTypeEnum.Email}
         disabled
         onClick={(type) => console.log('Clicked:', type)}
       />
@@ -122,11 +130,15 @@ export const Disabled = () => {
  * 交互示例 - 点击切换
  */
 export const Interactive = () => {
-  const [activeChannel, setActiveChannel] = useState<ChannelType>(
-    ChannelType.SMS,
+  const [activeChannel, setActiveChannel] = useState<ChannelTypeEnum>(
+    ChannelTypeEnum.SMS,
   );
 
-  const channels = [ChannelType.SMS, ChannelType.WhatsApp, ChannelType.Email];
+  const channels = [
+    ChannelTypeEnum.SMS,
+    ChannelTypeEnum.WhatsApp,
+    ChannelTypeEnum.Email,
+  ];
 
   return (
     <div className="space-y-4">
@@ -149,11 +161,15 @@ export const Interactive = () => {
  * 实际应用 - 在工具栏中使用
  */
 export const InToolbar = () => {
-  const [activeChannel, setActiveChannel] = useState<ChannelType>(
-    ChannelType.WhatsApp,
+  const [activeChannel, setActiveChannel] = useState<ChannelTypeEnum>(
+    ChannelTypeEnum.WhatsApp,
   );
 
-  const channels = [ChannelType.SMS, ChannelType.WhatsApp, ChannelType.Email];
+  const channels = [
+    ChannelTypeEnum.SMS,
+    ChannelTypeEnum.WhatsApp,
+    ChannelTypeEnum.Email,
+  ];
 
   return (
     <div className="w-full p-4 bg-card rounded-lg shadow-soft">

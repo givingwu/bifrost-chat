@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { DefaultChatLayout } from '@/components/layout/DefaultChatLayout';
-import { ChannelType } from '@/interfaces/channel.interface';
-import { LanguageCode } from '@/interfaces/language.interface';
+import { ChannelTypeEnum } from '@/interfaces/channel.interface';
+import { LanguageCodeEnum } from '@/interfaces/language.interface';
 import enUS from '@/locales/en-US.json';
 import zhCN from '@/locales/zh-CN.json';
 import { I18nProvider } from '@/providers/I18n.provider';

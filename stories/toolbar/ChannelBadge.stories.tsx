@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { ChannelBadge } from '@/components/toolbar/ChannelBadge';
-import { ChannelType } from '@/interfaces/channel.interface';
+import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import '@/styles/theme.css';
 
 /**
@@ -19,7 +19,7 @@ type Story = StoryObj<typeof ChannelBadge>;
 export const WhatsApp = () => {
   return (
     <div className="p-4 bg-muted rounded-lg">
-      <ChannelBadge type={ChannelType.WhatsApp} />
+      <ChannelBadge type={ChannelTypeEnum.WhatsApp} />
     </div>
   );
 };
@@ -27,7 +27,7 @@ export const WhatsApp = () => {
 export const SMS = () => {
   return (
     <div className="p-4 bg-muted rounded-lg">
-      <ChannelBadge type={ChannelType.SMS} />
+      <ChannelBadge type={ChannelTypeEnum.SMS} />
     </div>
   );
 };
@@ -35,7 +35,7 @@ export const SMS = () => {
 export const Email = () => {
   return (
     <div className="p-4 bg-muted rounded-lg">
-      <ChannelBadge type={ChannelType.Email} />
+      <ChannelBadge type={ChannelTypeEnum.Email} />
     </div>
   );
 };

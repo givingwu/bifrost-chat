@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { ChannelType } from '@/interfaces/channel.interface';
+import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import {
-  MessageDirection,
-  MessageStatus,
-  MessageType,
+  MessageDirectionEnum,
+  MessageStatusEnum,
+  MessageTypeEnum,
 } from '@/interfaces/message.interface';
 import { MessageBuilder } from './message-builder.util';
 
@@ -12,13 +12,13 @@ describe('MessageBuilder', () => {
     const message = MessageBuilder.buildTextMessage('Hello', {
       senderId: 'agent-1',
       receiverId: 'user-1',
-      channelType: ChannelType.SMS,
+      channelType: ChannelTypeEnum.SMS,
     });
 
     expect(message.content).toEqual({ text: 'Hello' });
-    expect(message.direction).toBe(MessageDirection.Outgoing);
-    expect(message.status).toBe(MessageStatus.Created);
-    expect(message.type).toBe(MessageType.Text);
+    expect(message.direction).toBe(MessageDirectionEnum.Outgoing);
+    expect(message.status).toBe(MessageStatusEnum.Created);
+    expect(message.type).toBe(MessageTypeEnum.Text);
     expect(message.sender?.id).toBe('agent-1');
     expect(message.receiver?.id).toBe('user-1');
     expect(message.id).toMatch(/^msg_\d+_[a-z0-9]+$/);
@@ -29,12 +29,12 @@ describe('MessageBuilder', () => {
     const message1 = MessageBuilder.buildTextMessage('Hello', {
       senderId: 'agent-1',
       receiverId: 'user-1',
-      channelType: ChannelType.SMS,
+      channelType: ChannelTypeEnum.SMS,
     });
     const message2 = MessageBuilder.buildTextMessage('World', {
       senderId: 'agent-1',
       receiverId: 'user-1',
-      channelType: ChannelType.SMS,
+      channelType: ChannelTypeEnum.SMS,
     });
 
     expect(message1.id).not.toBe(message2.id);
@@ -46,17 +46,17 @@ describe('MessageBuilder', () => {
       id: 'custom-agent',
       app: 'custom-app',
       clientType: 'mobile',
-      channelType: ChannelType.WhatsApp,
+      channelType: ChannelTypeEnum.WhatsApp,
     };
     const customReceiver = {
       id: 'custom-user',
-      channelType: ChannelType.WhatsApp,
+      channelType: ChannelTypeEnum.WhatsApp,
     };
 
     const message = MessageBuilder.buildTextMessage('Hello', {
       senderId: 'agent-1',
       receiverId: 'user-1',
-      channelType: ChannelType.WhatsApp,
+      channelType: ChannelTypeEnum.WhatsApp,
       sender: customSender,
       receiver: customReceiver,
     });
@@ -69,10 +69,10 @@ describe('MessageBuilder', () => {
     const message = MessageBuilder.buildTextMessage('Hello', {
       senderId: 'agent-1',
       receiverId: 'user-1',
-      channelType: ChannelType.SMS,
-      type: MessageType.Image,
+      channelType: ChannelTypeEnum.SMS,
+      type: MessageTypeEnum.Image,
     });
 
-    expect(message.type).toBe(MessageType.Image);
+    expect(message.type).toBe(MessageTypeEnum.Image);
   });
 });

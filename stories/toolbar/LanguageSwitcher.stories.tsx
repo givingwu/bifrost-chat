@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { useState } from 'react';
 import { LanguageSwitcher } from '@/components/toolbar/LanguageSwitcher';
-import { LanguageCode } from '@/interfaces/language.interface';
+import { LanguageCodeEnum } from '@/interfaces/language.interface';
 import '@/styles/theme.css';
 
 /**
@@ -19,7 +19,7 @@ const meta: Meta<typeof LanguageSwitcher> = {
   argTypes: {
     value: {
       control: 'select',
-      options: [LanguageCode.EnUS, LanguageCode.ZhCN],
+      options: [LanguageCodeEnum.EnUS, LanguageCodeEnum.ZhCN],
       description: '当前语言',
     },
   },
@@ -35,7 +35,7 @@ export const Default = () => {
   return (
     <div className="p-4 bg-muted rounded-lg">
       <LanguageSwitcher
-        value={LanguageCode.EnUS}
+        value={LanguageCodeEnum.EnUS}
         onChange={(lang) => console.log('Language changed:', lang)}
       />
     </div>
@@ -47,8 +47,8 @@ export const Default = () => {
  */
 export const AllLanguages = () => {
   const languages = [
-    { code: LanguageCode.EnUS, name: 'English', flag: '🇺🇸' },
-    { code: LanguageCode.ZhCN, name: '简体中文', flag: '🇨🇳' },
+    { code: LanguageCodeEnum.EnUS, name: 'English', flag: '🇺🇸' },
+    { code: LanguageCodeEnum.ZhCN, name: '简体中文', flag: '🇨🇳' },
   ];
 
   return (
@@ -73,11 +73,11 @@ export const AllLanguages = () => {
  * 交互示例 - 切换语言
  */
 export const Interactive = () => {
-  const [language, setLanguage] = useState(LanguageCode.EnUS);
+  const [language, setLanguage] = useState(LanguageCodeEnum.EnUS);
 
   const languageNames = {
-    [LanguageCode.EnUS]: 'English',
-    [LanguageCode.ZhCN]: '简体中文',
+    [LanguageCodeEnum.EnUS]: 'English',
+    [LanguageCodeEnum.ZhCN]: '简体中文',
   };
 
   return (
@@ -85,7 +85,7 @@ export const Interactive = () => {
       <div className="flex items-center justify-between p-4 bg-card rounded-lg shadow-soft">
         <div className="flex items-center gap-3">
           <span className="text-2xl">
-            {language === LanguageCode.EnUS ? '🇺🇸' : '🇨🇳'}
+            {language === LanguageCodeEnum.EnUS ? '🇺🇸' : '🇨🇳'}
           </span>
           <span className="text-sm font-medium">{languageNames[language]}</span>
         </div>
@@ -102,7 +102,7 @@ export const Interactive = () => {
  * 在工具栏中使用 - 展示实际应用场景
  */
 export const InToolbar = () => {
-  const [language, setLanguage] = useState(LanguageCode.ZhCN);
+  const [language, setLanguage] = useState(LanguageCodeEnum.ZhCN);
 
   return (
     <div className="w-full p-4 bg-card rounded-lg shadow-soft">

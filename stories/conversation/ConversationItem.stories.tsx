@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { useState } from 'react';
 import { ConversationItem } from '@/components/conversation/ConversationItem';
-import { AgentStatus } from '@/interfaces/agent.interface';
-import { ChannelType } from '@/interfaces/channel.interface';
+import { AgentStatusEnum } from '@/interfaces/agent.interface';
+import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import type { Conversation } from '@/interfaces/conversation.interface';
 import '@/styles/theme.css';
 
@@ -37,12 +37,12 @@ const mockConversation: Conversation = {
     id: 'user-1',
     name: 'Liam Walker',
     avatarUrl: 'https://i.pravatar.cc/150?img=12',
-    status: AgentStatus.Online,
+    status: AgentStatusEnum.Online,
   },
   lastMessage: 'Thanks for the update! 👋',
   lastMessageTime: '09:42 AM',
   unreadCount: 2,
-  channel: ChannelType.WhatsApp,
+  channel: ChannelTypeEnum.WhatsApp,
   isActive: false,
 };
 
@@ -90,12 +90,12 @@ export const DifferentChannels = () => {
         id: 'user-1',
         name: 'Alice Smith',
         avatarUrl: 'https://i.pravatar.cc/150?img=1',
-        status: AgentStatus.Online,
+        status: AgentStatusEnum.Online,
       },
       lastMessage: 'Hello via SMS',
       lastMessageTime: '10:30 AM',
       unreadCount: 0,
-      channel: ChannelType.SMS,
+      channel: ChannelTypeEnum.SMS,
     },
     {
       id: '2',
@@ -103,12 +103,12 @@ export const DifferentChannels = () => {
         id: 'user-2',
         name: 'Bob Johnson',
         avatarUrl: 'https://i.pravatar.cc/150?img=2',
-        status: AgentStatus.Busy,
+        status: AgentStatusEnum.Busy,
       },
       lastMessage: 'WhatsApp message here',
       lastMessageTime: '10:15 AM',
       unreadCount: 3,
-      channel: ChannelType.WhatsApp,
+      channel: ChannelTypeEnum.WhatsApp,
     },
     {
       id: '3',
@@ -116,12 +116,12 @@ export const DifferentChannels = () => {
         id: 'user-3',
         name: 'Carol Williams',
         avatarUrl: 'https://i.pravatar.cc/150?img=3',
-        status: AgentStatus.Offline,
+        status: AgentStatusEnum.Offline,
       },
       lastMessage: 'Email received',
       lastMessageTime: 'Yesterday',
       unreadCount: 1,
-      channel: ChannelType.Email,
+      channel: ChannelTypeEnum.Email,
     },
   ];
 
@@ -183,7 +183,7 @@ export const UserStatuses = () => {
       id: '1',
       user: {
         ...mockConversation.user,
-        status: AgentStatus.Online,
+        status: AgentStatusEnum.Online,
       },
     },
     {
@@ -191,7 +191,7 @@ export const UserStatuses = () => {
       id: '2',
       user: {
         ...mockConversation.user,
-        status: AgentStatus.Busy,
+        status: AgentStatusEnum.Busy,
       },
     },
     {
@@ -199,7 +199,7 @@ export const UserStatuses = () => {
       id: '3',
       user: {
         ...mockConversation.user,
-        status: AgentStatus.Offline,
+        status: AgentStatusEnum.Offline,
       },
     },
   ];

@@ -1,10 +1,10 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { MessageContentRenderer } from '@/components/messages/MessageContentRenderer';
-import { ChannelType } from '@/interfaces/channel.interface';
+import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import {
-  MessageDirection,
-  MessageStatus,
-  MessageType,
+  MessageDirectionEnum,
+  MessageStatusEnum,
+  MessageTypeEnum,
 } from '@/interfaces/message.interface';
 import '@/styles/theme.css';
 
@@ -26,9 +26,9 @@ export default meta;
 type Story = StoryObj<typeof MessageContentRenderer>;
 
 const baseMessage = {
-  direction: MessageDirection.Incoming,
-  channelType: ChannelType.WhatsApp,
-  status: MessageStatus.Read,
+  direction: MessageDirectionEnum.Incoming,
+  channelType: ChannelTypeEnum.WhatsApp,
+  status: MessageStatusEnum.Read,
   timestamp: Date.now(),
 };
 
@@ -42,7 +42,7 @@ export const TextContent = () => {
         message={{
           ...baseMessage,
           id: '1',
-          type: MessageType.Text,
+          type: MessageTypeEnum.Text,
           content: { text: '这是一条文本消息' },
         }}
       />
@@ -60,7 +60,7 @@ export const ImageContent = () => {
         message={{
           ...baseMessage,
           id: '2',
-          type: MessageType.Image,
+          type: MessageTypeEnum.Image,
           content: {
             url: 'https://picsum.photos/400/300',
             mimeType: 'image/jpeg',
@@ -81,7 +81,7 @@ export const VideoContent = () => {
         message={{
           ...baseMessage,
           id: '3',
-          type: MessageType.Video,
+          type: MessageTypeEnum.Video,
           content: {
             url: 'https://example.com/video.mp4',
             mimeType: 'video/mp4',
@@ -102,7 +102,7 @@ export const FileContent = () => {
         message={{
           ...baseMessage,
           id: '4',
-          type: MessageType.File,
+          type: MessageTypeEnum.File,
           content: {
             url: 'https://example.com/document.pdf',
             mimeType: 'application/pdf',
@@ -123,7 +123,7 @@ export const LocationContent = () => {
         message={{
           ...baseMessage,
           id: '5',
-          type: MessageType.Location,
+          type: MessageTypeEnum.Location,
           content: {
             text: JSON.stringify({
               latitude: 37.7749,
@@ -147,7 +147,7 @@ export const WhatsAppTemplate = () => {
         message={{
           ...baseMessage,
           id: '6',
-          type: MessageType.Template,
+          type: MessageTypeEnum.Template,
           content: {
             text: JSON.stringify({
               title: '问候模板',
@@ -170,7 +170,7 @@ export const RichMediaContent = () => {
         message={{
           ...baseMessage,
           id: '7',
-          type: MessageType.RichMedia,
+          type: MessageTypeEnum.RichMedia,
           content: {
             text: JSON.stringify({
               title: '产品推荐',
@@ -194,7 +194,7 @@ export const AudioContent = () => {
         message={{
           ...baseMessage,
           id: '8',
-          type: MessageType.Audio,
+          type: MessageTypeEnum.Audio,
           content: {
             url: 'https://example.com/audio.mp3',
             mimeType: 'audio/mpeg',
@@ -215,7 +215,7 @@ export const UnsupportedType = () => {
         message={{
           ...baseMessage,
           id: '9',
-          type: MessageType.Other,
+          type: MessageTypeEnum.Other,
           content: { text: 'Unknown content' },
         }}
       />

@@ -1,5 +1,5 @@
 import type { StateCreator } from 'zustand';
-import { ThemeMode, type ThemeState } from '@/interfaces/theme.interface';
+import { ThemeModeEnum, type ThemeState } from '@/interfaces/theme.interface';
 
 /**
  * Theme Slice：主题切换状态。
@@ -7,7 +7,7 @@ import { ThemeMode, type ThemeState } from '@/interfaces/theme.interface';
 export interface ThemeSlice {
   theme: ThemeState;
   actions: {
-    setTheme: (mode: ThemeMode) => void;
+    setTheme: (mode: ThemeModeEnum) => void;
   };
 }
 
@@ -15,10 +15,10 @@ export const createThemeSlice: StateCreator<ThemeSlice, [], [], ThemeSlice> = (
   set,
 ) => ({
   theme: {
-    mode: ThemeMode.System,
+    mode: ThemeModeEnum.System,
   },
   actions: {
-    setTheme: (mode: ThemeMode) =>
+    setTheme: (mode: ThemeModeEnum) =>
       set((state) => ({
         theme: { ...state.theme, mode },
       })),

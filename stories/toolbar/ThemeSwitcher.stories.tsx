@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { useState } from 'react';
 import { ThemeSwitcher } from '@/components/toolbar/ThemeSwitcher';
-import { ThemeMode } from '@/interfaces/theme.interface';
+import { ThemeModeEnum } from '@/interfaces/theme.interface';
 import '@/styles/theme.css';
 
 /**
@@ -19,7 +19,7 @@ const meta: Meta<typeof ThemeSwitcher> = {
   argTypes: {
     value: {
       control: 'select',
-      options: [ThemeMode.Light, ThemeMode.Dark, ThemeMode.System],
+      options: [ThemeModeEnum.Light, ThemeModeEnum.Dark, ThemeModeEnum.System],
       description: '当前主题',
     },
   },
@@ -35,7 +35,7 @@ export const Default = () => {
   return (
     <div className="p-4 bg-muted rounded-lg">
       <ThemeSwitcher
-        value={ThemeMode.System}
+        value={ThemeModeEnum.System}
         onChange={(mode) => console.log('Theme changed:', mode)}
       />
     </div>
@@ -47,9 +47,9 @@ export const Default = () => {
  */
 export const AllThemes = () => {
   const themes = [
-    { mode: ThemeMode.Light, name: '浅色模式', icon: '☀️' },
-    { mode: ThemeMode.Dark, name: '深色模式', icon: '🌙' },
-    { mode: ThemeMode.System, name: '跟随系统', icon: '💻' },
+    { mode: ThemeModeEnum.Light, name: '浅色模式', icon: '☀️' },
+    { mode: ThemeModeEnum.Dark, name: '深色模式', icon: '🌙' },
+    { mode: ThemeModeEnum.System, name: '跟随系统', icon: '💻' },
   ];
 
   return (
@@ -74,18 +74,18 @@ export const AllThemes = () => {
  * 交互示例 - 切换主题
  */
 export const Interactive = () => {
-  const [theme, setTheme] = useState(ThemeMode.System);
+  const [theme, setTheme] = useState(ThemeModeEnum.System);
 
   const themeNames = {
-    [ThemeMode.Light]: '浅色模式',
-    [ThemeMode.Dark]: '深色模式',
-    [ThemeMode.System]: '跟随系统',
+    [ThemeModeEnum.Light]: '浅色模式',
+    [ThemeModeEnum.Dark]: '深色模式',
+    [ThemeModeEnum.System]: '跟随系统',
   };
 
   const themeIcons = {
-    [ThemeMode.Light]: '☀️',
-    [ThemeMode.Dark]: '🌙',
-    [ThemeMode.System]: '💻',
+    [ThemeModeEnum.Light]: '☀️',
+    [ThemeModeEnum.Dark]: '🌙',
+    [ThemeModeEnum.System]: '💻',
   };
 
   return (
@@ -108,7 +108,7 @@ export const Interactive = () => {
  * 在工具栏中使用 - 展示实际应用场景
  */
 export const InToolbar = () => {
-  const [theme, setTheme] = useState(ThemeMode.Light);
+  const [theme, setTheme] = useState(ThemeModeEnum.Light);
 
   return (
     <div className="w-full p-4 bg-card rounded-lg shadow-soft">
@@ -124,20 +124,20 @@ export const InToolbar = () => {
  * 主题预览 - 展示不同主题效果
  */
 export const ThemePreview = () => {
-  const [theme, setTheme] = useState(ThemeMode.Light);
+  const [theme, setTheme] = useState(ThemeModeEnum.Light);
 
   const themeConfigs = {
-    [ThemeMode.Light]: {
+    [ThemeModeEnum.Light]: {
       bg: 'bg-white',
       text: 'text-gray-900',
       border: 'border-gray-200',
     },
-    [ThemeMode.Dark]: {
+    [ThemeModeEnum.Dark]: {
       bg: 'bg-gray-900',
       text: 'text-white',
       border: 'border-gray-700',
     },
-    [ThemeMode.System]: {
+    [ThemeModeEnum.System]: {
       bg: 'bg-gray-100',
       text: 'text-gray-900',
       border: 'border-gray-300',
