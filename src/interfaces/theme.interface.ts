@@ -1,7 +1,7 @@
 /**
  * 主题模式枚举
  */
-export enum ThemeMode {
+export enum ThemeModeEnum {
   /** 跟随系统 */
   System = 'system',
   /** 浅色模式 */
@@ -15,5 +15,5 @@ export enum ThemeMode {
  */
 export interface ThemeState {
   /** 主题模式 */
-  mode: ThemeMode;
+  mode: ThemeModeEnum;
 }

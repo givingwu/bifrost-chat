@@ -1,16 +1,16 @@
-import type { AgentStatus } from '@/interfaces/agent.interface';
-import type { ChannelType } from '@/interfaces/channel.interface';
+import type { AgentStatusEnum } from '@/interfaces/agent.interface';
+import type { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import { ChannelButtonFactory } from './ChannelButtonFactory';
 
 export interface ChannelFilterProps {
   /** 坐席状态（in_call 时触发互斥逻辑） */
-  status?: AgentStatus;
+  status?: AgentStatusEnum;
   /** 允许的渠道列表 */
-  channels: ChannelType[];
+  channels: ChannelTypeEnum[];
   /** 当前激活的渠道 */
-  activeChannel?: ChannelType;
+  activeChannel?: ChannelTypeEnum;
   /** 点击渠道按钮回调 */
-  onChannelClick?: (type: ChannelType) => void;
+  onChannelClick?: (type: ChannelTypeEnum) => void;
 }
 
 /**

@@ -1,4 +1,4 @@
-import type { ChannelType } from './channel.interface';
+import type { ChannelTypeEnum } from './channel.interface';
 import type { StandardMessage } from './message.interface';
 
 /**
@@ -12,7 +12,7 @@ export interface SDKContext {
   /** 宿主侧用户信息 */
   hostUser: { id: string; name: string };
   /** 初始策略（允许的渠道） */
-  initialStrategy?: { allowedChannels: ChannelType[] };
+  initialStrategy?: { allowedChannels: ChannelTypeEnum[] };
 }
 
 /**

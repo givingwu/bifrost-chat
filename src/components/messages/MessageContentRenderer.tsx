@@ -1,7 +1,7 @@
 import { memo, type ReactElement, useMemo } from 'react';
 import {
   type MessageContent,
-  MessageType,
+  MessageTypeEnum,
   type StandardMessage,
 } from '@/interfaces/message.interface';
 import { FileMessage } from './FileMessage';
@@ -32,17 +32,18 @@ type MessageContentComponent = (props: {
  * - 使用工厂模式，便于扩展新的消息类型
  * - 映射表在模块初始化时创建，避免每次渲染时重新创建
  */
-const MESSAGE_COMPONENT_MAP: Record<MessageType, MessageContentComponent> = {
-  [MessageType.Text]: TextMessage,
-  [MessageType.Image]: ImageMessage,
-  [MessageType.Audio]: VoiceMessage,
-  [MessageType.Video]: VideoMessage,
-  [MessageType.File]: FileMessage,
-  [MessageType.Template]: WhatsAppMessage,
-  [MessageType.Location]: LocationMessage,
-  [MessageType.RichMedia]: RichMediaMessage,
-  [MessageType.Other]: UnsupportedMessage,
-} as const;
+const MESSAGE_COMPONENT_MAP: Record<MessageTypeEnum, MessageContentComponent> =
+  {
+    [MessageTypeEnum.Text]: TextMessage,
+    [MessageTypeEnum.Image]: ImageMessage,
+    [MessageTypeEnum.Audio]: VoiceMessage,
+    [MessageTypeEnum.Video]: VideoMessage,
+    [MessageTypeEnum.File]: FileMessage,
+    [MessageTypeEnum.Template]: WhatsAppMessage,
+    [MessageTypeEnum.Location]: LocationMessage,
+    [MessageTypeEnum.RichMedia]: RichMediaMessage,
+    [MessageTypeEnum.Other]: UnsupportedMessage,
+  } as const;
 
 /**
  * 验证消息对象是否有效

@@ -1,18 +1,18 @@
 import { useCallback } from 'react';
 import {
   AvailableLanguageCodes,
-  LanguageCode,
+  LanguageCodeEnum,
 } from '@/interfaces/language.interface';
 import { CircularButton } from '../Button';
 
 export interface LanguageSwitcherProps {
-  value: LanguageCode;
-  onChange?: (language: LanguageCode) => void;
+  value: LanguageCodeEnum;
+  onChange?: (language: LanguageCodeEnum) => void;
 }
 
-const languageLabelMap: Record<LanguageCode, string> = {
-  [LanguageCode.EnUS]: 'EN',
-  [LanguageCode.ZhCN]: 'ZH',
+const languageLabelMap: Record<LanguageCodeEnum, string> = {
+  [LanguageCodeEnum.EnUS]: 'EN',
+  [LanguageCodeEnum.ZhCN]: 'ZH',
 };
 
 /**
@@ -34,7 +34,7 @@ export const LanguageSwitcher = ({
       aria-label={`Language: ${languageLabelMap[value]}`}
       onClick={nextLanguage}
       className={
-        value === LanguageCode.EnUS
+        value === LanguageCodeEnum.EnUS
           ? 'text-text-muted hover:border-border hover:bg-muted/60 hover:text-text'
           : 'text-primary hover:border-primary/30 hover:bg-primary/10'
       }

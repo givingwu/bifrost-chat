@@ -1,7 +1,7 @@
 /**
  * @description Language related interfaces and enums
  */
-export enum LanguageCode {
+export enum LanguageCodeEnum {
   /** 英文（美国） */
   EnUS = 'en-US',
   /** 中文（简体） */
@@ -12,13 +12,18 @@ export enum LanguageCode {
  * 可用的语言代码列表
  */
 export const AvailableLanguageCodes = [
-  LanguageCode.EnUS,
-  LanguageCode.ZhCN,
+  LanguageCodeEnum.EnUS,
+  LanguageCodeEnum.ZhCN,
 ] as const;
 
 /**
  * 语言状态接口
  */
 export type LanguageState = {
-  code: LanguageCode;
+  code: LanguageCodeEnum;
 };
+
+/**
+ * 语言代码类型别名（向后兼容）
+ */
+export type LanguageCode = LanguageCodeEnum;

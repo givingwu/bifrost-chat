@@ -1,9 +1,9 @@
-import type { ChannelType } from './channel.interface';
+import type { ChannelTypeEnum } from './channel.interface';
 
 /**
  * 消息上行/下行方向
  */
-export enum MessageDirection {
+export enum MessageDirectionEnum {
   /** 上行消息（用户/客户发出） */
   Incoming = 'incoming',
   /** 下行消息（坐席/系统发出） */
@@ -13,7 +13,7 @@ export enum MessageDirection {
 /**
  * 消息状态枚举，对应 ACK 协议中的 msg_receive_ack/msg_read_ack
  */
-export enum MessageStatus {
+export enum MessageStatusEnum {
   /** 消息创建（客户端生成临时消息） */
   Created = 'created',
   /** 消息发送中 */
@@ -31,7 +31,7 @@ export enum MessageStatus {
 /**
  * 消息内容类型，对应 specs/聊天消息协议.md
  */
-export enum MessageType {
+export enum MessageTypeEnum {
   /** 文本消息 */
   Text = 'text',
   /** 图片消息 */
@@ -86,7 +86,7 @@ export interface MessageParticipant {
   /** 客户端类型（pc/mobile 等） */
   clientType?: string;
   /** 渠道类型 */
-  channelType?: ChannelType;
+  channelType?: ChannelTypeEnum;
 }
 
 /**
@@ -98,15 +98,15 @@ export interface StandardMessage {
   /** 临时消息 ID（客户端生成） */
   tempId?: string;
   /** 消息方向 */
-  direction: MessageDirection;
+  direction: MessageDirectionEnum;
   /** 渠道类型 */
-  channelType: ChannelType;
+  channelType: ChannelTypeEnum;
   /** 消息状态 */
-  status: MessageStatus;
+  status: MessageStatusEnum;
   /** 服务端时间戳 */
   timestamp: number;
   /** 消息类型 */
-  type: MessageType;
+  type: MessageTypeEnum;
   /** 消息内容 */
   content: MessageContent;
   /** 标准化发送者 */
@@ -122,11 +122,18 @@ export interface StandardMessage {
  */
 export interface SendMessageOptions {
   /** 消息类型，默认 Text */
-  type?: MessageType;
+  type?: MessageTypeEnum;
   /** 自定义 sender，默认从当前会话推断 */
   sender?: MessageParticipant;
   /** 自定义 receiver，默认从当前会话推断 */
   receiver?: MessageParticipant;
   /** 自定义 channel，默认从当前策略获取 */
-  channelType?: ChannelType;
+  channelType?: ChannelTypeEnum;
 }
+
+/**
+ * 类型别名（向后兼容）
+ */
+export type MessageDirection = MessageDirectionEnum;
+export type MessageStatus = MessageStatusEnum;
+export type MessageType = MessageTypeEnum;

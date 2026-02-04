@@ -1,19 +1,19 @@
 import { type ReactNode, useMemo } from 'react';
 import { enUSMessages, zhCNMessages } from '@/index';
-import { LanguageCode } from '@/interfaces/language.interface';
+import { LanguageCodeEnum } from '@/interfaces/language.interface';
 import { I18nProvider } from '@/providers/I18n.provider';
 import { useChatStore } from '@/store';
 
 export interface ChatContainerProps {
   /** 语言代码 */
-  locale?: LanguageCode;
+  locale?: LanguageCodeEnum;
   /** 子组件或 render props 函数 */
   children: ReactNode | ((store: ReturnType<typeof useChatStore>) => ReactNode);
 }
 
 export const LanguageMessages = {
-  [LanguageCode.EnUS]: enUSMessages,
-  [LanguageCode.ZhCN]: zhCNMessages,
+  [LanguageCodeEnum.EnUS]: enUSMessages,
+  [LanguageCodeEnum.ZhCN]: zhCNMessages,
 };
 
 /**
@@ -65,13 +65,13 @@ export const ChatContainer = ({ locale, children }: ChatContainerProps) => {
     }
 
     if (typeof navigator !== 'undefined') {
-      const browserLanguage = navigator.language as LanguageCode;
+      const browserLanguage = navigator.language as LanguageCodeEnum;
 
-      if (Object.values(LanguageCode).includes(browserLanguage)) {
+      if (Object.values(LanguageCodeEnum).includes(browserLanguage)) {
         return browserLanguage;
       }
     }
-    return LanguageCode.EnUS;
+    return LanguageCodeEnum.EnUS;
   }, [locale]);
   const finalMessages = useMemo(() => {
     return LanguageMessages[resolvedLanguage] || enUSMessages;

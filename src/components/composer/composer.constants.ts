@@ -47,6 +47,7 @@ export const CHANNEL_HINTS = {
   sms: 'SMS · 1 segment',
   whatsapp: 'Secure Connection',
   email: 'Rich text enabled',
+  waba: 'WhatsApp Business API',
   default: '',
 } as const;
 

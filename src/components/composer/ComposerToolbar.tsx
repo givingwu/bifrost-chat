@@ -143,6 +143,7 @@ export const ComposerToolbar = ({
 
   return (
     <div
+      data-testid={TEST_IDS.COMPOSER}
       data-component={TEST_IDS.COMPOSER}
       data-channel={channel}
       className={cn(

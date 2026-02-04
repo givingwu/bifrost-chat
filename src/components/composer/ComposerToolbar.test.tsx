@@ -1,6 +1,6 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { ChannelType } from '@/interfaces/channel.interface';
+import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import { ComposerToolbar } from './ComposerToolbar';
 
 // Mock the translation provider
@@ -27,7 +27,7 @@ describe('ComposerToolbar', () => {
   });
 
   it('should display channel badge when channel is provided', () => {
-    render(<ComposerToolbar channel={ChannelType.WhatsApp} />);
+    render(<ComposerToolbar channel={ChannelTypeEnum.WhatsApp} />);
     const channelBadge = screen.getByTestId('composer-channel-badge');
     expect(channelBadge.textContent).toBe('whatsapp');
   });
@@ -51,9 +51,11 @@ describe('ComposerToolbar', () => {
     const onSend = vi.fn().mockResolvedValue(undefined);
     render(<ComposerToolbar onSend={onSend} />);
     const input = screen.getByTestId('composer-input');
-    const sendButton = screen.getByTestId('composer-send');
 
     fireEvent.change(input, { target: { value: 'Hello' } });
+
+    // Wait for the component to update and show the send button
+    const sendButton = await screen.findByTestId('composer-send');
     fireEvent.click(sendButton);
 
     // Wait for async operation
@@ -91,7 +93,7 @@ describe('ComposerToolbar', () => {
   });
 
   it('should show loading state during send', async () => {
-    let resolveSend: (value: void) => void;
+    let resolveSend: (() => void) | undefined;
     const onSend = vi.fn(
       () =>
         new Promise<void>((resolve) => {
@@ -101,21 +103,23 @@ describe('ComposerToolbar', () => {
 
     render(<ComposerToolbar onSend={onSend} />);
     const input = screen.getByTestId('composer-input');
-    const sendButton = screen.getByTestId('composer-send');
 
     fireEvent.change(input, { target: { value: 'Hello' } });
+
+    // Wait for the component to update and show the send button
+    const sendButton = await screen.findByTestId('composer-send');
     fireEvent.click(sendButton);
 
     // Should show loading state
     expect(sendButton.getAttribute('disabled')).toBeDefined();
 
     // Resolve the promise
-    resolveSend!();
+    resolveSend?.();
     await new Promise((resolve) => setTimeout(resolve, 0));
   });
 
   it('should use correct maxLength for SMS channel', () => {
-    render(<ComposerToolbar channel={ChannelType.SMS} />);
+    render(<ComposerToolbar channel={ChannelTypeEnum.SMS} />);
     const input = screen.getByTestId('composer-input');
     const charCount = screen.getByTestId('composer-char-count');
 
@@ -124,7 +128,7 @@ describe('ComposerToolbar', () => {
   });
 
   it('should use correct maxLength for WhatsApp channel', () => {
-    render(<ComposerToolbar channel={ChannelType.WhatsApp} />);
+    render(<ComposerToolbar channel={ChannelTypeEnum.WhatsApp} />);
     const input = screen.getByTestId('composer-input');
     const charCount = screen.getByTestId('composer-char-count');
 
@@ -155,7 +159,7 @@ describe('ComposerToolbar', () => {
   });
 
   it('should not allow attachments for SMS channel', () => {
-    render(<ComposerToolbar channel={ChannelType.SMS} />);
+    render(<ComposerToolbar channel={ChannelTypeEnum.SMS} />);
     const attachButton = screen.getByTestId('composer-attach');
 
     expect(attachButton.getAttribute('disabled')).toBeDefined();

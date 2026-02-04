@@ -1,5 +1,5 @@
 import { memo, useMemo } from 'react';
-import { NetworkStatus as NetworkStatusEnum } from '@/interfaces/network.interface';
+import { NetworkStatusEnum } from '@/interfaces/network.interface';
 import { cn } from '@/utils/class.util';
 
 export interface NetworkStatusProps {

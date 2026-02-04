@@ -1,5 +1,5 @@
-import type { AgentStatus } from './agent.interface';
-import type { ChannelType } from './channel.interface';
+import type { AgentStatusEnum } from './agent.interface';
+import type { ChannelTypeEnum } from './channel.interface';
 
 /** 用户接口 */
 export interface User {
@@ -10,7 +10,7 @@ export interface User {
   /** 用户头像 URL */
   avatarUrl: string;
   /** 用户状态 */
-  status: AgentStatus;
+  status: AgentStatusEnum;
 }
 
 /** 会话接口 */
@@ -26,7 +26,7 @@ export interface Conversation {
   /** 会话未读消息数 */
   unreadCount: number;
   /** 会话所属频道 */
-  channel: ChannelType;
+  channel: ChannelTypeEnum;
   /** 会话是否激活 */
   isActive?: boolean;
 }

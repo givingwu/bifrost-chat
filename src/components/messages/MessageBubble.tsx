@@ -1,7 +1,7 @@
 import {
-  MessageDirection,
-  MessageStatus,
-  MessageType,
+  MessageDirectionEnum,
+  MessageStatusEnum,
+  MessageTypeEnum,
   type StandardMessage,
 } from '@/interfaces/message.interface';
 import { cn } from '@/utils/class.util';
@@ -20,7 +20,7 @@ export interface MessageBubbleProps {
  * - 根据消息方向和类型应用不同的样式
  */
 export const MessageBubble = ({ message }: MessageBubbleProps) => {
-  const isMe = message.direction === MessageDirection.Outgoing;
+  const isMe = message.direction === MessageDirectionEnum.Outgoing;
 
   return (
     <div
@@ -40,13 +40,13 @@ export const MessageBubble = ({ message }: MessageBubbleProps) => {
             isMe
               ? 'rounded-tr-sm bg-primary text-primary-foreground'
               : 'rounded-tl-sm border border-border bg-card text-text',
-            message.type === MessageType.Template && 'overflow-hidden p-0',
+            message.type === MessageTypeEnum.Template && 'overflow-hidden p-0',
           )}
         >
           <MessageContentRenderer message={message} />
         </div>
         <div className="mt-1 flex items-center gap-1 px-1">
-          {message.status === MessageStatus.Failed && (
+          {message.status === MessageStatusEnum.Failed && (
             <span className="text-xs font-medium text-error">Retry</span>
           )}
           <MessageTimestamp timestamp={message.timestamp} />

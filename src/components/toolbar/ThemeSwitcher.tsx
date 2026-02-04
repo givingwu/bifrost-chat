@@ -1,30 +1,34 @@
 import { Monitor, Moon, Sun } from 'lucide-react';
 import { useCallback } from 'react';
-import { ThemeMode } from '@/interfaces/theme.interface';
+import { ThemeModeEnum } from '@/interfaces/theme.interface';
 import { CircularButton } from '../Button';
 
 export interface ThemeSwitcherProps {
-  value: ThemeMode;
-  onChange?: (mode: ThemeMode) => void;
+  value: ThemeModeEnum;
+  onChange?: (mode: ThemeModeEnum) => void;
 }
 
-const themeOrder = [ThemeMode.System, ThemeMode.Light, ThemeMode.Dark];
+const themeOrder = [
+  ThemeModeEnum.System,
+  ThemeModeEnum.Light,
+  ThemeModeEnum.Dark,
+];
 
 /**
  * To switch between light, dark, and system themes.
  */
 export const ThemeSwitcher = ({ value, onChange }: ThemeSwitcherProps) => {
   const iconMap = {
-    [ThemeMode.System]: <Monitor className="h-4 w-4" />,
-    [ThemeMode.Light]: <Sun className="h-4 w-4" />,
-    [ThemeMode.Dark]: <Moon className="h-4 w-4" />,
-  } satisfies Record<ThemeMode, React.ReactNode>;
+    [ThemeModeEnum.System]: <Monitor className="h-4 w-4" />,
+    [ThemeModeEnum.Light]: <Sun className="h-4 w-4" />,
+    [ThemeModeEnum.Dark]: <Moon className="h-4 w-4" />,
+  } satisfies Record<ThemeModeEnum, React.ReactNode>;
 
   const labelMap = {
-    [ThemeMode.System]: 'System',
-    [ThemeMode.Light]: 'Light',
-    [ThemeMode.Dark]: 'Dark',
-  } satisfies Record<ThemeMode, string>;
+    [ThemeModeEnum.System]: 'System',
+    [ThemeModeEnum.Light]: 'Light',
+    [ThemeModeEnum.Dark]: 'Dark',
+  } satisfies Record<ThemeModeEnum, string>;
 
   const nextTheme = useCallback(() => {
     const currentIndex = themeOrder.indexOf(value);
@@ -38,7 +42,7 @@ export const ThemeSwitcher = ({ value, onChange }: ThemeSwitcherProps) => {
       aria-label={`Theme: ${labelMap[value]}`}
       onClick={nextTheme}
       className={
-        value !== ThemeMode.System
+        value !== ThemeModeEnum.System
           ? 'text-primary hover:border-primary/30 hover:bg-primary/10'
           : ''
       }

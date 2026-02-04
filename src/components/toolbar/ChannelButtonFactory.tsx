@@ -1,18 +1,18 @@
 import { Mail, MessageSquare, Smartphone } from 'lucide-react';
-import { ChannelType } from '@/interfaces/channel.interface';
+import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import { useTranslation } from '@/providers/I18n.provider';
 import { cn } from '@/utils/class.util';
 import { Button } from '../Button';
 
 export interface ChannelButtonFactoryProps {
   /** 渠道类型 */
-  channel: ChannelType;
+  channel: ChannelTypeEnum;
   /** 当前激活的渠道 */
   active?: boolean;
   /** 是否禁用 */
   disabled?: boolean;
   /** 点击回调 */
-  onClick?: (type: ChannelType) => void;
+  onClick?: (type: ChannelTypeEnum) => void;
 }
 
 /**
@@ -27,10 +27,11 @@ export const ChannelButtonFactory = ({
 }: ChannelButtonFactoryProps) => {
   const { t } = useTranslation();
   const labelKey = `toolbar.channel.${channel}`;
-  const iconMap: Record<ChannelType, React.ReactNode> = {
-    [ChannelType.SMS]: <Smartphone className="h-4 w-4" />,
-    [ChannelType.WhatsApp]: <MessageSquare className="h-4 w-4" />,
-    [ChannelType.Email]: <Mail className="h-4 w-4" />,
+  const iconMap: Record<ChannelTypeEnum, React.ReactNode> = {
+    [ChannelTypeEnum.SMS]: <Smartphone className="h-4 w-4" />,
+    [ChannelTypeEnum.WhatsApp]: <MessageSquare className="h-4 w-4" />,
+    [ChannelTypeEnum.Email]: <Mail className="h-4 w-4" />,
+    [ChannelTypeEnum.Waba]: <MessageSquare className="h-4 w-4" />,
   };
 
   return (

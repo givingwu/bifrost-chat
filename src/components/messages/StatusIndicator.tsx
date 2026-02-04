@@ -6,11 +6,11 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { memo, useMemo } from 'react';
-import { MessageStatus } from '@/interfaces/message.interface';
+import { MessageStatusEnum } from '@/interfaces/message.interface';
 
 export interface StatusIndicatorProps {
   /** 消息状态 */
-  status?: MessageStatus;
+  status?: MessageStatusEnum;
   /** 自定义类名 */
   className?: string;
   /** 是否显示动画（仅对发送中状态有效） */
@@ -38,40 +38,40 @@ interface StatusConfig {
  * - 使用配置对象模式，便于统一管理和扩展
  * - 包含所有已知的消息状态配置
  */
-const STATUS_CONFIG_MAP: Record<MessageStatus, StatusConfig> = {
-  [MessageStatus.Created]: {
+const STATUS_CONFIG_MAP: Record<MessageStatusEnum, StatusConfig> = {
+  [MessageStatusEnum.Created]: {
     icon: Loader2,
     size: 'h-3 w-3',
     colorClass: 'text-white/50',
     animate: true,
     ariaLabel: '消息创建中',
   },
-  [MessageStatus.Sending]: {
+  [MessageStatusEnum.Sending]: {
     icon: Loader2,
     size: 'h-3 w-3',
     colorClass: 'text-white/70',
     animate: true,
     ariaLabel: '消息发送中',
   },
-  [MessageStatus.Sent]: {
+  [MessageStatusEnum.Sent]: {
     icon: Check,
     size: 'h-4 w-4',
     colorClass: 'text-white/50',
     ariaLabel: '消息已发送',
   },
-  [MessageStatus.Delivered]: {
+  [MessageStatusEnum.Delivered]: {
     icon: CheckCheck,
     size: 'h-4 w-4',
     colorClass: 'text-white/50',
     ariaLabel: '消息已送达',
   },
-  [MessageStatus.Read]: {
+  [MessageStatusEnum.Read]: {
     icon: CheckCheck,
     size: 'h-4 w-4',
     colorClass: 'text-primary/80',
     ariaLabel: '消息已读',
   },
-  [MessageStatus.Failed]: {
+  [MessageStatusEnum.Failed]: {
     icon: AlertCircle,
     size: 'h-4 w-4',
     colorClass: 'text-error',

@@ -1,7 +1,7 @@
 /**
  * 网络连接状态枚举
  */
-export enum NetworkStatus {
+export enum NetworkStatusEnum {
   /** 连接成功 */
   Connected = 'connected',
   /** 连接断开 */
@@ -10,10 +10,13 @@ export enum NetworkStatus {
   Connecting = 'connecting',
 }
 
+// 向后兼容：导出类型别名
+export type NetworkStatus = NetworkStatusEnum;
+
 /**
  * Network Slice：网络连接状态
  */
 export interface NetworkState {
   /** 连接状态 */
-  status: NetworkStatus;
+  status: NetworkStatusEnum;
 }
