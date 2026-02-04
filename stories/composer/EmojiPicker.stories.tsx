@@ -1,0 +1,74 @@
+import type { Meta, StoryObj } from '@storybook/react';
+import { EmojiPicker } from '@/components/composer/EmojiPicker';
+import '@/styles/theme.css';
+
+/**
+ * EmojiPicker 组件 Story 文档
+ *
+ * 展示表情选择器的各种用法：
+ * - 表情选择
+ * - 常用表情
+ * - 分类浏览
+ */
+
+const meta: Meta<typeof EmojiPicker> = {
+  title: 'Composer/EmojiPicker',
+  component: EmojiPicker,
+  tags: ['autodocs'],
+};
+
+export default meta;
+type Story = StoryObj<typeof EmojiPicker>;
+
+/**
+ * 基础示例
+ */
+export const Default = () => {
+  return (
+    <div className="p-4 bg-muted rounded-lg relative">
+      <EmojiPicker
+        open
+        onEmojiSelect={(emoji) => console.log('Selected:', emoji)}
+        onClose={() => console.log('Close')}
+      />
+    </div>
+  );
+};
+
+/**
+ * 自定义表情列表
+ */
+export const CustomEmojis = () => {
+  const customEmojis = ['😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣'];
+
+  return (
+    <div className="p-4 bg-muted rounded-lg relative">
+      <EmojiPicker
+        open
+        emojis={customEmojis}
+        onEmojiSelect={(emoji) => console.log('Selected:', emoji)}
+        onClose={() => console.log('Close')}
+      />
+    </div>
+  );
+};
+
+/**
+ * 在输入框附近使用
+ */
+export const InInputArea = () => {
+  return (
+    <div className="flex flex-col gap-2 p-4 bg-muted rounded-lg relative">
+      <input
+        type="text"
+        placeholder="输入消息..."
+        className="px-3 py-2 text-sm border border-border rounded-md bg-card text-text"
+      />
+      <EmojiPicker
+        open
+        onEmojiSelect={(emoji) => console.log('Selected:', emoji)}
+        onClose={() => console.log('Close')}
+      />
+    </div>
+  );
+};
