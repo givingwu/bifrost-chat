@@ -1,5 +1,5 @@
 import { Paperclip } from 'lucide-react';
-import { type ChangeEvent, type MouseEvent, memo } from 'react';
+import { type MouseEvent, memo } from 'react';
 import { IconButton } from '@/components/IconButton';
 import { ARIA_LABELS, BUTTON_SIZES, TEST_IDS } from './composer.constants';
 

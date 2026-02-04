@@ -15,12 +15,18 @@ export const ChatMessageList = ({ messages }: ChatMessageListProps) => {
       data-component="chat-message-list"
       className="flex h-full flex-col gap-2 rounded-2xl bg-card/60 shadow-soft"
     >
-      {messages.map((message) => (
-        <MessageRendererFactory
-          key={message.id ?? message.tempId}
-          message={message}
-        />
-      ))}
+      {messages.length ? (
+        messages.map((message) => (
+          <MessageRendererFactory
+            key={message.id ?? message.tempId}
+            message={message}
+          />
+        ))
+      ) : (
+        <div className="flex h-full flex-1 items-center justify-center">
+          <span className="text-sm text-text-muted">暂无消息</span>
+        </div>
+      )}
     </div>
   );
 };

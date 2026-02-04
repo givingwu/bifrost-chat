@@ -7,6 +7,7 @@ export interface ChatTopbarProps {
   subtitle?: string;
   /** 会话头像 */
   avatarUrl?: string;
+  /** 附加内容 */
   extra?: React.ReactNode;
 }
 
