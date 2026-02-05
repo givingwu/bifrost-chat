@@ -20,7 +20,8 @@ ChatContainer
     ├── ConversationList
     ├── ChatMessageList
     ├── ComposerToolbar
-    └── Profile
+    ├── Profile
+    └── Template
 ```
 
 ## 3. 组件职责与 Props

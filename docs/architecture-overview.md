@@ -2,6 +2,18 @@
 
 > 本文档整合现有架构文档、协议规范与代码实现，作为 SDK 架构的单一事实源（SSOT）。
 
+**⚠️ 重要提示**: 本文档描述的是传统的分层架构设计。最新的架构设计 (v2.0.0) 请参考 [`final-architecture.md`](./final-architecture.md)，其中包括:
+- ✅ 会话概念统一 (使用 Conversation)
+- ✅ Template 从 Profile 剥离
+- ✅ 使用泛型解耦参数类型
+- ✅ 接口抽象与依赖注入
+- ✅ React Query + 声明式编程
+- ✅ 完整的命名规范
+
+**版本信息**:
+- 当前文档: 传统分层架构 (v1.0.0)
+- 最新架构: 最终架构设计 (v2.0.0) - [`final-architecture.md`](./final-architecture.md)
+
 ## 目录
 
 1. [架构概览](#1-架构概览)
@@ -125,7 +137,8 @@ ChatContainer (根容器)
     ├── ConversationList (会话列表)
     ├── ChatMessageList (消息列表)
     ├── ComposerToolbar (输入工具栏)
-    └── Profile (上下文面板)
+    ├── Profile (上下文面板)
+    └── TemplateList (模版列表)
 ```
 
 #### 2.1.2 核心组件

@@ -4,6 +4,48 @@
 
 本文档定义了 Bifrost-Chat 组件库的命名规范，以避免组件名和类型名之间的冲突。
 
+## 核心规则
+
+### 1. 会话概念统一
+
+**决策**: 统一使用 **Conversation**，禁止使用 **Session**
+
+**理由**:
+- ✅ 更符合即时通讯的业务语义
+- ✅ 更直观和易于理解
+- ✅ 与业界标准一致 (WhatsApp, Telegram, iMessage 都使用 Conversation)
+- ✅ 更好的可读性
+
+**命名规范**:
+```typescript
+// ✅ 正确 - 使用 Conversation
+interface Conversation { }
+interface IConversationService { }
+interface ConversationData { }
+interface ConversationProps { }
+useConversations()
+export const ConversationList = () => { }
+class ConversationServiceImpl implements IConversationService { }
+
+// ❌ 错误 - 禁止使用 Session
+interface Session { }
+interface ISessionService { }
+interface SessionData { }
+interface SessionProps { }
+useSessions()
+export const SessionList = () => { }
+class SessionServiceImpl implements ISessionService { }
+```
+
+**迁移指南**:
+```typescript
+// ❌ 旧代码
+import { Session, ISessionService, useSessions } from '@feoe/bifrost-chat';
+
+// ✅ 新代码
+import { Conversation, IConversationService, useConversations } from '@feoe/bifrost-chat';
+```
+
 ## 命名冲突问题
 
 在 TypeScript 和 React 中，组件和类型使用相同的名称会导致命名冲突。例如：
