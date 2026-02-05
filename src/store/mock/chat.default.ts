@@ -7,10 +7,8 @@ import {
   MessageTypeEnum,
   type StandardMessage,
 } from '@/interfaces/message.interface';
-import type {
-  ProfileData,
-  ProfileTemplate,
-} from '@/interfaces/profile.interface';
+import type { ProfileData } from '@/interfaces/profile.interface';
+import type { MessageTemplate } from '@/interfaces/template.interface';
 
 export const defaultConversations: Conversation[] = [
   {
@@ -110,9 +108,17 @@ export const defaultProfile: ProfileData = {
   localTime: '10:45 AM',
 };
 
-export const defaultTemplates: ProfileTemplate[] = [
-  { id: 'tpl-1', content: 'Hi, how can I help you today?' },
-  { id: 'tpl-2', content: 'Your order #12345 has been shipped.' },
-  { id: 'tpl-3', content: 'Could you please verify your email?' },
-  { id: 'tpl-4', content: 'Thank you for contacting support.' },
+export const defaultTemplates: MessageTemplate[] = [
+  { id: 'tpl-1', title: '问候', content: 'Hi, how can I help you today?' },
+  {
+    id: 'tpl-2',
+    title: '发货通知',
+    content: 'Your order #12345 has been shipped.',
+  },
+  {
+    id: 'tpl-3',
+    title: '邮箱验证',
+    content: 'Could you please verify your email?',
+  },
+  { id: 'tpl-4', title: '感谢', content: 'Thank you for contacting support.' },
 ];

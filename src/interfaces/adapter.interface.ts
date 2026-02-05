@@ -1,6 +1,6 @@
 import type { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import type { StandardMessage } from '@/interfaces/message.interface';
-import type { ProfileTemplate } from './profile.interface';
+import type { MessageTemplate } from './template.interface';
 
 /**
  * 适配器错误码枚举
@@ -342,7 +342,7 @@ export interface ITemplateSender {
    * 获取可用模板列表
    * @returns 模板列表
    */
-  getTemplates(): Promise<ProfileTemplate[]>;
+  getTemplates(): Promise<MessageTemplate[]>;
 }
 
 /**

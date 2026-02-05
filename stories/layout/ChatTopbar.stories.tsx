@@ -1,7 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { ChatTopbar } from '@/components/layout/ChatTopbar';
 import '@/styles/theme.css';
-import { DefaultTools } from '@/components/layout/DefaultChatLayout';
 
 /**
  * ChatTopbar 组件 Story 文档
@@ -19,7 +18,7 @@ type Story = StoryObj<typeof ChatTopbar>;
 export const Default = () => {
   return (
     <div className="p-4 bg-muted rounded-lg">
-      <ChatTopbar extra={<DefaultTools />} />
+      <ChatTopbar extra={<div>Extra content</div>} />
     </div>
   );
 };

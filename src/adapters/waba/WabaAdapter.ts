@@ -20,7 +20,7 @@ import {
   MessageStatusEnum,
   MessageTypeEnum,
 } from '@/interfaces/message.interface';
-import type { ProfileTemplate } from '@/interfaces/profile.interface';
+import type { MessageTemplate } from '@/interfaces/template.interface';
 import { WabaMapper } from './WabaMapper';
 
 /**
@@ -279,7 +279,7 @@ export class WabaAdapter
   /**
    * 获取可用模板列表
    */
-  async getTemplates(): Promise<ProfileTemplate[]> {
+  async getTemplates(): Promise<MessageTemplate[]> {
     // TODO: 实现从 WABA API 获取模板列表的逻辑
     return [];
   }

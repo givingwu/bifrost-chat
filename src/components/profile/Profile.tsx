@@ -1,58 +1,36 @@
-import { isValidElement, type ReactNode } from 'react';
-import type {
-  ProfileData,
-  ProfileTemplate,
-} from '@/interfaces/profile.interface';
+import type { ProfileData } from '@/interfaces/profile.interface';
 import { ProfileHeader } from './ProfileHeader';
 import { ProfileInfoList } from './ProfileInfoList';
 import { ProfileSearch } from './ProfileSearch';
-import { ProfileTemplates } from './ProfileTemplates';
 
 export interface ProfileProps {
-  /** 默认模板列表 */
-  templates?: ProfileTemplate[];
-  /** 自定义渲染（优先级最高） */
-  render?: (templates: ProfileTemplate[]) => ReactNode;
-  /** 点击模板回调 */
-  onTemplateClick?: (template: ProfileTemplate) => void;
   /** 用户信息 */
   profile?: ProfileData;
 }
 
 /**
- * Profile：右侧上下文面板。
- * - 支持默认模板 + 自定义渲染。
+ * Profile：右侧上下文面板
+ *
+ * 展示客户/联系人信息（姓名、头像、标签等）
+ *
+ * @example
+ * ```tsx
+ * <Profile
+ *   profile={{
+ *     id: 'user-123',
+ *     name: '张三',
+ *     avatarUrl: 'https://example.com/avatar.jpg',
+ *     email: 'zhangsan@example.com',
+ *     phone: '+86 138 0000 0000',
+ *   }}
+ * />
+ * ```
  */
-export const Profile = ({
-  templates = [],
-  render,
-  onTemplateClick,
-  profile,
-}: ProfileProps) => {
-  const custom = render?.(templates);
-
-  if (isValidElement(custom)) {
-    return custom;
-  }
-
-  if (templates.length === 0) {
-    return (
-      <div className="flex h-full flex-col overflow-y-auto">
-        <ProfileHeader profile={profile} />
-        <ProfileInfoList profile={profile} />
-        <ProfileSearch />
-      </div>
-    );
-  }
-
+export const Profile = ({ profile }: ProfileProps) => {
   return (
     <div className="flex h-full flex-col overflow-y-auto">
       <ProfileHeader profile={profile} />
       <ProfileInfoList profile={profile} />
-      <ProfileTemplates
-        templates={templates}
-        onTemplateClick={onTemplateClick}
-      />
       <ProfileSearch />
     </div>
   );

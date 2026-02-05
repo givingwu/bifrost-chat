@@ -1,33 +1,20 @@
 import type { StateCreator } from 'zustand';
-import type { ChannelTypeEnum } from '@/interfaces/channel.interface';
-import type { Conversation } from '@/interfaces/conversation.interface';
-import type {
-  SendMessageOptions,
-  StandardMessage,
-} from '@/interfaces/message.interface';
-import { MessageBuilder } from '@/utils/message-builder.util';
-import type { ChatStoreState } from '..';
-import { defaultConversations, defaultMessages } from '../mock/chat.default';
 
 /**
- * Conversation Slice：消息流与会话状态。
+ * Conversation Slice：客户端会话状态。
+ *
+ * @description
+ * 只保留客户端状态，服务端状态（conversations、messages）由 React Query 管理。
  */
 export interface ConversationState {
-  /** 当前消息流（按时间排序） */
-  messages: StandardMessage[];
-  /** 会话列表 */
-  conversations: Conversation[];
-  /** 当前会话 */
-  activeConversation?: Conversation;
+  /** 当前激活的会话 ID（用于 UI 高亮，不是数据源） */
+  activeConversationId: string | null;
 }
 
 export interface ConversationSlice {
   conversation: ConversationState;
   actions: {
-    appendMessage: (message: StandardMessage) => void;
-    sendMessage: (content?: string, options?: SendMessageOptions) => void;
-    setConversations: (conversations: Conversation[]) => void;
-    setActiveConversation: (conversationId: string) => void;
+    setActiveConversationId: (conversationId: string | null) => void;
   };
 }
 
@@ -36,102 +23,16 @@ export const createConversationSlice: StateCreator<
   [],
   [],
   ConversationSlice
-> = (set, get) => ({
+> = (set) => ({
   conversation: {
-    messages: defaultMessages,
-    conversations: defaultConversations,
-    activeConversation: defaultConversations[0],
+    activeConversationId: null,
   },
   actions: {
-    appendMessage: (message: StandardMessage) =>
-      set((state) => ({
+    setActiveConversationId: (conversationId: string | null) =>
+      set(() => ({
         conversation: {
-          ...state.conversation,
-          messages: [...state.conversation.messages, message],
+          activeConversationId: conversationId,
         },
       })),
-    sendMessage: (content?: string, options?: SendMessageOptions) => {
-      const state = get() as ChatStoreState;
-      const activeConversation = state.conversation.activeConversation;
-      const activeChannel = state.strategy.activeChannel;
-
-      // 从 profile 获取 agent 信息
-      const agentId = state.profile.profile?.name ?? 'default-agent';
-
-      if (!activeConversation) {
-        console.warn(
-          '[ConversationSlice] No active conversation to send message',
-        );
-        return;
-      }
-
-      // 验证消息内容
-      if (!content || content.trim().length === 0) {
-        console.warn('[ConversationSlice] Message content is empty');
-        return;
-      }
-
-      // 确定渠道类型
-      const channelType: ChannelTypeEnum =
-        options?.channelType ?? activeConversation.channel ?? activeChannel;
-
-      if (!channelType) {
-        console.error('[ConversationSlice] No valid channel type found');
-        return;
-      }
-
-      try {
-        // 使用 MessageBuilder 构建消息
-        const message = MessageBuilder.buildTextMessage(content, {
-          senderId: agentId,
-          receiverId: activeConversation.user.id,
-          channelType,
-          type: options?.type,
-          sender: options?.sender,
-          receiver: options?.receiver,
-        });
-
-        // 调用 appendMessage 添加到状态
-        state.actions.appendMessage(message);
-      } catch (error) {
-        console.error('[ConversationSlice] Failed to build message:', error);
-      }
-    },
-    setConversations: (conversations: Conversation[]) =>
-      set((state) => ({
-        conversation: {
-          ...state.conversation,
-          conversations,
-          activeConversation:
-            state.conversation.activeConversation ?? conversations[0],
-        },
-      })),
-    setActiveConversation: (conversationId: string) =>
-      set((state) => {
-        const activeConversation = state.conversation.conversations.find(
-          (item) => item.id === conversationId,
-        );
-
-        if (!activeConversation) {
-          console.warn(
-            `[ConversationSlice] Conversation with id ${conversationId} not found`,
-          );
-          return state;
-        }
-
-        return {
-          conversation: {
-            ...state.conversation,
-            activeConversation: {
-              ...activeConversation,
-              isActive: true,
-            },
-            conversations: state.conversation.conversations.map((item) => ({
-              ...item,
-              isActive: item.id === conversationId,
-            })),
-          },
-        };
-      }),
   },
 });

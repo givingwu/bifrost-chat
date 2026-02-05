@@ -1,8 +1,6 @@
 import type { StateCreator } from 'zustand';
-import type {
-  ProfileData,
-  ProfileTemplate,
-} from '@/interfaces/profile.interface';
+import type { ProfileData } from '@/interfaces/profile.interface';
+import type { MessageTemplate } from '@/interfaces/template.interface';
 import { defaultProfile, defaultTemplates } from '../mock/chat.default';
 
 /**
@@ -12,7 +10,7 @@ export interface ProfileState extends Record<string, unknown> {
   /** 客户画像或业务上下文 */
   profile?: ProfileData;
   /** 模板列表（可注入 Composer） */
-  templates?: ProfileTemplate[];
+  templates?: MessageTemplate[];
 }
 
 export interface ProfileSlice {

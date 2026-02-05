@@ -38,7 +38,7 @@
 - **语言**: TypeScript
 - **框架**: React 19+
 - **样式**: Tailwind CSS 4+
-- **状态管理**: Zustand
+- **状态管理**: Zustand（客户端状态）+ React Query（服务端状态）
 - **构建工具**: Rslib
 - **测试**: Vitest
 - **代码规范**: Biome
@@ -129,6 +129,150 @@ export default CustomChat;
 import { MessageBubble, TextMessage } from '@feoe/bifrost-chat';
 ```
 
+### 高级用法：依赖注入 + React Query
+
+SDK 采用依赖注入模式，您需要提供具体的服务实现：
+
+```tsx
+import React from 'react';
+import {
+  ReactQueryProvider,
+  ServiceProvider,
+  IConversationService,
+  IMessageService,
+  ITemplateService,
+} from '@feoe/bifrost-chat';
+
+// 1. 实现服务接口
+class MyConversationService implements IConversationService {
+  async list() {
+    const response = await fetch('/api/conversations');
+    return response.json();
+  }
+
+  async get(conversationId: string) {
+    const response = await fetch(`/api/conversations/${conversationId}`);
+    return response.json();
+  }
+
+  async create(params) {
+    const response = await fetch('/api/conversations', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+    return response.json();
+  }
+
+  async query(params) {
+    // 实现查询逻辑
+    return null;
+  }
+}
+
+class MyMessageService implements IMessageService {
+  async list(conversationId: string) {
+    const response = await fetch(`/api/conversations/${conversationId}/messages`);
+    const data = await response.json();
+    return data.messages;
+  }
+
+  async send(conversationId: string, params) {
+    const response = await fetch(`/api/conversations/${conversationId}/messages`, {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+    return response.json();
+  }
+
+  async markAsRead(params) {
+    await fetch('/api/messages/mark-read', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  }
+
+  subscribeToMessages(callback) {
+    // 实现 WebSocket 订阅
+    return () => {};
+  }
+
+  subscribeToMessageStatus(callback) {
+    // 实现状态订阅
+    return () => {};
+  }
+}
+
+class MyTemplateService implements ITemplateService {
+  async list() {
+    const response = await fetch('/api/templates');
+    return response.json();
+  }
+
+  async send(params) {
+    const response = await fetch('/api/templates/send', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+    return response.json();
+  }
+
+  async preview(params) {
+    const response = await fetch('/api/templates/preview', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+    return response.json();
+  }
+}
+
+// 2. 创建服务实例
+const conversationService = new MyConversationService();
+const messageService = new MyMessageService();
+const templateService = new MyTemplateService();
+
+// 3. 使用 Provider 包装应用
+function App() {
+  return (
+    <ReactQueryProvider>
+      <ServiceProvider
+        conversationService={conversationService}
+        messageService={messageService}
+        templateService={templateService}
+      >
+        <ChatContainer locale="zh-CN">
+          <DefaultChatLayoutContainer />
+        </ChatContainer>
+      </ServiceProvider>
+    </ReactQueryProvider>
+  );
+}
+
+export default App;
+```
+
+### WebSocket 实时通信
+
+SDK 提供了 WebSocket 集成支持，可实现实时消息推送：
+
+```tsx
+import { useWebSocket } from '@feoe/bifrost-chat';
+import { createWebSocketMessageHandler } from '@feoe/bifrost-chat';
+import { useQueryClient } from '@tanstack/react-query';
+
+function ChatApp() {
+  const queryClient = useQueryClient();
+
+  useWebSocket({
+    url: 'wss://api.example.com/ws',
+    token: 'your-auth-token',
+    autoConnect: true,
+    onMessage: createWebSocketMessageHandler(queryClient),
+  });
+
+  return <ChatContainer>...</ChatContainer>;
+}
+```
+
 ## 组件列表
 
 ### 布局组件
@@ -136,6 +280,12 @@ import { MessageBubble, TextMessage } from '@feoe/bifrost-chat';
 - `ChatLayout` - 聊天布局
 - `ChatTopbar` - 顶部工具栏
 - `DefaultChatLayout` - 默认聊天布局（开箱即用）
+- `DefaultChatLayoutContainer` - 默认聊天布局容器（使用 React Query）
+
+### 容器组件（使用 React Query）
+- `ConversationListContainer` - 会话列表容器
+- `ChatMessageListContainer` - 消息列表容器（支持无限滚动）
+- `ComposerToolbarContainer` - 输入工具栏容器
 
 ### 消息组件
 - `ChatMessageList` - 消息列表
@@ -196,18 +346,32 @@ import { MessageBubble, TextMessage } from '@feoe/bifrost-chat';
 
 ## Hooks
 
+### React Query Hooks（服务端状态）
+
+- `useConversations` - 获取会话列表
+- `useCreateConversation` - 创建新会话
+- `useMessages` - 获取消息列表（支持无限滚动）
+- `useSendMessage` - 发送消息（支持乐观更新）
+- `useMarkAsRead` - 标记消息已读
+
+### Zustand Hooks（客户端状态）
+
 - `useChatStore` - 获取全局状态
-- `useComposerDraft` - 草稿管理
-- `useComposerShortcuts` - 快捷键
-- `useTranslation` - 国际化
 - `useUI` - UI 状态
 - `useStrategy` - 策略状态
 - `useNetwork` - 网络状态
 - `useTheme` - 主题状态
 - `useLanguage` - 语言状态
-- `useConversation` - 会话状态
+- `useConversation` - 会话状态（仅 activeConversationId）
 - `useProfile` - 画像状态
 - `useActions` - 操作方法
+
+### 其他 Hooks
+
+- `useComposerDraft` - 草稿管理
+- `useComposerShortcuts` - 快捷键
+- `useTranslation` - 国际化
+- `useWebSocket` - WebSocket 连接管理
 
 ## 样式
 

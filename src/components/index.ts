@@ -8,14 +8,15 @@ export { ComposerHint } from './composer/ComposerHint';
 // Composer Components
 export { ComposerInput } from './composer/ComposerInput';
 export { ComposerToolbar } from './composer/ComposerToolbar';
+export { ComposerToolbarContainer } from './composer/ComposerToolbarContainer';
 export { EmojiPicker } from './composer/EmojiPicker';
 export { MentionPicker } from './composer/MentionPicker';
-export { TemplatePicker } from './composer/TemplatePicker';
 export { ConversationAvatar } from './conversation/ConversationAvatar';
 export { ConversationHeader } from './conversation/ConversationHeader';
 export { ConversationItem } from './conversation/ConversationItem';
 // Conversation Components
 export { ConversationList } from './conversation/ConversationList';
+export { ConversationListContainer } from './conversation/ConversationListContainer';
 export { ConversationPanel } from './conversation/ConversationPanel';
 export { IconButton } from './IconButton';
 export { Image } from './Image';
@@ -24,8 +25,10 @@ export { ChatContainer } from './layout/ChatContainer';
 export { ChatLayout } from './layout/ChatLayout';
 export { ChatTopbar } from './layout/ChatTopbar';
 export { DefaultChatLayout } from './layout/DefaultChatLayout';
+export { DefaultChatLayoutContainer } from './layout/DefaultChatLayoutContainer';
 // Message Components
 export { ChatMessageList } from './messages/ChatMessageList';
+export { ChatMessageListContainer } from './messages/ChatMessageListContainer';
 export { FileMessage } from './messages/FileMessage';
 export { ImageMessage } from './messages/ImageMessage';
 export { LocationMessage } from './messages/LocationMessage';
@@ -46,7 +49,7 @@ export { ProfileHeader } from './profile/ProfileHeader';
 export { ProfileInfoList } from './profile/ProfileInfoList';
 export { ProfileSearch } from './profile/ProfileSearch';
 export { ProfileSectionTitle } from './profile/ProfileSectionTitle';
-export { ProfileTemplates } from './profile/ProfileTemplates';
+export { TemplateList, TemplatePicker } from './templates';
 export { ChannelBadge } from './toolbar/ChannelBadge';
 // Toolbar Components
 export { ChannelButtonFactory } from './toolbar/ChannelButtonFactory';
