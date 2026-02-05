@@ -1,61 +1,49 @@
-# 渲染层规范
+# 渲染层规范（以代码现状为准）
 
-## 顶部工具栏 (ChannelToolsList)
+## 1) 当前组件分工
 
-- 按钮来源：`strategy.allowedChannels`。
-- 状态来源：`state.currentStatus`。
+- 顶层容器：`ChatContainer`（I18n + Store 上下文）
+- 默认布局：`DefaultChatLayout`（Topbar/会话区/消息区/输入区/Profile）
+- 渠道工具栏：`ChannelFilter` + `ChannelButtonFactory`
+- 消息流：`ChatMessageList` + `MessageRendererFactory`
+- 输入区：`ComposerToolbar`
 
-```tsx
-const ChannelToolbar = () => {
-  const { channels, status } = useStore(selector);
+## 2) 渠道按钮策略
 
-  return (
-    <div className="toolbar">
-      {channels.map(channel => (
-        <ChannelButtonFactory
-          key={channel}
-          type={channel}
-          disabled={isDisabled(channel, status)}
-        />
-      ))}
-    </div>
-  );
-};
-```
+约束：渠道来源必须来自策略状态，而不是硬编码。
 
-## 中间消息流 (ChatMessageList)
+当前注意点：
 
-- 使用渲染工厂：类型映射 + 策略模式。
-- 高性能滚动：优先 react-virtuoso 或 react-window。
+- 默认布局中 `ChannelFilter` 仍使用 `AvailableChannelTypes`。
+- 目标态应优先读取 `strategy.allowedChannels`，并结合坐席状态做互斥（如 in_call）。
 
-```tsx
-const BubbleMap = {
-  text: TextBubble,
-  image: ImageBubble,
-  audio: AudioPlayerBubble,
-  template: WhatsAppTemplateBubble,
-  call_log: CallSystemMessage,
-};
+## 3) 消息渲染策略
 
-const MessageRendererFactory = ({ message }) => {
-  const Component = BubbleMap[message.type] || UnsupportBubble;
-  return <Component data={message} isSelf={message.direction === 'outbound'} />;
-};
-```
+- 渲染入口：`MessageRendererFactory`
+- 当前实现：`Other` 类型渲染系统气泡，其余走 `MessageBubble`
+- 类型源：`MessageTypeEnum`
+- 方向源：`MessageDirectionEnum`（incoming/outgoing）
 
-### 状态处理
+建议：
 
-- Sending：半透明 + Loading。
-- Failed：红色感叹号 + 重试按钮。
-- Read：WhatsApp 可双蓝勾，其他渠道按策略决定。
+- 避免在组件内部硬编码协议字段；只消费标准消息。
+- 新增消息类型时，先补类型与组件，再补工厂映射和 story。
 
-## 输入框 (Composer Strategy)
+## 4) 输入区策略
 
-- SMS：禁视频、禁富文本，显示字符与计费。
-- WhatsApp：允许图片/文件，显示模板选择。
-- Email：富文本编辑器 (Subject + Body)。
+`ComposerToolbar` 已按渠道做差异化：
 
-## 右侧上下文 (ContextPanel)
+- 长度限制（SMS/WhatsApp/Waba/默认）
+- 附件 accept 白名单
+- 占位文案按渠道变化
 
-- Tabs：Profile / Templates / Other。
-- 模板点击：`useStore.getState().setInputText(templateContent)`。
+扩展建议：
+
+- Email 富文本、模板先修流程可继续在该层扩展，但需保持 props 简洁。
+- 避免把业务规则写进 UI，交给上层 action 或 DataLayer。
+
+## 5) 性能与可访问性
+
+- 当前消息列表是直接渲染；会话量增大时建议接入虚拟滚动。
+- 交互组件需保留语义属性与可键盘操作能力。
+- Storybook 中至少覆盖：默认态、异常态、空态、禁用态。
