@@ -112,6 +112,9 @@ export function useSendMessage<TParams = any>() {
 
     // 如果出错，回滚到之前的状态
     onError: (error, variables, context) => {
+      if (error) {
+        console.error(error);
+      }
       if (context?.previousMessages) {
         queryClient.setQueryData(
           queryKeys.messages.list(variables.conversationId),
