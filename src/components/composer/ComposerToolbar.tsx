@@ -1,5 +1,5 @@
 import { type FormEvent, useCallback, useMemo, useState } from 'react';
-import type { ChannelType } from '@/interfaces/channel.interface';
+import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import { useTranslation } from '@/providers/I18n.provider';
 import { cn } from '@/utils/class.util';
 import { ComposerActions } from './ComposerActions';
@@ -10,7 +10,7 @@ import { INPUT_LIMITS, TEST_IDS } from './composer.constants';
 
 export interface ComposerToolbarProps {
   /** 当前激活渠道 */
-  channel?: ChannelType;
+  channel?: ChannelTypeEnum;
   /** 发送回调 */
   onSend?: (message: string) => void | Promise<void>;
   /** 附件选择回调 */
@@ -58,11 +58,14 @@ export const ComposerToolbar = ({
     if (maxLength) {
       return maxLength;
     }
+
     switch (channel) {
-      case 'sms':
+      case ChannelTypeEnum.SMS:
         return INPUT_LIMITS.SMS_MAX_LENGTH;
-      case 'whatsapp':
+      case ChannelTypeEnum.WhatsApp:
         return INPUT_LIMITS.WHATSAPP_MAX_LENGTH;
+      case ChannelTypeEnum.Waba:
+        return INPUT_LIMITS.WABA_MAX_LENGTH;
       default:
         return INPUT_LIMITS.DEFAULT_MAX_LENGTH;
     }
@@ -133,6 +136,9 @@ export const ComposerToolbar = ({
       case 'whatsapp':
         // WhatsApp 支持图片、视频、文档等
         return 'image/*,video/*,application/pdf,.doc,.docx,.xls,.xlsx';
+      case 'waba':
+        // WABA 支持的文件类型（与 WhatsApp 类似但可能有差异）
+        return 'image/*,video/*,audio/*,application/pdf,.doc,.docx,.xls,.xlsx';
       case 'email':
         // Email 支持所有类型
         return '*';

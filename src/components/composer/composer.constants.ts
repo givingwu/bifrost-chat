@@ -17,6 +17,8 @@ export const INPUT_LIMITS = {
   SMS_MAX_LENGTH: 160,
   /** WhatsApp 最大消息长度 */
   WHATSAPP_MAX_LENGTH: 4096,
+  /** WABA 最大消息长度（与 WhatsApp 相同） */
+  WABA_MAX_LENGTH: 4096,
   /** 默认最大长度 */
   DEFAULT_MAX_LENGTH: 2000,
 } as const;

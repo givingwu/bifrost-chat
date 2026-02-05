@@ -1,6 +1,7 @@
 import { ShieldCheck } from 'lucide-react';
 import { memo } from 'react';
-import type { ChannelType } from '@/interfaces/channel.interface';
+import { ChannelTypeEnum } from '@/interfaces/channel.interface';
+import { cn } from '@/utils/class.util';
 import {
   BUTTON_SIZES,
   CHANNEL_HINTS,
@@ -10,7 +11,7 @@ import {
 
 export interface ComposerHintProps {
   /** 当前渠道类型 */
-  channel?: ChannelType;
+  channel?: ChannelTypeEnum;
 }
 
 /**
@@ -33,7 +34,7 @@ export const ComposerHint = memo<ComposerHintProps>(({ channel }) => {
     return null;
   }
 
-  const isWhatsApp = channel === 'whatsapp';
+  const isWhatsApp = channel === ChannelTypeEnum.WhatsApp;
 
   return (
     <div
@@ -56,6 +57,3 @@ export const ComposerHint = memo<ComposerHintProps>(({ channel }) => {
 });
 
 ComposerHint.displayName = 'ComposerHint';
-
-// 导入 cn 工具函数
-import { cn } from '@/utils/class.util';
