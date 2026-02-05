@@ -1,80 +1,45 @@
-# Bifrost-Chat 组件架构设计
+# 组件架构（v3）
 
-> 本文是 UI 渲染层与逻辑层（ClientBus/Store/DataLayer/NetLayer）的对齐说明，统一组件职责、Props 输入与状态来源。
+## 1. 组件分层
 
-## 1. 设计目标
+- 容器级：`ChatContainer`、`DefaultChatLayout`
+- 业务级：`ConversationList`、`ChatMessageList`、`ComposerToolbar`
+- 辅助级：`Profile`、`TemplateList/TemplatePicker`、`ThemeSwitcher` 等
 
-- 组件结构清晰：容器组件负责状态绑定，展示组件负责 UI。
-- 状态来源统一：所有 UI 状态来自 Store/策略与网络层。
-- 扩展可控：新增渠道、主题、输入策略只需在策略/工厂层扩展。
+## 2. 组件职责
 
-## 2. 组件层级
+| 组件 | 只做什么 | 不做什么 |
+|---|---|---|
+| ChatContainer | 组织 Provider、注入 i18n/theme 上下文 | 不直接请求服务端 |
+| ConversationList | 展示会话与选择态 | 不管理后端分页策略 |
+| ChatMessageList | 展示消息流与滚动触发 | 不解析协议包 |
+| ComposerToolbar | 输入与发送交互 | 不包含后端发送逻辑 |
+| TemplatePicker | 模板选择与变量输入 | 不直接请求模板 API |
 
-```
-ChatContainer
-└── ChatTopbar
-    ├── ChannelToolsList
-    ├── NetworkStatus
-    └── ThemeSwitcher
-└── ChatLayout (三栏布局容器)
-    ├── ConversationList
-    ├── ChatMessageList
-    ├── ComposerToolbar
-    ├── Profile
-    └── Template
-```
+## 3. 数据来源映射
 
-## 3. 组件职责与 Props
+- 会话列表：`useConversations`
+- 消息列表：`useMessages`
+- 模板列表：`useTemplates`
+- 本地 UI：`useChatStore`（Zustand）
 
-### 3.1 ChatContainer
+## 4. 交互基线
 
-- **职责**：SDK 根容器，初始化 Provider，绑定 Store。
-- **输入**：locale/messages/channels/onChannelClick/onThemeChange。
-- **输出**：渲染 ChatTopbar + ChatLayout（支持 conversation/context/composer 插槽）。
+- 选择模板 -> 写入 `composerText` 或模板变量草稿（Zustand）
+- 发送模板 -> mutation -> 刷新 `messages`
+- 切换会话 -> 更新 `activeConversationId`（UI 选择）+ 触发消息查询
 
-### 3.2 ChatTopbar
+## 5. 扩展规范
 
-- **职责**：顶部工具栏（左渠道，右网络/主题）。
-- **输入**：channels/status/networkStatus/themeMode/title/subtitle/avatarUrl。
-- **输出**：ChannelToolsList + NetworkStatus + ThemeSwitcher。
+新增消息类型：
 
-### 3.3 ChannelToolsList
+1. 扩展 `MessageTypeEnum`
+2. 新增对应消息组件
+3. 注册到 `MessageRendererFactory`
+4. 增加 Storybook stories
 
-- **职责**：根据策略渲染渠道按钮。
-- **输入**：strategy.allowedChannels + strategy.agentStatus。
+新增模板能力：
 
-### 3.4 NetworkStatus
-
-- **职责**：展示 NetLayer 连接状态。
-- **输入**：network.status（connected/disconnected/connecting）。
-
-### 3.5 ThemeSwitcher
-
-- **职责**：主题切换（system/light/dark）。
-- **输入**：theme.mode。
-- **输出**：触发 store.actions.setTheme。
-
-## 4. 与逻辑层映射
-
-| UI 组件 | Store/逻辑来源 | 说明 |
-| --- | --- | --- |
-| ChatContainer | Store + Provider | 根容器绑定策略与主题状态。
-| ChatTopbar | Store.strategy / Store.network / Store.theme | 顶部栏状态展示。
-| ChannelToolsList | Strategy Slice | 渠道渲染 + 互斥逻辑。
-| NetworkStatus | NetLayer -> Store.network | 连接管理器写入 Store。
-| ThemeSwitcher | Theme Slice | UI 触发 -> Store 更新。
-| ChatMessageList | DataLayer -> Store.conversation | 标准化消息流渲染。
-| ComposerToolbar | Strategy Slice | 按渠道切换输入能力，UI 对齐 DEMO。
-| Profile | Profile Slice | 默认模板 + 自定义渲染。 | ConversationList | Conversation Slice | 会话列表展示与切换。
-
-## 5. 关键数据流
-
-- **网络状态**：NetLayer/ConnectionManager -> Store.network.status -> NetworkStatus。
-- **主题切换**：ThemeSwitcher -> Store.actions.setTheme -> data-theme attribute。
-- **渠道切换**：Host -> Store.strategy.allowedChannels -> ChannelToolsList。
-
-## 6. 组件扩展规范
-
-- 新渠道：新增 Adapter/Mapper，并在 ChannelToolsList/ChannelButtonFactory 注册。
-- 新主题：在 theme.css 增加 token，并扩展 ThemeSwitcher 枚举。
-- 新消息类型：在 MessageRendererFactory 的 BubbleMap 增加映射。
+1. 扩展 `ITemplateService` 参数类型
+2. 新增模板相关 hooks
+3. 增加组件交互态与测试
