@@ -12,7 +12,7 @@
 
 ### SDK 提供
 
-- 默认组件（ConversationList、ChatMessageList、ComposerToolbar 等）
+- 默认组件（ConversationList、MessageList、ComposerToolbar 等）
 - 服务接口契约（`IConversationService`/`IMessageService`/`ITemplateService`）
 - Provider（`ReactQueryProvider`、`ServiceProvider`、`I18nProvider`）
 - 声明式 Hooks（查询 + mutation）

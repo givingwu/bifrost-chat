@@ -55,7 +55,7 @@ graph TB
 
       subgraph Components[默认组件]
         C1[ConversationList]
-        C2[ChatMessageList]
+        C2[MessageList]
         C3[ComposerToolbar]
         C4[Profile]
         C5[TemplateList]

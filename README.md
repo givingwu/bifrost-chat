@@ -240,7 +240,7 @@ function App() {
         templateService={templateService}
       >
         <ChatContainer locale="zh-CN">
-          <DefaultChatLayoutContainer />
+          <DefaultChatLayout />
         </ChatContainer>
       </ServiceProvider>
     </ReactQueryProvider>
@@ -279,16 +279,12 @@ function ChatApp() {
 - `ChatContainer` - 聊天容器（包含 I18nProvider）
 - `ChatLayout` - 聊天布局
 - `ChatTopbar` - 顶部工具栏
-- `DefaultChatLayout` - 默认聊天布局（开箱即用）
-- `DefaultChatLayoutContainer` - 默认聊天布局容器（使用 React Query）
-
-### 容器组件（使用 React Query）
-- `ConversationListContainer` - 会话列表容器
-- `ChatMessageListContainer` - 消息列表容器（支持无限滚动）
-- `ComposerToolbarContainer` - 输入工具栏容器
+- `DefaultChatLayout` - 默认聊天布局（开箱即用，内置数据获取）
 
 ### 消息组件
-- `ChatMessageList` - 消息列表
+- `MessageList` - 消息列表（推荐使用）
+- `ChatMessageList` - 消息列表别名（向后兼容）
+- `InfiniteMessageList` - 无限滚动消息列表
 - `MessageBubble` - 消息气泡
 - `MessageContentRenderer` - 消息内容渲染器
 - `MessageRendererFactory` - 消息渲染工厂
@@ -308,6 +304,8 @@ function ChatApp() {
 - `ComposerInput` - 输入框
 - `ComposerActions` - 输入操作按钮
 - `ComposerToolbar` - 输入工具栏
+- `ComposerWithSend` - 带发送功能的输入工具栏（推荐）
+- `ComposerToolbarContainer` - 输入工具栏容器别名（向后兼容）
 - `ComposerAttachments` - 附件预览
 - `AttachmentPreview` - 附件预览项
 - `ComposerHint` - 输入提示
@@ -316,7 +314,7 @@ function ChatApp() {
 - `TemplatePicker` - 模板选择器
 
 ### 会话组件
-- `ConversationList` - 会话列表
+- `ConversationList` - 会话列表（内置数据获取）
 - `ConversationItem` - 会话项
 - `ConversationHeader` - 会话头部
 - `ConversationAvatar` - 会话头像
@@ -330,19 +328,24 @@ function ChatApp() {
 - `LanguageSwitcher` - 语言切换器
 - `NetworkStatus` - 网络状态
 
+### 模板组件
+- `TemplateList` - 模板列表
+- `TemplatePanel` - 模板面板
+- `TemplateSearch` - 模板搜索
+- `TemplatePicker` - 模板选择器
+
 ### 画像组件
 - `Profile` - 用户画像
 - `ProfileHeader` - 画像头部
 - `ProfileInfoList` - 画像信息列表
-- `ProfileSearch` - 画像搜索
 - `ProfileSectionTitle` - 画像分区标题
-- `ProfileTemplates` - 画像模板
 
 ### 基础组件
 - `Avatar` - 头像
 - `Button` - 按钮
 - `IconButton` - 图标按钮
 - `Image` - 图片
+- `SearchInput` - 搜索输入框
 
 ## Hooks
 

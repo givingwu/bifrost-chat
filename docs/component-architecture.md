@@ -12,7 +12,7 @@
 |---|---|---|
 | ChatContainer | 组织 Provider、注入 i18n/theme 上下文 | 不直接请求服务端 |
 | ConversationList | 展示会话与选择态 | 不管理后端分页策略 |
-| ChatMessageList | 展示消息流与滚动触发 | 不解析协议包 |
+| MessageList | 展示消息流与滚动触发 | 不解析协议包 |
 | ComposerToolbar | 输入与发送交互 | 不包含后端发送逻辑 |
 | TemplatePicker | 模板选择与变量输入 | 不直接请求模板 API |
 

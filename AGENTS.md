@@ -218,7 +218,7 @@ export class AuthorizationError extends SDKError { }
       );
     }
     ```
-  - 中间消息流 (ChatMessageList) - 核心交互
+  - 中间消息流 (MessageList) - 核心交互
     最复杂的部分，需要处理多种消息类型和高性能滚动。
     - MessageFactory (渲染工厂)：建立一个消息类型映射表，使用策略模式寻找目标组件，使用工厂模式渲染。
       ```tsx
