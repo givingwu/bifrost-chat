@@ -4,11 +4,20 @@ import {
   TemplatePicker,
 } from '@/components/templates/TemplatePicker';
 import '@/styles/theme.css';
+import { useState } from 'react';
+import { Button } from '@/components';
 
 const meta: Meta<typeof TemplatePicker> = {
   title: 'Templates/TemplatePicker',
   component: TemplatePicker,
   tags: ['autodocs'],
+  decorators: [
+    (Story) => (
+      <div className="flex h-80">
+        <Story />
+      </div>
+    ),
+  ],
   parameters: {
     layout: 'centered',
   },
@@ -30,29 +39,7 @@ export const Default: Story = {
 export const WithCustomTemplates: Story = {
   args: {
     open: true,
-    templates: [
-      {
-        id: '1',
-        title: '问候模板',
-        content: '您好，感谢您的咨询！',
-        category: '常用',
-        tags: ['问候', '开场'],
-      },
-      {
-        id: '2',
-        title: '确认模板',
-        content: '已收到您的消息，我们会尽快处理。',
-        category: '常用',
-        tags: ['确认', '处理'],
-      },
-      {
-        id: '3',
-        title: '结束语',
-        content: '祝您生活愉快！',
-        category: '常用',
-        tags: ['结束语'],
-      },
-    ],
+    templates: DEFAULT_TEMPLATES,
     onTemplateSelect: (template) => console.log('Selected:', template),
     onClose: () => console.log('Close'),
   },
@@ -79,9 +66,20 @@ export const Empty: Story = {
 
 export const Closed: Story = {
   args: {
-    open: false,
     templates: DEFAULT_TEMPLATES,
     onTemplateSelect: (template) => console.log('Selected:', template),
     onClose: () => console.log('Close'),
+  },
+  render: (args) => {
+    const [open, setOpen] = useState(args.open);
+
+    return (
+      <div className="flex flex-col">
+        <Button onClick={() => setOpen(!open)}>
+          {open ? 'Close' : 'Open'}
+        </Button>
+        <TemplatePicker {...args} open={open} />
+      </div>
+    );
   },
 };
