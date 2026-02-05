@@ -1,11 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { DefaultChatLayout } from '@/components/layout/DefaultChatLayout';
-import { ChannelTypeEnum } from '@/interfaces/channel.interface';
-import { LanguageCodeEnum } from '@/interfaces/language.interface';
 import enUS from '@/locales/en-US.json';
 import zhCN from '@/locales/zh-CN.json';
 import { I18nProvider } from '@/providers/I18n.provider';
 import '@/styles/theme.css';
+import { ChatMessageList } from '@/components';
+import { useConversation } from '@/store';
 
 /**
  * DefaultChatLayout 组件 Story 文档
@@ -29,10 +29,14 @@ type Story = StoryObj<typeof DefaultChatLayout>;
  * 基础示例 - 默认布局
  */
 export const Default = () => {
+  const { messages } = useConversation();
+
   return (
     <I18nProvider locale="zh-CN" messages={zhCN}>
-      <div className="w-full h-[600px]">
-        <DefaultChatLayout />
+      <div className="w-full h-[900px]">
+        <DefaultChatLayout>
+          <ChatMessageList messages={messages} />
+        </DefaultChatLayout>
       </div>
     </I18nProvider>
   );
@@ -45,11 +49,11 @@ export const DifferentThemes = () => {
   return (
     <I18nProvider locale="zh-CN" messages={zhCN}>
       <div className="space-y-4">
-        <div className="w-full h-[500px]" data-theme="light">
+        <div className="w-full h-[900px]" data-theme="light">
           <p className="text-xs text-text-muted mb-2">浅色主题</p>
           <DefaultChatLayout />
         </div>
-        <div className="w-full h-[500px]" data-theme="dark">
+        <div className="w-full h-[900px]" data-theme="dark">
           <p className="text-xs text-text-muted mb-2">深色主题</p>
           <DefaultChatLayout />
         </div>
@@ -64,7 +68,7 @@ export const DifferentThemes = () => {
 export const WithContainer = () => {
   return (
     <I18nProvider locale="zh-CN" messages={zhCN}>
-      <div className="w-full h-[600px]">
+      <div className="w-full h-[900px]">
         <DefaultChatLayout />
       </div>
     </I18nProvider>
@@ -77,7 +81,7 @@ export const WithContainer = () => {
 export const English = () => {
   return (
     <I18nProvider locale="en-US" messages={enUS}>
-      <div className="w-full h-[600px]">
+      <div className="w-full h-[900px]">
         <DefaultChatLayout />
       </div>
     </I18nProvider>
