@@ -30,7 +30,7 @@
 按钮不是写死的，根据 strategy.allowedChannels 渲染。
   - 逻辑：
     - 订阅 state.strategy.allowedChannels (例如 ['sms', 'whatsapp'])。
-    - 订阅 state.currentStatus (例如 in_call)。
+    - 订阅 state.strategy.agentStatus (例如 in_call)。
     - 互斥逻辑：如果 in_call 为 true，则 VoIP 按钮显示为“挂断”或禁用其他语音渠道。
   - 组件结构：
     ```tsx
@@ -41,9 +41,9 @@
         <div className="toolbar">
           {channels.map(channel => (
             // 工厂模式渲染不同按钮
-            <ChannelButtonFactory 
-                key={channel} 
-                type={channel} 
+            <ChannelButtonFactory
+                key={channel}
+                channel={channel}
                 disabled={isDisabled(channel, status)} 
             />
           ))}
@@ -59,13 +59,17 @@
         'text': TextBubble,
         'image': ImageBubble,
         'audio': AudioPlayerBubble,
+        'video': VideoBubble,
+        'file': FileBubble,
         'template': WhatsAppTemplateBubble,
-        'call_log': CallSystemMessage, // 比如 "通话结束，时长 30s"
+        'location': LocationBubble,
+        'rich_media': RichMediaBubble,
+        'other': SystemMessage,
         // 快速扩展其他 Message 类型的渲染组件...
       };
       const MessageRendererFactory = ({ message }) => {
         const Component = BubbleMap[message.type] || UnsupportBubble;
-        return <Component data={message} isSelf={message.direction === 'outbound'} />;
+        return <Component data={message} isSelf={message.direction === 'outgoing'} />;
       }
       ```
     - 状态处理：
@@ -124,7 +128,7 @@
 - `pnpm run build` - 生产构建
 - `pnpm run dev` - 监听模式构建（watch）
 - `pnpm run test` - 运行测试
-- `pnpm run lint` - 代码检查
+- `pnpm run check` - 代码检查并按 Biome 规则修复
 - `pnpm run format` - 代码格式化
 
 ## 测试 / 构建 / Storybook
@@ -171,7 +175,7 @@
 
 - 遵循历史中的前缀模式（`feat:`、`fix:`、`chore:`、`hotfix:`），保持动词祈使句并在需要时补充作用域（如 `feat(netLayer): add socket.io to connect server`）。
 - 提交 PR 时需关联任务单，简述业务影响，列出手动验证步骤，涉及 UI 的改动请附截图或录屏，并在描述中说明接口依赖或数据准备。
-- 提交前确保本地构建、测试、lint 全部通过，必要时附上 `pnpm lint && pnpm test` 的关键输出，并说明 Reviewer 需要的关键环境变量或 mock 数据切换方式。
+- 提交前确保本地构建、测试、检查全部通过，必要时附上 `pnpm run check && pnpm run test` 的关键输出，并说明 Reviewer 需要的关键环境变量或 mock 数据切换方式。
 
 ## 环境与配置提示
 
@@ -183,6 +187,13 @@
 - 执行复杂任务前，请优先调用计划能力，将需求拆分为可验证的子步骤；在无法获取上下文时，通过 `list_mcp_resources` 或 `list_mcp_resource_templates` 查询可复用的数据源。
 - 提交修改后使用验证链路（如 `sequentialthinking`）回溯关键决策，必要时将执行日志附于 PR 说明，方便审核者复现。
 - 敏感操作（写入全局目录、访问受限网络）需在命令中显式声明权限理由，以满足审计要求。
+
+## Skills 协作约定
+
+- 先读 `skills/README.md`，按任务选择对应 skill。
+- SDK 开发与维护默认使用 `skills/bifrost-chat-js-sdk/SKILL.md`。
+- 主题与视觉设计任务默认使用 `skills/bifrost-chat-ui-design/SKILL.md`。
+- skill 文档要区分「当前已实现」与「目标架构」，并与代码保持同步。
 
 ## 参考文档
 
