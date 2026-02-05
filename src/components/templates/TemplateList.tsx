@@ -1,12 +1,12 @@
 import { ChevronRight } from 'lucide-react';
-import type { MessageTemplate } from '@/interfaces/template.interface';
+import type { Template } from '@/interfaces/template.interface';
 import { cn } from '@/utils/class.util';
 
 export interface TemplateListProps {
   /** 模板列表 */
-  templates: MessageTemplate[];
+  templates: Template[];
   /** 点击模板回调 */
-  onTemplateClick?: (template: MessageTemplate) => void;
+  onTemplateClick?: (template: Template) => void;
   /** 选中的模板 ID */
   selectedId?: string;
   /** 是否显示分类标签 */
@@ -67,10 +67,10 @@ export const TemplateList = ({
           >
             <div className="flex flex-1 flex-col gap-1">
               {/* 标题和分类 */}
-              {template.title || (showCategory && template.category) ? (
+              {template.name || (showCategory && template.category) ? (
                 <div className="flex items-center gap-2">
-                  {template.title && (
-                    <span className="font-medium">{template.title}</span>
+                  {template.name && (
+                    <span className="font-medium">{template.name}</span>
                   )}
                   {showCategory && template.category && (
                     <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] text-primary">

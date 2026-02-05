@@ -1,13 +1,13 @@
 import { FileText, Search } from 'lucide-react';
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
-import type { MessageTemplate } from '@/interfaces/template.interface';
+import type { Template } from '@/interfaces/template.interface';
 import { cn } from '@/utils/class.util';
 
 export interface TemplatePickerProps {
   /** 模板列表 */
-  templates: MessageTemplate[];
+  templates: Template[];
   /** 选择模板的回调 */
-  onTemplateSelect: (template: MessageTemplate) => void;
+  onTemplateSelect: (template: Template) => void;
   /** 是否显示 */
   open?: boolean;
   /** 关闭回调 */
@@ -43,13 +43,13 @@ export const TemplatePicker = memo<TemplatePickerProps>(
       () =>
         templates.filter((template) => {
           const query = searchQuery.toLowerCase();
-          const title = template.title.toLowerCase();
+          const name = template.name.toLowerCase();
           const content = template.content.toLowerCase();
           const category = template.category?.toLowerCase() ?? '';
           const tags = template.tags?.join(' ').toLowerCase() ?? '';
 
           return (
-            title.includes(query) ||
+            name.includes(query) ||
             content.includes(query) ||
             category.includes(query) ||
             tags.includes(query)
@@ -200,7 +200,7 @@ export const TemplatePicker = memo<TemplatePickerProps>(
                   {/* 标题和分类 */}
                   <div className="flex w-full items-center gap-2">
                     <span className="truncate text-sm font-medium text-text">
-                      {template.title}
+                      {template.name}
                     </span>
                     {template.category && (
                       <span className="flex-shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] text-primary">
@@ -251,7 +251,7 @@ TemplatePicker.displayName = 'TemplatePicker';
  */
 export function insertTemplate(
   currentValue: string,
-  template: MessageTemplate,
+  template: Template,
 ): string {
   // 如果当前输入框为空，直接使用模板内容
   if (!currentValue.trim()) {
@@ -265,40 +265,50 @@ export function insertTemplate(
 /**
  * 预定义的消息模板
  */
-export const DEFAULT_TEMPLATES: MessageTemplate[] = [
+export const DEFAULT_TEMPLATES: Template[] = [
   {
     id: 'greeting',
-    title: '问候',
+    name: '问候',
     category: '常用',
     content: '您好，有什么可以帮助您的吗？',
     tags: ['问候', '开场'],
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
   },
   {
     id: 'thanks',
-    title: '感谢',
+    name: '感谢',
     category: '常用',
     content: '非常感谢您的支持！',
     tags: ['感谢', '礼貌'],
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
   },
   {
     id: 'follow-up',
-    title: '跟进',
+    name: '跟进',
     category: '销售',
     content: '您好，我想跟进一下我们之前的沟通，请问您还有什么疑问吗？',
     tags: ['跟进', '销售'],
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
   },
   {
     id: 'appointment',
-    title: '预约',
+    name: '预约',
     category: '业务',
     content: '您好，请问您方便安排一个时间进行详细沟通吗？',
     tags: ['预约', '沟通'],
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
   },
   {
     id: 'closing',
-    title: '结束语',
+    name: '结束语',
     category: '常用',
     content: '祝您生活愉快！',
     tags: ['结束语', '礼貌'],
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
   },
 ];

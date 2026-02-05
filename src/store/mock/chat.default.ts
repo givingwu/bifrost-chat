@@ -8,7 +8,7 @@ import {
   type StandardMessage,
 } from '@/interfaces/message.interface';
 import type { ProfileData } from '@/interfaces/profile.interface';
-import type { MessageTemplate } from '@/interfaces/template.interface';
+import type { Template } from '@/interfaces/template.interface';
 
 export const defaultConversations: Conversation[] = [
   {
@@ -108,17 +108,33 @@ export const defaultProfile: ProfileData = {
   localTime: '10:45 AM',
 };
 
-export const defaultTemplates: MessageTemplate[] = [
-  { id: 'tpl-1', title: '问候', content: 'Hi, how can I help you today?' },
+export const defaultTemplates: Template[] = [
+  {
+    id: 'tpl-1',
+    name: '问候',
+    content: 'Hi, how can I help you today?',
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+  },
   {
     id: 'tpl-2',
-    title: '发货通知',
+    name: '发货通知',
     content: 'Your order #12345 has been shipped.',
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
   },
   {
     id: 'tpl-3',
-    title: '邮箱验证',
+    name: '邮箱验证',
     content: 'Could you please verify your email?',
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
   },
-  { id: 'tpl-4', title: '感谢', content: 'Thank you for contacting support.' },
+  {
+    id: 'tpl-4',
+    name: '感谢',
+    content: 'Thank you for contacting support.',
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+  },
 ];

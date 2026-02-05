@@ -49,9 +49,12 @@ export { ProfileHeader } from './profile/ProfileHeader';
 export { ProfileInfoList } from './profile/ProfileInfoList';
 export { ProfileSearch } from './profile/ProfileSearch';
 export { ProfileSectionTitle } from './profile/ProfileSectionTitle';
-export { TemplateList, TemplatePicker } from './templates';
-export { ChannelBadge } from './toolbar/ChannelBadge';
+// Template components
+export { TemplateList } from './templates/TemplateList';
+export { TemplatePanel } from './templates/TemplatePanel';
+export { TemplatePicker } from './templates/TemplatePicker';
 // Toolbar Components
+export { ChannelBadge } from './toolbar/ChannelBadge';
 export { ChannelButtonFactory } from './toolbar/ChannelButtonFactory';
 export { ChannelFilter } from './toolbar/ChannelFilter';
 export { LanguageSwitcher } from './toolbar/LanguageSwitcher';

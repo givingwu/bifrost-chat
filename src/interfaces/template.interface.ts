@@ -1,31 +1,37 @@
 /**
  * Template 模块接口定义
  *
- * 管理和选择消息模版相关的类型定义
+ * 管理和选择消息模板相关的类型定义
  */
 
 /**
  * 消息模板接口
  */
-export interface MessageTemplate {
+export interface Template {
   /** 模板唯一标识 */
   id: string;
-  /** 模板标题 */
-  title: string;
+  /** 模板名称 */
+  name: string;
   /** 模板内容 */
   content: string;
   /** 模板分类 */
   category?: string;
+  /** 模板语言 */
+  language?: string;
   /** 模板标签 */
   tags?: string[];
+  /** 模板变量 */
+  variables?: Record<string, unknown>;
   /** 是否为快捷回复 */
   isQuickReply?: boolean;
   /** 使用次数 */
   usageCount?: number;
+  /** 是否已启用 */
+  enabled?: boolean;
   /** 创建时间 */
-  createdAt?: string;
+  createdAt: number;
   /** 更新时间 */
-  updatedAt?: string;
+  updatedAt: number;
 }
 
 /**
@@ -63,7 +69,7 @@ export interface TemplateSearchOptions {
  */
 export interface TemplateSelectEvent {
   /** 选中的模板 */
-  template: MessageTemplate;
+  template: Template;
   /** 选择时间 */
   timestamp: number;
 }
