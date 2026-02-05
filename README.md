@@ -31,6 +31,17 @@
 - 🧩 **模块化** - 支持按需引入
 - 🔄 **全渠道** - 支持 WhatsApp、SMS、Email 等多种渠道
 
+## 技术栈
+
+- **语言**: TypeScript
+- **框架**: React 19+
+- **样式**: Tailwind CSS 4+
+- **状态管理**: Zustand
+- **构建工具**: Rslib
+- **测试**: Vitest
+- **代码规范**: Biome
+- **组件文档**: Storybook
+
 ## 架构
 
 ### 设计文档
@@ -44,16 +55,14 @@
 - [Ant-Design Style](https://www.figma.com/make/JLzdL2qNFbazUvXq06m4EZ/%E5%85%A8%E6%B8%A0%E9%81%93%E8%81%8A%E5%A4%A9%E7%AA%97%E5%8F%A3%E8%AE%BE%E8%AE%A1-Ant-Design?p=f&t=21pdeAFGyKHPuHrI-0&fullscreen=1)
 - [ShadCN style](https://www.figma.com/make/pVoNt73mBawf4ePMOUfa9G/%E5%85%A8%E6%B8%A0%E9%81%93%E8%81%8A%E5%A4%A9%E7%AA%97%E5%8F%A3%E8%AE%BE%E8%AE%A1-ShadCN-style?p=f&t=fT4tGEa2zaty5ELt-0&fullscreen=1)
 
-## 技术栈
+#### 相关生态
 
-- **语言**: TypeScript
-- **框架**: React 19+
-- **样式**: Tailwind CSS 4+
-- **状态管理**: Zustand
-- **构建工具**: Rslib
-- **测试**: Vitest
-- **代码规范**: Biome
-- **组件文档**: Storybook
+- [Bifrost](https://kylith.atlassian.net/wiki/spaces/m78rqGL1Q4UV/pages/384892985/Bifrost)
+  - [Bifrost-Heimdall](https://kylith.atlassian.net/wiki/spaces/m78rqGL1Q4UV/pages/392692157/Bifrost-Heimdall)
+  - [Bifrost-Hugin](https://kylith.atlassian.net/wiki/spaces/m78rqGL1Q4UV/pages/392299260/Bifrost-Hugin)
+  - [Bifrost-Hermod](https://kylith.atlassian.net/wiki/spaces/m78rqGL1Q4UV/pages/392561381/Bifrost-Hermod)
+- [更新日志](CHANGELOG.md)
+- [问题反馈](https://github.com/feoe/Bifrost-Chat/issues)
 
 ## 安装
 
@@ -277,18 +286,4 @@ pnpm run storybook
 
 ## 许可证
 
-[MIT](LICENSE) © feoe
-
-## 链接
-
-- [文档](README.md)
-- [更新日志](CHANGELOG.md)
-- [问题反馈](https://github.com/feoe/Bifrost-Chat/issues)
-- [设计规范](https://kylith.atlassian.net/wiki/spaces/m78rqGL1Q4UV/pages/384892985/Bifrost)
-
-## 组件生态
-
-- [Bifrost](https://kylith.atlassian.net/wiki/spaces/m78rqGL1Q4UV/pages/384892985/Bifrost)
-  - [Bifrost-Heimdall](https://kylith.atlassian.net/wiki/spaces/m78rqGL1Q4UV/pages/392692157/Bifrost-Heimdall)
-  - [Bifrost-Hugin](https://kylith.atlassian.net/wiki/spaces/m78rqGL1Q4UV/pages/392299260/Bifrost-Hugin)
-  - [Bifrost-Hermod](https://kylith.atlassian.net/wiki/spaces/m78rqGL1Q4UV/pages/392561381/Bifrost-Hermod)
+[MIT](LICENSE) © FEOF
