@@ -9,7 +9,7 @@ export enum ChannelTypeEnum {
   WhatsApp = 'whatsapp',
   /** Email Channel */
   Email = 'email',
-  /** Waba */
+  /** WABA (WhatsApp Business API) 是 WhatsApp 的官方企业级 API  */
   Waba = 'waba',
 }
 
@@ -22,8 +22,3 @@ export const AvailableChannelTypes: ChannelTypeEnum[] = [
   ChannelTypeEnum.Email,
   ChannelTypeEnum.Waba,
 ];
-
-/**
- * 渠道类型别名（向后兼容）
- */
-export type ChannelType = ChannelTypeEnum;

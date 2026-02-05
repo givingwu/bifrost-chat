@@ -10,9 +10,6 @@ export enum NetworkStatusEnum {
   Connecting = 'connecting',
 }
 
-// 向后兼容：导出类型别名
-export type NetworkStatus = NetworkStatusEnum;
-
 /**
  * Network Slice：网络连接状态
  */

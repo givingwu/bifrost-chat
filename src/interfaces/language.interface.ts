@@ -22,8 +22,3 @@ export const AvailableLanguageCodes = [
 export type LanguageState = {
   code: LanguageCodeEnum;
 };
-
-/**
- * 语言代码类型别名（向后兼容）
- */
-export type LanguageCode = LanguageCodeEnum;

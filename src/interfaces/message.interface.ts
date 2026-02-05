@@ -130,10 +130,3 @@ export interface SendMessageOptions {
   /** 自定义 channel，默认从当前策略获取 */
   channelType?: ChannelTypeEnum;
 }
-
-/**
- * 类型别名（向后兼容）
- */
-export type MessageDirection = MessageDirectionEnum;
-export type MessageStatus = MessageStatusEnum;
-export type MessageType = MessageTypeEnum;

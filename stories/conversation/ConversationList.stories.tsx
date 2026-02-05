@@ -111,7 +111,11 @@ export const LongList = () => {
     lastMessage: `Message ${i + 1}`,
     lastMessageTime: `${10 - i}:00 AM`,
     unreadCount: i % 3,
-    channel: [ChannelTypeEnum.SMS, ChannelTypeEnum.WhatsApp, ChannelTypeEnum.Email][i % 3],
+    channel: [
+      ChannelTypeEnum.SMS,
+      ChannelTypeEnum.WhatsApp,
+      ChannelTypeEnum.Email,
+    ][i % 3],
     isActive: i === 0,
   }));
 
