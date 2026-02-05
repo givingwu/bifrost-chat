@@ -1,20 +1,36 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { ChannelBadge } from '@/components/toolbar/ChannelBadge';
-import { ChannelTypeEnum } from '@/interfaces/channel.interface';
+import {
+  AvailableChannelTypes,
+  ChannelTypeEnum,
+} from '@/interfaces/channel.interface';
 import '@/styles/theme.css';
 
 /**
  * ChannelBadge 组件 Story 文档
  */
-
 const meta: Meta<typeof ChannelBadge> = {
   title: 'Toolbar/ChannelBadge',
   component: ChannelBadge,
   tags: ['autodocs'],
+  argTypes: {
+    type: {
+      options: AvailableChannelTypes,
+      control: { type: 'select' },
+    },
+  },
 };
 
 export default meta;
 type Story = StoryObj<typeof ChannelBadge>;
+
+export const Waba = () => {
+  return (
+    <div className="p-4 bg-muted rounded-lg">
+      <ChannelBadge type={ChannelTypeEnum.Waba} />
+    </div>
+  );
+};
 
 export const WhatsApp = () => {
   return (

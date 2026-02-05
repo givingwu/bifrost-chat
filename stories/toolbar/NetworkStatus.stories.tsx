@@ -69,7 +69,7 @@ export const AllStatuses = () => {
       color: 'text-red-500',
     },
     {
-      status: NetworkStatusEnum.Connected,
+      status: NetworkStatusEnum.Reconnecting,
       label: '重连中',
       desc: '网络重新连接中...',
       color: 'text-lightgreen-500',
