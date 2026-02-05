@@ -33,7 +33,7 @@ interface NetworkStatusConfig {
  * - 包含所有已知的网络状态配置
  * - 使用 as const 确保类型推断的准确性
  */
-const NETWORK_STATUS_CONFIG_MAP: Record<
+export const NETWORK_STATUS_CONFIG_MAP: Record<
   NetworkStatusEnum,
   NetworkStatusConfig
 > = {
@@ -54,6 +54,12 @@ const NETWORK_STATUS_CONFIG_MAP: Record<
     containerClass: 'bg-error/10 text-error',
     dotClass: 'bg-error',
     ariaLabel: '网络已断开',
+  },
+  [NetworkStatusEnum.Reconnecting]: {
+    label: 'Reconnecting',
+    containerClass: 'bg-info/10 text-info',
+    dotClass: 'bg-info animate-pulse',
+    ariaLabel: '网络重连中',
   },
 } as const;
 

@@ -1,12 +1,12 @@
 import { z } from 'zod';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
+import type { IMapper } from '@/interfaces/mapper.interface';
 import type { StandardMessage } from '@/interfaces/message.interface';
 import {
   MessageDirectionEnum,
   MessageStatusEnum,
   MessageTypeEnum,
 } from '@/interfaces/message.interface';
-import type { IMapper } from '../../interfaces/mapper.interface';
 import {
   WabaAckSchema,
   WabaInboundSchema,
@@ -343,5 +343,33 @@ export class WabaMapper
     }
 
     return { text: '[Unsupported message type]' };
+  }
+
+  /**
+   * 批量将标准消息转换为 Outbound DTO
+   */
+  batchOutboundToDto(messages: StandardMessage[]): WabaOutboundDto[] {
+    return messages.map((message) => this.outboundToDto(message));
+  }
+
+  /**
+   * 批量将 Inbound DTO 转换为标准消息
+   */
+  batchInboundToStandard(dtos: WabaInboundDto[]): StandardMessage[] {
+    return dtos.map((dto) => this.inboundToStandard(dto));
+  }
+
+  /**
+   * 批量校验 Inbound DTO
+   */
+  batchValidateInbound(dtos: unknown[]): WabaInboundDto[] {
+    return dtos.map((dto) => this.validateInbound(dto));
+  }
+
+  /**
+   * 批量校验 Outbound DTO
+   */
+  batchValidateOutbound(dtos: unknown[]): WabaOutboundDto[] {
+    return dtos.map((dto) => this.validateOutbound(dto));
   }
 }

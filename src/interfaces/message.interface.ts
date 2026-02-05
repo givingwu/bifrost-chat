@@ -129,4 +129,56 @@ export interface SendMessageOptions {
   receiver?: MessageParticipant;
   /** 自定义 channel，默认从当前策略获取 */
   channelType?: ChannelTypeEnum;
+  /** 消息优先级 */
+  priority?: MessagePriorityEnum;
+  /** 是否需要回执 */
+  requireReceipt?: boolean;
+  /** 过期时间（毫秒） */
+  expireAt?: number;
+  /** 自定义元数据 */
+  metadata?: Record<string, unknown>;
+}
+
+/**
+ * 消息优先级枚举
+ */
+export enum MessagePriorityEnum {
+  /** 低优先级 */
+  Low = 'low',
+  /** 普通优先级 */
+  Normal = 'normal',
+  /** 高优先级 */
+  High = 'high',
+  /** 紧急优先级 */
+  Urgent = 'urgent',
+}
+
+/**
+ * 消息重试配置
+ */
+export interface MessageRetryConfig {
+  /** 最大重试次数 */
+  maxRetries: number;
+  /** 重试延迟（毫秒） */
+  retryDelay: number;
+  /** 指数退避因子 */
+  backoffFactor?: number;
+  /** 最大重试延迟（毫秒） */
+  maxRetryDelay?: number;
+}
+
+/**
+ * 消息发送结果
+ */
+export interface MessageSendResult {
+  /** 临时消息 ID */
+  tempId: string;
+  /** 真实消息 ID（服务端返回） */
+  messageId?: string;
+  /** 发送状态 */
+  status: MessageStatusEnum;
+  /** 错误信息（如果失败） */
+  error?: string;
+  /** 重试次数 */
+  retryCount?: number;
 }

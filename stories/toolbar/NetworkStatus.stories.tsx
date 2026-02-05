@@ -11,6 +11,7 @@ import '@/styles/theme.css';
  * - 已连接
  * - 连接中
  * - 已断开
+ * - 重连中
  */
 
 const meta: Meta<typeof NetworkStatus> = {
@@ -67,6 +68,12 @@ export const AllStatuses = () => {
       desc: '网络连接已断开',
       color: 'text-red-500',
     },
+    {
+      status: NetworkStatusEnum.Connected,
+      label: '重连中',
+      desc: '网络重新连接中...',
+      color: 'text-lightgreen-500',
+    },
   ];
 
   return (
@@ -102,6 +109,7 @@ export const InToolbar = () => {
     [NetworkStatusEnum.Connected]: '在线',
     [NetworkStatusEnum.Connecting]: '连接中...',
     [NetworkStatusEnum.Disconnected]: '离线',
+    [NetworkStatusEnum.Reconnecting]: '重连中...',
   };
 
   return (

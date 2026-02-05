@@ -9,7 +9,7 @@ export enum LanguageCodeEnum {
 }
 
 /**
- * 可用的语言代码列表
+ * 可用的语言代码列表（使用 as const 确保类型安全）
  */
 export const AvailableLanguageCodes = [
   LanguageCodeEnum.EnUS,
@@ -17,8 +17,40 @@ export const AvailableLanguageCodes = [
 ] as const;
 
 /**
+ * 语言代码联合类型
+ */
+export type AvailableLanguageCode = (typeof AvailableLanguageCodes)[number];
+
+/**
  * 语言状态接口
  */
-export type LanguageState = {
+export interface LanguageState {
+  /** 当前语言代码 */
   code: LanguageCodeEnum;
-};
+  /** 是否自动检测语言 */
+  autoDetect?: boolean;
+}
+
+/**
+ * 语言切换回调类型
+ */
+export type LanguageChangeCallback = (newCode: LanguageCodeEnum) => void;
+
+/**
+ * 语言资源接口
+ */
+export interface LanguageResources {
+  [key: string]: string | LanguageResources;
+}
+
+/**
+ * 语言包接口
+ */
+export interface LanguageBundle {
+  /** 语言代码 */
+  code: LanguageCodeEnum;
+  /** 语言名称 */
+  name: string;
+  /** 语言资源 */
+  resources: LanguageResources;
+}

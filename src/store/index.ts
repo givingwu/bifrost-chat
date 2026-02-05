@@ -28,6 +28,11 @@ export type ChatStoreState = UiSlice &
   ProfileSlice;
 
 /**
+ * Store Actions 类型（提取所有 actions）
+ */
+export type ChatStoreActions = ChatStoreState['actions'];
+
+/**
  * useChatStore：SDK 内部 Zustand Store（Singleton）
  */
 export const useChatStore = create<ChatStoreState>()((...args) => ({

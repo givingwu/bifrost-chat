@@ -1,6 +1,6 @@
-import type { SDKEvent } from '@/interfaces/sdk.interface';
+import type { SDKEventTypeEnum } from '@/interfaces/sdk.interface';
 
-type Listener<T> = (payload: T) => void;
+export type Listener<T> = (payload: T) => void;
 
 /**
  * ClientBus：Host 与 SDK 之间的事件总线（Observer）。
@@ -13,22 +13,27 @@ export class ClientBus {
   /**
    * 订阅 SDK 事件。
    */
-  on<T>(event: SDKEvent, callback: Listener<T>) {
+  on<T>(event: SDKEventTypeEnum, callback: Listener<T>) {
     const existing = this.listeners.get(event) ?? new Set();
+
     existing.add(callback as Listener<unknown>);
     this.listeners.set(event, existing);
+
+    return () => this.off(event, callback);
   }
 
   /**
    * 取消订阅 SDK 事件。
    */
-  off<T>(event: SDKEvent, callback: Listener<T>) {
+  off<T>(event: SDKEventTypeEnum, callback: Listener<T>) {
     const existing = this.listeners.get(event);
+
     if (!existing) {
       return;
     }
 
     existing.delete(callback as Listener<unknown>);
+
     if (existing.size === 0) {
       this.listeners.delete(event);
     }
@@ -37,7 +42,7 @@ export class ClientBus {
   /**
    * 派发事件给所有订阅者。
    */
-  emit<T>(event: SDKEvent, payload: T) {
+  emit<T>(event: SDKEventTypeEnum, payload: T) {
     const existing = this.listeners.get(event);
 
     if (!existing) {

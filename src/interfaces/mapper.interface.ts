@@ -32,6 +32,20 @@ export interface IMapper<TInbound, TOutbound, TAck> {
   ackToStatus(ack: TAck): MessageStatusEnum;
 
   /**
+   * 批量将标准消息转换为 Outbound DTO
+   * @param messages 标准消息数组
+   * @returns Outbound DTO 数组
+   */
+  batchOutboundToDto(messages: StandardMessage[]): TOutbound[];
+
+  /**
+   * 批量将 Inbound DTO 转换为标准消息
+   * @param dtos Inbound DTO 数组
+   * @returns 标准化消息数组
+   */
+  batchInboundToStandard(dtos: TInbound[]): StandardMessage[];
+
+  /**
    * 校验 Inbound DTO
    * @param dto 原始 DTO 数据
    * @returns 校验后的 Inbound DTO
@@ -54,6 +68,38 @@ export interface IMapper<TInbound, TOutbound, TAck> {
    * @throws 如果校验失败
    */
   validateAck(dto: unknown): TAck;
+
+  /**
+   * 批量校验 Inbound DTO
+   * @param dtos 原始 DTO 数据数组
+   * @returns 校验后的 Inbound DTO 数组
+   * @throws 如果校验失败
+   */
+  batchValidateInbound(dtos: unknown[]): TInbound[];
+
+  /**
+   * 批量校验 Outbound DTO
+   * @param dtos 原始 DTO 数据数组
+   * @returns 校验后的 Outbound DTO 数组
+   * @throws 如果校验失败
+   */
+  batchValidateOutbound(dtos: unknown[]): TOutbound[];
+}
+
+/**
+ * Mapper 性能指标
+ */
+export interface MapperMetrics {
+  /** 转换次数 */
+  transformCount: number;
+  /** 校验次数 */
+  validateCount: number;
+  /** 错误次数 */
+  errorCount: number;
+  /** 平均转换时间（毫秒） */
+  avgTransformTime: number;
+  /** 平均校验时间（毫秒） */
+  avgValidateTime: number;
 }
 
 /**
@@ -67,6 +113,7 @@ export class MapperError extends Error {
   ) {
     super(message);
     this.name = 'MapperError';
+    Object.setPrototypeOf(this, MapperError.prototype);
   }
 }
 
@@ -80,5 +127,24 @@ export class ValidationError extends Error {
   ) {
     super(message);
     this.name = 'ValidationError';
+    Object.setPrototypeOf(this, ValidationError.prototype);
   }
+}
+
+/**
+ * Mapper 配置选项
+ */
+export interface MapperOptions {
+  /** 是否启用性能监控 */
+  enableMetrics?: boolean;
+  /** 是否启用严格模式（严格校验） */
+  strictMode?: boolean;
+  /** 是否忽略未知字段 */
+  ignoreUnknown?: boolean;
+  /** 自定义校验钩子 */
+  validationHooks?: {
+    beforeValidate?: (data: unknown) => unknown;
+    afterValidate?: (data: unknown) => unknown;
+    onValidationError?: (error: ValidationError) => void;
+  };
 }

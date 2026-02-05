@@ -12,6 +12,7 @@ import type {
   TemplateSendParams,
   TextSendParams,
 } from '@/interfaces/adapter.interface';
+import { SendStatusEnum } from '@/interfaces/adapter.interface';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import type { StandardMessage } from '@/interfaces/message.interface';
 import {
@@ -19,6 +20,7 @@ import {
   MessageStatusEnum,
   MessageTypeEnum,
 } from '@/interfaces/message.interface';
+import type { ProfileTemplate } from '@/interfaces/profile.interface';
 import { WabaMapper } from './WabaMapper';
 
 /**
@@ -40,7 +42,6 @@ export class WabaAdapter
   private mapper: WabaMapper;
   private config: AdapterConfig | undefined;
   private initialized = false;
-
   constructor() {
     this.mapper = new WabaMapper();
   }
@@ -111,7 +112,7 @@ export class WabaAdapter
 
       return {
         tempId: message.tempId ?? '',
-        status: 'sending',
+        status: SendStatusEnum.Sending,
       };
     } catch (error) {
       if (this.config?.debug) {
@@ -120,7 +121,7 @@ export class WabaAdapter
 
       return {
         tempId: this.generateTempId(),
-        status: 'failed',
+        status: SendStatusEnum.Failed,
         error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
@@ -180,7 +181,7 @@ export class WabaAdapter
 
       return {
         tempId: message.tempId!,
-        status: 'sending',
+        status: SendStatusEnum.Sending,
       };
     } catch (error) {
       if (this.config?.debug) {
@@ -189,7 +190,7 @@ export class WabaAdapter
 
       return {
         tempId: this.generateTempId(),
-        status: 'failed',
+        status: SendStatusEnum.Failed,
         error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
@@ -260,7 +261,7 @@ export class WabaAdapter
 
       return {
         tempId: message.tempId ?? '',
-        status: 'sending',
+        status: SendStatusEnum.Sending,
       };
     } catch (error) {
       if (this.config?.debug) {
@@ -269,10 +270,18 @@ export class WabaAdapter
 
       return {
         tempId: this.generateTempId(),
-        status: 'failed',
+        status: SendStatusEnum.Failed,
         error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
+  }
+
+  /**
+   * 获取可用模板列表
+   */
+  async getTemplates(): Promise<ProfileTemplate[]> {
+    // TODO: 实现从 WABA API 获取模板列表的逻辑
+    return [];
   }
 
   /**

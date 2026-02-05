@@ -6,6 +6,7 @@ import type {
   StandardMessage,
 } from '@/interfaces/message.interface';
 import { MessageBuilder } from '@/utils/message-builder.util';
+import type { ChatStoreState } from '..';
 import { defaultConversations, defaultMessages } from '../mock/chat.default';
 
 /**
@@ -50,12 +51,7 @@ export const createConversationSlice: StateCreator<
         },
       })),
     sendMessage: (content?: string, options?: SendMessageOptions) => {
-      const state = get() as unknown as {
-        conversation: ConversationState;
-        strategy: { activeChannel?: ChannelTypeEnum };
-        profile: { profile?: { name?: string } };
-        actions: { appendMessage: (message: StandardMessage) => void };
-      };
+      const state = get() as ChatStoreState;
       const activeConversation = state.conversation.activeConversation;
       const activeChannel = state.strategy.activeChannel;
 
@@ -63,7 +59,15 @@ export const createConversationSlice: StateCreator<
       const agentId = state.profile.profile?.name ?? 'default-agent';
 
       if (!activeConversation) {
-        console.warn('No active conversation to send message');
+        console.warn(
+          '[ConversationSlice] No active conversation to send message',
+        );
+        return;
+      }
+
+      // 验证消息内容
+      if (!content || content.trim().length === 0) {
+        console.warn('[ConversationSlice] Message content is empty');
         return;
       }
 
@@ -71,18 +75,27 @@ export const createConversationSlice: StateCreator<
       const channelType: ChannelTypeEnum =
         options?.channelType ?? activeConversation.channel ?? activeChannel;
 
-      // 使用 MessageBuilder 构建消息
-      const message = MessageBuilder.buildTextMessage(content ?? '', {
-        senderId: agentId,
-        receiverId: activeConversation.user.id,
-        channelType,
-        type: options?.type,
-        sender: options?.sender,
-        receiver: options?.receiver,
-      });
+      if (!channelType) {
+        console.error('[ConversationSlice] No valid channel type found');
+        return;
+      }
 
-      // 调用 appendMessage 添加到状态
-      state.actions.appendMessage(message);
+      try {
+        // 使用 MessageBuilder 构建消息
+        const message = MessageBuilder.buildTextMessage(content, {
+          senderId: agentId,
+          receiverId: activeConversation.user.id,
+          channelType,
+          type: options?.type,
+          sender: options?.sender,
+          receiver: options?.receiver,
+        });
+
+        // 调用 appendMessage 添加到状态
+        state.actions.appendMessage(message);
+      } catch (error) {
+        console.error('[ConversationSlice] Failed to build message:', error);
+      }
     },
     setConversations: (conversations: Conversation[]) =>
       set((state) => ({
@@ -98,9 +111,14 @@ export const createConversationSlice: StateCreator<
         const activeConversation = state.conversation.conversations.find(
           (item) => item.id === conversationId,
         );
+
         if (!activeConversation) {
+          console.warn(
+            `[ConversationSlice] Conversation with id ${conversationId} not found`,
+          );
           return state;
         }
+
         return {
           conversation: {
             ...state.conversation,

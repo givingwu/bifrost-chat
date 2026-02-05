@@ -1,5 +1,51 @@
 import type { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import type { StandardMessage } from '@/interfaces/message.interface';
+import type { ProfileTemplate } from './profile.interface';
+
+/**
+ * 适配器错误码枚举
+ */
+export enum AdapterErrorCodeEnum {
+  /** 未知错误 */
+  Unknown = 'UNKNOWN',
+  /** 网络错误 */
+  NetworkError = 'NETWORK_ERROR',
+  /** 认证失败 */
+  AuthenticationFailed = 'AUTH_FAILED',
+  /** 权限不足 */
+  PermissionDenied = 'PERMISSION_DENIED',
+  /** 参数无效 */
+  InvalidParams = 'INVALID_PARAMS',
+  /** 渠道不支持 */
+  ChannelNotSupported = 'CHANNEL_NOT_SUPPORTED',
+  /** 消息发送失败 */
+  SendFailed = 'SEND_FAILED',
+  /** 消息格式错误 */
+  MessageFormatError = 'MESSAGE_FORMAT_ERROR',
+  /** 媒体上传失败 */
+  MediaUploadFailed = 'MEDIA_UPLOAD_FAILED',
+  /** 模板不存在 */
+  TemplateNotFound = 'TEMPLATE_NOT_FOUND',
+  /** 配额超限 */
+  QuotaExceeded = 'QUOTA_EXCEEDED',
+  /** 服务不可用 */
+  ServiceUnavailable = 'SERVICE_UNAVAILABLE',
+}
+
+/**
+ * 适配器错误类
+ */
+export class AdapterError extends Error {
+  constructor(
+    message: string,
+    public readonly code: AdapterErrorCodeEnum,
+    public readonly details?: Record<string, unknown>,
+  ) {
+    super(message);
+    this.name = 'AdapterError';
+    Object.setPrototypeOf(this, AdapterError.prototype);
+  }
+}
 
 /**
  * 适配器配置
@@ -11,6 +57,12 @@ export interface AdapterConfig {
   token?: string;
   /** 调试模式 */
   debug?: boolean;
+  /** 请求超时时间（毫秒） */
+  timeout?: number;
+  /** 最大重试次数 */
+  maxRetries?: number;
+  /** 重试延迟（毫秒） */
+  retryDelay?: number;
   /** 额外配置 */
   extra?: Record<string, unknown>;
 }
@@ -150,15 +202,37 @@ export interface InteractionReportParams {
 }
 
 /**
+ * 发送状态枚举
+ */
+export enum SendStatusEnum {
+  /** 发送中 */
+  Sending = 'sending',
+  /** 发送成功 */
+  Success = 'success',
+  /** 发送失败 */
+  Failed = 'failed',
+  /** 等待重试 */
+  PendingRetry = 'pending_retry',
+}
+
+/**
  * 发送结果
  */
 export interface SendResult {
   /** 临时消息 ID */
   tempId: string;
   /** 发送状态 */
-  status: 'sending' | 'failed';
+  status: SendStatusEnum;
   /** 错误信息（如果失败） */
   error?: string;
+  /** 错误码（如果失败） */
+  errorCode?: AdapterErrorCodeEnum;
+  /** 错误详情（如果失败） */
+  errorDetails?: Record<string, unknown>;
+  /** 重试次数 */
+  retryCount?: number;
+  /** 服务器返回的消息 ID（如果成功） */
+  messageId?: string;
 }
 
 /**
@@ -263,4 +337,36 @@ export interface ITemplateSender {
    * @returns 发送结果
    */
   sendTemplate(params: TemplateSendParams): Promise<SendResult>;
+
+  /**
+   * 获取可用模板列表
+   * @returns 模板列表
+   */
+  getTemplates(): Promise<ProfileTemplate[]>;
+}
+
+/**
+ * 健康检查接口
+ * - 支持健康检查的适配器应实现此接口
+ */
+export interface IHealthCheckable {
+  /**
+   * 检查适配器健康状态
+   * @returns 健康状态
+   */
+  healthCheck(): Promise<HealthStatus>;
+}
+
+/**
+ * 健康状态
+ */
+export interface HealthStatus {
+  /** 是否健康 */
+  isHealthy: boolean;
+  /** 延迟（毫秒） */
+  latency?: number;
+  /** 错误信息（如果不健康） */
+  error?: string;
+  /** 额外信息 */
+  details?: Record<string, unknown>;
 }

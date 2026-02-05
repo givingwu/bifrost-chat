@@ -6,7 +6,7 @@ export interface ChannelFilterProps {
   /** 坐席状态（in_call 时触发互斥逻辑） */
   status?: AgentStatusEnum;
   /** 允许的渠道列表 */
-  channels: ChannelTypeEnum[];
+  channels: readonly ChannelTypeEnum[];
   /** 当前激活的渠道 */
   activeChannel?: ChannelTypeEnum;
   /** 点击渠道按钮回调 */
