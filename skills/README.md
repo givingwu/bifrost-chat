@@ -11,7 +11,7 @@
 用途：
 
 - SDK 功能开发与维护
-- 渲染层、Store、Adapter 相关改动
+- 渲染层、Service 接口/依赖注入、React Query/Zustand、Adapter 相关改动
 - Storybook / Vitest / 构建链路联动
 
 配套参考：

@@ -25,4 +25,4 @@ description: 面向 Bifrost-Chat 组件库的视觉与交互设计落地。适�
 - 颜色和间距优先走 token，不散落硬编码。
 - 组件至少覆盖默认态、禁用态、异常态。
 - light/dark/system 三模式下布局一致。
-- 样式变更必须给出可验证的 story 场景。
+- 样式变更必须给出可验证的 Storybook stories 场景。

@@ -41,7 +41,7 @@ export const SessionList = () => { }
 | 模块 | 职责 | 目录 |
 |------|------|------|
 | **Profile** | 展示客户/联系人信息 (姓名、头像、标签等) | `src/components/profile/` |
-| **Template** | 管理和选择消息模版 (模版列表、预览、发送) | `src/components/templates/` |
+| **Template** | 管理和选择消息模板 (模板列表、预览、发送) | `src/components/templates/` |
 
 ### 3. 使用泛型解耦参数类型
 
@@ -86,7 +86,7 @@ class MyConversationService implements IConversationService<...> {
 
 | 状态类型 | 管理方案 | 示例 |
 |---------|---------|------|
-| **服务端状态** | React Query | 会话列表、消息列表、模版列表 |
+| **服务端状态** | React Query | 会话列表、消息列表、模板列表 |
 | **客户端状态** | Zustand | 输入框内容、面板状态、主题、语言 |
 
 **优势**:
@@ -99,6 +99,8 @@ class MyConversationService implements IConversationService<...> {
 
 1. 先判断任务落点：渲染层 / 逻辑层 / 构建测试 / 主题样式。
 2. 按需读取参考文档：
+   - 接口抽象：`../../docs/sdk-interface-abstraction-design.md`
+   - 声明式架构：`../../docs/reactive-architecture-design.md`
    - 最终架构：`../../docs/final-architecture.md`
    - 渲染层：`references/rendering.md`
    - 逻辑层：`references/logic.md`
@@ -112,22 +114,29 @@ class MyConversationService implements IConversationService<...> {
 
 ## 当前实现快照（以仓库代码为准）
 
-- **架构设计**: 采用接口抽象 + 依赖注入模式,支持不同业务方的 API 实现
-- **状态管理**: 服务端状态使用 React Query,客户端状态使用 Zustand
-- **会话概念**: 统一使用 Conversation,禁止使用 Session
-- **Template**: 从 Profile 中剥离,独立管理
-- **泛型支持**: 服务接口使用泛型,支持不同业务方的 API 参数
-- Store 使用 Zustand Slice 组合（`ui/strategy/network/theme/language/conversation/profile`）。
-- `AdapterFactory` 已落地，默认内置 `WabaAdapter`；其他渠道接口已预留。
-- 消息渲染通过 `MessageRendererFactory` + `MessageBubble` 落地。
-- `ComposerToolbar` 已按渠道差异控制附件类型和长度限制。
-- 主题模式为 `system/light/dark`，通过 token 驱动。
-- `DataLayer/NetLayer/OfflineQueue` 当前以架构约束和接口目标为主，尚未完整实现。
+- **会话概念**：统一使用 Conversation，禁止使用 Session。
+- **Store 现状**：Zustand Slice 组合（`ui/strategy/network/theme/language/conversation/profile`）。
+- **服务端状态现状**：会话/消息仍主要由 Store 驱动，React Query 链路尚在迁移中。
+- **渠道扩展**：`AdapterFactory` 已落地，默认内置 `WabaAdapter`。
+- **渲染主链路**：`MessageRendererFactory` + `MessageBubble`。
+- **输入区策略**：`ComposerToolbar` 已按渠道差异控制附件类型和长度限制。
+- **主题机制**：`system/light/dark` + token（`src/styles/theme.css`）。
+- **未完全落地**：ServiceProvider 注入、INetwork 实现、OfflineQueue、ACK 闭环。
+
+## 目标架构（统一术语）
+
+- **接口抽象**：SDK 定义 `IConversationService` / `IMessageService` /
+  `ITemplateService`（支持泛型参数）。
+- **依赖注入**：宿主应用实现服务并通过 `ServiceProvider` 注入。
+- **声明式状态**：服务端状态由 React Query 管理，Zustand 仅保留客户端状态。
+- **渠道防腐**：Adapter + Mapper 承担协议与字段差异，UI 不感知后端字段。
+- **错误模型**：统一 `SDKError` / `NetworkError` / `ValidationError` /
+  `AuthorizationError`。
 
 ## 关键约束
 
 - **会话概念**: 必须使用 Conversation, 禁止使用 Session
-- **组件改动**: 必须同步更新对应 story
+- **组件改动**: 必须同步更新对应 Storybook stories
 - **渠道渲染逻辑**: 必须策略驱动，禁止写死分支到业务数据
 - **新渠道/新消息类型**: 必须走 Adapter + Mapper + Factory 扩展
 - **后端字段变化**: 不把后端字段变化泄漏到 Store/UI，格式变化仅在 Mapper 层消化
@@ -139,5 +148,5 @@ class MyConversationService implements IConversationService<...> {
 
 - 是否影响公开 API、枚举或 DTO 类型？
 - 是否需要扩展 `ChannelButtonFactory` / `MessageRendererFactory`？
-- 是否需要同步更新 Storybook、测试、README/skills 文档？
+- 是否需要同步更新 Storybook stories、测试、README/skills 文档？
 - 是否引入与现状不一致的“未来态描述”？

@@ -15,6 +15,11 @@
 
 **严格遵循** [`docs/naming-conventions.md`](../../../docs/naming-conventions.md) 中定义的命名规范。
 
+### 领域术语
+
+- 会话统一使用 `Conversation`，禁止在新增命名中使用 `Session`。
+- 模板统一使用“模板（Template）”，避免“模版”等混写。
+
 ### 组件命名
 
 - 组件使用 PascalCase，无前缀或后缀

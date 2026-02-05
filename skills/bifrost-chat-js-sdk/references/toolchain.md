@@ -17,13 +17,13 @@
 按改动范围执行：
 
 1. 仅文档：可跳过构建，至少检查链接与术语一致性。
-2. 组件/UI：`pnpm run test` + 受影响 story 自检。
+2. 组件/UI：`pnpm run test` + 受影响 Storybook stories 自检。
 3. 类型/接口：`pnpm run test`，必要时补类型测试。
 4. 发布前：`pnpm run build`。
 
 ## 3) Storybook 约束
 
-涉及 `src/components/*` 的改动，必须同步 story：
+涉及 `src/components/*` 的改动，必须同步 Storybook stories：
 
 - 默认态（Default）
 - 至少一个变体态

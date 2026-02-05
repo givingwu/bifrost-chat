@@ -86,7 +86,7 @@ UI 组件 → Hook（React Query）→ Service 接口 → 宿主实现（HTTP/So
 
 1. 扩展 `MessageTypeEnum` 与消息内容类型。
 2. 在 `MessageRendererFactory` 增加映射。
-3. 新增 `src/components/messages/*` 组件与 story。
+3. 新增 `src/components/messages/*` 组件与 Storybook stories。
 4. 在 mapper 层补齐 DTO 转换与 Zod 校验。
 
 ## 6) 相关文档
