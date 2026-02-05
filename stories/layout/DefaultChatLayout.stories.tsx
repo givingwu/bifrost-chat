@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { DefaultChatLayoutContainer } from '@/components/layout/DefaultChatLayoutContainer';
-import { ChatMessageListContainer } from '@/components/messages/ChatMessageListContainer';
+import { DefaultChatLayout } from '@/components/layout/DefaultChatLayout';
+import { InfiniteMessageList } from '@/components/messages/InfiniteMessageList';
 import enUS from '@/locales/en-US.json';
 import zhCN from '@/locales/zh-CN.json';
 import { I18nProvider } from '@/providers/I18n.provider';
@@ -181,14 +181,14 @@ const queryClient = new QueryClient({
   },
 });
 
-const meta: Meta<typeof DefaultChatLayoutContainer> = {
+const meta: Meta<typeof DefaultChatLayout> = {
   title: 'Layout/DefaultChatLayout',
-  component: DefaultChatLayoutContainer,
+  component: DefaultChatLayout,
   tags: ['autodocs'],
   argTypes: {
     children: {
       control: false,
-      description: '消息区域内容（通常传入 ChatMessageListContainer）',
+      description: '消息区域内容（通常传入 InfiniteMessageList）',
       table: {
         type: {
           summary: 'ReactNode',
@@ -219,7 +219,7 @@ const meta: Meta<typeof DefaultChatLayoutContainer> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof DefaultChatLayoutContainer>;
+type Story = StoryObj<typeof DefaultChatLayout>;
 
 /**
  * 基础示例 - 默认布局
@@ -227,13 +227,13 @@ type Story = StoryObj<typeof DefaultChatLayoutContainer>;
  * 展示完整的聊天界面布局，包括：
  * - 顶部工具栏（网络状态、主题切换、语言切换）
  * - 左侧会话列表面板（带渠道筛选）
- * - 中间消息区域（需要传入 ChatMessageListContainer）
+ * - 中间消息区域（需要传入 InfiniteMessageList）
  * - 底部输入框（选中会话后显示）
  * - 右侧客户画像面板
  *
  * @description
  * 这是最基础的使用方式，展示了默认布局的所有功能区域。
- * 消息区域需要通过 children 传入 ChatMessageListContainer 组件。
+ * 消息区域需要通过 children 传入 InfiniteMessageList 组件。
  */
 export const Default: Story = {
   args: {},
@@ -244,9 +244,9 @@ export const Default: Story = {
 默认布局展示了完整的聊天界面结构：
 
 \`\`\`tsx
-<DefaultChatLayoutContainer>
-  <ChatMessageListContainer conversationId="conv-1" />
-</DefaultChatLayoutContainer>
+<DefaultChatLayout>
+  <InfiniteMessageList conversationId="conv-1" />
+</DefaultChatLayout>
 \`\`\`
 
 **布局结构：**
@@ -272,7 +272,7 @@ export const Default: Story = {
  * 带消息列表的完整示例
  *
  * 展示包含消息列表的完整聊天界面。
- * 通过 children 传入 ChatMessageListContainer 组件来显示消息内容。
+ * 通过 children 传入 InfiniteMessageList 组件来显示消息内容。
  *
  * @description
  * 这是最常用的使用方式，展示了完整的聊天功能：
@@ -284,9 +284,9 @@ export const Default: Story = {
 export const WithMessageList: Story = {
   args: {},
   render: (args) => (
-    <DefaultChatLayoutContainer {...args}>
-      <ChatMessageListContainer conversationId="conv-1" />
-    </DefaultChatLayoutContainer>
+    <DefaultChatLayout {...args}>
+      <InfiniteMessageList conversationId="conv-1" />
+    </DefaultChatLayout>
   ),
   parameters: {
     docs: {
@@ -295,9 +295,9 @@ export const WithMessageList: Story = {
 带消息列表的完整示例展示了最常用的聊天界面配置：
 
 \`\`\`tsx
-<DefaultChatLayoutContainer>
-  <ChatMessageListContainer conversationId="conv-1" />
-</DefaultChatLayoutContainer>
+<DefaultChatLayout>
+  <InfiniteMessageList conversationId="conv-1" />
+</DefaultChatLayout>
 \`\`\`
 
 **功能说明：**
@@ -332,11 +332,11 @@ export const DifferentThemes: Story = {
     <div className="space-y-4">
       <div className="w-full h-[900px]" data-theme="light">
         <p className="text-xs text-text-muted mb-2">浅色主题</p>
-        <DefaultChatLayoutContainer {...args} />
+        <DefaultChatLayout {...args} />
       </div>
       <div className="w-full h-[900px]" data-theme="dark">
         <p className="text-xs text-text-muted mb-2">深色主题</p>
-        <DefaultChatLayoutContainer {...args} />
+        <DefaultChatLayout {...args} />
       </div>
     </div>
   ),
@@ -351,7 +351,7 @@ export const DifferentThemes: Story = {
 1. **通过 data-theme 属性**（静态设置）：
 \`\`\`tsx
 <div data-theme="light">
-  <DefaultChatLayoutContainer />
+  <DefaultChatLayout />
 </div>
 \`\`\`
 
@@ -428,7 +428,7 @@ export const English: Story = {
 1. **通过 I18nProvider**（应用级别设置）：
 \`\`\`tsx
 <I18nProvider locale="en-US" messages={enUS}>
-  <DefaultChatLayoutContainer />
+  <DefaultChatLayout />
 </I18nProvider>
 \`\`\`
 

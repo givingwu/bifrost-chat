@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { ChatTopbar } from '@/components/layout/ChatTopbar';
 import '@/styles/theme.css';
-import { DefaultTools } from '@/components/layout/DefaultChatLayoutContainer';
+import { DefaultTools } from '@/components/layout/DefaultChatLayout';
 
 /**
  * ChatTopbar 组件 Story 文档

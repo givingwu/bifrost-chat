@@ -15,6 +15,13 @@ const meta: Meta<typeof EmojiPicker> = {
   title: 'Composer/EmojiPicker',
   component: EmojiPicker,
   tags: ['autodocs'],
+  decorators: [
+    (Story) => (
+      <div className="flex h-80">
+        <Story />
+      </div>
+    ),
+  ],
   argTypes: {
     open: {
       control: 'boolean',

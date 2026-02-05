@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { TemplateList } from '@/components/templates/TemplateList';
+import { TemplateList } from '@/components/template/TemplateList';
 import type { MessageTemplate } from '@/interfaces/template.interface';
 
 const meta: Meta<typeof TemplateList> = {

@@ -1,18 +1,21 @@
 import { memo, type ReactNode } from 'react';
+import { useConversations } from '@/hooks/use-conversations.hook';
 import type { Conversation } from '@/interfaces/conversation.interface';
 import { ConversationItem } from './ConversationItem';
 
 export interface ConversationListProps {
-  /** 会话列表 */
+  /** 会话列表（可选，如果不提供则自动获取） */
   conversations?: Conversation[] | null;
   /** 选择会话回调函数 */
   onSelect?: (conversationId: string) => void;
   /** 空状态提示 */
   emptyState?: ReactNode;
-  /** 加载状态 */
+  /** 加载状态（仅在手动提供 conversations 时有效） */
   isLoading?: boolean;
   /** 自定义类名 */
   className?: string;
+  /** 是否自动获取数据（默认 true） */
+  autoFetch?: boolean;
 }
 
 /**
@@ -54,21 +57,57 @@ const LoadingState = () => (
 /**
  * ConversationList：会话列表组件。
  * - 显示会话列表。
+ * - 支持自动获取数据（使用 useConversations Hook）。
+ * - 支持手动传入数据（用于测试或特殊场景）。
  * - 支持空状态和加载状态。
  * - 使用 memo 优化性能，避免不必要的重新渲染。
  * - 支持无障碍访问（ARIA 标签）。
+ *
+ * @example
+ * // 自动获取数据（推荐）
+ * <ConversationList onSelect={(id) => console.log(id)} />
+ *
+ * // 手动传入数据（用于测试）
+ * <ConversationList conversations={mockData} onSelect={(id) => console.log(id)} />
  */
 export const ConversationList = memo(
   ({
-    conversations,
+    conversations: externalConversations,
     onSelect,
     emptyState,
-    isLoading = false,
+    isLoading: externalIsLoading = false,
     className = '',
+    autoFetch = true,
   }: ConversationListProps) => {
+    // 自动获取数据（如果启用且没有手动提供数据）
+    const shouldAutoFetch = autoFetch && externalConversations === undefined;
+    const {
+      data: fetchedConversations,
+      isLoading: isFetching,
+      error,
+    } = useConversations({
+      enabled: shouldAutoFetch,
+    });
+
+    // 确定最终使用的状态
+    const conversations = externalConversations ?? fetchedConversations;
+    const isLoading = shouldAutoFetch ? isFetching : externalIsLoading;
+
     // 容器类名
     const containerClassName =
       `px-4 py-2 space-y-1 scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-gray-700 ${className}`.trim();
+
+    // 错误状态（仅在自动获取时显示）
+    if (error && shouldAutoFetch) {
+      console.error('Failed to load conversations:', error);
+      return (
+        <output className={containerClassName} aria-live="polite">
+          <div className="px-4 py-12 text-center text-red-500">
+            加载失败，请重试
+          </div>
+        </output>
+      );
+    }
 
     // 加载状态
     if (isLoading) {

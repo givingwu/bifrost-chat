@@ -1,7 +1,6 @@
 import type { ProfileData } from '@/interfaces/profile.interface';
 import { ProfileHeader } from './ProfileHeader';
 import { ProfileInfoList } from './ProfileInfoList';
-import { ProfileSearch } from './ProfileSearch';
 
 export interface ProfileProps {
   /** 用户信息 */
@@ -31,7 +30,6 @@ export const Profile = ({ profile }: ProfileProps) => {
     <div className="flex h-full flex-col overflow-y-auto">
       <ProfileHeader profile={profile} />
       <ProfileInfoList profile={profile} />
-      <ProfileSearch />
     </div>
   );
 };

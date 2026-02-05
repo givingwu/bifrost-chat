@@ -1,8 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { useMessages } from '@/hooks/use-messages.hook';
-import { ChatMessageList } from './ChatMessageList';
+import { MessageList } from './MessageList';
 
-export interface ChatMessageListContainerProps {
+export interface InfiniteMessageListProps {
   /** 会话 ID */
   conversationId: string;
   /** 自定义类名 */
@@ -10,26 +10,27 @@ export interface ChatMessageListContainerProps {
 }
 
 /**
- * ChatMessageListContainer：消息列表容器组件
+ * InfiniteMessageList：无限滚动消息列表组件
  *
  * @description
  * 使用 React Query Hook 获取消息列表数据，支持无限滚动加载。
+ * 当用户滚动到顶部时自动加载更多历史消息。
  *
  * @example
  * ```tsx
  * function ChatPanel({ conversationId }) {
  *   return (
  *     <ServiceProvider {...services}>
- *       <ChatMessageListContainer conversationId={conversationId} />
+ *       <InfiniteMessageList conversationId={conversationId} />
  *     </ServiceProvider>
  *   );
  * }
  * ```
  */
-export function ChatMessageListContainer({
+export function InfiniteMessageList({
   conversationId,
   className,
-}: ChatMessageListContainerProps) {
+}: InfiniteMessageListProps) {
   const {
     data,
     isLoading,
@@ -88,7 +89,7 @@ export function ChatMessageListContainer({
         </div>
       )}
 
-      <ChatMessageList messages={messages} />
+      <MessageList messages={messages} />
 
       {/* 初始加载指示器 */}
       {isLoading && (

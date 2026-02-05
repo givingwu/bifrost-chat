@@ -1,18 +1,27 @@
 import type { StandardMessage } from '@/interfaces/message.interface';
 import { MessageRendererFactory } from './MessageRendererFactory';
 
-export interface ChatMessageListProps {
+export interface MessageListProps {
   /** 消息流 */
   messages: StandardMessage[];
 }
 
 /**
- * ChatMessageList：消息列表骨架（虚拟滚动预留）。
+ * MessageList：消息列表组件
+ *
+ * @description
+ * 渲染消息列表，使用 MessageRendererFactory 根据消息类型渲染不同的消息组件。
+ * 支持虚拟滚动（预留）。
+ *
+ * @example
+ * ```tsx
+ * <MessageList messages={messages} />
+ * ```
  */
-export const ChatMessageList = ({ messages }: ChatMessageListProps) => {
+export const MessageList = ({ messages }: MessageListProps) => {
   return (
     <div
-      data-component="chat-message-list"
+      data-component="message-list"
       className="flex h-full flex-col gap-2 rounded-2xl bg-card/60 shadow-soft"
     >
       {messages.length ? (

@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useSendMessage } from '@/hooks/use-send-message.hook';
 import type { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import { ComposerToolbar } from './ComposerToolbar';
 
-export interface ComposerToolbarContainerProps {
+export interface ComposerWithSendProps {
   /** 会话 ID */
   conversationId: string;
   /** 当前激活渠道 */
@@ -13,17 +13,18 @@ export interface ComposerToolbarContainerProps {
 }
 
 /**
- * ComposerToolbarContainer：输入工具栏容器组件
+ * ComposerWithSend：带发送功能的输入工具栏组件
  *
  * @description
- * 使用 React Query Hook 发送消息，支持乐观更新。
+ * 组合 ComposerToolbar 和 useSendMessage Hook，提供完整的消息发送功能。
+ * 支持乐观更新和错误处理。
  *
  * @example
  * ```tsx
  * function ChatPanel({ conversationId, channel }) {
  *   return (
  *     <ServiceProvider {...services}>
- *       <ComposerToolbarContainer
+ *       <ComposerWithSend
  *         conversationId={conversationId}
  *         channel={channel}
  *       />
@@ -32,25 +33,27 @@ export interface ComposerToolbarContainerProps {
  * }
  * ```
  */
-export function ComposerToolbarContainer({
+export function ComposerWithSend({
   conversationId,
   channel,
   className,
-}: ComposerToolbarContainerProps) {
+}: ComposerWithSendProps) {
   const sendMessage = useSendMessage();
-
   // 处理发送消息
-  const handleSend = async (content: string) => {
-    try {
-      await sendMessage.mutateAsync({
-        conversationId,
-        content,
-      });
-    } catch (error) {
-      console.error('Failed to send message:', error);
-      throw error; // 重新抛出错误，让 ComposerToolbar 处理
-    }
-  };
+  const handleSend = useCallback(
+    async (content: string) => {
+      try {
+        await sendMessage.mutateAsync({
+          conversationId,
+          content,
+        });
+      } catch (error) {
+        console.error('Failed to send message:', error);
+        throw error; // 重新抛出错误，让 ComposerToolbar 处理
+      }
+    },
+    [conversationId, sendMessage.mutateAsync],
+  );
 
   return (
     <div className={className}>
@@ -63,3 +66,6 @@ export function ComposerToolbarContainer({
     </div>
   );
 }
+
+// 为了向后兼容，导出别名
+export const ComposerToolbarContainer = ComposerWithSend;
