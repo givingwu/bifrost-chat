@@ -23,7 +23,7 @@
   },
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
+      "types": "./dist/src/index.d.ts",
       "import": "./dist/index.js",
       "default": "./dist/index.js"
     },
@@ -37,17 +37,9 @@
     },
     "./package.json": "./package.json"
   },
-  "types": "./dist/index.d.ts",
-  "files": [
-    "dist",
-    "LICENSE",
-    "README.md",
-    "CHANGELOG.md"
-  ],
-  "sideEffects": [
-    "*.css",
-    "dist/styles/*.css"
-  ],
+  "types": "./dist/src/index.d.ts",
+  "files": ["dist", "LICENSE", "README.md", "CHANGELOG.md"],
+  "sideEffects": ["*.css", "dist/styles/*.css"],
   "publishConfig": {
     "access": "public"
   },
