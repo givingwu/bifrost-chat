@@ -1,25 +1,3 @@
-// Adapter 接口
-export type {
-  AdapterConfig,
-  IChannelAdapter,
-  IInteractionReporter,
-  IMediaSender,
-  IMessageReceiver,
-  InteractionReportParams,
-  ITemplateSender,
-  ITextSender,
-  MediaSendParams,
-  SendResult,
-  TemplateSendParams,
-  TextSendParams,
-} from '../interfaces/adapter.interface';
-
-// Mapper 接口
-export type {
-  IMapper,
-  MapperError,
-  ValidationError,
-} from '../interfaces/mapper.interface';
 // AdapterError 异常
 export {
   AdapterError,

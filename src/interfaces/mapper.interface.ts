@@ -2,6 +2,7 @@ import type {
   MessageStatusEnum,
   StandardMessage,
 } from '@/interfaces/message.interface';
+import type { ValidationError } from './error.interface';
 
 /**
  * Mapper 接口
@@ -100,35 +101,6 @@ export interface MapperMetrics {
   avgTransformTime: number;
   /** 平均校验时间（毫秒） */
   avgValidateTime: number;
-}
-
-/**
- * Mapper 错误类型
- */
-export class MapperError extends Error {
-  constructor(
-    message: string,
-    public readonly code: string,
-    public readonly details?: unknown,
-  ) {
-    super(message);
-    this.name = 'MapperError';
-    Object.setPrototypeOf(this, MapperError.prototype);
-  }
-}
-
-/**
- * 校验错误类型
- */
-export class ValidationError extends Error {
-  constructor(
-    message: string,
-    public readonly zodError?: unknown,
-  ) {
-    super(message);
-    this.name = 'ValidationError';
-    Object.setPrototypeOf(this, ValidationError.prototype);
-  }
 }
 
 /**

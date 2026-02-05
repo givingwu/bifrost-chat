@@ -1,6 +1,7 @@
 import type { ChannelTypeEnum } from './channel.interface';
 import type { ConnectionStateEnum } from './connection.interface';
 import type { User } from './conversation.interface';
+import type { SDKError } from './error.interface';
 import type { StandardMessage } from './message.interface';
 
 /**
@@ -108,25 +109,6 @@ export interface ConnectionChangeData {
   status: ConnectionStateEnum;
   /** 错误信息（如果断开） */
   error?: string;
-}
-
-/**
- * SDK 错误
- */
-export class SDKError extends Error {
-  constructor(
-    /** 错误消息 */
-    message: string,
-    /** 错误码 */
-    public readonly code: string,
-    /** 错误详情 */
-    public readonly details?: Record<string, unknown>,
-  ) {
-    super(message);
-    this.code = code;
-    this.name = 'SDKError';
-    Object.setPrototypeOf(this, SDKError.prototype);
-  }
 }
 
 /**

@@ -130,16 +130,16 @@ export const ComposerToolbar = ({
   // 根据渠道确定允许的文件类型
   const accept = useMemo(() => {
     switch (channel) {
-      case 'sms':
+      case ChannelTypeEnum.SMS:
         // SMS 通常不支持附件
         return '';
-      case 'whatsapp':
+      case ChannelTypeEnum.WhatsApp:
         // WhatsApp 支持图片、视频、文档等
         return 'image/*,video/*,application/pdf,.doc,.docx,.xls,.xlsx';
-      case 'waba':
+      case ChannelTypeEnum.Waba:
         // WABA 支持的文件类型（与 WhatsApp 类似但可能有差异）
         return 'image/*,video/*,audio/*,application/pdf,.doc,.docx,.xls,.xlsx';
-      case 'email':
+      case ChannelTypeEnum.Email:
         // Email 支持所有类型
         return '*';
       default:

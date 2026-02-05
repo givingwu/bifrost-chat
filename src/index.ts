@@ -2,30 +2,66 @@
 import './styles/index.css';
 
 // Components
-export * from './components';
+export * from '@/components';
+
 // Events
-export * from './events/client-bus.event';
+export * from '@/events/client-bus.event';
+
 // Hooks
-export { useComposerDraft } from './hooks/composer-draft.hook';
-export { useComposerShortcuts } from './hooks/composer-shortcuts.hook';
+export { useComposerDraft } from '@/hooks/use-composer-draft.hook';
+export { useComposerShortcuts } from '@/hooks/use-composer-shortcuts.hook';
+// 会话相关 Hooks
+export { useConversations } from '@/hooks/use-conversations.hook';
+export { useCreateConversation } from '@/hooks/use-create-conversation.hook';
+export { useMarkAsRead } from '@/hooks/use-mark-as-read.hook';
+// 消息相关 Hooks
+export { useMessages } from '@/hooks/use-messages.hook';
+export { useSendMessage } from '@/hooks/use-send-message.hook';
+
 // Types
-export * from './interfaces/agent.interface';
-export * from './interfaces/channel.interface';
-export * from './interfaces/conversation.interface';
-export * from './interfaces/language.interface';
-export * from './interfaces/message.interface';
-export * from './interfaces/network.interface';
-export * from './interfaces/profile.interface';
-export * from './interfaces/sdk.interface';
-export * from './interfaces/theme.interface';
+export * from '@/interfaces/adapter.interface';
+export * from '@/interfaces/agent.interface';
+export * from '@/interfaces/channel.interface';
+export * from '@/interfaces/connection.interface';
+export * from '@/interfaces/conversation.interface';
+export * from '@/interfaces/error.interface';
+export * from '@/interfaces/language.interface';
+export * from '@/interfaces/mapper.interface';
+export * from '@/interfaces/message.interface';
+export * from '@/interfaces/network.interface';
+export * from '@/interfaces/profile.interface';
+export * from '@/interfaces/sdk.interface';
+export * from '@/interfaces/theme.interface';
+
 // Locales
-export { default as enUSMessages } from './locales/en-US.json';
-export { default as zhCNMessages } from './locales/zh-CN.json';
+export { default as enUSMessages } from '@/locales/en-US.json';
+export { default as zhCNMessages } from '@/locales/zh-CN.json';
+
 // Providers
-export { I18nProvider, useTranslation } from './providers/I18n.provider';
+// I18n Provider
+export { I18nProvider } from '@/providers/I18n.provider';
+// React Query Provider
+export {
+  createQueryClient,
+  queryKeys,
+  ReactQueryProvider,
+} from '@/providers/query.provider';
+// Service Provider (依赖注入)
+export {
+  createNotImplementedServices,
+  ServiceProvider,
+  useServices,
+} from '@/providers/service.provider';
+
+// Service Interfaces
+export * from '@/services/conversation.service';
+export * from '@/services/message.service';
+export * from '@/services/template.service';
+
 // Store
-export * from './store';
+export * from '@/store';
+
 // Utils
-export { cn } from './utils/class.util';
-export { MessageBuilder } from './utils/message-builder.util';
-export { formatTimestamp } from './utils/time.util';
+export { cn } from '@/utils/class.util';
+export { MessageBuilder } from '@/utils/message-builder.util';
+export { formatTimestamp } from '@/utils/time.util';
