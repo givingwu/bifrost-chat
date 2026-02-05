@@ -14,6 +14,12 @@ const meta: Meta<typeof LocationMessage> = {
   title: 'Messages/LocationMessage',
   component: LocationMessage,
   tags: ['autodocs'],
+  argTypes: {
+    content: {
+      control: false,
+      description: '位置消息内容',
+    },
+  },
 };
 
 export default meta;

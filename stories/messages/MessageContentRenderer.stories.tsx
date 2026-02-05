@@ -20,6 +20,12 @@ const meta: Meta<typeof MessageContentRenderer> = {
   title: 'Messages/MessageContentRenderer',
   component: MessageContentRenderer,
   tags: ['autodocs'],
+  argTypes: {
+    message: {
+      control: false,
+      description: '标准消息对象',
+    },
+  },
 };
 
 export default meta;

@@ -15,6 +15,24 @@ const meta: Meta<typeof EmojiPicker> = {
   title: 'Composer/EmojiPicker',
   component: EmojiPicker,
   tags: ['autodocs'],
+  argTypes: {
+    open: {
+      control: 'boolean',
+      description: '是否打开',
+    },
+    emojis: {
+      control: 'object',
+      description: '自定义表情列表',
+    },
+    onEmojiSelect: {
+      control: false,
+      description: '表情选择回调函数',
+    },
+    onClose: {
+      control: false,
+      description: '关闭回调函数',
+    },
+  },
 };
 
 export default meta;

@@ -16,6 +16,24 @@ const meta: Meta<typeof ComposerAttachments> = {
   title: 'Composer/ComposerAttachments',
   component: ComposerAttachments,
   tags: ['autodocs'],
+  argTypes: {
+    accept: {
+      control: 'text',
+      description: '接受的文件类型（MIME 类型或扩展名）',
+    },
+    multiple: {
+      control: 'boolean',
+      description: '是否允许多文件选择',
+    },
+    disabled: {
+      control: 'boolean',
+      description: '是否禁用',
+    },
+    onAttachmentSelect: {
+      control: false,
+      description: '文件选择回调函数',
+    },
+  },
 };
 
 export default meta;

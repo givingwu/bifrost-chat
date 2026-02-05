@@ -15,6 +15,12 @@ const meta: Meta<typeof RichMediaMessage> = {
   title: 'Messages/RichMediaMessage',
   component: RichMediaMessage,
   tags: ['autodocs'],
+  argTypes: {
+    content: {
+      control: false,
+      description: '富媒体消息内容',
+    },
+  },
 };
 
 export default meta;

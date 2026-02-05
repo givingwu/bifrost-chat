@@ -10,6 +10,16 @@ const meta: Meta<typeof MentionPicker> = {
   title: 'Composer/MentionPicker',
   component: MentionPicker,
   tags: ['autodocs'],
+  argTypes: {
+    users: {
+      control: 'object',
+      description: '可提及的用户列表',
+    },
+    onMentionSelect: {
+      control: false,
+      description: '用户选择回调函数',
+    },
+  },
 };
 
 export default meta;

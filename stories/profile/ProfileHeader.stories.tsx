@@ -10,6 +10,12 @@ const meta: Meta<typeof ProfileHeader> = {
   title: 'Profile/ProfileHeader',
   component: ProfileHeader,
   tags: ['autodocs'],
+  argTypes: {
+    profile: {
+      control: false,
+      description: '个人资料对象',
+    },
+  },
 };
 
 export default meta;

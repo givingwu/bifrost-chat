@@ -22,8 +22,12 @@ const meta: Meta<typeof ConversationItem> = {
   tags: ['autodocs'],
   argTypes: {
     conversation: {
-      control: 'object',
+      control: false,
       description: '会话对象',
+    },
+    onSelect: {
+      control: false,
+      description: '选择会话回调函数',
     },
   },
 };
