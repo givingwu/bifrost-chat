@@ -38,10 +38,10 @@ export const MessageBubble = ({ message }: MessageBubbleProps) => {
       >
         <div
           className={cn(
-            'relative px-4 py-2.5 text-sm shadow-soft rounded-2xl',
+            'relative px-4 py-2.5 text-sm rounded-2xl',
             isMe
               ? 'rounded-tr-sm bg-primary text-primary-foreground'
-              : 'rounded-tl-sm border border-border bg-card text-text',
+              : 'rounded-tl-sm shadow-soft border border-border bg-card text-text',
             message.type === MessageTypeEnum.Template && 'overflow-hidden p-0',
           )}
         >
