@@ -1,4 +1,5 @@
 import type { StandardMessage } from '@/interfaces/message.interface';
+import { useTranslation } from '@/providers/I18n.provider';
 import { MessageRendererFactory } from './MessageRendererFactory';
 
 export interface MessageListProps {
@@ -19,6 +20,8 @@ export interface MessageListProps {
  * ```
  */
 export const MessageList = ({ messages }: MessageListProps) => {
+  const { t } = useTranslation();
+
   return (
     <div
       data-component="message-list"
@@ -33,7 +36,7 @@ export const MessageList = ({ messages }: MessageListProps) => {
         ))
       ) : (
         <div className="flex h-full flex-1 items-center justify-center">
-          <span className="text-sm text-text-muted">暂无消息</span>
+          <span className="text-sm text-text-muted">{t('message.empty')}</span>
         </div>
       )}
     </div>

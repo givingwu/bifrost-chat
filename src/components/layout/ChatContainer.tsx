@@ -1,8 +1,9 @@
-import { type ReactNode, useMemo } from 'react';
+import { type ReactNode, useCallback, useEffect, useMemo } from 'react';
 import { enUSMessages, zhCNMessages } from '@/index';
 import { LanguageCodeEnum } from '@/interfaces/language.interface';
+import { ThemeModeEnum } from '@/interfaces/theme.interface';
 import { I18nProvider } from '@/providers/I18n.provider';
-import { useChatStore } from '@/store';
+import { useActions, useChatStore, useLanguage, useTheme } from '@/store';
 
 export interface ChatContainerProps {
   /** 语言代码 */
@@ -58,38 +59,71 @@ export const LanguageMessages = {
  * </ChatContainer>
  */
 export const ChatContainer = ({ locale, children }: ChatContainerProps) => {
+  const theme = useTheme();
   const store = useChatStore();
-  const resolvedLanguage = useMemo(() => {
-    if (locale) {
-      return locale;
+  const { code: languageCode } = useLanguage();
+  const { setLanguage, setSystemPrefersDark } = useActions();
+
+  // 当语言切换时，同步更新 store
+  const handleLanguageChange = useCallback(
+    (newLocale: string) => {
+      const languageCode = newLocale as LanguageCodeEnum;
+      setLanguage(languageCode);
+    },
+    [setLanguage],
+  );
+
+  // 优先使用 prop 传入的 locale，否则使用 store 中的语言
+  const currentLanguage = locale || languageCode;
+
+  // 初始化时，如果 prop 提供了 locale，同步到 store
+  useEffect(() => {
+    if (locale && locale !== languageCode) {
+      setLanguage(locale);
+    }
+  }, [locale, languageCode, setLanguage]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
     }
 
-    if (typeof navigator !== 'undefined') {
-      const browserLanguage = navigator.language as LanguageCodeEnum;
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = (event: MediaQueryListEvent) => {
+      setSystemPrefersDark(event.matches);
+    };
 
-      if (Object.values(LanguageCodeEnum).includes(browserLanguage)) {
-        return browserLanguage;
-      }
-    }
-    return LanguageCodeEnum.EnUS;
-  }, [locale]);
+    setSystemPrefersDark(mediaQuery.matches);
+    mediaQuery.addEventListener('change', handleChange);
+
+    return () => {
+      mediaQuery.removeEventListener('change', handleChange);
+    };
+  }, [setSystemPrefersDark]);
+
   const finalMessages = useMemo(() => {
-    return LanguageMessages[resolvedLanguage] || enUSMessages;
-  }, [resolvedLanguage]);
+    return LanguageMessages[currentLanguage] || enUSMessages;
+  }, [currentLanguage]);
 
   return (
     <I18nProvider
-      data-component="chat-container"
-      data-theme={store.theme.mode}
-      data-language={resolvedLanguage}
-      locale={resolvedLanguage}
+      locale={currentLanguage}
       messages={finalMessages}
+      onChangeLanguage={handleLanguageChange}
     >
-      {typeof children === 'function'
-        ? (children as (store: ReturnType<typeof useChatStore>) => ReactNode)(
-            store,
-          )
-        : children}
+      <div
+        data-component="chat-container"
+        data-theme={theme.mode}
+        data-theme-resolved={theme.resolvedMode}
+        data-language={currentLanguage}
+        className={theme.resolvedMode === ThemeModeEnum.Dark ? 'dark' : ''}
+      >
+        {typeof children === 'function'
+          ? (children as (store: ReturnType<typeof useChatStore>) => ReactNode)(
+              store,
+            )
+          : children}
+      </div>
     </I18nProvider>
   );
 };

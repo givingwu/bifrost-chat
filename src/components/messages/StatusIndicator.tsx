@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { memo, useMemo } from 'react';
 import { MessageStatusEnum } from '@/interfaces/message.interface';
+import { useTranslation } from '@/providers/I18n.provider';
 
 export interface StatusIndicatorProps {
   /** 消息状态 */
@@ -34,52 +35,6 @@ interface StatusConfig {
 }
 
 /**
- * 消息状态到配置的映射表
- * - 使用配置对象模式，便于统一管理和扩展
- * - 包含所有已知的消息状态配置
- */
-const STATUS_CONFIG_MAP: Record<MessageStatusEnum, StatusConfig> = {
-  [MessageStatusEnum.Created]: {
-    icon: Loader2,
-    size: 'h-3 w-3',
-    colorClass: 'text-white/50',
-    animate: true,
-    ariaLabel: '消息创建中',
-  },
-  [MessageStatusEnum.Sending]: {
-    icon: Loader2,
-    size: 'h-3 w-3',
-    colorClass: 'text-white/70',
-    animate: true,
-    ariaLabel: '消息发送中',
-  },
-  [MessageStatusEnum.Sent]: {
-    icon: Check,
-    size: 'h-4 w-4',
-    colorClass: 'text-white/50',
-    ariaLabel: '消息已发送',
-  },
-  [MessageStatusEnum.Delivered]: {
-    icon: CheckCheck,
-    size: 'h-4 w-4',
-    colorClass: 'text-white/50',
-    ariaLabel: '消息已送达',
-  },
-  [MessageStatusEnum.Read]: {
-    icon: CheckCheck,
-    size: 'h-4 w-4',
-    colorClass: 'text-primary/80',
-    ariaLabel: '消息已读',
-  },
-  [MessageStatusEnum.Failed]: {
-    icon: AlertCircle,
-    size: 'h-4 w-4',
-    colorClass: 'text-error',
-    ariaLabel: '消息发送失败',
-  },
-} as const;
-
-/**
  * StatusIndicator：消息状态指示器。
  * - 显示消息的发送状态（创建中、发送中、失败、已读、已送达、已发送）。
  * - 使用配置对象模式，便于统一管理和扩展状态样式。
@@ -88,25 +43,67 @@ const STATUS_CONFIG_MAP: Record<MessageStatusEnum, StatusConfig> = {
  */
 export const StatusIndicator = memo(
   ({ status, className = '', animate = true }: StatusIndicatorProps) => {
+    const { t } = useTranslation();
+
     // 使用 useMemo 缓存配置选择结果
-    const config = useMemo(() => {
+    const config = useMemo<StatusConfig | null>(() => {
       if (!status) {
         return null;
       }
 
-      const config = STATUS_CONFIG_MAP[status];
-      if (!config) {
+      // 根据状态生成配置（使用翻译）
+      const statusConfigMap: Record<
+        MessageStatusEnum,
+        Omit<StatusConfig, 'ariaLabel'>
+      > = {
+        [MessageStatusEnum.Created]: {
+          icon: Loader2,
+          size: 'h-3 w-3',
+          colorClass: 'text-white/50',
+          animate: true,
+        },
+        [MessageStatusEnum.Sending]: {
+          icon: Loader2,
+          size: 'h-3 w-3',
+          colorClass: 'text-white/70',
+          animate: true,
+        },
+        [MessageStatusEnum.Sent]: {
+          icon: Check,
+          size: 'h-4 w-4',
+          colorClass: 'text-white/50',
+        },
+        [MessageStatusEnum.Delivered]: {
+          icon: CheckCheck,
+          size: 'h-4 w-4',
+          colorClass: 'text-white/50',
+        },
+        [MessageStatusEnum.Read]: {
+          icon: CheckCheck,
+          size: 'h-4 w-4',
+          colorClass: 'text-primary/80',
+        },
+        [MessageStatusEnum.Failed]: {
+          icon: AlertCircle,
+          size: 'h-4 w-4',
+          colorClass: 'text-error',
+        },
+      } as const;
+
+      const baseConfig = statusConfigMap[status];
+      if (!baseConfig) {
         console.warn(`[StatusIndicator] Unknown message status: ${status}`);
         return null;
       }
 
-      return config;
-    }, [status]);
+      // 添加翻译的 ariaLabel
+      return {
+        ...baseConfig,
+        ariaLabel: t(`message.status.${status.toLowerCase()}`),
+      };
+    }, [status, t]);
 
-    // 如果没有配置，返回 null
-    if (!config) {
-      return null;
-    }
+    if (!config) return null;
 
     const {
       icon: Icon,
@@ -114,7 +111,7 @@ export const StatusIndicator = memo(
       colorClass,
       animate: shouldAnimate,
       ariaLabel,
-    } = config;
+    } = config || {};
 
     // 构建类名
     const iconClassName = `${size} ${colorClass} ${

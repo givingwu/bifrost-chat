@@ -4,6 +4,7 @@ import {
   MessageTypeEnum,
   type StandardMessage,
 } from '@/interfaces/message.interface';
+import { useTranslation } from '@/providers/I18n.provider';
 import { cn } from '@/utils/class.util';
 import { MessageContentRenderer } from './MessageContentRenderer';
 import { MessageTimestamp } from './MessageTimestamp';
@@ -20,6 +21,7 @@ export interface MessageBubbleProps {
  * - 根据消息方向和类型应用不同的样式
  */
 export const MessageBubble = ({ message }: MessageBubbleProps) => {
+  const { t } = useTranslation();
   const isMe = message.direction === MessageDirectionEnum.Outgoing;
 
   return (
@@ -47,7 +49,9 @@ export const MessageBubble = ({ message }: MessageBubbleProps) => {
         </div>
         <div className="mt-1 flex items-center gap-1 px-1">
           {message.status === MessageStatusEnum.Failed && (
-            <span className="text-xs font-medium text-error">Retry</span>
+            <span className="text-xs font-medium text-error">
+              {t('message.retry')}
+            </span>
           )}
           <MessageTimestamp timestamp={message.timestamp} />
           {isMe && <StatusIndicator status={message.status} />}

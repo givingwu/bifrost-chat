@@ -1,6 +1,8 @@
 import { memo, type ReactNode } from 'react';
 import { useConversations } from '@/hooks/use-conversations.hook';
 import type { Conversation } from '@/interfaces/conversation.interface';
+import { useTranslation } from '@/providers/I18n.provider';
+import { useChatStore } from '@/store';
 import { ConversationItem } from './ConversationItem';
 
 export interface ConversationListProps {
@@ -17,33 +19,6 @@ export interface ConversationListProps {
   /** 是否自动获取数据（默认 true） */
   autoFetch?: boolean;
 }
-
-/**
- * 默认空状态组件
- */
-const DefaultEmptyState = () => (
-  <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-    <div className="w-16 h-16 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center mb-4">
-      <svg
-        className="w-8 h-8 text-gray-400 dark:text-gray-500"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-        xmlns="http://www.w3.org/2000/svg"
-        aria-hidden="true"
-      >
-        <title>暂无会话</title>
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-        />
-      </svg>
-    </div>
-    <p className="text-sm text-gray-500 dark:text-gray-400">暂无会话</p>
-  </div>
-);
 
 /**
  * 加载状态组件
@@ -79,6 +54,37 @@ export const ConversationList = memo(
     className = '',
     autoFetch = true,
   }: ConversationListProps) => {
+    const { t } = useTranslation();
+
+    // 默认空状态组件（在组件内部以使用 useTranslation）
+    const defaultEmptyState = (
+      <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+        <div className="w-16 h-16 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center mb-4">
+          <svg
+            className="w-8 h-8 text-gray-400 dark:text-gray-500"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+          >
+            <title>{t('conversation.empty')}</title>
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+            />
+          </svg>
+        </div>
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          {t('conversation.empty')}
+        </p>
+      </div>
+    );
+    const activeConversationId = useChatStore(
+      (state) => state.conversation.activeConversationId,
+    );
     // 自动获取数据（如果启用且没有手动提供数据）
     // 注意：只在有 conversationService 时才启用自动获取
     const shouldAutoFetch = autoFetch && externalConversations === undefined;
@@ -124,18 +130,32 @@ export const ConversationList = memo(
     if (!conversations || conversations.length === 0) {
       return (
         <output className={containerClassName} aria-live="polite">
-          {emptyState || <DefaultEmptyState />}
+          {emptyState || defaultEmptyState}
         </output>
       );
     }
 
     return (
-      <ul className={containerClassName} aria-label="会话列表">
-        {conversations.map((conversation: Conversation) => (
-          <li key={conversation.id}>
-            <ConversationItem conversation={conversation} onSelect={onSelect} />
-          </li>
-        ))}
+      <ul className={containerClassName} aria-label={t('conversation.title')}>
+        {conversations.map((conversation: Conversation) => {
+          const resolvedIsActive =
+            activeConversationId === null
+              ? conversation.isActive
+              : conversation.id === activeConversationId;
+          const conversationItem =
+            resolvedIsActive === conversation.isActive
+              ? conversation
+              : { ...conversation, isActive: resolvedIsActive };
+
+          return (
+            <li key={conversation.id}>
+              <ConversationItem
+                conversation={conversationItem}
+                onSelect={onSelect}
+              />
+            </li>
+          );
+        })}
       </ul>
     );
   },

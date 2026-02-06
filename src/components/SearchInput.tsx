@@ -4,6 +4,7 @@ import {
   type ReactNode,
   useCallback,
 } from 'react';
+import { useTranslation } from '@/providers/I18n.provider';
 import { cn } from '@/utils/class.util';
 
 export interface SearchInputProps {
@@ -54,7 +55,7 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
     {
       value = '',
       onChange,
-      placeholder = '搜索...',
+      placeholder,
       className,
       disabled = false,
       name,
@@ -64,12 +65,16 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
     },
     ref,
   ) => {
+    const { t } = useTranslation();
     const handleChange = useCallback(
       (event: ChangeEvent<HTMLInputElement>) => {
         onChange?.(event.target.value);
       },
       [onChange],
     );
+
+    // 使用翻译的占位符，如果没有提供自定义占位符
+    const resolvedPlaceholder = placeholder ?? t('search.placeholder');
 
     return (
       <div className="relative">
@@ -79,7 +84,7 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
           name={name}
           value={value}
           onChange={handleChange}
-          placeholder={placeholder}
+          placeholder={resolvedPlaceholder}
           disabled={disabled}
           className={cn(
             // 基础样式

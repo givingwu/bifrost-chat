@@ -2,47 +2,19 @@ import type { ReactNode } from 'react';
 import { ComposerToolbarContainer } from '@/components/composer/ComposerWithSend';
 import { ConversationList } from '@/components/conversation/ConversationList';
 import { AvailableChannelTypes } from '@/interfaces/channel.interface';
-import {
-  useActions,
-  useConversation,
-  useLanguage,
-  useNetwork,
-  useProfile,
-  useStrategy,
-  useTheme,
-} from '@/store';
+import { useActions, useConversation, useProfile, useStrategy } from '@/store';
 import { ConversationHeader } from '../conversation/ConversationHeader';
 import { ConversationPanel } from '../conversation/ConversationPanel';
 import { Profile } from '../profile/Profile';
 import { ChannelFilter } from '../toolbar/ChannelFilter';
-import { LanguageSwitcher } from '../toolbar/LanguageSwitcher';
-import { NetworkStatus } from '../toolbar/NetworkStatus';
-import { ThemeSwitcher } from '../toolbar/ThemeSwitcher';
+import { Topbar } from '../toolbar/Topbar';
+import { TopbarTools } from '../toolbar/TopbarTools';
 import { ChatLayout } from './ChatLayout';
-import { ChatTopbar } from './ChatTopbar';
 
 export interface DefaultChatLayoutProps {
   /** 消息区域内容（可选） */
   children?: ReactNode;
 }
-
-export const DefaultTools = () => {
-  const { status } = useNetwork();
-  const { mode } = useTheme();
-  const { code } = useLanguage();
-  const { setTheme, setLanguage } = useActions();
-
-  return (
-    <div className="flex items-center gap-4">
-      <NetworkStatus status={status} />
-
-      <div className="flex gap-1">
-        <LanguageSwitcher value={code} onChange={setLanguage} />
-        <ThemeSwitcher value={mode} onChange={setTheme} />
-      </div>
-    </div>
-  );
-};
 
 /**
  * DefaultChatLayout：默认布局组件
@@ -80,12 +52,12 @@ export function DefaultChatLayout({ children }: DefaultChatLayoutProps) {
     <ChatLayout
       className="max-w-[1400px] max-h-[85vh]"
       topbar={
-        <ChatTopbar
+        <Topbar
           title={
             activeConversationId ? `会话 ${activeConversationId}` : undefined
           }
           subtitle={strategy.activeChannel}
-          extra={<DefaultTools />}
+          extra={<TopbarTools />}
         />
       }
       conversationPanel={
