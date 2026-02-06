@@ -1,6 +1,5 @@
 import type { StateCreator } from 'zustand';
 import type { ProfileData } from '@/interfaces/profile.interface';
-import { defaultProfile } from '../mock/chat.default';
 
 /**
  * Profile Slice：宿主上下文（客户画像）。
@@ -27,7 +26,7 @@ export const createProfileSlice: StateCreator<
   ProfileSlice
 > = (set) => ({
   profile: {
-    profile: defaultProfile,
+    profile: undefined,
   },
   actions: {
     setProfile: (payload: Partial<ProfileState>) =>

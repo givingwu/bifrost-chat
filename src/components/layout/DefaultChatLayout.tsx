@@ -105,7 +105,7 @@ export function DefaultChatLayout({ children }: DefaultChatLayoutProps) {
       }
       profilePanel={
         <div className="h-full flex flex-col">
-          <Profile profile={profile} />
+          {profile && <Profile profile={profile} />}
           <TemplatePanel />
         </div>
       }
