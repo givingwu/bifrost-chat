@@ -1,4 +1,5 @@
-import { type KeyboardEvent, memo } from 'react';
+import { type KeyboardEvent, memo, useCallback } from 'react';
+import { Button } from '@/components/Button';
 import type { Conversation } from '@/interfaces/conversation.interface';
 import { cn } from '@/utils/class.util';
 import { ConversationAvatar } from './ConversationAvatar';
@@ -40,17 +41,20 @@ const INACTIVE_STATE_STYLES = {
 export const ConversationItem = memo(
   ({ conversation, onSelect, className = '' }: ConversationItemProps) => {
     // 处理键盘事件
-    const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
-      if (event.key === 'Enter' || event.key === ' ') {
-        event.preventDefault();
-        onSelect?.(conversation.id);
-      }
-    };
+    const handleKeyDown = useCallback(
+      (event: KeyboardEvent<HTMLButtonElement>) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          onSelect?.(conversation.id);
+        }
+      },
+      [conversation.id, onSelect],
+    );
 
     // 处理点击事件
-    const handleClick = () => {
+    const handleClick = useCallback(() => {
       onSelect?.(conversation.id);
-    };
+    }, [conversation.id, onSelect]);
 
     // 确定使用的样式
     const styles = conversation.isActive
@@ -65,7 +69,7 @@ export const ConversationItem = memo(
     );
 
     return (
-      <button
+      <Button
         type="button"
         onClick={handleClick}
         onKeyDown={handleKeyDown}
@@ -105,7 +109,7 @@ export const ConversationItem = memo(
             {conversation.unreadCount}
           </span>
         )}
-      </button>
+      </Button>
     );
   },
 );
