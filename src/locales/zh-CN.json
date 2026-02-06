@@ -50,7 +50,16 @@
     "search": "搜索模板...",
     "searchOrCreate": "搜索或创建模板...",
     "keyboardHint": "使用 ↑↓ 选择，Enter 确认，ESC 关闭",
-    "keyboardHintSimple": "使用 ↑↓ 选择，Enter 确认"
+    "keyboardHintSimple": "使用 ↑↓ 选择，Enter 确认",
+    "panel": {
+      "allCategories": "全部",
+      "loading": "加载中...",
+      "loadFailed": "加载失败",
+      "retry": "重试",
+      "noTemplates": "暂无模板",
+      "noMatchTemplates": "未找到匹配的模板",
+      "showingCount": "显示 {{filtered}} / {{total}} 个模板"
+    }
   },
   "emoji": {
     "title": "选择表情",
