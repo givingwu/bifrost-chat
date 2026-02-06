@@ -20,7 +20,42 @@
     "type": {
       "text": "Text message",
       "image": "Image message"
-    }
+    },
+    "status": {
+      "created": "Creating message",
+      "sending": "Sending message",
+      "sent": "Message sent",
+      "delivered": "Message delivered",
+      "read": "Message read",
+      "failed": "Message failed to send"
+    },
+    "retry": "Retry",
+    "empty": "No messages yet",
+    "unsupported": "Unsupported message type"
+  },
+  "conversation": {
+    "title": "Conversations",
+    "empty": "No conversations yet",
+    "search": "Search conversations",
+    "ariaLabel": "Conversation with {{name}}{{unread, plural, =0 {} other {, {{count}} unread messages}}}"
+  },
+  "template": {
+    "title": "Message Templates",
+    "search": "Search templates...",
+    "searchOrCreate": "Search or create template...",
+    "keyboardHint": "Use ↑↓ to select, Enter to confirm, ESC to close",
+    "keyboardHintSimple": "Use ↑↓ to select, Enter to confirm"
+  },
+  "emoji": {
+    "title": "Select Emoji",
+    "hint": "Click an emoji to insert it into the input"
+  },
+  "mention": {
+    "search": "Search: {{query}}",
+    "hint": "Use ↑↓ to select, Enter to confirm"
+  },
+  "search": {
+    "placeholder": "Search..."
   },
   "Gateway": {
     "Plugin": {
