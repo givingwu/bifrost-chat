@@ -24,7 +24,7 @@ async function build() {
   if (result.map) fs.writeFileSync(output + '.map', result.map.toString());
 }
 
-build().catch(err => {
+build().catch((err) => {
   console.error(err);
   process.exit(1);
 });
