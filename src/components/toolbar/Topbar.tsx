@@ -1,7 +1,8 @@
 import { ConversationAvatar } from '@/components/conversation/ConversationAvatar';
+import { useTranslation } from '@/providers/I18n.provider';
 import { cn } from '@/utils/class.util';
 
-export interface ChatTopbarProps {
+export interface TopbarProps {
   /** 当前会话标题 */
   title?: string;
   /** 当前会话副标题 */
@@ -13,17 +14,14 @@ export interface ChatTopbarProps {
 }
 
 /**
- * ChatTopbar：顶部工具栏（左侧渠道工具、右侧网络/主题状态）
+ * Topbar：顶部工具栏（左侧会话信息、右侧工具入口）
  */
-export const ChatTopbar = ({
-  title,
-  subtitle,
-  avatarUrl,
-  extra,
-}: ChatTopbarProps) => {
+export const Topbar = ({ title, subtitle, avatarUrl, extra }: TopbarProps) => {
+  const { t } = useTranslation();
+
   return (
     <header
-      data-component="chat-topbar"
+      data-component="topbar"
       className={cn(
         'flex flex-wrap items-center justify-between gap-4',
         'border-b border-gray-200/50 dark:border-white/10',
@@ -44,7 +42,7 @@ export const ChatTopbar = ({
         )}
         <div>
           <div className="text-sm font-semibold text-text">
-            {title ?? 'Conversation'}
+            {title ?? t('conversation.title')}
           </div>
           {subtitle && (
             <div className="text-xs text-text-muted">{subtitle}</div>

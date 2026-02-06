@@ -3,12 +3,12 @@ import { ComposerToolbar } from '@/components/composer/ComposerToolbar';
 import { ConversationList } from '@/components/conversation/ConversationList';
 import { ChatContainer } from '@/components/layout/ChatContainer';
 import { ChatLayout } from '@/components/layout/ChatLayout';
-import { ChatTopbar } from '@/components/layout/ChatTopbar';
 import { MessageBubble } from '@/components/messages/MessageBubble';
 import { Profile } from '@/components/profile/Profile';
 import { LanguageSwitcher } from '@/components/toolbar/LanguageSwitcher';
 import { NetworkStatus } from '@/components/toolbar/NetworkStatus';
 import { ThemeSwitcher } from '@/components/toolbar/ThemeSwitcher';
+import { Topbar } from '@/components/toolbar/Topbar';
 import { AgentStatusEnum } from '@/interfaces/agent.interface';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import { LanguageCodeEnum } from '@/interfaces/language.interface';
@@ -187,7 +187,7 @@ export const ChineseLocale = () => {
         <ChatContainer locale={LanguageCodeEnum.ZhCN}>
           <ChatLayout
             topbar={
-              <ChatTopbar
+              <Topbar
                 title="中文聊天界面"
                 subtitle="使用内置组件"
                 avatarUrl="https://i.pravatar.cc/150?img=1"
@@ -236,7 +236,7 @@ export const EnglishLocale = () => {
         <ChatContainer locale={LanguageCodeEnum.EnUS}>
           <ChatLayout
             topbar={
-              <ChatTopbar
+              <Topbar
                 title="English Chat Interface"
                 subtitle="Using built-in components"
                 avatarUrl="https://i.pravatar.cc/150?img=1"
@@ -326,7 +326,7 @@ export const RenderPropsMode = () => {
           {(store) => (
             <ChatLayout
               topbar={
-                <ChatTopbar
+                <Topbar
                   title="Render Props 模式"
                   subtitle="访问全局状态"
                   extra={
@@ -396,7 +396,7 @@ export const FullChatInterface = () => {
               </div>
             }
             topbar={
-              <ChatTopbar
+              <Topbar
                 title="张三"
                 subtitle="在线"
                 avatarUrl="https://i.pravatar.cc/150?img=1"
@@ -459,7 +459,7 @@ export const LanguageComparison = () => {
           <ChatContainer locale={LanguageCodeEnum.ZhCN}>
             <ChatLayout
               topbar={
-                <ChatTopbar
+                <Topbar
                   title="中文界面"
                   subtitle="locale=zh-CN"
                   extra={
@@ -491,7 +491,7 @@ export const LanguageComparison = () => {
           <ChatContainer locale={LanguageCodeEnum.EnUS}>
             <ChatLayout
               topbar={
-                <ChatTopbar
+                <Topbar
                   title="English Interface"
                   subtitle="locale=en-US"
                   extra={
@@ -540,7 +540,7 @@ export const CustomStyled = () => {
               boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
             }}
             topbar={
-              <ChatTopbar
+              <Topbar
                 title="自定义样式"
                 subtitle="使用内置组件"
                 extra={
@@ -590,7 +590,7 @@ export const NestedContainers = () => {
           {/* 第一个容器 - 中文 */}
           <ChatContainer locale={LanguageCodeEnum.ZhCN}>
             <div className="flex h-full flex-col rounded-3xl border border-border bg-card/80 p-6 shadow-xl">
-              <ChatTopbar
+              <Topbar
                 title="中文容器"
                 subtitle="locale=zh-CN"
                 extra={
@@ -611,7 +611,7 @@ export const NestedContainers = () => {
           {/* 第二个容器 - 英文 */}
           <ChatContainer locale={LanguageCodeEnum.EnUS}>
             <div className="flex h-full flex-col rounded-3xl border border-border bg-card/80 p-6 shadow-xl">
-              <ChatTopbar
+              <Topbar
                 title="English Container"
                 subtitle="locale=en-US"
                 extra={

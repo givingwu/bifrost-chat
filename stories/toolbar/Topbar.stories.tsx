@@ -1,15 +1,15 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { ChatTopbar } from '@/components/layout/ChatTopbar';
+import { Topbar } from '@/components/toolbar/Topbar';
+import { TopbarTools } from '@/components/toolbar/TopbarTools';
 import '@/styles/theme.css';
-import { DefaultTools } from '@/components/layout/DefaultChatLayout';
 
 /**
- * ChatTopbar 组件 Story 文档
+ * Topbar 组件 Story 文档
  */
 
-const meta: Meta<typeof ChatTopbar> = {
-  title: 'Layout/ChatTopbar',
-  component: ChatTopbar,
+const meta: Meta<typeof Topbar> = {
+  title: 'Toolbar/Topbar',
+  component: Topbar,
   tags: ['autodocs'],
   argTypes: {
     title: {
@@ -32,12 +32,12 @@ const meta: Meta<typeof ChatTopbar> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof ChatTopbar>;
+type Story = StoryObj<typeof Topbar>;
 
 export const Default = () => {
   return (
     <div className="p-4 bg-muted rounded-lg">
-      <ChatTopbar extra={<div>Extra content</div>} />
+      <Topbar extra={<div>Extra content</div>} />
     </div>
   );
 };
@@ -45,11 +45,11 @@ export const Default = () => {
 export const WithExtra = () => {
   return (
     <div className="p-4 bg-muted rounded-lg">
-      <ChatTopbar
+      <Topbar
         avatarUrl="/logo.jpeg"
         title="Conversation"
         subtitle="Hello World!"
-        extra={<DefaultTools />}
+        extra={<TopbarTools />}
       />
     </div>
   );

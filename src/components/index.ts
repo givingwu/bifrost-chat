@@ -26,7 +26,6 @@ export { Image } from './Image';
 // Layout Components
 export { ChatContainer } from './layout/ChatContainer';
 export { ChatLayout } from './layout/ChatLayout';
-export { ChatTopbar } from './layout/ChatTopbar';
 export { DefaultChatLayout } from './layout/DefaultChatLayout';
 // Message Components
 export { FileMessage } from './messages/FileMessage';
@@ -62,3 +61,5 @@ export { ChannelFilter } from './toolbar/ChannelFilter';
 export { LanguageSwitcher } from './toolbar/LanguageSwitcher';
 export { NetworkStatus } from './toolbar/NetworkStatus';
 export { ThemeSwitcher } from './toolbar/ThemeSwitcher';
+export { Topbar } from './toolbar/Topbar';
+export { TopbarTools } from './toolbar/TopbarTools';

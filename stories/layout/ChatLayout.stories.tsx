@@ -3,12 +3,12 @@ import { ComposerToolbar } from '@/components/composer/ComposerToolbar';
 import { ConversationList } from '@/components/conversation/ConversationList';
 import { ChatContainer } from '@/components/layout/ChatContainer';
 import { ChatLayout } from '@/components/layout/ChatLayout';
-import { ChatTopbar } from '@/components/layout/ChatTopbar';
 import { MessageBubble } from '@/components/messages/MessageBubble';
 import { Profile } from '@/components/profile/Profile';
 import { LanguageSwitcher } from '@/components/toolbar/LanguageSwitcher';
 import { NetworkStatus } from '@/components/toolbar/NetworkStatus';
 import { ThemeSwitcher } from '@/components/toolbar/ThemeSwitcher';
+import { Topbar } from '@/components/toolbar/Topbar';
 import { AgentStatusEnum } from '@/interfaces/agent.interface';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import { LanguageCodeEnum } from '@/interfaces/language.interface';
@@ -183,7 +183,7 @@ export const FullLayout = () => {
               </div>
             }
             topbar={
-              <ChatTopbar
+              <Topbar
                 title="张三"
                 subtitle="在线"
                 avatarUrl="https://i.pravatar.cc/150?img=1"
@@ -277,7 +277,7 @@ export const WithTopbarAndComposer = () => {
         <ChatContainer locale={LanguageCodeEnum.ZhCN}>
           <ChatLayout
             topbar={
-              <ChatTopbar
+              <Topbar
                 title="张三"
                 subtitle="在线"
                 avatarUrl="https://i.pravatar.cc/150?img=1"
@@ -363,7 +363,7 @@ export const CustomStyled = () => {
               boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
             }}
             topbar={
-              <ChatTopbar
+              <Topbar
                 title="自定义样式示例"
                 subtitle="使用内置组件"
                 extra={
@@ -422,7 +422,7 @@ export const Responsive = () => {
               </div>
             }
             topbar={
-              <ChatTopbar
+              <Topbar
                 title="响应式布局"
                 subtitle="调整窗口大小查看效果"
                 extra={
@@ -485,7 +485,7 @@ export const EmptyState = () => {
                 <ConversationList conversations={[]} />
               </div>
             }
-            topbar={<ChatTopbar title="选择一个会话" />}
+            topbar={<Topbar title="选择一个会话" />}
           >
             <div className="flex h-full items-center justify-center text-text">
               <div className="text-center">
