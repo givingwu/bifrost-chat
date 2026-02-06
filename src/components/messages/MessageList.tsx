@@ -91,7 +91,7 @@ export const MessageList = ({
       <div
         ref={scrollRef}
         data-component="message-list"
-        className="flex h-full flex-col gap-2 overflow-y-auto rounded-2xl bg-card/60 p-4 shadow-soft"
+        className="flex h-full flex-col gap-2 overflow-y-auto bg-card/60 p-4 shadow-soft"
       >
         {messages.length ? (
           messages.map((message) => (
@@ -118,7 +118,7 @@ export const MessageList = ({
     <div
       ref={scrollRef}
       data-component="message-list"
-      className="h-full overflow-y-auto rounded-2xl bg-card/60 p-4 shadow-soft"
+      className="h-full overflow-y-auto bg-card/60 p-4 shadow-soft"
     >
       {messages.length === 0 ? (
         <div className="flex h-full flex-1 items-center justify-center">
