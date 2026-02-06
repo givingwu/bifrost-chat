@@ -2,10 +2,13 @@ import { Smile } from 'lucide-react';
 import {
   type ChangeEvent,
   type FocusEvent,
+  forwardRef,
   type KeyboardEvent,
-  memo,
+  useCallback,
   useEffect,
+  useImperativeHandle,
   useRef,
+  useState,
 } from 'react';
 import { cn } from '@/utils/class.util';
 import {
@@ -14,6 +17,15 @@ import {
   TEST_IDS,
   TEXT_SIZES,
 } from './composer.constants';
+import { EmojiPicker } from './EmojiPicker';
+
+/**
+ * ComposerInput 暴露的 ref 接口
+ */
+export interface ComposerInputRef {
+  /** 聚焦输入框 */
+  focus: () => void;
+}
 
 export interface ComposerInputProps {
   /** 输入框值 */
@@ -54,20 +66,36 @@ export interface ComposerInputProps {
  * />
  * ```
  */
-export const ComposerInput = memo<ComposerInputProps>(
-  ({
-    value,
-    onChange,
-    placeholder,
-    onEnter,
-    disabled = false,
-    maxLength = 2000,
-    autoFocus = false,
-    onBlur,
-    onFocus,
-    onEmojiClick,
-  }) => {
+export const ComposerInput = forwardRef<ComposerInputRef, ComposerInputProps>(
+  (
+    {
+      value,
+      onChange,
+      placeholder,
+      onEnter,
+      disabled = false,
+      maxLength = 2000,
+      autoFocus = false,
+      onBlur,
+      onFocus,
+      onEmojiClick,
+    },
+    ref,
+  ) => {
+    const containerRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
+    const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
+
+    // 暴露 focus 方法给父组件
+    useImperativeHandle(
+      ref,
+      () => ({
+        focus: () => {
+          inputRef.current?.focus();
+        },
+      }),
+      [],
+    );
 
     // 使用 useEffect 处理自动聚焦，避免使用 autoFocus 属性
     useEffect(() => {
@@ -76,36 +104,108 @@ export const ComposerInput = memo<ComposerInputProps>(
       }
     }, [autoFocus, disabled]);
 
-    const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-      // 仅在非禁用状态下处理
+    // 禁用时自动关闭表情选择器
+    useEffect(() => {
       if (disabled) {
+        setIsEmojiPickerOpen(false);
+      }
+    }, [disabled]);
+
+    // 处理表情选择器外部点击和 ESC 关闭
+    useEffect(() => {
+      if (!isEmojiPickerOpen) {
         return;
       }
 
-      // Enter 发送，Shift+Enter 换行
-      if (event.key === 'Enter' && !event.shiftKey) {
-        event.preventDefault();
-        // 仅在有内容时触发发送
-        if (value.trim().length > 0) {
-          onEnter?.();
+      const handleClickOutside = (event: MouseEvent) => {
+        if (
+          containerRef.current &&
+          !containerRef.current.contains(event.target as Node)
+        ) {
+          setIsEmojiPickerOpen(false);
         }
-      }
-    };
+      };
+
+      const handleEscape = (event: globalThis.KeyboardEvent) => {
+        if (event.key === 'Escape') {
+          event.preventDefault();
+          setIsEmojiPickerOpen(false);
+          inputRef.current?.focus();
+        }
+      };
+
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleEscape);
+
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+        document.removeEventListener('keydown', handleEscape);
+      };
+    }, [isEmojiPickerOpen]);
+
+    const handleKeyDown = useCallback(
+      (event: KeyboardEvent<HTMLInputElement>) => {
+        // 仅在非禁用状态下处理
+        if (disabled) {
+          return;
+        }
+
+        // Enter 发送，Shift+Enter 换行
+        if (event.key === 'Enter' && !event.shiftKey) {
+          event.preventDefault();
+          // 仅在有内容时触发发送
+          if (value.trim().length > 0) {
+            onEnter?.();
+          }
+        }
+      },
+      [disabled, onEnter, value],
+    );
 
     const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
       onChange(event.target.value);
     };
 
-    const handleEmojiClick = () => {
-      onEmojiClick?.();
-      // TODO: 实现表情选择器功能
-      if (!onEmojiClick) {
-        console.warn('Emoji picker not implemented yet');
+    const handleEmojiSelect = useCallback(
+      (emoji: string) => {
+        if (disabled) {
+          return;
+        }
+
+        const input = inputRef.current;
+        if (!input) {
+          onChange(`${value}${emoji}`);
+          setIsEmojiPickerOpen(false);
+          return;
+        }
+
+        const start = input.selectionStart ?? value.length;
+        const end = input.selectionEnd ?? value.length;
+        const nextValue = value.slice(0, start) + emoji + value.slice(end);
+
+        onChange(nextValue);
+        setIsEmojiPickerOpen(false);
+
+        requestAnimationFrame(() => {
+          input.focus();
+          const cursorPosition = start + emoji.length;
+          input.setSelectionRange(cursorPosition, cursorPosition);
+        });
+      },
+      [disabled, onChange, value],
+    );
+
+    const handleEmojiClick = useCallback(() => {
+      if (disabled) {
+        return;
       }
-    };
+
+      onEmojiClick?.();
+      setIsEmojiPickerOpen((prevOpen) => !prevOpen);
+    }, [disabled, onEmojiClick]);
 
     return (
-      <div className="relative flex-1">
+      <div ref={containerRef} className="relative flex-1">
         <input
           ref={inputRef}
           value={value}
@@ -127,6 +227,7 @@ export const ComposerInput = memo<ComposerInputProps>(
           aria-label={ARIA_LABELS.COMPOSER_INPUT}
           data-testid={TEST_IDS.COMPOSER_INPUT}
         />
+
         <button
           type="button"
           disabled={disabled}
@@ -143,6 +244,12 @@ export const ComposerInput = memo<ComposerInputProps>(
         >
           <Smile className={BUTTON_SIZES.ICON_MEDIUM} />
         </button>
+
+        <EmojiPicker
+          open={isEmojiPickerOpen}
+          onClose={() => setIsEmojiPickerOpen(false)}
+          onEmojiSelect={handleEmojiSelect}
+        />
       </div>
     );
   },

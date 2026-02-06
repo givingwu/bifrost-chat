@@ -1,11 +1,11 @@
-import { type FormEvent, useCallback, useMemo, useState } from 'react';
+import { type FormEvent, useCallback, useMemo, useRef, useState } from 'react';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import { useTranslation } from '@/providers/I18n.provider';
 import { cn } from '@/utils/class.util';
 import { ComposerActions } from './ComposerActions';
 import { ComposerAttachments } from './ComposerAttachments';
 import { ComposerHint } from './ComposerHint';
-import { ComposerInput } from './ComposerInput';
+import { ComposerInput, type ComposerInputRef } from './ComposerInput';
 import { INPUT_LIMITS, TEST_IDS } from './composer.constants';
 
 export interface ComposerToolbarProps {
@@ -62,6 +62,7 @@ export const ComposerToolbar = ({
   const { t } = useTranslation();
   const [value, setValue] = useState('');
   const [isSending, setIsSending] = useState(false);
+  const inputRef = useRef<ComposerInputRef>(null);
 
   // 根据渠道确定最大长度
   const effectiveMaxLength = useMemo(() => {
@@ -103,7 +104,10 @@ export const ComposerToolbar = ({
     setIsSending(true);
     try {
       await onSend?.(messageToSend);
-      setValue(''); // 仅在发送成功后清空输入框
+      // 仅在发送成功后清空输入框
+      setValue('');
+      // 发送成功后自动聚焦输入框
+      inputRef.current?.focus();
     } catch (error) {
       // 错误处理由调用方负责，这里只重置状态
       console.error('Failed to send message:', error);
@@ -172,6 +176,7 @@ export const ComposerToolbar = ({
             multiple
           />
           <ComposerInput
+            ref={inputRef}
             value={value}
             placeholder={placeholder}
             onChange={setValue}
