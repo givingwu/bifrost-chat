@@ -136,7 +136,7 @@ export const TemplatePanel = ({
   );
 
   return (
-    <div className="flex flex-1 flex-col">
+    <>
       {/* 头部 */}
       <TemplateHeader
         searchQuery={searchQuery}
@@ -200,6 +200,6 @@ export const TemplatePanel = ({
           </p>
         </output>
       )}
-    </div>
+    </>
   );
 };

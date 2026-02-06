@@ -46,14 +46,12 @@ export const TemplateHeader = ({
   return (
     <div className={className || 'border-b border-border px-4 py-3'}>
       {/* 搜索框 */}
-      <div className="relative">
-        <SearchInput
-          value={searchQuery}
-          onChange={onSearchChange}
-          placeholder={t('template.search')}
-          clearable
-        />
-      </div>
+      <SearchInput
+        value={searchQuery}
+        onChange={onSearchChange}
+        placeholder={t('template.search')}
+        clearable
+      />
 
       {/* 分类过滤 */}
       {categories.length > 0 && (
