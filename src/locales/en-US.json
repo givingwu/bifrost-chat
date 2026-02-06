@@ -1,5 +1,9 @@
 {
   "title": "Messages",
+  "common": {
+    "loading": "Loading...",
+    "retry": "Retry"
+  },
   "toolbar": {
     "channel": {
       "sms": "SMS",
@@ -38,6 +42,9 @@
     "empty": "No conversations yet",
     "search": "Search conversations",
     "ariaLabel": "Conversation with {{name}}{{unread, plural, =0 {} other {, {{count}} unread messages}}}",
+    "error": {
+      "loadFailed": "Failed to load conversations"
+    },
     "status": {
       "active": "Active",
       "waiting": "Waiting",

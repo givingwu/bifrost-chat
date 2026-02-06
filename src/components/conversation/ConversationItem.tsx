@@ -1,7 +1,8 @@
-import { type KeyboardEvent, memo, useCallback } from 'react';
+import { type KeyboardEvent, memo, useCallback, useMemo } from 'react';
 import { Button } from '@/components/Button';
 import type { Conversation } from '@/interfaces/conversation.interface';
 import { cn } from '@/utils/class.util';
+import { formatTimestamp } from '@/utils/time.util';
 import { ConversationAvatar } from './ConversationAvatar';
 
 export interface ConversationItemProps {
@@ -40,6 +41,24 @@ const INACTIVE_STATE_STYLES = {
  */
 export const ConversationItem = memo(
   ({ conversation, onSelect, className = '' }: ConversationItemProps) => {
+    // 确定使用的样式
+    const styles = conversation.isActive
+      ? ACTIVE_STATE_STYLES
+      : INACTIVE_STATE_STYLES;
+
+    // 容器类名
+    const containerClassName = cn(
+      'w-full flex items-start p-3 rounded-xl transition-all duration-200 text-left group relative',
+      styles.container,
+      className,
+    );
+
+    // 上次回复时间
+    const lastReplyTime = useMemo(
+      () => formatTimestamp(new Date(conversation.lastMessageTime).getTime()),
+      [conversation.lastMessageTime],
+    );
+
     // 处理键盘事件
     const handleKeyDown = useCallback(
       (event: KeyboardEvent<HTMLButtonElement>) => {
@@ -56,18 +75,6 @@ export const ConversationItem = memo(
       onSelect?.(conversation.id);
     }, [conversation.id, onSelect]);
 
-    // 确定使用的样式
-    const styles = conversation.isActive
-      ? ACTIVE_STATE_STYLES
-      : INACTIVE_STATE_STYLES;
-
-    // 容器类名
-    const containerClassName = cn(
-      'w-full flex items-start p-3 rounded-xl transition-all duration-200 text-left group relative',
-      styles.container,
-      className,
-    );
-
     return (
       <Button
         type="button"
@@ -83,7 +90,7 @@ export const ConversationItem = memo(
       >
         <div className="flex items-start gap-3">
           <ConversationAvatar
-            url={conversation.user.avatarUrl}
+            src={conversation.user.avatarUrl}
             name={conversation.user.name}
             channel={conversation.channel}
           />
@@ -95,7 +102,7 @@ export const ConversationItem = memo(
                 {conversation.user.name}
               </h4>
               <span className={cn('text-xs', styles.time)}>
-                {conversation.lastMessageTime}
+                {lastReplyTime}
               </span>
             </div>
             <p className={cn('line-clamp-2 text-sm', styles.message)}>

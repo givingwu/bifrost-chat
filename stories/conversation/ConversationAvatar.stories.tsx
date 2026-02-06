@@ -26,7 +26,10 @@ type Story = StoryObj<typeof ConversationAvatar>;
 export const WhatsApp = () => {
   return (
     <div className="p-4 bg-muted rounded-lg">
-      <ConversationAvatar channel={ChannelTypeEnum.WhatsApp} />
+      <ConversationAvatar
+        channel={ChannelTypeEnum.WhatsApp}
+        name="WhatsApp 用户"
+      />
     </div>
   );
 };
@@ -34,7 +37,7 @@ export const WhatsApp = () => {
 export const SMS = () => {
   return (
     <div className="p-4 bg-muted rounded-lg">
-      <ConversationAvatar channel={ChannelTypeEnum.SMS} />
+      <ConversationAvatar channel={ChannelTypeEnum.SMS} name="短信用户" />
     </div>
   );
 };
@@ -42,7 +45,7 @@ export const SMS = () => {
 export const Email = () => {
   return (
     <div className="p-4 bg-muted rounded-lg">
-      <ConversationAvatar channel={ChannelTypeEnum.Email} />
+      <ConversationAvatar channel={ChannelTypeEnum.Email} name="邮件用户" />
     </div>
   );
 };

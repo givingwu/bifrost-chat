@@ -33,7 +33,7 @@ export const Topbar = ({ title, subtitle, avatarUrl, extra }: TopbarProps) => {
         {avatarUrl && (
           <div className="relative">
             <ConversationAvatar
-              url={avatarUrl}
+              src={avatarUrl}
               name={title ?? 'conversation'}
               className="h-10 w-10 rounded-full object-cover shadow-soft"
             />

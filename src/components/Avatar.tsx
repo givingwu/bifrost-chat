@@ -18,6 +18,8 @@ export interface AvatarProps {
   onKeyDown?: (event: KeyboardEvent<HTMLDivElement>) => void;
   /** 占位符内容（可选） */
   fallback?: React.ReactNode;
+  /** 额外内容（可选） */
+  extra?: React.ReactNode;
   /** 是否懒加载 */
   lazy?: boolean;
 }
@@ -78,11 +80,12 @@ export const Avatar = memo(
     onClick,
     onKeyDown,
     fallback,
+    extra,
     lazy = true,
   }: AvatarProps) => {
     // 容器类名
     const containerClassName =
-      `relative inline-flex items-center justify-center overflow-hidden bg-gray-200 ${
+      `relative inline-flex items-center justify-center bg-gray-200 ${
         rounded ? 'rounded-full' : 'rounded-lg'
       } ${AVATAR_SIZE_MAP[size]} ${
         onClick ? 'cursor-pointer' : ''
@@ -105,6 +108,7 @@ export const Avatar = memo(
           fallbackSrc={DEFAULT_AVATAR_URL}
           lazy={lazy}
         />
+        {extra}
       </div>
     );
   },

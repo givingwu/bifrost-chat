@@ -1,10 +1,22 @@
-import { memo, type ReactNode } from 'react';
+import { MessageCircle } from 'lucide-react';
+import { memo, type ReactNode, useCallback, useMemo } from 'react';
+import { EmptyState } from '@/components/EmptyState';
+import { ErrorState } from '@/components/ErrorState';
+import { LoadingState } from '@/components/LoadingState';
 import { useConversations } from '@/hooks/use-conversations.hook';
 import type { Conversation } from '@/interfaces/conversation.interface';
 import { useTranslation } from '@/providers/I18n.provider';
 import { useChatStore } from '@/store';
 import { cn } from '@/utils/class.util';
 import { ConversationItem } from './ConversationItem';
+
+// ==================== 常量定义 ====================
+
+/** 默认容器类名 */
+const DEFAULT_CONTAINER_CLASSNAME =
+  'px-4 py-2 space-y-1 scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-gray-700 flex flex-col flex-1 overflow-y-auto';
+
+// ==================== 类型定义 ====================
 
 export interface ConversationListProps {
   /** 自定义类名 */
@@ -21,25 +33,46 @@ export interface ConversationListProps {
   isLoading?: boolean;
   /** 是否自动获取数据（默认 true） */
   autoFetch?: boolean;
+  /** 错误重试回调 */
+  onRetry?: () => void;
 }
 
+// ==================== 辅助函数 ====================
+
 /**
- * 加载状态组件
+ * 解析会话的激活状态
+ * @param conversation - 会话对象
+ * @param activeConversationId - 当前激活的会话 ID
+ * @returns 解析后的会话对象
  */
-const LoadingState = () => (
-  <div className="flex items-center justify-center py-12">
-    <div className="w-8 h-8 border-4 border-gray-200 dark:border-gray-700 border-t-blue-500 rounded-full animate-spin" />
-  </div>
-);
+function resolveConversationActive(
+  conversation: Conversation,
+  activeConversationId: string | null,
+): Conversation {
+  const resolvedIsActive =
+    activeConversationId === null
+      ? conversation.isActive
+      : conversation.id === activeConversationId;
+
+  // 只有当状态不同时才创建新对象
+  if (resolvedIsActive === conversation.isActive) {
+    return conversation;
+  }
+
+  return { ...conversation, isActive: resolvedIsActive };
+}
+
+// ==================== 主组件 ====================
 
 /**
  * ConversationList：会话列表组件。
- * - 显示会话列表。
- * - 支持自动获取数据（使用 useConversations Hook）。
- * - 支持手动传入数据（用于测试或特殊场景）。
- * - 支持空状态和加载状态。
- * - 使用 memo 优化性能，避免不必要的重新渲染。
- * - 支持无障碍访问（ARIA 标签）。
+ *
+ * @description
+ * - 显示会话列表，支持自动获取数据（使用 useConversations Hook）
+ * - 支持手动传入数据（用于测试或特殊场景）
+ * - 支持空状态、加载状态和错误状态
+ * - 使用 memo 优化性能，避免不必要的重新渲染
+ * - 支持无障碍访问（ARIA 标签）
  *
  * @example
  * // 自动获取数据（推荐）
@@ -57,66 +90,89 @@ export const ConversationList = memo(
     style,
     className = '',
     autoFetch = true,
+    onRetry,
   }: ConversationListProps) => {
     const { t } = useTranslation();
 
-    // 默认空状态组件（在组件内部以使用 useTranslation）
-    const defaultEmptyState = (
-      <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-        <div className="w-16 h-16 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center mb-4">
-          <svg
-            className="w-8 h-8 text-gray-400 dark:text-gray-500"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-            aria-hidden="true"
-          >
-            <title>{t('conversation.empty')}</title>
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-            />
-          </svg>
-        </div>
-        <p className="text-sm text-gray-500 dark:text-gray-400">
-          {t('conversation.empty')}
-        </p>
-      </div>
-    );
+    // ==================== 状态获取 ====================
     const activeConversationId = useChatStore(
       (state) => state.conversation.activeConversationId,
     );
-    // 自动获取数据（如果启用且没有手动提供数据）
-    // 注意：只在有 conversationService 时才启用自动获取
+
+    // ==================== 数据获取 ====================
+    // 判断是否应该自动获取数据
     const shouldAutoFetch = autoFetch && externalConversations === undefined;
+
+    // 使用 React Query 获取会话列表
     const {
       data: fetchedConversations,
       isLoading: isFetching,
       error,
+      refetch,
     } = useConversations({
       enabled: shouldAutoFetch,
     });
 
-    // 确定最终使用的状态
-    // 如果有外部数据，优先使用外部数据；否则使用获取的数据
-    const conversations = externalConversations ?? fetchedConversations;
+    // ==================== 数据处理 ====================
+    // 确定最终使用的会话列表
+    const conversations = useMemo(
+      () => externalConversations ?? fetchedConversations,
+      [externalConversations, fetchedConversations],
+    );
+
+    // 确定最终的加载状态
     const isLoading = shouldAutoFetch ? isFetching : externalIsLoading;
 
+    // 处理会话列表，解析激活状态
+    const processedConversations = useMemo(() => {
+      if (!conversations) {
+        return null;
+      }
+
+      return conversations.map((conversation) =>
+        resolveConversationActive(conversation, activeConversationId),
+      );
+    }, [conversations, activeConversationId]);
+
+    // ==================== 回调函数 ====================
+
+    // 处理重试操作
+    const handleRetry = useCallback(() => {
+      if (onRetry) {
+        onRetry();
+      } else {
+        refetch();
+      }
+    }, [onRetry, refetch]);
+
+    // ==================== 渲染 ====================
+
     // 容器类名
-    const containerClassName =
-      `px-4 py-2 space-y-1 scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-gray-700 ${className}`.trim();
+    const containerClassName = useMemo(
+      () => cn(DEFAULT_CONTAINER_CLASSNAME, className),
+      [className],
+    );
+
+    // 默认空状态组件
+    const defaultEmptyState = useMemo(
+      () => (
+        <EmptyState
+          message={t('conversation.empty')}
+          icon={<MessageCircle className="h-12 w-12 text-text-muted/30" />}
+        />
+      ),
+      [t],
+    );
 
     // 错误状态（仅在自动获取时显示）
     if (error && shouldAutoFetch) {
-      console.error('Failed to load conversations:', error);
       return (
         <output className={containerClassName} aria-live="polite">
-          <div className="px-4 py-12 text-center text-red-500">
-            加载失败，请重试
-          </div>
+          <ErrorState
+            message={t('conversation.error.loadFailed')}
+            onRetry={handleRetry}
+            retryText={t('common.retry')}
+          />
         </output>
       );
     }
@@ -125,13 +181,13 @@ export const ConversationList = memo(
     if (isLoading) {
       return (
         <output className={containerClassName} aria-live="polite">
-          <LoadingState />
+          <LoadingState message={t('common.loading')} />
         </output>
       );
     }
 
     // 空状态
-    if (!conversations || conversations.length === 0) {
+    if (!processedConversations || processedConversations.length === 0) {
       return (
         <output className={containerClassName} aria-live="polite">
           {emptyState || defaultEmptyState}
@@ -139,35 +195,18 @@ export const ConversationList = memo(
       );
     }
 
+    // 会话列表
     return (
       <ul
         style={style}
-        className={cn(
-          containerClassName,
-          className,
-          'flex flex-col flex-1 overflow-y-auto',
-        )}
+        className={containerClassName}
         aria-label={t('conversation.title')}
       >
-        {conversations.map((conversation: Conversation) => {
-          const resolvedIsActive =
-            activeConversationId === null
-              ? conversation.isActive
-              : conversation.id === activeConversationId;
-          const conversationItem =
-            resolvedIsActive === conversation.isActive
-              ? conversation
-              : { ...conversation, isActive: resolvedIsActive };
-
-          return (
-            <li key={conversation.id}>
-              <ConversationItem
-                conversation={conversationItem}
-                onSelect={onSelect}
-              />
-            </li>
-          );
-        })}
+        {processedConversations.map((conversation) => (
+          <li key={conversation.id}>
+            <ConversationItem conversation={conversation} onSelect={onSelect} />
+          </li>
+        ))}
       </ul>
     );
   },

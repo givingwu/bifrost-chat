@@ -5,10 +5,10 @@ import { Avatar } from '../Avatar';
 import { ChannelBadge } from '../toolbar/ChannelBadge';
 
 export interface ConversationAvatarProps {
-  /** 头像 URL */
-  url?: string | null;
+  /** 头像 src */
+  src?: string;
   /** 用户名称 */
-  name?: string | null;
+  name: string;
   /** 渠道类型 */
   channel?: Conversation['channel'];
   /** 头像大小 */
@@ -31,8 +31,8 @@ export interface ConversationAvatarProps {
  */
 export const ConversationAvatar = memo(
   ({
-    url,
-    name = 'Unknown',
+    src,
+    name,
     channel,
     size = 'md',
     className = '',
@@ -42,19 +42,20 @@ export const ConversationAvatar = memo(
     return (
       <div className={cn('relative inline-block', className)}>
         <Avatar
-          src={url}
-          alt={name || '用户头像'}
+          src={src}
+          alt={name || 'User Avatar'}
           size={size}
           onClick={onClick}
           onKeyDown={onKeyDown}
           className="shadow-sm"
+          extra={
+            channel && (
+              <div className="absolute -bottom-1 -right-1 rounded-full border-2 border-white dark:border-gray-900">
+                <ChannelBadge type={channel} />
+              </div>
+            )
+          }
         />
-
-        {channel && (
-          <div className="absolute -bottom-1 -right-1 rounded-full border-2 border-white dark:border-gray-900">
-            <ChannelBadge type={channel} />
-          </div>
-        )}
       </div>
     );
   },

@@ -1,5 +1,9 @@
 {
   "title": "消息",
+  "common": {
+    "loading": "加载中...",
+    "retry": "重试"
+  },
   "toolbar": {
     "channel": {
       "sms": "短信",
@@ -38,6 +42,9 @@
     "empty": "暂无会话",
     "search": "搜索会话",
     "ariaLabel": "与 {{name}} 的会话{{unread, plural, =0 {} other {，有 {{count}} 条未读消息}}}",
+    "error": {
+      "loadFailed": "加载会话失败"
+    },
     "status": {
       "active": "活跃",
       "waiting": "等待中",
