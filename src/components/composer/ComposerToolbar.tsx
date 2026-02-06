@@ -93,27 +93,42 @@ export const ComposerToolbar = ({
   // 处理发送消息
   const handleSend = useCallback(async () => {
     if (!canSend || disabled || isSending) {
+      console.log('[ComposerToolbar] Send ignored:', {
+        canSend,
+        disabled,
+        isSending,
+      });
       return;
     }
 
     const messageToSend = value.trim();
+
     if (!messageToSend) {
+      console.log('[ComposerToolbar] No message to send');
       return;
     }
 
+    console.log('[ComposerToolbar] Sending message:', messageToSend);
     setIsSending(true);
     try {
       await onSend?.(messageToSend);
       // 仅在发送成功后清空输入框
       setValue('');
-      // 发送成功后自动聚焦输入框
-      inputRef.current?.focus();
+      console.log('[ComposerToolbar] Message sent successfully');
     } catch (error) {
       // 错误处理由调用方负责，这里只重置状态
-      console.error('Failed to send message:', error);
+      console.error('[ComposerToolbar] Failed to send message:', error);
       // 可以选择不清空输入框，让用户可以重试
     } finally {
       setIsSending(false);
+      console.log(
+        '[ComposerToolbar] isSending set to false, focusing input...',
+      );
+      // 在状态更新后自动聚焦输入框
+      // 使用 setTimeout 确保 isSending 状态已更新
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 0);
     }
   }, [canSend, disabled, isSending, value, onSend]);
 

@@ -156,12 +156,12 @@ export const ComposerInput = forwardRef<ComposerInputRef, ComposerInputProps>(
           event.preventDefault();
           // 仅在有内容时触发发送
           if (value.trim().length > 0) {
+            console.log('[ComposerInput] Sending message...');
             // 等待 onEnter 完成（支持异步操作）
             await onEnter?.();
+            console.log('[ComposerInput] Message sent, focusing input...');
             // 发送完成后自动聚焦输入框
-            requestAnimationFrame(() => {
-              inputRef.current?.focus();
-            });
+            requestAnimationFrame(() => inputRef.current?.focus());
           }
         }
       },
@@ -204,15 +204,24 @@ export const ComposerInput = forwardRef<ComposerInputRef, ComposerInputProps>(
     const handleEmojiClick = useCallback(
       (event: React.MouseEvent<HTMLButtonElement>) => {
         if (disabled) {
+          console.log('[ComposerInput] Emoji click ignored: disabled');
           return;
         }
 
+        console.log('[ComposerInput] Emoji button clicked');
         // 阻止事件冒泡，防止触发父元素的点击事件
-        event.preventDefault();
         event.stopPropagation();
 
         onEmojiClick?.();
-        setIsEmojiPickerOpen((prevOpen) => !prevOpen);
+        setIsEmojiPickerOpen((prevOpen) => {
+          console.log(
+            '[ComposerInput] Toggling emoji picker:',
+            prevOpen,
+            '->',
+            !prevOpen,
+          );
+          return !prevOpen;
+        });
       },
       [disabled, onEmojiClick],
     );
