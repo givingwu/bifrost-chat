@@ -1,5 +1,5 @@
 import { type ReactNode, useCallback, useEffect, useMemo } from 'react';
-import { enUSMessages, zhCNMessages } from '@/index';
+import { cn, enUSMessages, zhCNMessages } from '@/index';
 import { LanguageCodeEnum } from '@/interfaces/language.interface';
 import { ThemeModeEnum } from '@/interfaces/theme.interface';
 import { I18nProvider } from '@/providers/I18n.provider';
@@ -124,7 +124,10 @@ export const ChatContainer = ({ locale, children }: ChatContainerProps) => {
         data-theme={theme.mode}
         data-theme-resolved={resolvedThemeMode}
         data-language={languageCode}
-        className={resolvedThemeMode === ThemeModeEnum.Dark ? 'dark' : ''}
+        className={cn(
+          'w-full h-full',
+          resolvedThemeMode === ThemeModeEnum.Dark ? 'dark' : '',
+        )}
       >
         {typeof children === 'function'
           ? (children as (state: ChatStoreState) => ReactNode)(store)

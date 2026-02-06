@@ -3,7 +3,7 @@ import { cn } from '@/utils/class.util';
 
 export interface ChatLayoutProps {
   className?: string;
-  styles?: React.CSSProperties;
+  style?: React.CSSProperties;
   /** 左侧会话列表 */
   conversationPanel?: ReactNode;
   /** 顶部栏 */
@@ -21,7 +21,7 @@ export interface ChatLayoutProps {
  */
 export const ChatLayout = ({
   className,
-  styles,
+  style,
   topbar,
   children,
   conversationPanel,
@@ -32,26 +32,21 @@ export const ChatLayout = ({
     <div
       data-component="chat-layout"
       className={cn(
-        'flex w-full overflow-hidden rounded-3xl shadow-2xl',
+        'flex w-full h-full overflow-hidden rounded-3xl shadow-2xl',
         'border border-border bg-card/80 backdrop-blur-2xl',
         className,
       )}
-      style={styles}
+      style={style}
     >
       {conversationPanel}
 
-      <section className="flex h-full flex-1 flex-col">
+      <section className="flex flex-col flex-1">
         {topbar}
 
-        <main className="flex flex-1">
+        <main className="flex flex-1 overflow-hidden">
           <section className="relative flex min-w-0 flex-1 flex-col bg-card/40">
             {children}
-
-            {composer && (
-              <div className="absolute bottom-0 left-0 right-0 px-6 pb-6">
-                {composer}
-              </div>
-            )}
+            {composer}
           </section>
 
           {profilePanel}

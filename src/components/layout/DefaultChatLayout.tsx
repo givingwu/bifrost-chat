@@ -14,9 +14,12 @@ import type { Conversation } from '@/interfaces/conversation.interface';
 import type { Template } from '@/interfaces/template.interface';
 import { useTranslation } from '@/providers/I18n.provider';
 import { useActions, useConversation, useProfile, useStrategy } from '@/store';
+import { cn } from '@/utils/class.util';
 import { ChatLayout } from './ChatLayout';
 
 export interface DefaultChatLayoutProps {
+  className?: string;
+  style?: React.CSSProperties;
   /** 消息区域内容（可选） */
   children?: ReactNode;
 }
@@ -43,7 +46,11 @@ export interface DefaultChatLayoutProps {
  * }
  * ```
  */
-export function DefaultChatLayout({ children }: DefaultChatLayoutProps) {
+export function DefaultChatLayout({
+  className,
+  style,
+  children,
+}: DefaultChatLayoutProps) {
   const { t } = useTranslation();
   const actions = useActions();
   const { activeChannel, allowedChannels } = useStrategy();
@@ -145,7 +152,8 @@ export function DefaultChatLayout({ children }: DefaultChatLayoutProps) {
 
   return (
     <ChatLayout
-      className="max-w-[1400px] max-h-[85vh]"
+      className={cn('max-w-[1400px] h-[80vh]', className)}
+      style={style}
       topbar={
         <Topbar title={title} subtitle={subtitle} extra={<TopbarTools />} />
       }
