@@ -80,6 +80,7 @@ export const ConversationList = memo(
     autoFetch = true,
   }: ConversationListProps) => {
     // 自动获取数据（如果启用且没有手动提供数据）
+    // 注意：只在有 conversationService 时才启用自动获取
     const shouldAutoFetch = autoFetch && externalConversations === undefined;
     const {
       data: fetchedConversations,
@@ -90,6 +91,7 @@ export const ConversationList = memo(
     });
 
     // 确定最终使用的状态
+    // 如果有外部数据，优先使用外部数据；否则使用获取的数据
     const conversations = externalConversations ?? fetchedConversations;
     const isLoading = shouldAutoFetch ? isFetching : externalIsLoading;
 
@@ -129,7 +131,7 @@ export const ConversationList = memo(
 
     return (
       <ul className={containerClassName} aria-label="会话列表">
-        {conversations.map((conversation) => (
+        {conversations.map((conversation: Conversation) => (
           <li key={conversation.id}>
             <ConversationItem conversation={conversation} onSelect={onSelect} />
           </li>

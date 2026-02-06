@@ -2,13 +2,13 @@ import type { Meta, StoryObj } from '@storybook/react';
 import {
   DEFAULT_TEMPLATES,
   TemplatePicker,
-} from '@/components/template/TemplatePicker';
+} from '@/components/templates/TemplatePicker';
 import '@/styles/theme.css';
 import { useState } from 'react';
 import { Button } from '@/components';
 
 const meta: Meta<typeof TemplatePicker> = {
-  title: 'Templates/TemplatePicker',
+  title: 'Template/TemplatePicker',
   component: TemplatePicker,
   tags: ['autodocs'],
   decorators: [

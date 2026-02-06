@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { TemplateSearch } from '@/components/template/TemplateSearch';
+import { TemplateSearch } from '@/components/templates/TemplateSearch';
 import '@/styles/theme.css';
 
 /**
@@ -7,7 +7,7 @@ import '@/styles/theme.css';
  */
 
 const meta: Meta<typeof TemplateSearch> = {
-  title: 'Templates/TemplateSearch',
+  title: 'Template/TemplateSearch',
   component: TemplateSearch,
   tags: ['autodocs'],
   parameters: {

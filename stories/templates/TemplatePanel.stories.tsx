@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { TemplatePanel } from '@/components/template/TemplatePanel';
+import { TemplatePanel } from '@/components/templates/TemplatePanel';
 import type { Template } from '@/interfaces/template.interface';
 import '@/styles/theme.css';
 

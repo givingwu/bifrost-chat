@@ -31,11 +31,17 @@ import { useServices } from '@/providers/service.provider';
  * ```
  */
 export function useTemplates<TParams>(params?: TParams) {
-  const { templateService } = useServices();
+  const services = useServices();
 
   return useQuery({
     queryKey: queryKeys.templates.list(),
-    queryFn: () => templateService.list(params),
+    queryFn: () => {
+      if (!services?.templateService) {
+        return [];
+      }
+      return services.templateService.list(params);
+    },
     staleTime: 1000 * 60 * 5, // 5 分钟
+    enabled: !!services?.templateService, // 只有当服务存在时才执行查询
   });
 }

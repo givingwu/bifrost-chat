@@ -59,12 +59,21 @@ export function useMessages<TParams = any>(
   conversationId: string,
   params?: TParams,
 ) {
-  const { messageService } = useServices();
+  const services = useServices();
 
   return useInfiniteQuery({
     queryKey: queryKeys.messages.list(conversationId),
     queryFn: async ({ pageParam = 1 }) => {
-      const messages = await messageService.list(conversationId, params);
+      if (!services?.messageService) {
+        return {
+          items: [],
+          nextCursor: undefined,
+        } as MessagesPage;
+      }
+      const messages = await services.messageService.list(
+        conversationId,
+        params,
+      );
 
       return {
         items: messages,
@@ -74,6 +83,6 @@ export function useMessages<TParams = any>(
     initialPageParam: 1,
     getNextPageParam: (lastPage) => lastPage.nextCursor,
     staleTime: 1000 * 60 * 5, // 5 分钟
-    enabled: !!conversationId, // 只有当 conversationId 存在时才执行查询
+    enabled: !!conversationId && !!services?.messageService, // 只有当 conversationId 和服务都存在时才执行查询
   });
 }
