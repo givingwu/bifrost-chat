@@ -15,6 +15,12 @@ const meta: Meta<typeof WhatsAppMessage> = {
   title: 'Messages/WhatsAppMessage',
   component: WhatsAppMessage,
   tags: ['autodocs'],
+  argTypes: {
+    content: {
+      control: false,
+      description: 'WhatsApp 模板消息内容',
+    },
+  },
 };
 
 export default meta;

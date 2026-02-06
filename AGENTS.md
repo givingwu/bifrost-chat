@@ -6,6 +6,173 @@
 - 尽情结合使用各种 MCP 能力
 - 尽量使用 `tsconfig.json` 中配置的路径别名 alias
 
+## 核心架构规则 (v2.0.0)
+
+### 1. 会话概念统一
+
+**决策**: 统一使用 **Conversation**，严格禁止使用 **Session**
+
+**理由**:
+- ✅ 更符合即时通讯的业务语义
+- ✅ 更直观和易于理解
+- ✅ 与业界标准一致 (WhatsApp, Telegram, iMessage 都使用 Conversation)
+- ✅ 更好的可读性
+
+**命名规范**:
+```typescript
+// ✅ 正确 - 必须使用 Conversation
+interface Conversation { }
+interface IConversationService { }
+interface ConversationData { }
+interface ConversationProps { }
+useConversations()
+export const ConversationList = () => { }
+class ConversationServiceImpl implements IConversationService { }
+
+// ❌ 错误 - 严格禁止使用 Session
+interface Session { }
+interface ISessionService { }
+interface SessionData { }
+interface SessionProps { }
+useSessions()
+export const SessionList = () => { }
+class SessionServiceImpl implements ISessionService { }
+```
+
+**迁移指南**:
+```typescript
+// ❌ 旧代码
+import { Session, ISessionService, useSessions } from '@feoe/bifrost-chat';
+
+// ✅ 新代码
+import { Conversation, IConversationService, useConversations } from '@feoe/bifrost-chat';
+```
+
+### 2. Template 从 Profile 剥离
+
+**职责划分**:
+
+| 模块 | 职责 | 目录 |
+|------|------|------|
+| **Profile** | 展示客户/联系人信息 (姓名、头像、标签等) | `src/components/profile/` |
+| **Template** | 管理和选择消息模版 (模版列表、预览、发送) | `src/components/templates/` |
+
+**目录结构**:
+```
+src/
+├── components/
+│   ├── profile/           # Profile 组件 (独立)
+│   │   ├── Profile.tsx
+│   │   ├── ProfileInfo.tsx
+│   │   └── ...
+│   └── templates/         # Template 组件 (独立)
+│       ├── TemplateList.tsx
+│       ├── TemplatePicker.tsx
+│       └── TemplatePreview.tsx
+```
+
+### 3. 使用泛型解耦参数类型
+
+**问题**: 不同业务方的 API 参数不同
+
+**解决方案**: 使用泛型,调用方自定义参数类型
+
+```typescript
+// ✅ 使用泛型
+interface IConversationService<
+  TListParams = any,
+  TCreateParams = any,
+  TQueryParams = any,
+> {
+  list(params?: TListParams): Promise<Conversation[]>;
+  create(params: TCreateParams): Promise<Conversation>;
+  query(params: TQueryParams): Promise<Conversation | null>;
+}
+```
+
+### 4. 接口抽象与依赖注入
+
+**核心设计**: SDK 提供接口,调用方提供实现
+
+```typescript
+// SDK 定义接口
+export interface IConversationService<...> {
+  list(params?: TListParams): Promise<Conversation[]>;
+}
+
+// 调用方实现接口
+class MyConversationService implements IConversationService<...> {
+  async list(params) {
+    // 自定义实现
+  }
+}
+
+// 使用 SDK
+<ServiceProvider
+  conversationService={new MyConversationService()}
+  messageService={new MyMessageService()}
+  templateService={new MyTemplateService()}
+>
+  <ChatContainer />
+</ServiceProvider>
+```
+
+### 5. React Query + 声明式编程
+
+**状态分类**:
+
+| 状态类型 | 管理方案 | 示例 |
+|---------|---------|------|
+| **服务端状态** | React Query | 会话列表、消息列表、模版列表 |
+| **客户端状态** | Zustand | 输入框内容、面板状态、主题、语言 |
+
+**优势**:
+- 代码量减少 80%
+- 自动缓存和重新获取
+- 内置乐观更新
+- 更好的开发者体验
+
+### 6. 类型安全
+
+- 使用 TypeScript 严格模式
+- 使用 Zod 进行运行时类型校验
+- 所有公共 API 都有明确的类型定义
+
+### 7. 错误处理
+
+```typescript
+// 统一的错误类型
+export class SDKError extends Error { }
+export class NetworkError extends SDKError { }
+export class ValidationError extends SDKError { }
+export class AuthorizationError extends SDKError { }
+```
+
+### 8. 性能优化
+
+- 虚拟滚动 (@tanstack/react-virtual)
+- 分页加载 (@tanstack/react-query 无限滚动)
+- 懒加载 (组件级别的代码分割)
+- 自动缓存 (@tanstack/react-query)
+
+### 9. 国际化
+
+- 支持中英文
+- 可扩展到其他语言
+
+### 10. 可访问性
+
+- ARIA 属性
+- 键盘导航
+- 屏幕阅读器支持
+
+### 14. 安全性
+
+- 数据脱敏
+- XSS 防护 (DOMPurify)
+- CSRF 防护
+- 敏感信息加密
+
 ## 技术栈
 
 - **语言与框架**：TypeScript、React（组件示例/Storybook）
@@ -51,7 +218,7 @@
       );
     }
     ```
-  - 中间消息流 (ChatMessageList) - 核心交互
+  - 中间消息流 (MessageList) - 核心交互
     最复杂的部分，需要处理多种消息类型和高性能滚动。
     - MessageFactory (渲染工厂)：建立一个消息类型映射表，使用策略模式寻找目标组件，使用工厂模式渲染。
       ```tsx
@@ -102,25 +269,27 @@
 
 ### 逻辑层
 
-- ClientBus(Client-side Event Bus) & Store (交互与状态层) 暴露客户端 SDK API 以及使用 Store (Zustand) 管理 UI 渲染层的 状态(Store)和行为 (Action)。
-- DataLayer (Repository/Service): 调度与缓存层。决定“用哪个渠道 Channel”，它决定是走 HTTP 还是 Socket。它不关心数据长什么样，只关心业务动作。
-  - Offline Queue (离线队列)：如果 NetLayer 反馈网络断开，Repo 会自动把消息塞入 IndexedDB / localStorage / 内存队列，等网络恢复后自动重发。
-  - 乐观 UI (Optimistic UI)：Repo 被调用时，先通知 Store “假装发送成功” 让 UI 变绿，如果 NetLayer 报错，再回滚状态。
-  - 协调调度：管理和注册当前支持的策略以及渠道适配器 ChannelAdapter 等，调用对应的方法。
-  - 去重：去掉同一时间内重复发送的相同的文本消息。
-- ChannelAdapter 渠道适配器 & DataMapper (Translator  翻译器)：渠道适配及数据映射层。通过 ChannelAdapter 调用 Channel 内部实现的 Mapper 方法映射到标准的 DTO，抹平不同触达服务请求体的差异性。
-  - 协议选择：根据当前的策略 strategy 调用对应的 ChannelAdapter 渠道适配器及 NetLayer 发送消息。
-  - ChannelAdapter(执行者)：每个渠道一个独立的 Adapter 类（如 WhatsAppAdapter, SMSAdapter）。SMS/VoIP/WhatsApp/Email/Waba 等，支持快速横向扩展新的渠道。
-    - 转译与适配：将 Store 的标准对象翻译成网络传输的 DTO（Data Transfer Object），或者将不同渠道的 Response Body 转成一致的 Entity 喂给 Store 渲染。
-    - 快速扩展：通过提供不同的 Adapter 可以实现快速横向扩展不同渠道。
-  - DataMapper (Translator)
-    - Strict Types (类型守卫)：Mapper 层强制进行 Schema 校验（Zod），防止脏数据污染 Store。
-    - 解耦：Mapper 是纯函数（Pure Function）。便于单元测试。
-    - 防腐：后端的字段名如果从 msg_text 变成了 body_content，你只需要修改 Mapper 这一层，Store 和 UI 代码一行都不用动。
-- NetLayer (Infrastructure): 网络层。把最终组装好的消息 Payload 发出去，不管是 Socket 还是 HTTP，它只负责字节传输。
-  - Protocol Switcher (协议热切)：NetLayer 支持根据策略环境自动切换 Socket/SSE/Polling。
-  - 接口化：NetLayer 暴露统一的接口 interface INetwork { connect(); send(); }。
-  - 扩展性：今天用 HTTP Polling / http://Socket.io ，明天想换成 MQTT 或 SignalR，只需要重写一个 NetLayer 实现类，上层业务逻辑（Store/Repo）完全无感知。
+- Service Interfaces + DI（核心入口）
+  - SDK 只定义 `IConversationService`/`IMessageService`/`ITemplateService` 等接口与标准类型。
+  - 接口参数使用泛型解耦，不绑定具体业务方的 API 参数结构。
+  - 调用方在宿主侧实现服务，并通过 `ServiceProvider` 注入；UI 不直连后端。
+- Hooks + React Query（服务端状态）
+  - `useConversations`/`useMessages`/`useTemplates` 负责查询、缓存、失效与重取。
+  - `useSendMessage`/`useCreateConversation`/`useMarkAsRead` 负责 mutation、乐观更新与回滚。
+  - QueryKey 统一按业务实体设计（如 `['conversations', params]`、`['messages', conversationId]`）。
+- Zustand（客户端状态）
+  - 只管理 UI 本地状态：输入框、面板开关、激活会话、主题、语言等。
+  - 会话列表、消息列表、模板列表等服务端状态不放入 Store，避免双写与漂移。
+- Adapter + Mapper（渠道防腐层）
+  - Adapter 负责渠道协议差异（HTTP/WebSocket/SSE 等）和能力封装。
+  - Mapper 负责 DTO ↔ 标准实体转换，要求纯函数 + Zod 校验。
+  - 后端字段变化仅允许在 Mapper/Adapter 层消化，不得泄漏到 Store 和组件。
+- 实时与离线（增强能力）
+  - 实时通知通过服务 `subscribe*` 接口回灌 React Query Cache。
+  - 网络失败通过 mutation 级离线队列重试；组件层只消费声明式状态。
+- 错误与可观测性
+  - 统一使用 `SDKError`/`NetworkError`/`ValidationError`/`AuthorizationError`。
+  - Hook 层处理重试策略与错误边界，组件层仅根据 loading/error/success 渲染。
 
 ## 常用命令
 

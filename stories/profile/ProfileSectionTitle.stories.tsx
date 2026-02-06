@@ -10,6 +10,12 @@ const meta: Meta<typeof ProfileSectionTitle> = {
   title: 'Profile/ProfileSectionTitle',
   component: ProfileSectionTitle,
   tags: ['autodocs'],
+  argTypes: {
+    title: {
+      control: 'text',
+      description: '章节标题',
+    },
+  },
 };
 
 export default meta;

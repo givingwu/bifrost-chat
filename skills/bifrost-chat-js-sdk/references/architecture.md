@@ -1,77 +1,38 @@
-# 架构参考（当前实现 + 目标演进）
-
-本文档只保留对开发决策有用的信息，并明确区分：
-
-- 当前实现（代码已存在）
-- 目标演进（尚未完全落地）
+# 架构参考（v3 基线）
 
 ## 1) 当前实现（代码现状）
 
-### 1.1 主要目录
+- `src/services/*`：接口契约（Conversation/Message/Template）
+- `src/providers/*`：ServiceProvider + ReactQueryProvider + I18nProvider
+- `src/hooks/*`：声明式 Query/Mutation
+- `src/components/*`：默认组件实现
+- `src/store/*`：客户端状态 + 遗留服务端状态（迁移中）
 
-- `src/components/*`：渲染层组件
-- `src/store/*`：Zustand Store 与各 Slice
-- `src/adapters/*`：渠道适配器与映射
-- `src/interfaces/*`：公开类型与内部契约
-- `src/providers/*`：I18n/Provider 封装
+## 2) 目标架构（统一口径）
 
-### 1.2 已落地的核心链路
+- SDK：纯接口 + DI + 默认组件
+- 服务端状态：React Query
+- 客户端状态：Zustand
+- 公开 API：Conversation 命名（禁用 Session）
+- Template：独立于 Profile
 
-1. UI 通过 hooks 读取 Store（如 `useStrategy/useConversation/useActions`）。
-2. 发送消息主路径在 `conversation.slice.ts` 中由 `MessageBuilder` 构造标准消息。
-3. 渠道适配通过 `AdapterFactory` 提供注册/创建能力，默认内置 `WabaAdapter`。
-4. 消息展示由 `ChatMessageList` + `MessageRendererFactory` 负责。
+## 3) 不属于 SDK 责任
 
-### 1.3 当前已存在的边界
+- 协议适配与字段转换设计范式
+- 宿主后端协议选型
+- 宿主 DTO 字段翻译策略
 
-- DataLayer/Repository、NetLayer、OfflineQueue：当前以架构目标为主，未完整落地。
-- `WabaAdapter` 中发送/上传/回执上报仍有 NetLayer 集成 TODO。
-- 部分“目标架构”能力（协议热切、离线重放）尚未成为可执行实现。
+> 以上由调用方实现，SDK 只消费标准接口返回。
 
-## 2) 目标演进（架构约束）
+## 4) Gap（现状与目标）
 
-目标分层保持不变：
+1. Store 仍承载部分会话/消息数据。
+2. 部分文档与示例仍有 Session 遗留。
+3. 模板能力的 hooks 与组件联动需进一步完善。
 
-- Rendering（UI）
-- Store/ClientBus（交互状态）
-- DataLayer（调度缓存）
-- Adapter/Mapper（渠道防腐）
-- NetLayer（连接与协议）
+## 5) 推进顺序
 
-演进原则：
-
-- 先固化接口，再替换实现。
-- 新增渠道必须经由 `ChannelTypeEnum` + Adapter 注册链路。
-- 后端字段变化只改 Mapper，不扩散到 Store/UI。
-
-## 3) 现状与目标差异（Gap）
-
-1. **调度层缺口**：`sendMessage` 目前直接写 Store，尚未进入 Repository/Queue。
-2. **网络层缺口**：`INetwork` 目标清晰，但具体实现与协议切换未落地。
-3. **状态一致性**：消息状态流（sending/sent/read/failed）已建模，但 ACK 驱动链路未闭环。
-4. **性能缺口**：消息列表当前为直接 map，尚未接入虚拟滚动。
-
-## 4) 扩展操作手册
-
-### 新增渠道
-
-1. 在 `src/interfaces/channel.interface.ts` 扩展 `ChannelTypeEnum`。
-2. 新增适配器（建议 `src/adapters/<channel>/`）。
-3. 适配器实现至少满足 `IChannelAdapter`，按能力实现发送接口。
-4. 在 `AdapterFactory` 注册并补测试。
-5. 补齐 UI 映射（`ChannelButtonFactory`、必要时 `ComposerToolbar`）。
-
-### 新增消息类型
-
-1. 扩展 `MessageTypeEnum` 与消息内容类型。
-2. 在 `MessageRendererFactory` 增加映射。
-3. 如需展示组件，新增 `src/components/messages/*` 与 story。
-4. Mapper 增加校验与转换逻辑。
-
-## 5) 相关文档
-
-- `../../../docs/architecture-overview.md`
-- `../../../docs/component-architecture.md`
-- `../../../docs/architecture-diagrams.md`
-- `../../../docs/ui-flexibility-design.md`
-- `../../../docs/naming-conventions.md`
+1. 命名治理（Session -> Conversation）
+2. 收敛状态边界（服务端数据迁到 React Query）
+3. 补齐模板链路（query/mutation + UI）
+4. 清理遗留文档口径

@@ -1,49 +1,30 @@
-# 渲染层规范（以代码现状为准）
+# 渲染层规范（v3）
 
-## 1) 当前组件分工
+## 1) 组件职责
 
-- 顶层容器：`ChatContainer`（I18n + Store 上下文）
-- 默认布局：`DefaultChatLayout`（Topbar/会话区/消息区/输入区/Profile）
-- 渠道工具栏：`ChannelFilter` + `ChannelButtonFactory`
-- 消息流：`ChatMessageList` + `MessageRendererFactory`
-- 输入区：`ComposerToolbar`
+- 组件只消费 hooks / store，不直接请求 API。
+- 默认组件可用，但允许宿主替换布局与局部组件。
 
-## 2) 渠道按钮策略
+## 2) 数据来源
 
-约束：渠道来源必须来自策略状态，而不是硬编码。
+- 会话：`useConversations`
+- 消息：`useMessages`
+- 模板：`useTemplates`
+- 本地 UI 状态：`useChatStore`
 
-当前注意点：
+## 3) 输入区约束
 
-- 默认布局中 `ChannelFilter` 仍使用 `AvailableChannelTypes`。
-- 目标态应优先读取 `strategy.allowedChannels`，并结合坐席状态做互斥（如 in_call）。
+- 渠道差异化能力在组件 props 层体现。
+- 发送行为通过 mutation hooks 驱动。
+- 模板选择只改本地输入状态，不直接发请求。
 
-## 3) 消息渲染策略
+## 4) 扩展策略
 
-- 渲染入口：`MessageRendererFactory`
-- 当前实现：`Other` 类型渲染系统气泡，其余走 `MessageBubble`
-- 类型源：`MessageTypeEnum`
-- 方向源：`MessageDirectionEnum`（incoming/outgoing）
+新增消息类型：扩展 `MessageTypeEnum` + 新组件 + 工厂映射 + Storybook stories。
 
-建议：
+新增模板交互：扩展模板组件与 hooks，不改 Profile 组件职责。
 
-- 避免在组件内部硬编码协议字段；只消费标准消息。
-- 新增消息类型时，先补类型与组件，再补工厂映射和 story。
+## 5) 可访问性与性能
 
-## 4) 输入区策略
-
-`ComposerToolbar` 已按渠道做差异化：
-
-- 长度限制（SMS/WhatsApp/Waba/默认）
-- 附件 accept 白名单
-- 占位文案按渠道变化
-
-扩展建议：
-
-- Email 富文本、模板先修流程可继续在该层扩展，但需保持 props 简洁。
-- 避免把业务规则写进 UI，交给上层 action 或 DataLayer。
-
-## 5) 性能与可访问性
-
-- 当前消息列表是直接渲染；会话量增大时建议接入虚拟滚动。
-- 交互组件需保留语义属性与可键盘操作能力。
-- Storybook 中至少覆盖：默认态、异常态、空态、禁用态。
+- 可键盘操作、语义化标签、状态可读。
+- 大消息量优先虚拟滚动与分页加载。

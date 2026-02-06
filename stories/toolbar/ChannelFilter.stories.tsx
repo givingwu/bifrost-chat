@@ -5,6 +5,8 @@ import {
   AvailableChannelTypes,
   ChannelTypeEnum,
 } from '@/interfaces/channel.interface';
+import zhCN from '@/locales/zh-CN.json';
+import { I18nProvider } from '@/providers/I18n.provider';
 import '@/styles/theme.css';
 
 /**
@@ -20,18 +22,22 @@ const meta: Meta<typeof ChannelFilter> = {
   title: 'Toolbar/ChannelFilter',
   component: ChannelFilter,
   tags: ['autodocs'],
+  decorators: [
+    (Story) => (
+      <I18nProvider locale="zh-CN" messages={zhCN}>
+        <Story />
+      </I18nProvider>
+    ),
+  ],
   argTypes: {
     channels: {
-      control: 'object',
+      control: 'check',
+      options: AvailableChannelTypes,
       description: '可用渠道列表',
     },
     activeChannel: {
       control: 'select',
-      options: [
-        ChannelTypeEnum.SMS,
-        ChannelTypeEnum.WhatsApp,
-        ChannelTypeEnum.Email,
-      ],
+      options: AvailableChannelTypes,
       description: '当前激活的渠道',
     },
   },

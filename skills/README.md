@@ -1,6 +1,6 @@
 # Bifrost-Chat Skills 索引
 
-本文件用于说明仓库内 skill 的用途与分工。
+本文件说明仓库内 skills 的用途与分工。
 
 ## 现有 skills
 
@@ -11,8 +11,8 @@
 用途：
 
 - SDK 功能开发与维护
-- 渲染层、Store、Adapter 相关改动
-- Storybook / Vitest / 构建链路联动
+- 接口抽象/依赖注入/React Query/Zustand 架构落地
+- 默认组件、Storybook、Vitest、构建链路联动
 
 配套参考：
 
@@ -35,6 +35,6 @@
 
 ## 维护原则
 
-- skill 文档中必须区分“当前已实现”与“目标架构”。
+- skill 文档必须区分“当前已实现”与“目标架构”。
 - 命令、类型名、路径必须与仓库代码一致。
-- 组件行为变化要同步更新对应 references。
+- 文档统一遵循 v3 基线：Conversation 命名、DI、React Query 边界。

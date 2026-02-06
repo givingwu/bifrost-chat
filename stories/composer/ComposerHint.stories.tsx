@@ -15,6 +15,13 @@ const meta: Meta<typeof ComposerHint> = {
   title: 'Composer/ComposerHint',
   component: ComposerHint,
   tags: ['autodocs'],
+  argTypes: {
+    channel: {
+      control: 'select',
+      options: ['whatsapp', 'sms', 'email', 'im', 'voip'],
+      description: '渠道类型',
+    },
+  },
 };
 
 export default meta;

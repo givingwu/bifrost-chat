@@ -1,18 +1,16 @@
 import type { StateCreator } from 'zustand';
-import type {
-  ProfileData,
-  ProfileTemplate,
-} from '@/interfaces/profile.interface';
-import { defaultProfile, defaultTemplates } from '../mock/chat.default';
+import type { ProfileData } from '@/interfaces/profile.interface';
+import { defaultProfile } from '../mock/chat.default';
 
 /**
- * Profile Slice：宿主上下文（客户画像、模板等）。
+ * Profile Slice：宿主上下文（客户画像）。
+ *
+ * @description
+ * 只保留客户画像数据，模板数据由 React Query 管理。
  */
 export interface ProfileState extends Record<string, unknown> {
   /** 客户画像或业务上下文 */
   profile?: ProfileData;
-  /** 模板列表（可注入 Composer） */
-  templates?: ProfileTemplate[];
 }
 
 export interface ProfileSlice {
@@ -30,7 +28,6 @@ export const createProfileSlice: StateCreator<
 > = (set) => ({
   profile: {
     profile: defaultProfile,
-    templates: defaultTemplates,
   },
   actions: {
     setProfile: (payload: Partial<ProfileState>) =>

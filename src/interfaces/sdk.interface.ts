@@ -1,6 +1,7 @@
 import type { ChannelTypeEnum } from './channel.interface';
 import type { ConnectionStateEnum } from './connection.interface';
 import type { User } from './conversation.interface';
+import type { SDKError } from './error.interface';
 import type { StandardMessage } from './message.interface';
 
 /**
@@ -34,17 +35,17 @@ export interface SDKConfig {
 }
 
 /**
- * SDK 上下文，控制当前会话与策略。
+ * SDK 上下文，控制当前对话与策略。
  */
 export interface SDKContext {
   /** 宿主侧用户信息 */
   hostUser: User;
   /** 用户鉴权 Token */
   customerToken: string;
-  /** 会话 ID（Session 级） */
-  sessionId: string;
-  /** 会话超时时间（毫秒） */
-  sessionTimeout?: number;
+  /** 对话 ID（Conversation 级） */
+  conversationId: string;
+  /** 对话超时时间（毫秒） */
+  conversationTimeout?: number;
   /** 初始策略（允许的渠道） */
   initialStrategy?: { allowedChannels: ChannelTypeEnum[] };
 }
@@ -61,8 +62,8 @@ export enum SDKEventTypeEnum {
   ConnectionChanged = 'connection_changed',
   /** 错误发生 */
   Error = 'error',
-  /** 会话关闭 */
-  SessionClosed = 'session_closed',
+  /** 对话关闭 */
+  ConversationClosed = 'conversation_closed',
 }
 
 /**
@@ -85,7 +86,7 @@ export interface SDKEventHandlers {
   [SDKEventTypeEnum.IncomingCall]: (data: IncomingCallData) => void;
   [SDKEventTypeEnum.ConnectionChanged]: (data: ConnectionChangeData) => void;
   [SDKEventTypeEnum.Error]: (error: SDKError) => void;
-  [SDKEventTypeEnum.SessionClosed]: () => void;
+  [SDKEventTypeEnum.ConversationClosed]: () => void;
 }
 
 /**
@@ -108,25 +109,6 @@ export interface ConnectionChangeData {
   status: ConnectionStateEnum;
   /** 错误信息（如果断开） */
   error?: string;
-}
-
-/**
- * SDK 错误
- */
-export class SDKError extends Error {
-  constructor(
-    /** 错误消息 */
-    message: string,
-    /** 错误码 */
-    public readonly code: string,
-    /** 错误详情 */
-    public readonly details?: Record<string, unknown>,
-  ) {
-    super(message);
-    this.code = code;
-    this.name = 'SDKError';
-    Object.setPrototypeOf(this, SDKError.prototype);
-  }
 }
 
 /**
@@ -177,8 +159,8 @@ export interface SDKStatus {
   isInitialized: boolean;
   /** 是否已连接 */
   isConnected: boolean;
-  /** 当前会话 ID */
-  sessionId?: string;
+  /** 当前对话 ID */
+  conversationId?: string;
   /** 当前渠道 */
   activeChannel?: ChannelTypeEnum;
 }

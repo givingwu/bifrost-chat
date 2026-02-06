@@ -53,6 +53,17 @@ const meta: Meta<typeof ChatContainer> = {
   parameters: {
     layout: 'fullscreen',
   },
+  argTypes: {
+    locale: {
+      control: 'select',
+      options: ['zh-CN', 'en-US'],
+      description: '语言代码',
+    },
+    children: {
+      control: false,
+      description: '子组件或 render props 函数',
+    },
+  },
 };
 
 export default meta;

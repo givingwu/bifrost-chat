@@ -1,55 +1,37 @@
-# 逻辑层规范（当前实现 + 规划）
+# 逻辑层规范（v3）
 
-## 1) Store 与事件
+## 1) 状态边界
 
-当前实现：
+- React Query：会话、消息、模板（服务端状态）
+- Zustand：输入框、面板、主题、语言、激活会话（客户端状态）
 
-- Store：Zustand，多 Slice 组合（ui/strategy/network/theme/language/conversation/profile）。
-- hooks：`useStrategy/useConversation/useActions` 等用于 UI 订阅。
-- ClientBus：事件总线能力已存在（订阅/取消/派发）。
+禁止：同一份服务端数据在 React Query 与 Zustand 双写。
 
-约束：
+## 2) 接口注入
 
-- UI 只读标准状态，不直接读写协议原始字段。
-- action 命名与枚举命名遵循 `docs/naming-conventions.md`。
+- 通过 `ServiceProvider` 注入服务实现。
+- Hooks 只通过 `useServices()` 调用接口。
+- SDK 逻辑层不包含请求实现细节。
 
-## 2) 消息发送路径
+## 3) 发送消息链路
 
-当前主路径：
+`useSendMessage` -> `messageService.send` -> 宿主实现 -> 回写缓存。
 
-1. `conversation.slice.ts` 的 `sendMessage` 构造标准消息。
-2. 使用 `MessageBuilder` 统一填充默认字段。
-3. 通过 `appendMessage` 入列消息流。
+必须支持：
 
-规划路径（目标态）：
+- optimistic update
+- error rollback
+- success replace（临时消息替换）
 
-- `sendMessage` -> Repository/DataLayer -> Adapter -> NetLayer -> ACK 回写 Store。
+## 4) 模板链路
 
-## 3) Adapter 与 Mapper
-
-当前实现：
-
-- `AdapterFactory` 已实现注册表、创建、校验与重置能力。
-- 默认内置 `WabaAdapter`。
-- `WabaMapper` + schema 已可用于 DTO 映射/校验。
-
-当前缺口：
-
-- `WabaAdapter` 的 NetLayer 集成、媒体上传、交互回执仍为 TODO。
-
-## 4) NetLayer / OfflineQueue
-
-当前仓库处于接口与架构约束阶段，尚未形成完整实现。
-
-建议推进顺序：
-
-1. 先抽象 `INetwork` 具体实现与测试替身。
-2. 再串联 Adapter -> NetLayer。
-3. 最后落地 OfflineQueue 与 ACK 驱动状态收敛。
+- 查询：`useTemplates`
+- 发送：模板发送 mutation（可扩展）
+- 本地交互态：Zustand（面板开关/变量草稿）
 
 ## 5) 测试优先级
 
-- `AdapterFactory` 注册/覆盖/异常路径。
-- `WabaMapper` 的 schema 校验与转换。
-- `conversation.slice` 的发送、会话切换、边界条件。
-- 未来补充：ACK 回写与离线重放。
+- hooks 的 query/mutation 行为
+- optimistic update 与 rollback
+- ServiceProvider 注入失败场景
+- Session 命名回归检查

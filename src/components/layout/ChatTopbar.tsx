@@ -1,3 +1,4 @@
+import { ConversationAvatar } from '@/components/conversation/ConversationAvatar';
 import { cn } from '@/utils/class.util';
 
 export interface ChatTopbarProps {
@@ -33,9 +34,9 @@ export const ChatTopbar = ({
       <div className="flex items-center gap-3">
         {avatarUrl && (
           <div className="relative">
-            <img
-              src={avatarUrl}
-              alt={title ?? 'conversation'}
+            <ConversationAvatar
+              url={avatarUrl}
+              name={title ?? 'conversation'}
               className="h-10 w-10 rounded-full object-cover shadow-soft"
             />
             <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-card bg-success" />

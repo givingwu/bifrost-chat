@@ -11,6 +11,13 @@ const meta: Meta<typeof ConversationAvatar> = {
   title: 'Conversation/ConversationAvatar',
   component: ConversationAvatar,
   tags: ['autodocs'],
+  argTypes: {
+    channel: {
+      control: 'select',
+      options: ['whatsapp', 'sms', 'email', 'im', 'voip'],
+      description: '渠道类型',
+    },
+  },
 };
 
 export default meta;

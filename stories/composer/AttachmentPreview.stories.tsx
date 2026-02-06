@@ -15,6 +15,20 @@ const meta: Meta<typeof AttachmentPreview> = {
   title: 'Composer/AttachmentPreview',
   component: AttachmentPreview,
   tags: ['autodocs'],
+  argTypes: {
+    attachments: {
+      control: false,
+      description: '附件列表',
+    },
+    onRemove: {
+      control: false,
+      description: '删除附件回调函数',
+    },
+    disabled: {
+      control: 'boolean',
+      description: '是否禁用删除操作',
+    },
+  },
 };
 
 export default meta;

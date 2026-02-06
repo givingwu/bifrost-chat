@@ -42,8 +42,16 @@
     "./package.json": "./package.json"
   },
   "types": "./dist/src/index.d.ts",
-  "files": ["dist", "LICENSE", "README.md", "CHANGELOG.md"],
-  "sideEffects": ["*.css", "dist/styles/*.css"],
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "sideEffects": [
+    "*.css",
+    "dist/styles/*.css"
+  ],
   "publishConfig": {
     "access": "public"
   },
@@ -68,6 +76,7 @@
     "@storybook/addon-onboarding": "^10.1.11",
     "@storybook/react": "^10.1.11",
     "@tailwindcss/postcss": "^4.1.18",
+    "@tanstack/react-query-devtools": "^5.91.3",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.1",
     "@types/react": "^19.2.8",
@@ -83,6 +92,7 @@
     "vitest": "^4.0.17"
   },
   "dependencies": {
+    "@tanstack/react-query": "^5.90.20",
     "clsx": "^2.1.1",
     "lucide-react": "^0.563.0",
     "tailwind-merge": "^3.4.0",

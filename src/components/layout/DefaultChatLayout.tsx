@@ -1,4 +1,6 @@
 import type { ReactNode } from 'react';
+import { ComposerToolbarContainer } from '@/components/composer/ComposerWithSend';
+import { ConversationList } from '@/components/conversation/ConversationList';
 import { AvailableChannelTypes } from '@/interfaces/channel.interface';
 import {
   useActions,
@@ -9,9 +11,7 @@ import {
   useStrategy,
   useTheme,
 } from '@/store';
-import { ComposerToolbar } from '../composer/ComposerToolbar';
 import { ConversationHeader } from '../conversation/ConversationHeader';
-import { ConversationList } from '../conversation/ConversationList';
 import { ConversationPanel } from '../conversation/ConversationPanel';
 import { Profile } from '../profile/Profile';
 import { ChannelFilter } from '../toolbar/ChannelFilter';
@@ -45,52 +45,59 @@ export const DefaultTools = () => {
 };
 
 /**
- * DefaultChatLayout：默认布局（All-in-One 模式）。
+ * DefaultChatLayout：默认布局组件
+ *
+ * @description
+ * 完整的聊天布局，包含会话列表、消息区域、输入框和右侧面板。
+ * 使用 React Query Hooks 和 Zustand Store 进行状态管理。
  *
  * @example
- * <ChatContainer locale="zh-CN">
- *   <DefaultChatLayout />
- * </ChatContainer>
- *
- * @example 自定义消息区域
- * <ChatContainer locale="zh-CN">
- *   <DefaultChatLayout>
- *     <CustomMessageList />
- *   </DefaultChatLayout>
- * </ChatContainer>
+ * ```tsx
+ * function App() {
+ *   return (
+ *     <ReactQueryProvider>
+ *       <ServiceProvider {...services}>
+ *         <DefaultChatLayout>
+ *           <InfiniteMessageList conversationId="conv-123" />
+ *         </DefaultChatLayout>
+ *       </ServiceProvider>
+ *     </ReactQueryProvider>
+ *   );
+ * }
+ * ```
  */
-export const DefaultChatLayout = ({ children }: DefaultChatLayoutProps) => {
-  /* const {
-    strategy,
-    conversation,
-    profile: profileState,
-    actions,
-  } = useChatStore(); */
-
+export function DefaultChatLayout({ children }: DefaultChatLayoutProps) {
   const strategy = useStrategy();
   const conversation = useConversation();
   const profileState = useProfile();
   const actions = useActions();
 
-  const conversationTitle = conversation.activeConversation?.user?.name;
-  const conversationSubtitle = conversation.activeConversation?.channel;
-  const conversationAvatar = conversation.activeConversation?.user?.avatarUrl;
+  // 从 conversation ID 获取会话数据（这里需要从 React Query 获取）
+  // 暂时使用 activeConversationId，实际应该从 useConversations Hook 获取
+  const activeConversationId = conversation.activeConversationId;
 
   return (
     <ChatLayout
       className="max-w-[1400px] max-h-[85vh]"
       topbar={
         <ChatTopbar
-          title={conversationTitle}
-          subtitle={conversationSubtitle}
-          avatarUrl={conversationAvatar}
+          title={
+            activeConversationId ? `会话 ${activeConversationId}` : undefined
+          }
+          subtitle={strategy.activeChannel}
           extra={<DefaultTools />}
         />
       }
       conversationPanel={
         <ConversationPanel
           header={
-            <ConversationHeader title={conversationTitle}>
+            <ConversationHeader
+              title={
+                activeConversationId
+                  ? `会话 ${activeConversationId}`
+                  : undefined
+              }
+            >
               <ChannelFilter
                 channels={AvailableChannelTypes}
                 activeChannel={strategy.activeChannel}
@@ -99,24 +106,23 @@ export const DefaultChatLayout = ({ children }: DefaultChatLayoutProps) => {
             </ConversationHeader>
           }
         >
-          <ConversationList conversations={conversation.conversations} />
+          <ConversationList
+            onSelect={(id) => actions.setActiveConversationId(id)}
+          />
         </ConversationPanel>
       }
       composer={
-        <ComposerToolbar
-          channel={strategy.activeChannel}
-          onSend={actions.sendMessage}
-        />
+        activeConversationId ? (
+          <ComposerToolbarContainer
+            conversationId={activeConversationId}
+            channel={strategy.activeChannel}
+          />
+        ) : null
       }
-      profilePanel={
-        <Profile
-          profile={profileState.profile}
-          templates={profileState.templates}
-        />
-      }
+      profilePanel={<Profile profile={profileState.profile} />}
     >
-      {/* 消息区域由 ChatMessageList 渲染 */}
+      {/* 消息区域由 MessageList 渲染 */}
       {children}
     </ChatLayout>
   );
-};
+}

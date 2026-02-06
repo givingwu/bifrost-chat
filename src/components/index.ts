@@ -1,20 +1,24 @@
 // Basic Components
 export { Avatar } from './Avatar';
 export { Button } from './Button';
+// Composer Components
 export { AttachmentPreview } from './composer/AttachmentPreview';
 export { ComposerActions } from './composer/ComposerActions';
 export { ComposerAttachments } from './composer/ComposerAttachments';
 export { ComposerHint } from './composer/ComposerHint';
-// Composer Components
 export { ComposerInput } from './composer/ComposerInput';
 export { ComposerToolbar } from './composer/ComposerToolbar';
+export {
+  ComposerToolbarContainer,
+  ComposerWithSend,
+} from './composer/ComposerWithSend';
 export { EmojiPicker } from './composer/EmojiPicker';
 export { MentionPicker } from './composer/MentionPicker';
 export { TemplatePicker } from './composer/TemplatePicker';
+// Conversation Components
 export { ConversationAvatar } from './conversation/ConversationAvatar';
 export { ConversationHeader } from './conversation/ConversationHeader';
 export { ConversationItem } from './conversation/ConversationItem';
-// Conversation Components
 export { ConversationList } from './conversation/ConversationList';
 export { ConversationPanel } from './conversation/ConversationPanel';
 export { IconButton } from './IconButton';
@@ -25,12 +29,13 @@ export { ChatLayout } from './layout/ChatLayout';
 export { ChatTopbar } from './layout/ChatTopbar';
 export { DefaultChatLayout } from './layout/DefaultChatLayout';
 // Message Components
-export { ChatMessageList } from './messages/ChatMessageList';
 export { FileMessage } from './messages/FileMessage';
 export { ImageMessage } from './messages/ImageMessage';
+export { InfiniteMessageList } from './messages/InfiniteMessageList';
 export { LocationMessage } from './messages/LocationMessage';
 export { MessageBubble } from './messages/MessageBubble';
 export { MessageContentRenderer } from './messages/MessageContentRenderer';
+export { MessageList } from './messages/MessageList';
 export { MessageRendererFactory } from './messages/MessageRendererFactory';
 export { MessageTimestamp } from './messages/MessageTimestamp';
 export { RichMediaMessage } from './messages/RichMediaMessage';
@@ -44,11 +49,14 @@ export { WhatsAppMessage } from './messages/WhatsAppMessage';
 export { Profile } from './profile/Profile';
 export { ProfileHeader } from './profile/ProfileHeader';
 export { ProfileInfoList } from './profile/ProfileInfoList';
-export { ProfileSearch } from './profile/ProfileSearch';
 export { ProfileSectionTitle } from './profile/ProfileSectionTitle';
-export { ProfileTemplates } from './profile/ProfileTemplates';
-export { ChannelBadge } from './toolbar/ChannelBadge';
+export { SearchInput } from './SearchInput';
+// Template components
+export { TemplateList } from './templates/TemplateList';
+export { TemplatePanel } from './templates/TemplatePanel';
+export { TemplateSearch } from './templates/TemplateSearch';
 // Toolbar Components
+export { ChannelBadge } from './toolbar/ChannelBadge';
 export { ChannelButtonFactory } from './toolbar/ChannelButtonFactory';
 export { ChannelFilter } from './toolbar/ChannelFilter';
 export { LanguageSwitcher } from './toolbar/LanguageSwitcher';

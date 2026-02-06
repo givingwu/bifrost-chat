@@ -14,6 +14,12 @@ const meta: Meta<typeof UnsupportedMessage> = {
   title: 'Messages/UnsupportedMessage',
   component: UnsupportedMessage,
   tags: ['autodocs'],
+  argTypes: {
+    content: {
+      control: false,
+      description: '不支持的消息内容',
+    },
+  },
 };
 
 export default meta;

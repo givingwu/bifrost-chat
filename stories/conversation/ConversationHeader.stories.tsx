@@ -10,6 +10,40 @@ const meta: Meta<typeof ConversationHeader> = {
   title: 'Conversation/ConversationHeader',
   component: ConversationHeader,
   tags: ['autodocs'],
+  argTypes: {
+    className: {
+      control: 'text',
+      description: '自定义类名',
+    },
+    title: {
+      control: 'text',
+      description: '标题',
+    },
+    children: {
+      control: false,
+      description: '子组件',
+    },
+    showSearch: {
+      control: 'boolean',
+      description: '是否显示搜索框',
+    },
+    searchPlaceholder: {
+      control: 'text',
+      description: '搜索框占位符',
+    },
+    searchValue: {
+      control: 'text',
+      description: '搜索框值',
+    },
+    onSearchChange: {
+      control: false,
+      description: '搜索回调',
+    },
+    onSearchSubmit: {
+      control: false,
+      description: '搜索提交回调',
+    },
+  },
 };
 
 export default meta;

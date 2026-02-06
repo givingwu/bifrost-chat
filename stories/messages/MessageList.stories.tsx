@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { ChatMessageList } from '@/components/messages/ChatMessageList';
+import { MessageList } from '@/components/messages/MessageList';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import {
   MessageDirectionEnum,
@@ -9,7 +9,7 @@ import {
 } from '@/interfaces/message.interface';
 
 /**
- * ChatMessageList 组件 Story 文档
+ * MessageList 组件 Story 文档
  *
  * 展示消息列表的各种用法：
  * - 不同数量的消息
@@ -17,9 +17,9 @@ import {
  * - 不同方向
  */
 
-const meta: Meta<typeof ChatMessageList> = {
-  title: 'Messages/ChatMessageList',
-  component: ChatMessageList,
+const meta: Meta<typeof MessageList> = {
+  title: 'Messages/MessageList',
+  component: MessageList,
   tags: ['autodocs'],
   argTypes: {
     messages: {
@@ -30,7 +30,7 @@ const meta: Meta<typeof ChatMessageList> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof ChatMessageList>;
+type Story = StoryObj<typeof MessageList>;
 
 const createMessage = (
   direction: MessageDirectionEnum,
@@ -75,7 +75,7 @@ const mockMessages: StandardMessage[] = [
 export const Default = () => {
   return (
     <div className="w-96 h-96">
-      <ChatMessageList messages={mockMessages} />
+      <MessageList messages={mockMessages} />
     </div>
   );
 };
@@ -86,7 +86,7 @@ export const Default = () => {
 export const Empty = () => {
   return (
     <div className="w-96 h-96">
-      <ChatMessageList messages={[]} />
+      <MessageList messages={[]} />
     </div>
   );
 };
@@ -110,7 +110,7 @@ export const LongList = () => {
 
   return (
     <div className="w-96 h-96 overflow-y-auto">
-      <ChatMessageList messages={messages} />
+      <MessageList messages={messages} />
     </div>
   );
 };
@@ -145,7 +145,7 @@ export const DifferentTypes = () => {
 
   return (
     <div className="w-96 h-96 overflow-y-auto">
-      <ChatMessageList messages={messages} />
+      <MessageList messages={messages} />
     </div>
   );
 };
@@ -187,7 +187,7 @@ export const ConversationFlow = () => {
 
   return (
     <div className="w-96 h-96 overflow-y-auto">
-      <ChatMessageList messages={messages} />
+      <MessageList messages={messages} />
     </div>
   );
 };
@@ -212,7 +212,7 @@ export const DifferentStatuses = () => {
 
   return (
     <div className="w-96 h-96 overflow-y-auto">
-      <ChatMessageList messages={messages} />
+      <MessageList messages={messages} />
     </div>
   );
 };

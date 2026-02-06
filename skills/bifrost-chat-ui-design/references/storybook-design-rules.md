@@ -1,6 +1,6 @@
 # Storybook 设计验收规则
 
-## 每个组件建议最少 3 组 story
+## 每个组件建议最少 3 组 Storybook stories
 
 1. Default：标准状态
 2. States：至少包含禁用/错误/空态之一
@@ -14,7 +14,7 @@
 ## 与实现保持一致
 
 - props 名称、默认值与组件源码一致。
-- 不在 story 里引入线上不存在的业务字段。
+- 不在 Storybook stories 里引入线上不存在的业务字段。
 
 ## 回归检查
 

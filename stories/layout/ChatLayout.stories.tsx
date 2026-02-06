@@ -49,6 +49,36 @@ const meta: Meta<typeof ChatLayout> = {
   parameters: {
     layout: 'fullscreen',
   },
+  argTypes: {
+    className: {
+      control: 'text',
+      description: '自定义类名',
+    },
+    styles: {
+      control: 'object',
+      description: '自定义样式',
+    },
+    conversationPanel: {
+      control: false,
+      description: '左侧会话列表',
+    },
+    topbar: {
+      control: false,
+      description: '顶部栏',
+    },
+    children: {
+      control: false,
+      description: '消息区域',
+    },
+    composer: {
+      control: false,
+      description: '中间输入区域',
+    },
+    profilePanel: {
+      control: false,
+      description: '右侧上下文面板',
+    },
+  },
 };
 
 export default meta;
