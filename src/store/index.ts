@@ -1,3 +1,4 @@
+import type { StateCreator } from 'zustand';
 import { create } from 'zustand';
 import type {
   ConversationSlice,
@@ -32,23 +33,19 @@ export type ChatStoreState = UiSlice &
   ConversationSlice &
   ProfileSlice;
 
-/**
- * Config 状态类型（与 ChatStoreState 保持一致，移除 actions）
- */
-export type ChatStoreConfigState = Omit<
-  ChatStoreState,
-  'actions' | 'conversation'
->;
+export type ChatStoreConfigState = {
+  ui: UiState;
+  strategy: StrategyState;
+  network: NetworkSlice['network'];
+  theme: ThemeSlice['theme'];
+  language: LanguageSlice['language'];
+  profile: ProfileState;
+};
 
-/**
- * Store 初始化配置类型
- */
-export type ChatStoreInitialState = Partial<ChatStoreConfigState>;
+export type ChatStoreInitialState = Partial<{
+  [K in keyof ChatStoreConfigState]: Partial<ChatStoreConfigState[K]>;
+}>;
 
-/**
- * Store Actions 类型
- * 提取所有 actions，提供类型安全的 actions 访问
- */
 export type ChatStoreActions = ChatStoreState['actions'];
 
 /**
@@ -76,48 +73,87 @@ export type ChatStoreActions = ChatStoreState['actions'];
  * const actions = useChatStore(state => state.actions);
  * actions.setUi({ isOpen: true });
  */
-export const useChatStore = create<ChatStoreState>()((...args) => ({
-  // 创建所有 slice 并合并它们的状态和 actions
-  ...(() => {
-    // 创建各个 slice
-    const uiSlice = createUiSlice(...args);
-    const strategySlice = createStrategySlice(...args);
-    const networkSlice = createNetworkSlice(...args);
-    const themeSlice = createThemeSlice(...args);
-    const languageSlice = createLanguageSlice(...args);
-    const conversationSlice = createConversationSlice(...args);
-    const profileSlice = createProfileSlice(...args);
+const createDefaultState: StateCreator<
+  ChatStoreState,
+  [],
+  [],
+  ChatStoreState
+> = (...args) => {
+  const uiSlice = createUiSlice(...args);
+  const strategySlice = createStrategySlice(...args);
+  const networkSlice = createNetworkSlice(...args);
+  const themeSlice = createThemeSlice(...args);
+  const languageSlice = createLanguageSlice(...args);
+  const conversationSlice = createConversationSlice(...args);
+  const profileSlice = createProfileSlice(...args);
 
-    // 合并所有 slice 的状态
-    return {
-      ...uiSlice,
-      ...strategySlice,
-      ...networkSlice,
-      ...themeSlice,
-      ...languageSlice,
-      ...conversationSlice,
-      ...profileSlice,
-      // 合并所有 actions
-      actions: {
-        ...uiSlice.actions,
-        ...strategySlice.actions,
-        ...networkSlice.actions,
-        ...themeSlice.actions,
-        ...languageSlice.actions,
-        ...conversationSlice.actions,
-        ...profileSlice.actions,
-      },
-    };
-  })(),
-}));
+  return {
+    ...uiSlice,
+    ...strategySlice,
+    ...networkSlice,
+    ...themeSlice,
+    ...languageSlice,
+    ...conversationSlice,
+    ...profileSlice,
+    actions: {
+      ...uiSlice.actions,
+      ...strategySlice.actions,
+      ...networkSlice.actions,
+      ...themeSlice.actions,
+      ...languageSlice.actions,
+      ...conversationSlice.actions,
+      ...profileSlice.actions,
+    },
+  };
+};
+
+const mergeInitialState = (
+  baseState: ChatStoreState,
+  initialState?: ChatStoreInitialState,
+): ChatStoreState => {
+  if (!initialState) {
+    return baseState;
+  }
+
+  return {
+    ...baseState,
+    ui: initialState.ui
+      ? { ...baseState.ui, ...initialState.ui }
+      : baseState.ui,
+    strategy: initialState.strategy
+      ? { ...baseState.strategy, ...initialState.strategy }
+      : baseState.strategy,
+    network: initialState.network
+      ? { ...baseState.network, ...initialState.network }
+      : baseState.network,
+    theme: initialState.theme
+      ? { ...baseState.theme, ...initialState.theme }
+      : baseState.theme,
+    language: initialState.language
+      ? { ...baseState.language, ...initialState.language }
+      : baseState.language,
+    profile: initialState.profile
+      ? { ...baseState.profile, ...initialState.profile }
+      : baseState.profile,
+  };
+};
+
+export const useChatStore = create<ChatStoreState>()((...args) => {
+  return createDefaultState(...args);
+});
 
 /**
- * UI 状态选择器
- * 返回 UI 相关的状态（打开、最小化、加载等）
- *
- * @example
- * const { isOpen, isMinimized, loading } = useUI();
+ * 配置全局单例 Chat Store。
+ * - 设计为初始化用途；建议在应用启动时调用一次。
  */
+export const configureChatStore = (initialState?: ChatStoreInitialState) => {
+  if (!initialState) {
+    return;
+  }
+
+  useChatStore.setState((state) => mergeInitialState(state, initialState));
+};
+
 export const useUI = () => useChatStore((state) => state.ui);
 
 /**

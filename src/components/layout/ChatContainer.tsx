@@ -70,17 +70,14 @@ export const ChatContainer = ({ locale, children }: ChatContainerProps) => {
   const { code: languageCode } = useLanguage();
   const { setLanguage, setSystemPrefersDark } = useActions();
 
-  // 当语言切换时，同步更新 store
   const handleLanguageChange = useCallback(
     (newLocale: string) => {
-      const languageCode = newLocale as LanguageCodeEnum;
-      setLanguage(languageCode);
+      setLanguage(newLocale as LanguageCodeEnum);
     },
     [setLanguage],
   );
 
-  // 初始化时，如果 prop 提供了 locale，同步到 store
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <Only execute it once after it mounted>
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <Ignore locale changes>
   useEffect(() => {
     if (locale) {
       setLanguage(locale);
@@ -108,7 +105,13 @@ export const ChatContainer = ({ locale, children }: ChatContainerProps) => {
   const finalMessages = useMemo(() => {
     return LanguageMessages[languageCode] || enUSMessages;
   }, [languageCode]);
-  console.log('finalMessages: ', finalMessages);
+
+  const resolvedThemeMode =
+    theme.mode === ThemeModeEnum.System
+      ? theme.systemPrefersDark
+        ? ThemeModeEnum.Dark
+        : ThemeModeEnum.Light
+      : theme.mode;
 
   return (
     <I18nProvider
@@ -119,13 +122,12 @@ export const ChatContainer = ({ locale, children }: ChatContainerProps) => {
       <div
         data-component="chat-container"
         data-theme={theme.mode}
+        data-theme-resolved={resolvedThemeMode}
         data-language={languageCode}
-        className={theme.mode === ThemeModeEnum.Dark ? 'dark' : ''}
+        className={resolvedThemeMode === ThemeModeEnum.Dark ? 'dark' : ''}
       >
         {typeof children === 'function'
-          ? (children as (store: ReturnType<typeof useChatStore>) => ReactNode)(
-              store,
-            )
+          ? (children as (state: ChatStoreState) => ReactNode)(store)
           : children}
       </div>
     </I18nProvider>

@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
-import { createContext, useContext, useMemo } from 'react';
-import type { ChatStoreInitialState } from '@/store';
+import { createContext, useContext, useRef } from 'react';
+import { type ChatStoreInitialState, configureChatStore } from '@/store';
 
 /**
  * SDK Config 上下文（与 ChatStoreState 结构对齐）
@@ -21,10 +21,15 @@ export interface ConfigProviderProps {
  * 最终由 ChatContainer 在初始化 store 时消费。
  */
 export const ConfigProvider = ({ children, config }: ConfigProviderProps) => {
-  const value = useMemo(() => config, [config]);
+  const initializedRef = useRef(false);
+
+  if (!initializedRef.current) {
+    configureChatStore(config);
+    initializedRef.current = true;
+  }
 
   return (
-    <ConfigContext.Provider value={value}>{children}</ConfigContext.Provider>
+    <ConfigContext.Provider value={config}>{children}</ConfigContext.Provider>
   );
 };
 
