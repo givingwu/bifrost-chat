@@ -29,40 +29,40 @@ export function estimateMessageHeight(message: StandardMessage): number {
     case MessageTypeEnum.Text: {
       // 文本消息：根据内容长度估算
       const textLength = getTextLength(message);
-      // 基础高度 40px，每 10 个字符增加 1px，最大 200px
-      return Math.min(Math.max(40, Math.ceil(textLength / 10) + 40), 200);
+      // 基础高度 63.75px，每 10 个字符增加 1px，最大 200px
+      return Math.min(Math.max(63.75, Math.ceil(textLength / 10) + 63.75), 200);
     }
 
     case MessageTypeEnum.Image:
       // 图片消息：默认高度 200px（考虑宽高比和加载状态）
-      return 200;
+      return 160;
 
     case MessageTypeEnum.Video:
       // 视频消息：默认高度 180px
-      return 180;
+      return 160;
 
     case MessageTypeEnum.Audio:
       // 语音消息：固定高度 60px
-      return 60;
+      return 64;
 
     case MessageTypeEnum.File:
       // 文件消息：固定高度 80px
-      return 80;
+      return 66;
 
     case MessageTypeEnum.Location:
       // 位置消息：默认高度 150px
-      return 150;
+      return 186;
 
     case MessageTypeEnum.RichMedia:
       // 富媒体消息：默认高度 120px
-      return 120;
+      return 198;
 
     case MessageTypeEnum.Template: {
       // 模板消息：根据内容长度估算
       const templateTextLength = getTextLength(message);
       return Math.min(
-        Math.max(60, Math.ceil(templateTextLength / 10) + 60),
-        250,
+        Math.max(196, Math.ceil(templateTextLength / 10) + 196),
+        360,
       );
     }
 
@@ -72,7 +72,7 @@ export function estimateMessageHeight(message: StandardMessage): number {
 
     default:
       // 未知类型：默认高度 60px
-      return 60;
+      return 63.75;
   }
 }
 
