@@ -1,4 +1,4 @@
-import { type ReactNode, useCallback, useEffect, useMemo, useRef } from 'react';
+import { type ReactNode, useCallback, useEffect, useMemo } from 'react';
 import { enUSMessages, zhCNMessages } from '@/index';
 import { LanguageCodeEnum } from '@/interfaces/language.interface';
 import { ThemeModeEnum } from '@/interfaces/theme.interface';
@@ -73,17 +73,13 @@ export const ChatContainer = ({ locale, children }: ChatContainerProps) => {
     [setLanguage],
   );
 
-  // 优先使用 store 中的语言，仅在初始化时使用 prop 传入的 locale
-  const currentLanguage = languageCode;
+  // 优先使用 prop 传入的 locale，否则使用 store 中的语言
+  const currentLanguage = locale || languageCode;
 
-  // 使用 ref 跟踪是否已经初始化过
-  const isInitializedRef = useRef(false);
-
-  // 初始化时，如果 prop 提供了 locale，同步到 store（仅执行一次）
+  // 初始化时，如果 prop 提供了 locale，同步到 store
   useEffect(() => {
-    if (!isInitializedRef.current && locale && locale !== languageCode) {
+    if (locale && locale !== languageCode) {
       setLanguage(locale);
-      isInitializedRef.current = true;
     }
   }, [locale, languageCode, setLanguage]);
 
@@ -118,9 +114,8 @@ export const ChatContainer = ({ locale, children }: ChatContainerProps) => {
       <div
         data-component="chat-container"
         data-theme={theme.mode}
-        data-theme-resolved={theme.resolvedMode}
         data-language={currentLanguage}
-        className={theme.resolvedMode === ThemeModeEnum.Dark ? 'dark' : ''}
+        className={theme.mode === ThemeModeEnum.Dark ? 'dark' : ''}
       >
         {typeof children === 'function'
           ? (children as (store: ReturnType<typeof useChatStore>) => ReactNode)(

@@ -111,8 +111,6 @@ export interface ThemeState {
   mode: ThemeModeEnum;
   /** 系统是否偏好深色 */
   systemPrefersDark: boolean;
-  /** 最终解析后的主题模式（仅 light / dark） */
-  resolvedMode: ThemeModeEnum;
   /** 自定义主题配置 */
   customConfig?: ThemeConfig;
 }
