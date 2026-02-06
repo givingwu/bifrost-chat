@@ -250,18 +250,6 @@ const meta: Meta<typeof DefaultChatLayout> = {
   component: DefaultChatLayout,
   tags: ['autodocs'],
   argTypes: {
-    children: {
-      control: false,
-      description: '消息区域内容（通常传入 InfiniteMessageList）',
-      table: {
-        type: {
-          summary: 'ReactNode',
-        },
-        defaultValue: {
-          summary: 'undefined',
-        },
-      },
-    },
     className: {
       control: 'text',
       description: 'class name',

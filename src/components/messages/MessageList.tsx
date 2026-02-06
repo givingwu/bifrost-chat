@@ -4,6 +4,9 @@ import type { StandardMessage } from '@/interfaces/message.interface';
 import { useTranslation } from '@/providers/I18n.provider';
 import {
   estimateMessageHeight,
+  getCachedMessageHeight,
+  getMessageHeightCacheKey,
+  MESSAGE_LIST_ITEM_GAP,
   setCachedMessageHeight,
 } from '@/utils/message-height.util';
 import { MessageRendererFactory } from './MessageRendererFactory';
@@ -27,7 +30,7 @@ export interface MessageListProps {
  * @features
  * - 虚拟滚动：只渲染可见区域的消息，支持 1000+ 条消息不卡顿
  * - 动态高度：自动测量不同类型消息的实际高度
- * - 性能优化：使用 WeakMap 缓存已测量的消息高度
+ * - 性能优化：使用稳定 key 缓存已测量的消息高度
  * - 向后兼容：可通过 `enableVirtualization` 禁用虚拟滚动
  *
  * @example
@@ -56,9 +59,13 @@ export const MessageList = ({
   const virtualizer = useVirtualizer({
     count: shouldUseVirtualization ? messages.length : 0,
     getScrollElement: () => scrollRef.current,
+    getItemKey: (index) => {
+      const message = messages[index];
+      return getMessageHeightCacheKey(message) ?? index;
+    },
     estimateSize: (index) => {
       const message = messages[index];
-      return estimateMessageHeight(message);
+      return getCachedMessageHeight(message) ?? estimateMessageHeight(message);
     },
     measureElement: (element) => {
       if (!element) return 0;
@@ -74,6 +81,7 @@ export const MessageList = ({
 
       return height;
     },
+    gap: MESSAGE_LIST_ITEM_GAP,
     overscan: 5, // 预渲染上下各 5 个元素
   });
 
@@ -127,6 +135,7 @@ export const MessageList = ({
           {virtualItems.map((virtualItem) => (
             <div
               key={virtualItem.key}
+              ref={virtualizer.measureElement}
               data-index={virtualItem.index}
               style={{
                 position: 'absolute',

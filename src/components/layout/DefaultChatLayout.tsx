@@ -3,6 +3,7 @@ import { ComposerWithSend } from '@/components/composer/ComposerWithSend';
 import { ConversationHeader } from '@/components/conversation/ConversationHeader';
 import { ConversationList } from '@/components/conversation/ConversationList';
 import { ConversationPanel } from '@/components/conversation/ConversationPanel';
+import { InfiniteMessageList } from '@/components/messages/InfiniteMessageList';
 import { Profile } from '@/components/profile/Profile';
 import { TemplatePanel } from '@/components/template/TemplatePanel';
 import { ChannelFilter } from '@/components/toolbar/ChannelFilter';
@@ -20,8 +21,6 @@ import { ChatLayout } from './ChatLayout';
 export interface DefaultChatLayoutProps {
   className?: string;
   style?: React.CSSProperties;
-  /** 消息区域内容（可选） */
-  children?: ReactNode;
 }
 
 /**
@@ -49,7 +48,6 @@ export interface DefaultChatLayoutProps {
 export function DefaultChatLayout({
   className,
   style,
-  children,
 }: DefaultChatLayoutProps) {
   const { t } = useTranslation();
   const actions = useActions();
@@ -200,7 +198,7 @@ export function DefaultChatLayout({
       }
     >
       {/* 消息区域由 MessageList 渲染 */}
-      {children}
+      <InfiniteMessageList conversationId={activeConversationId as string} />
     </ChatLayout>
   );
 }

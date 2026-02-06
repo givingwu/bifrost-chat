@@ -4,6 +4,32 @@ import {
 } from '@/interfaces/message.interface';
 
 /**
+ * 消息列表项间距（对应 Tailwind `gap-2`）
+ */
+export const MESSAGE_LIST_ITEM_GAP = 8;
+
+/**
+ * 获取消息高度缓存 key
+ *
+ * @description
+ * 优先使用 tempId，保证 optimistic 消息在 ACK 回填 id 后仍可命中缓存；
+ * 当 tempId 不存在时回退到 id。
+ */
+export function getMessageHeightCacheKey(
+  message: StandardMessage,
+): string | null {
+  if (message.tempId) {
+    return `temp:${message.tempId}`;
+  }
+
+  if (message.id) {
+    return `id:${message.id}`;
+  }
+
+  return null;
+}
+
+/**
  * 估算消息高度（用于虚拟滚动初始化）
  *
  * @description
@@ -94,9 +120,9 @@ function getTextLength(message: StandardMessage): number {
  *
  * @description
  * 缓存已测量的消息高度，避免重复计算。
- * 使用 WeakMap 自动清理不再使用的消息对象。
+ * 使用稳定 key（tempId/id）持久化缓存，避免对象引用变化导致缓存失效。
  */
-const messageHeightCache = new WeakMap<StandardMessage, number>();
+const messageHeightCache = new Map<string, number>();
 
 /**
  * 获取缓存的消息高度
@@ -107,7 +133,13 @@ const messageHeightCache = new WeakMap<StandardMessage, number>();
 export function getCachedMessageHeight(
   message: StandardMessage,
 ): number | undefined {
-  return messageHeightCache.get(message);
+  const cacheKey = getMessageHeightCacheKey(message);
+
+  if (!cacheKey) {
+    return undefined;
+  }
+
+  return messageHeightCache.get(cacheKey);
 }
 
 /**
@@ -120,7 +152,13 @@ export function setCachedMessageHeight(
   message: StandardMessage,
   height: number,
 ): void {
-  messageHeightCache.set(message, height);
+  const cacheKey = getMessageHeightCacheKey(message);
+
+  if (!cacheKey) {
+    return;
+  }
+
+  messageHeightCache.set(cacheKey, height);
 }
 
 /**
@@ -132,5 +170,11 @@ export function setCachedMessageHeight(
  * @param message - 标准消息对象
  */
 export function clearCachedMessageHeight(message: StandardMessage): void {
-  messageHeightCache.delete(message);
+  const cacheKey = getMessageHeightCacheKey(message);
+
+  if (!cacheKey) {
+    return;
+  }
+
+  messageHeightCache.delete(cacheKey);
 }
