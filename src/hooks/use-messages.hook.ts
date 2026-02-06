@@ -72,7 +72,7 @@ export function useMessages<TParams = any>(
       }
       const messages = await services.messageService.list(
         conversationId,
-        params,
+        { ...(params ?? {}), page: pageParam } as TParams,
       );
 
       return {

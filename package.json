@@ -42,21 +42,14 @@
     "./package.json": "./package.json"
   },
   "types": "./dist/src/index.d.ts",
-  "files": [
-    "dist",
-    "LICENSE",
-    "README.md",
-    "CHANGELOG.md"
-  ],
-  "sideEffects": [
-    "*.css",
-    "dist/styles/*.css"
-  ],
+  "files": ["dist", "LICENSE", "README.md", "CHANGELOG.md"],
+  "sideEffects": ["*.css", "dist/styles/*.css"],
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
-    "build": "rslib build",
+    "build": "rslib build && pnpm run build:css",
+    "build:css": "node scripts/build-css.cjs",
     "build:storybook": "storybook build",
     "check": "biome check --write",
     "dev": "rslib build --watch",

@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react';
 import { cn } from '@/utils/class.util';
+import type { ReactNode } from 'react';
 
 export interface ChatLayoutProps {
   className?: string;
@@ -50,7 +50,8 @@ export const ChatLayout = ({
           </section>
 
           {profilePanel && (
-            <aside className="hidden w-[300px] flex-col border-l border-border bg-muted/40 xl:flex">
+            // <aside className="hidden w-[300px] flex-col border-l border-border bg-muted/40 xl:flex"></aside>
+            <aside className="flex w-[300px] shrink-0 flex-col border-l border-border bg-muted/40">
               {profilePanel}
             </aside>
           )}
