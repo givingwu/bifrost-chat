@@ -29,8 +29,8 @@ export const createStrategySlice: StateCreator<
   StrategySlice
 > = (set) => ({
   strategy: {
-    allowedChannels: [ChannelTypeEnum.SMS],
-    activeChannel: ChannelTypeEnum.SMS,
+    allowedChannels: [ChannelTypeEnum.Waba],
+    activeChannel: ChannelTypeEnum.Waba,
   },
   actions: {
     setStrategy: (payload: Partial<StrategyState>) =>
