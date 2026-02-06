@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ComposerWithSend } from '@/components/composer/ComposerWithSend';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import '@/styles/theme.css';
+import { I18nProvider, zhCNMessages } from '@/index';
 
 /**
  * ComposerWithSend 组件 Story 文档
@@ -45,9 +46,11 @@ const meta: Meta<typeof ComposerWithSend> = {
   decorators: [
     (Story) => (
       <QueryClientProvider client={queryClient}>
-        <div className="w-full max-w-2xl p-4 bg-muted rounded-lg">
-          <Story />
-        </div>
+        <I18nProvider locale="zh-CN" messages={zhCNMessages}>
+          <div className="w-full max-w-2xl p-4 bg-muted rounded-lg">
+            <Story />
+          </div>
+        </I18nProvider>
       </QueryClientProvider>
     ),
   ],

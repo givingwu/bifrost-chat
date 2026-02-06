@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import type { ProfileData } from '@/interfaces/profile.interface';
 import { ProfileHeader } from './ProfileHeader';
 import { ProfileInfoList } from './ProfileInfoList';
@@ -5,6 +6,8 @@ import { ProfileInfoList } from './ProfileInfoList';
 export interface ProfileProps {
   /** 用户信息 */
   profile?: ProfileData;
+  /** 子元素 */
+  children?: ReactNode;
 }
 
 /**

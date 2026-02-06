@@ -9,6 +9,7 @@ import '@/styles/theme.css';
 import {
   type IConversationService,
   type IMessageService,
+  type ITemplateService,
   ServiceProvider,
 } from '@/index';
 import { AgentStatusEnum } from '@/interfaces/agent.interface';
@@ -23,6 +24,7 @@ import {
   MessageStatusEnum,
   MessageTypeEnum,
 } from '@/interfaces/message.interface';
+import type { Template } from '@/interfaces/template.interface';
 
 /**
  * DefaultChatLayout 组件 Story 文档
@@ -171,6 +173,68 @@ class MockMessageService implements IMessageService {
   }
 }
 
+class MockTemplateService implements ITemplateService {
+  async list() {
+    const templates: Template[] = [
+      {
+        id: '1',
+        name: '问候',
+        content: '您好，有什么可以帮助您的吗？',
+        category: '常用',
+        tags: ['问候', '开场'],
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      },
+      {
+        id: '2',
+        name: '感谢',
+        content: '非常感谢您的支持！',
+        category: '常用',
+        tags: ['感谢', '礼貌'],
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      },
+      {
+        id: '3',
+        name: '跟进',
+        content: '您好，我想跟进一下我们之前的沟通，请问您还有什么疑问吗？',
+        category: '销售',
+        tags: ['跟进', '销售'],
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      },
+      {
+        id: '4',
+        name: '预约',
+        content: '您好，请问您方便安排一个时间进行详细沟通吗？',
+        category: '业务',
+        tags: ['预约', '沟通'],
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      },
+      {
+        id: '5',
+        name: '结束语',
+        content: '祝您生活愉快！',
+        category: '常用',
+        tags: ['结束语', '礼貌'],
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      },
+    ];
+    return templates;
+  }
+
+  async send(params: any) {
+    const result = {
+      tempId: `temp-${Date.now()}`,
+      messageId: `msg-${Date.now()}`,
+      status: MessageStatusEnum.Sent,
+    };
+    return result;
+  }
+}
+
 // 创建 QueryClient
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -205,7 +269,7 @@ const meta: Meta<typeof DefaultChatLayout> = {
         <ServiceProvider
           conversationService={new MockConversationService()}
           messageService={new MockMessageService()}
-          templateService={{} as any}
+          templateService={new MockTemplateService()}
         >
           <I18nProvider locale="zh-CN" messages={zhCN}>
             <div className="w-full h-[900px]">
@@ -326,7 +390,7 @@ export const English: Story = {
         <ServiceProvider
           conversationService={new MockConversationService()}
           messageService={new MockMessageService()}
-          templateService={{} as any}
+          templateService={new MockTemplateService()}
         >
           <I18nProvider locale="en-US" messages={enUS}>
             <div className="w-full h-[900px]">

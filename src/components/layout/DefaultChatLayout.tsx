@@ -1,9 +1,10 @@
-import type { ReactNode } from 'react';
+import { type ReactNode, useMemo } from 'react';
 import { ComposerToolbarContainer } from '@/components/composer/ComposerWithSend';
 import { ConversationHeader } from '@/components/conversation/ConversationHeader';
 import { ConversationList } from '@/components/conversation/ConversationList';
 import { ConversationPanel } from '@/components/conversation/ConversationPanel';
 import { Profile } from '@/components/profile/Profile';
+import { TemplatePanel } from '@/components/template/TemplatePanel';
 import { ChannelFilter } from '@/components/toolbar/ChannelFilter';
 import { Topbar } from '@/components/toolbar/Topbar';
 import { TopbarTools } from '@/components/toolbar/TopbarTools';
@@ -43,24 +44,24 @@ export interface DefaultChatLayoutProps {
 export function DefaultChatLayout({ children }: DefaultChatLayoutProps) {
   const { t } = useTranslation();
   const strategy = useStrategy();
-  const conversation = useConversation();
-  const profileState = useProfile();
+  const { activeConversationId } = useConversation();
+  const { profile } = useProfile();
   const actions = useActions();
-  const { data: conversations } = useConversations();
-
-  // 获取当前激活的会话 ID
-  const activeConversationId = conversation.activeConversationId;
+  const { data: conversations = [] } = useConversations();
 
   // 从会话列表中找到当前激活的会话
-  const activeConversation = conversations?.find(
-    (c) => c.id === activeConversationId,
+  const activeConversation = useMemo(
+    () =>
+      conversations?.find(
+        (conversation) => conversation.id === activeConversationId,
+      ),
+    [activeConversationId, conversations?.find],
   );
 
   // 计算 title：如果有激活的会话，显示用户名；否则显示默认标题
   const title = activeConversation
     ? activeConversation.user.name
     : t('conversation.title');
-
   // 计算 subtitle：如果有激活的会话，显示"渠道 · 状态"；否则显示当前渠道
   const subtitle = activeConversation
     ? `${t(`toolbar.channel.${activeConversation.channel}`)} · ${t(`conversation.status.${activeConversation.status || 'active'}`)}`
@@ -102,7 +103,12 @@ export function DefaultChatLayout({ children }: DefaultChatLayoutProps) {
           />
         ) : null
       }
-      profilePanel={<Profile profile={profileState.profile} />}
+      profilePanel={
+        <div className="h-full flex flex-col">
+          <Profile profile={profile} />
+          <TemplatePanel />
+        </div>
+      }
     >
       {/* 消息区域由 MessageList 渲染 */}
       {children}

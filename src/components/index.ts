@@ -51,9 +51,9 @@ export { ProfileInfoList } from './profile/ProfileInfoList';
 export { ProfileSectionTitle } from './profile/ProfileSectionTitle';
 export { SearchInput } from './SearchInput';
 // Template components
-export { TemplateList } from './templates/TemplateList';
-export { TemplatePanel } from './templates/TemplatePanel';
-export { TemplateSearch } from './templates/TemplateSearch';
+export { TemplateList } from './template/TemplateList';
+export { TemplatePanel } from './template/TemplatePanel';
+export { TemplateSearch } from './template/TemplateSearch';
 // Toolbar Components
 export { ChannelBadge } from './toolbar/ChannelBadge';
 export { ChannelButtonFactory } from './toolbar/ChannelButtonFactory';

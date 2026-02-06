@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { TemplateSearch } from '@/components/templates/TemplateSearch';
+import { TemplateSearch } from '@/components/template/TemplateSearch';
 import '@/styles/theme.css';
 
 /**
