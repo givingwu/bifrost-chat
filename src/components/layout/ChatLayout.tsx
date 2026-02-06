@@ -54,12 +54,7 @@ export const ChatLayout = ({
             )}
           </section>
 
-          {profilePanel && (
-            // <aside className="hidden w-[300px] flex-col border-l border-border bg-muted/40 xl:flex"></aside>
-            <aside className="flex w-[300px] shrink-0 flex-col border-l border-border bg-muted/40">
-              {profilePanel}
-            </aside>
-          )}
+          {profilePanel}
         </main>
       </section>
     </div>

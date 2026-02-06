@@ -10,7 +10,6 @@ import { Topbar } from '@/components/toolbar/Topbar';
 import { TopbarTools } from '@/components/toolbar/TopbarTools';
 import { useConversations } from '@/hooks/use-conversations.hook';
 import { useSendMessage } from '@/hooks/use-send-message.hook';
-import { AvailableChannelTypes } from '@/interfaces/channel.interface';
 import type { Conversation } from '@/interfaces/conversation.interface';
 import type { Template } from '@/interfaces/template.interface';
 import { useTranslation } from '@/providers/I18n.provider';
@@ -186,10 +185,10 @@ export function DefaultChatLayout({ children }: DefaultChatLayoutProps) {
         ) : null
       }
       profilePanel={
-        <div className="h-full flex flex-col">
+        <aside className="flex w-[300px] shrink-0 border-l border-gray-200/50 dark:border-white/10 flex-col bg-gray-50/50 dark:bg-black/20">
           {profile && <Profile profile={profile} />}
           <TemplatePanel onTemplateSelect={handleTemplateSelect} />
-        </div>
+        </aside>
       }
     >
       {/* 消息区域由 MessageList 渲染 */}

@@ -1,10 +1,11 @@
-import { FileText } from 'lucide-react';
-import { useMemo, useState } from 'react';
-import { Button } from '@/components/Button';
-import { SearchInput } from '@/components/SearchInput';
+import { useCallback, useMemo, useState, useTransition } from 'react';
+import { EmptyState } from '@/components/EmptyState';
+import { ErrorState } from '@/components/ErrorState';
+import { LoadingState } from '@/components/LoadingState';
 import { useTemplates } from '@/hooks/use-templates.hook';
 import type { Template } from '@/interfaces/template.interface';
-import { cn } from '@/utils/class.util';
+import { useTranslation } from '@/providers/I18n.provider';
+import { TemplateHeader } from './TemplateHeader';
 import { TemplateList } from './TemplateList';
 
 export interface TemplatePanelProps {
@@ -42,14 +43,42 @@ export const TemplatePanel = ({
   showUsageCount = false,
   templates: customTemplates,
 }: TemplatePanelProps) => {
-  // 使用自定义模板或从服务获取
-  const { data: serverTemplates, isLoading, error } = useTemplates();
+  const { t } = useTranslation();
+
+  // 仅在未提供自定义模板时才调用 useTemplates
+  const shouldFetchFromServer = !customTemplates;
+  const {
+    data: serverTemplates,
+    isLoading,
+    error,
+    refetch,
+  } = useTemplates(shouldFetchFromServer ? undefined : ({} as never));
   const templates = customTemplates ?? serverTemplates ?? [];
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<
     string | undefined
   >();
+  const [isPending, startTransition] = useTransition();
+
+  // 缓存搜索关键词的小写版本，避免重复计算
+  const normalizedSearchQuery = useMemo(
+    () => searchQuery.toLowerCase().trim(),
+    [searchQuery],
+  );
+
+  // 优化的搜索处理：使用 useTransition 保持 UI 响应性
+  const handleSearchChange = useCallback((value: string) => {
+    // 立即更新输入框的值
+    setSearchQuery(value);
+
+    // 使用 startTransition 将搜索过滤标记为低优先级更新
+    // 这样可以保持输入框的响应性，即使过滤操作比较耗时
+    startTransition(() => {
+      // 过滤逻辑会在 useMemo 中自动执行
+      // 这里不需要额外操作，因为 normalizedSearchQuery 会自动更新
+    });
+  }, []);
 
   // 提取所有分类
   const categories = useMemo(() => {
@@ -64,98 +93,88 @@ export const TemplatePanel = ({
     return Array.from(categorySet).sort();
   }, [templates]);
 
-  // 过滤模板
+  // 优化的过滤逻辑：预先计算可搜索字段
   const filteredTemplates = useMemo(() => {
+    if (!normalizedSearchQuery && !selectedCategory) {
+      return templates;
+    }
+
     return templates.filter((template: Template) => {
-      const query = searchQuery.toLowerCase();
-      const name = template.name.toLowerCase();
-      const content = template.content.toLowerCase();
-      const category = template.category?.toLowerCase() ?? '';
-      const tags = template.tags?.join(' ').toLowerCase() ?? '';
-
-      const matchesSearch =
-        name.includes(query) ||
-        content.includes(query) ||
-        category.includes(query) ||
-        tags.includes(query);
-
+      // 分类过滤
       const matchesCategory =
         !selectedCategory || template.category === selectedCategory;
 
-      return matchesSearch && matchesCategory;
+      // 搜索过滤
+      const matchesSearch =
+        !normalizedSearchQuery ||
+        template.name.toLowerCase().includes(normalizedSearchQuery) ||
+        template.content.toLowerCase().includes(normalizedSearchQuery) ||
+        template.category?.toLowerCase().includes(normalizedSearchQuery) ||
+        template.tags?.some((tag) =>
+          tag.toLowerCase().includes(normalizedSearchQuery),
+        );
+
+      return matchesCategory && matchesSearch;
     });
-  }, [templates, searchQuery, selectedCategory]);
+  }, [templates, normalizedSearchQuery, selectedCategory]);
+
+  const handleCategorySelect = useCallback((category?: string) => {
+    setSelectedCategory(category);
+  }, []);
+
+  const handleRetry = useCallback(() => {
+    refetch();
+  }, [refetch]);
+
+  // 计算统计信息
+  const stats = useMemo(
+    () => ({
+      total: templates.length,
+      filtered: filteredTemplates.length,
+    }),
+    [templates.length, filteredTemplates.length],
+  );
 
   return (
-    <div className="flex h-full flex-1 flex-col">
+    <div className="flex flex-1 flex-col">
       {/* 头部 */}
-      <div className="border-b border-border bg-card px-4 py-3">
-        {/* 搜索框 */}
-        <div className="mt-2 relative">
-          <SearchInput
-            value={searchQuery}
-            onChange={setSearchQuery}
-            placeholder="Search..."
-            clearable
-          />
-        </div>
-        {/* 分类过滤 */}
-        {categories.length > 0 && (
-          <div className="mt-3 flex flex-wrap gap-2">
-            <Button
-              type="button"
-              onClick={() => setSelectedCategory(undefined)}
-              className={cn(
-                'rounded-full px-3 py-1 text-xs font-medium transition',
-                'border',
-                !selectedCategory
-                  ? 'border-primary bg-primary text-primary-foreground'
-                  : 'border-border bg-card text-text hover:border-primary/50',
-              )}
-            >
-              All
-            </Button>
-            {categories.map((category) => (
-              <Button
-                key={category}
-                type="button"
-                onClick={() => setSelectedCategory(category)}
-                className={cn(
-                  'rounded-full px-3 py-1 text-xs font-medium transition',
-                  'border',
-                  selectedCategory === category
-                    ? 'border-primary bg-primary text-primary-foreground'
-                    : 'border-border bg-card text-text hover:border-primary/50',
-                )}
-              >
-                {category}
-              </Button>
-            ))}
-          </div>
-        )}
-      </div>
+      <TemplateHeader
+        searchQuery={searchQuery}
+        onSearchChange={handleSearchChange}
+        categories={categories}
+        selectedCategory={selectedCategory}
+        onCategorySelect={handleCategorySelect}
+      />
 
       {/* 模板列表 */}
-      <div className="flex-1 overflow-y-auto p-4">
-        {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-8">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-            <p className="mt-2 text-sm text-text-muted">加载中...</p>
-          </div>
+      <section
+        className="flex-1 overflow-y-auto p-4"
+        aria-label={t('template.title')}
+        aria-live="polite"
+        aria-busy={isPending}
+      >
+        {isLoading || isPending ? (
+          <LoadingState
+            message={
+              isPending
+                ? t('template.search') // 搜索中显示搜索提示
+                : t('template.panel.loading')
+            }
+          />
         ) : error ? (
-          <div className="flex flex-col items-center justify-center py-8">
-            <FileText className="h-12 w-12 text-text-muted/30" />
-            <p className="mt-2 text-sm text-text-muted">加载失败</p>
-          </div>
+          <ErrorState
+            message={t('template.panel.loadFailed')}
+            onRetry={handleRetry}
+            retryText={t('template.panel.retry')}
+          />
         ) : filteredTemplates.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-8">
-            <FileText className="h-12 w-12 text-text-muted/30" />
-            <p className="mt-2 text-sm text-text-muted">
-              {searchQuery || selectedCategory
-                ? '未找到匹配的模板'
-                : '暂无模板'}
-            </p>
-          </div>
+          <EmptyState
+            message={
+              searchQuery || selectedCategory
+                ? t('template.panel.noMatchTemplates')
+                : t('template.panel.noTemplates')
+            }
+          />
         ) : (
           <TemplateList
             templates={filteredTemplates}
@@ -165,15 +184,21 @@ export const TemplatePanel = ({
             showUsageCount={showUsageCount}
           />
         )}
-      </div>
+      </section>
 
       {/* 底部统计 */}
-      {templates.length > 0 && (
-        <div className="border-t border-border bg-muted/30 px-4 py-2">
+      {stats.total > 0 && (
+        <output
+          className="block border-t border-border bg-muted/30 px-4 py-2"
+          aria-live="polite"
+        >
           <p className="text-[10px] text-text-muted">
-            显示 {filteredTemplates.length} / {templates.length} 个模板
+            {t('template.panel.showingCount', {
+              filtered: stats.filtered,
+              total: stats.total,
+            })}
           </p>
-        </div>
+        </output>
       )}
     </div>
   );

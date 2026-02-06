@@ -18,8 +18,11 @@ export { ConversationHeader } from './conversation/ConversationHeader';
 export { ConversationItem } from './conversation/ConversationItem';
 export { ConversationList } from './conversation/ConversationList';
 export { ConversationPanel } from './conversation/ConversationPanel';
+export { EmptyState } from './EmptyState';
+export { ErrorState } from './ErrorState';
 export { IconButton } from './IconButton';
 export { Image } from './Image';
+export { LoadingState } from './LoadingState';
 // Layout Components
 export { ChatContainer } from './layout/ChatContainer';
 export { ChatLayout } from './layout/ChatLayout';
@@ -48,6 +51,8 @@ export { ProfileInfoList } from './profile/ProfileInfoList';
 export { ProfileSectionTitle } from './profile/ProfileSectionTitle';
 export { SearchInput } from './SearchInput';
 // Template components
+export { TemplateCategoryButton } from './template/TemplateCategoryButton';
+export { TemplateHeader } from './template/TemplateHeader';
 export { TemplateList } from './template/TemplateList';
 export { TemplatePanel } from './template/TemplatePanel';
 export { TemplateSearch } from './template/TemplateSearch';
