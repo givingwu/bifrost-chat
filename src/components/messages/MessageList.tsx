@@ -25,7 +25,7 @@ export const MessageList = ({ messages }: MessageListProps) => {
   return (
     <div
       data-component="message-list"
-      className="flex h-full flex-col gap-2 rounded-2xl bg-card/60 shadow-soft"
+      className="flex h-full flex-col gap-2 overflow-y-auto rounded-2xl bg-card/60 shadow-soft"
     >
       {messages.length ? (
         messages.map((message) => (

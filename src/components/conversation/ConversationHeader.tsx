@@ -1,11 +1,6 @@
-import {
-  type ChangeEvent,
-  type KeyboardEvent,
-  memo,
-  type ReactNode,
-  useCallback,
-} from 'react';
+import { memo, type ReactNode } from 'react';
 import { cn } from '@/utils/class.util';
+import { SearchInput } from '../SearchInput';
 
 export interface ConversationHeaderProps {
   /** 自定义类名 */
@@ -44,24 +39,6 @@ export const ConversationHeader = memo(
     onSearchChange,
     onSearchSubmit,
   }: ConversationHeaderProps) => {
-    // 处理搜索输入变化
-    const handleSearchChange = useCallback(
-      (event: ChangeEvent<HTMLInputElement>) => {
-        onSearchChange?.(event.target.value);
-      },
-      [onSearchChange],
-    );
-
-    // 处理搜索提交
-    const handleSearchKeyDown = useCallback(
-      (event: KeyboardEvent<HTMLInputElement>) => {
-        if (event.key === 'Enter' && onSearchSubmit) {
-          onSearchSubmit(searchValue);
-        }
-      },
-      [onSearchSubmit, searchValue],
-    );
-
     return (
       <div className={cn('p-4 pt-6 pb-2 space-y-4', className)}>
         {title &&
@@ -75,16 +52,13 @@ export const ConversationHeader = memo(
 
         {showSearch && (
           <div className="relative" data-component="conversation-list-search">
-            <input
+            <SearchInput
               type="search"
               placeholder={searchPlaceholder}
               value={searchValue}
-              onChange={handleSearchChange}
-              onKeyDown={handleSearchKeyDown}
-              className={cn(
-                'w-full bg-gray-200/50 dark:bg-white/10 border-none rounded-xl px-4 py-2 text-sm focus:bg-white dark:focus:bg-black/40',
-                'focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-gray-900 dark:text-white placeholder-gray-500',
-              )}
+              onChange={onSearchChange}
+              onEnter={onSearchSubmit}
+              clearable
               aria-label="搜索会话"
             />
           </div>

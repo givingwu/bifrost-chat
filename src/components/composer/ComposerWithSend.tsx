@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { memo, useCallback } from 'react';
 import { useSendMessage } from '@/hooks/use-send-message.hook';
 import type { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import { ComposerToolbar } from './ComposerToolbar';
@@ -33,7 +33,7 @@ export interface ComposerWithSendProps {
  * }
  * ```
  */
-export function ComposerWithSend({
+export const ComposerWithSend = memo(function ComposerWithSend({
   conversationId,
   channel,
   className,
@@ -65,7 +65,6 @@ export function ComposerWithSend({
       />
     </div>
   );
-}
+});
 
-// 为了向后兼容，导出别名
-export const ComposerToolbarContainer = ComposerWithSend;
+ComposerWithSend.displayName = 'ComposerWithSend';

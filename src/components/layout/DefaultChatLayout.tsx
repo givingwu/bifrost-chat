@@ -1,5 +1,5 @@
-import { type ReactNode, useMemo } from 'react';
-import { ComposerToolbarContainer } from '@/components/composer/ComposerWithSend';
+import { type ReactNode, useCallback, useMemo, useTransition } from 'react';
+import { ComposerWithSend } from '@/components/composer/ComposerWithSend';
 import { ConversationHeader } from '@/components/conversation/ConversationHeader';
 import { ConversationList } from '@/components/conversation/ConversationList';
 import { ConversationPanel } from '@/components/conversation/ConversationPanel';
@@ -9,7 +9,10 @@ import { ChannelFilter } from '@/components/toolbar/ChannelFilter';
 import { Topbar } from '@/components/toolbar/Topbar';
 import { TopbarTools } from '@/components/toolbar/TopbarTools';
 import { useConversations } from '@/hooks/use-conversations.hook';
+import { useSendMessage } from '@/hooks/use-send-message.hook';
 import { AvailableChannelTypes } from '@/interfaces/channel.interface';
+import type { Conversation } from '@/interfaces/conversation.interface';
+import type { Template } from '@/interfaces/template.interface';
 import { useTranslation } from '@/providers/I18n.provider';
 import { useActions, useConversation, useProfile, useStrategy } from '@/store';
 import { ChatLayout } from './ChatLayout';
@@ -43,11 +46,15 @@ export interface DefaultChatLayoutProps {
  */
 export function DefaultChatLayout({ children }: DefaultChatLayoutProps) {
   const { t } = useTranslation();
-  const strategy = useStrategy();
-  const { activeConversationId } = useConversation();
-  const { profile } = useProfile();
   const actions = useActions();
+  const strategy = useStrategy();
+  const { profile } = useProfile();
+  const sendMessage = useSendMessage();
   const { data: conversations = [] } = useConversations();
+  const { activeConversationId, searchQuery } = useConversation();
+
+  // 使用 useTransition 标记搜索过滤为过渡更新（低优先级）
+  const [isPending, startTransition] = useTransition();
 
   // 从会话列表中找到当前激活的会话
   const activeConversation = useMemo(
@@ -57,7 +64,6 @@ export function DefaultChatLayout({ children }: DefaultChatLayoutProps) {
       ),
     [activeConversationId, conversations?.find],
   );
-
   // 计算 title：如果有激活的会话，显示用户名；否则显示默认标题
   const title = activeConversation
     ? activeConversation.user.name
@@ -66,6 +72,77 @@ export function DefaultChatLayout({ children }: DefaultChatLayoutProps) {
   const subtitle = activeConversation
     ? `${t(`toolbar.channel.${activeConversation.channel}`)} · ${t(`conversation.status.${activeConversation.status || 'active'}`)}`
     : strategy.activeChannel;
+
+  // 搜索过滤逻辑（使用 startTransition 标记为过渡更新）
+  const filteredConversations = useMemo(() => {
+    if (!searchQuery) {
+      return conversations;
+    }
+
+    const query = searchQuery.toLowerCase().trim();
+
+    return conversations.filter((conversation: Conversation) => {
+      // 搜索用户名
+      const userName = conversation.user.name?.toLowerCase() || '';
+      // 搜索最后一条消息
+      const lastMessage = conversation.lastMessage?.toLowerCase() || '';
+      // 搜索会话 ID
+      const conversationId = conversation.id?.toLowerCase() || '';
+
+      return (
+        userName.includes(query) ||
+        lastMessage.includes(query) ||
+        conversationId.includes(query)
+      );
+    });
+  }, [conversations, searchQuery]);
+
+  // 搜索回调（使用 startTransition 标记为过渡更新）
+  const handleSearchChange = useCallback(
+    (value: string) => {
+      // 使用 startTransition 标记状态更新为低优先级
+      // 这样可以确保输入框的更新优先于搜索过滤
+      startTransition(() => {
+        actions.setSearchQuery(value);
+      });
+    },
+    [actions],
+  );
+  const handleSearchSubmit = useCallback(
+    (value: string) => {
+      console.log('搜索会话:', value);
+      // 搜索提交时，立即更新搜索关键词
+      actions.setSearchQuery(value);
+    },
+    [actions],
+  );
+  /**
+   * TODO: 这里需要支持 2 种模式
+   * 1. 点击模版后直接发送。（当前模式）
+   * 2. 点击模版后将文案输出到 Composer 输入框，然后用户自己决定修改后发或者直接发
+   */
+  const handleTemplateSelect = useCallback(
+    async (template: Template) => {
+      if (!activeConversationId) {
+        return;
+      }
+
+      try {
+        await sendMessage.mutateAsync({
+          conversationId: activeConversationId,
+          content: template.content,
+          extra: {
+            templateId: template.id,
+            templateName: template.name,
+            templateCategory: template.category,
+          },
+        });
+      } catch (error) {
+        console.error('Failed to send template message:', error);
+      }
+    },
+    [activeConversationId, sendMessage],
+  );
 
   return (
     <ChatLayout
@@ -81,7 +158,12 @@ export function DefaultChatLayout({ children }: DefaultChatLayoutProps) {
       conversationPanel={
         <ConversationPanel
           header={
-            <ConversationHeader title={t('title')}>
+            <ConversationHeader
+              title={t('title')}
+              searchValue={searchQuery}
+              onSearchChange={handleSearchChange}
+              onSearchSubmit={handleSearchSubmit}
+            >
               <ChannelFilter
                 channels={AvailableChannelTypes}
                 activeChannel={strategy.activeChannel}
@@ -90,14 +172,17 @@ export function DefaultChatLayout({ children }: DefaultChatLayoutProps) {
             </ConversationHeader>
           }
         >
-          <ConversationList
-            onSelect={(id) => actions.setActiveConversationId(id)}
-          />
+          <div className={isPending ? 'animate-pulse' : ''}>
+            <ConversationList
+              conversations={filteredConversations}
+              onSelect={actions.setActiveConversationId}
+            />
+          </div>
         </ConversationPanel>
       }
       composer={
         activeConversationId ? (
-          <ComposerToolbarContainer
+          <ComposerWithSend
             conversationId={activeConversationId}
             channel={strategy.activeChannel}
           />
@@ -106,7 +191,7 @@ export function DefaultChatLayout({ children }: DefaultChatLayoutProps) {
       profilePanel={
         <div className="h-full flex flex-col">
           {profile && <Profile profile={profile} />}
-          <TemplatePanel />
+          <TemplatePanel onTemplateSelect={handleTemplateSelect} />
         </div>
       }
     >

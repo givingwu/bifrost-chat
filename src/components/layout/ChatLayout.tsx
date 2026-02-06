@@ -1,5 +1,5 @@
-import { cn } from '@/utils/class.util';
 import type { ReactNode } from 'react';
+import { cn } from '@/utils/class.util';
 
 export interface ChatLayoutProps {
   className?: string;
@@ -44,9 +44,14 @@ export const ChatLayout = ({
         {topbar}
 
         <main className="flex flex-1">
-          <section className="flex min-w-0 flex-1 flex-col bg-card/40">
-            <div className="flex-1 px-6 py-4">{children}</div>
-            {composer && <div className="px-6 pb-6">{composer}</div>}
+          <section className="relative flex min-w-0 flex-1 flex-col bg-card/40">
+            {children}
+
+            {composer && (
+              <div className="absolute bottom-0 left-0 right-0 px-6 pb-6">
+                {composer}
+              </div>
+            )}
           </section>
 
           {profilePanel && (

@@ -6,26 +6,22 @@ import {
 } from 'react';
 import { useTranslation } from '@/providers/I18n.provider';
 import { cn } from '@/utils/class.util';
+import { Button } from './Button';
 
-export interface SearchInputProps {
-  /** 搜索值 */
-  value?: string;
+export interface SearchInputProps
+  extends Omit<Partial<HTMLInputElement>, 'size'> {
   /** 搜索回调 */
   onChange?: (value: string) => void;
-  /** 占位符文本 */
-  placeholder?: string;
-  /** 自定义类名 */
-  className?: string;
-  /** 是否禁用 */
-  disabled?: boolean;
-  /** 输入框名称 */
-  name?: string;
+  /** 回车回调 */
+  onEnter?: (value: string) => void;
   /** 图标 */
   icon?: ReactNode;
   /** 大小 */
   size?: 'sm' | 'md' | 'lg';
   /** 是否显示边框 */
   bordered?: boolean;
+  /** 支持清空 */
+  clearable?: boolean;
 }
 
 const sizeClasses = {
@@ -54,7 +50,9 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
   (
     {
       value = '',
+      type = 'text',
       onChange,
+      onEnter,
       placeholder,
       className,
       disabled = false,
@@ -62,6 +60,7 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
       icon,
       size = 'md',
       bordered = false,
+      clearable = false,
     },
     ref,
   ) => {
@@ -73,22 +72,41 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
       [onChange],
     );
 
+    const handleClear = useCallback(() => {
+      onChange?.('');
+    }, [onChange]);
+
+    const handleKeyDown = useCallback(
+      (event: React.KeyboardEvent<HTMLInputElement>) => {
+        if (event.key === 'Enter' && onEnter) {
+          onEnter(value);
+        }
+      },
+      [onEnter, value],
+    );
+
     // 使用翻译的占位符，如果没有提供自定义占位符
     const resolvedPlaceholder = placeholder ?? t('search.placeholder');
+
+    const hasValue = value.length > 0;
+    const showClearButton = clearable && hasValue && !disabled;
+    const showIcon = icon && !showClearButton;
 
     return (
       <div className="relative">
         <input
           ref={ref}
-          type="text"
+          type={type}
           name={name}
           value={value}
           onChange={handleChange}
+          onKeyDown={handleKeyDown}
           placeholder={resolvedPlaceholder}
           disabled={disabled}
           className={cn(
-            // 基础样式
-            'w-full rounded-lg outline-none transition-all',
+            `appearance-none border border-gray-300 [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-results-button]:hidden [&::-webkit-search-results-decoration]:hidden [&::-ms-clear]:hidden`,
+            'w-full bg-gray-200/50 dark:bg-white/10 border-none rounded-xl px-4 py-2 text-sm focus:bg-white dark:focus:bg-black/40',
+            'focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-gray-900 dark:text-white placeholder-gray-500',
             // 背景和边框
             bordered
               ? 'border border-border bg-card focus:border-primary focus:ring-2 focus:ring-primary/40'
@@ -102,12 +120,43 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
             // 自定义样式
             className,
           )}
-          style={icon ? { paddingRight: '2rem' } : undefined}
+          aria-label="Search"
+          style={
+            showIcon || showClearButton ? { paddingRight: '2rem' } : undefined
+          }
         />
-        {icon && (
-          <div className="absolute right-2 top-1/2 -translate-y-1/2 text-text-muted">
+        {showIcon && (
+          <div
+            className={cn(
+              'absolute top-1/2 -translate-y-1/2 text-text-muted right-2',
+            )}
+          >
             {icon}
           </div>
+        )}
+        {showClearButton && (
+          <Button
+            type="button"
+            onClick={handleClear}
+            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1 text-text-muted transition-colors hover:bg-gray-200/50 hover:text-text dark:hover:bg-white/10"
+            aria-label="Clear"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <title>Clear</title>
+              <path d="M18 6 6 18" />
+              <path d="m6 6 12 12" />
+            </svg>
+          </Button>
         )}
       </div>
     );
