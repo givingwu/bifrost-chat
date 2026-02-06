@@ -13,9 +13,7 @@
 | 会话列表 | React Query | `useConversations` |
 | 消息列表 | React Query | `useMessages`（Infinite Query） |
 | 模板列表 | React Query | `useTemplates` |
-| 输入草稿 | Zustand | `composerText` |
-| 面板开关 | Zustand | `isTemplatePanelOpen` 等 |
-| 当前激活会话 | Zustand | `activeConversationId`（仅 UI 选择态） |
+| UI 状态 | 外部控制 | 输入草稿、面板开关、当前激活会话等由宿主应用管理 |
 
 ## 3. Query 规范
 
@@ -54,11 +52,12 @@
 - `useTemplates`：模板服务端列表查询
 - `useSendTemplateMessage`（可扩展）：模板发送 mutation
 - `useTemplatePreview`（可扩展）：模板预览查询
-- Zustand 仅保存模板面板交互状态和变量草稿
+- UI 状态（如面板开关、变量草稿）由外部控制
 
 ## 7. 反模式
 
 - 在组件里直接请求 API
 - 会话/消息/模板既写 React Query 又写 Zustand
+- 在 SDK 内部管理 UI 状态（应交由外部控制）
 - 使用 `sessionId`、`useSessions` 等旧术语
 - 在 SDK 文档中引入协议适配实现细节

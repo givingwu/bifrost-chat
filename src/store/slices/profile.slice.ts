@@ -12,6 +12,9 @@ export interface ProfileState extends Record<string, unknown> {
   profile?: ProfileData;
 }
 
+/**
+ * Profile 客户画像
+ */
 export interface ProfileSlice {
   profile: ProfileState;
   actions: {

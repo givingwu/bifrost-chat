@@ -15,7 +15,6 @@ graph TB
     P2[ReactQueryProvider]
     H[Hooks]
     U[Default Components]
-    Z[Zustand UI Store]
   end
 
   C1 --> P1
@@ -24,7 +23,6 @@ graph TB
   P1 --> H
   P2 --> H
   H --> U
-  Z --> U
 ```
 
 ## 2. 发送消息流程
@@ -57,5 +55,4 @@ graph LR
   TAPI[TemplateServiceImpl] --> TQ[useTemplates/useSendTemplateMessage]
   TQ --> TCache[React Query templates cache]
   TCache --> TUI[TemplateList/TemplatePicker]
-  ZUI[Zustand UI state] --> isTemplatePanelOpen/selectedTemplateId/draft --> TUI
 ```

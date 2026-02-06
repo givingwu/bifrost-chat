@@ -14,7 +14,6 @@ graph LR
     DI --> Hooks[React Query Hooks]
     Hooks --> Components[Default Components]
     Hooks --> Cache[React Query Cache]
-    UIState[Zustand UI State] --> Components
 ```
 
 ## 3. 模块职责

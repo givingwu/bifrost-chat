@@ -7,7 +7,7 @@
 - 公开 API 仅使用 `Conversation`
 - 接口注入（ServiceProvider）
 - React Query 管服务端状态（含模板）
-- Zustand 仅保留 UI 本地状态
+- UI 状态由外部控制
 
 ## 2. 分阶段迁移
 
@@ -47,6 +47,6 @@
 - [ ] 无公开 `Session` 命名
 - [ ] 三大服务接口已注入
 - [ ] 模板数据已归 React Query
-- [ ] Zustand 仅保留 UI 状态
+- [ ] UI 状态由外部控制
 - [ ] 发送链路具备 optimistic + rollback
 - [ ] 关键组件 Storybook stories 完整

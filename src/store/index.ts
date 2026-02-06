@@ -15,18 +15,15 @@ import type { StrategySlice, StrategyState } from './slices/strategy.slice';
 import { createStrategySlice } from './slices/strategy.slice';
 import type { ThemeSlice } from './slices/theme.slice';
 import { createThemeSlice } from './slices/theme.slice';
-import type { UiSlice, UiState } from './slices/ui.slice';
-import { createUiSlice } from './slices/ui.slice';
 
 // 导出状态类型，供外部使用
-export type { UiState, StrategyState, ConversationState, ProfileState };
+export type { StrategyState, ConversationState, ProfileState };
 
 /**
  * Chat Store 状态类型
  * 组合所有 Slice 的状态类型
  */
-export type ChatStoreState = UiSlice &
-  StrategySlice &
+export type ChatStoreState = StrategySlice &
   NetworkSlice &
   ThemeSlice &
   LanguageSlice &
@@ -34,7 +31,6 @@ export type ChatStoreState = UiSlice &
   ProfileSlice;
 
 export type ChatStoreConfigState = {
-  ui: UiState;
   strategy: StrategyState;
   network: NetworkSlice['network'];
   theme: ThemeSlice['theme'];
@@ -52,7 +48,6 @@ export type ChatStoreActions = ChatStoreState['actions'];
  * useChatStore：SDK 内部 Zustand Store（Singleton）
  *
  * 这个 Store 管理整个聊天应用的状态，包括：
- * - UI 状态（打开、最小化、加载等）
  * - 策略状态（允许的渠道、当前渠道、坐席状态等）
  * - 网络状态（连接状态、质量等）
  * - 主题状态（模式、系统偏好等）
@@ -71,7 +66,7 @@ export type ChatStoreActions = ChatStoreState['actions'];
  * @example
  * // 获取 actions
  * const actions = useChatStore(state => state.actions);
- * actions.setUi({ isOpen: true });
+ * actions.setActiveChannel(ChannelTypeEnum.WhatsApp);
  */
 const createDefaultState: StateCreator<
   ChatStoreState,
@@ -79,7 +74,6 @@ const createDefaultState: StateCreator<
   [],
   ChatStoreState
 > = (...args) => {
-  const uiSlice = createUiSlice(...args);
   const strategySlice = createStrategySlice(...args);
   const networkSlice = createNetworkSlice(...args);
   const themeSlice = createThemeSlice(...args);
@@ -88,7 +82,6 @@ const createDefaultState: StateCreator<
   const profileSlice = createProfileSlice(...args);
 
   return {
-    ...uiSlice,
     ...strategySlice,
     ...networkSlice,
     ...themeSlice,
@@ -96,7 +89,6 @@ const createDefaultState: StateCreator<
     ...conversationSlice,
     ...profileSlice,
     actions: {
-      ...uiSlice.actions,
       ...strategySlice.actions,
       ...networkSlice.actions,
       ...themeSlice.actions,
@@ -117,9 +109,6 @@ const mergeInitialState = (
 
   return {
     ...baseState,
-    ui: initialState.ui
-      ? { ...baseState.ui, ...initialState.ui }
-      : baseState.ui,
     strategy: initialState.strategy
       ? { ...baseState.strategy, ...initialState.strategy }
       : baseState.strategy,
@@ -153,8 +142,6 @@ export const configureChatStore = (initialState?: ChatStoreInitialState) => {
 
   useChatStore.setState((state) => mergeInitialState(state, initialState));
 };
-
-export const useUI = () => useChatStore((state) => state.ui);
 
 /**
  * Strategy 状态选择器
@@ -217,7 +204,6 @@ export const useProfile = () => useChatStore((state) => state.profile);
  *
  * @example
  * const actions = useActions();
- * actions.setUi({ isOpen: true });
  * actions.setActiveChannel(ChannelTypeEnum.WhatsApp);
  */
 export const useActions = () => useChatStore((state) => state.actions);

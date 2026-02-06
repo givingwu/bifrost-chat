@@ -11,6 +11,9 @@ export interface ConversationState {
   activeConversationId: string | null;
 }
 
+/**
+ * 会话状态切片
+ */
 export interface ConversationSlice {
   conversation: ConversationState;
   actions: {
