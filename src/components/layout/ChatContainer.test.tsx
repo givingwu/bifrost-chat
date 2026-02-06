@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import type { Mock } from 'vitest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ChatContainer } from '@/components/layout/ChatContainer';
 import { LanguageCodeEnum } from '@/interfaces/language.interface';
@@ -27,7 +28,7 @@ describe('ChatContainer', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (useChatStore as unknown as vi.Mock).mockReturnValue(mockStore);
+    (useChatStore as unknown as Mock).mockReturnValue(mockStore);
   });
 
   // 测试组件

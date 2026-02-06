@@ -224,45 +224,29 @@ type Story = StoryObj<typeof DefaultChatLayout>;
 /**
  * 基础示例 - 默认布局
  *
- * 展示完整的聊天界面布局，包括：
- * - 顶部工具栏（网络状态、主题切换、语言切换）
- * - 左侧会话列表面板（带渠道筛选）
- * - 中间消息区域（需要传入 InfiniteMessageList）
- * - 底部输入框（选中会话后显示）
- * - 右侧客户画像面板
+ * 展示完整的聊天界面布局结构。
  *
  * @description
- * 这是最基础的使用方式，展示了默认布局的所有功能区域。
- * 消息区域需要通过 children 传入 InfiniteMessageList 组件。
+ * 默认布局包含以下功能区域：
+ * - 顶部工具栏：网络状态、主题切换、语言切换
+ * - 左侧面板：会话列表，支持渠道筛选
+ * - 中间区域：消息列表（需通过 children 传入）
+ * - 底部输入框：选中会话后自动显示
+ * - 右侧面板：客户画像信息
+ *
+ * 使用方式：
+ * ```tsx
+ * <DefaultChatLayout>
+ *   <InfiniteMessageList conversationId="conv-1" />
+ * </DefaultChatLayout>
+ * ```
  */
 export const Default: Story = {
   args: {},
   parameters: {
     docs: {
       description: {
-        story: `
-默认布局展示了完整的聊天界面结构：
-
-\`\`\`tsx
-<DefaultChatLayout>
-  <InfiniteMessageList conversationId="conv-1" />
-</DefaultChatLayout>
-\`\`\`
-
-**布局结构：**
-- **顶部工具栏**：显示网络状态、主题切换、语言切换
-- **左侧面板**：会话列表，支持渠道筛选（WhatsApp、SMS、Email 等）
-- **中间区域**：消息列表（需要通过 children 传入）
-- **底部输入框**：选中会话后自动显示，根据渠道类型动态调整
-- **右侧面板**：客户画像信息
-
-**特性：**
-- 响应式布局，适配不同屏幕尺寸
-- 支持主题切换（浅色/深色）
-- 支持多语言（中文/英文）
-- 根据选中会话动态显示输入框
-- 支持多渠道消息发送
-        `,
+        story: '展示默认聊天布局的完整结构，包含会话列表、消息区域和输入框。',
       },
     },
   },
@@ -272,14 +256,10 @@ export const Default: Story = {
  * 带消息列表的完整示例
  *
  * 展示包含消息列表的完整聊天界面。
- * 通过 children 传入 InfiniteMessageList 组件来显示消息内容。
  *
  * @description
- * 这是最常用的使用方式，展示了完整的聊天功能：
- * - 会话列表（左侧）
- * - 消息列表（中间）
- * - 输入框（底部）
- * - 客户画像（右侧）
+ * 通过 children 传入 InfiniteMessageList 组件来显示消息内容。
+ * 这是最常用的使用方式，展示完整的聊天功能。
  */
 export const WithMessageList: Story = {
   args: {},
@@ -291,22 +271,8 @@ export const WithMessageList: Story = {
   parameters: {
     docs: {
       description: {
-        story: `
-带消息列表的完整示例展示了最常用的聊天界面配置：
-
-\`\`\`tsx
-<DefaultChatLayout>
-  <InfiniteMessageList conversationId="conv-1" />
-</DefaultChatLayout>
-\`\`\`
-
-**功能说明：**
-- 消息列表会自动加载指定会话的消息
-- 支持滚动加载历史消息
-- 支持消息状态显示（发送中、已发送、已读等）
-- 支持多种消息类型（文本、图片、文件、视频等）
-- 底部输入框会根据当前会话状态自动显示/隐藏
-        `,
+        story:
+          '展示包含消息列表的完整聊天界面，支持自动加载和滚动加载历史消息。',
       },
     },
   },
@@ -316,15 +282,9 @@ export const WithMessageList: Story = {
  * 不同主题 - 展示主题切换
  *
  * 展示浅色和深色两种主题下的布局效果。
- * 通过 data-theme 属性控制主题样式。
  *
  * @description
- * SDK 支持浅色和深色两种主题，可以通过以下方式切换：
- * - 使用 ThemeSwitcher 组件（顶部工具栏）
- * - 通过 data-theme 属性设置
- * - 通过 useTheme hook 的 setTheme 方法
- *
- * 主题样式定义在 src/styles/theme.css 中。
+ * SDK 支持浅色和深色两种主题，可通过 ThemeSwitcher 组件或 data-theme 属性切换。
  */
 export const DifferentThemes: Story = {
   args: {},
@@ -343,41 +303,8 @@ export const DifferentThemes: Story = {
   parameters: {
     docs: {
       description: {
-        story: `
-展示浅色和深色两种主题下的布局效果。
-
-**主题切换方式：**
-
-1. **通过 data-theme 属性**（静态设置）：
-\`\`\`tsx
-<div data-theme="light">
-  <DefaultChatLayout />
-</div>
-\`\`\`
-
-2. **通过 ThemeSwitcher 组件**（动态切换）：
-\`\`\`tsx
-const { mode, setTheme } = useTheme();
-
-<ThemeSwitcher value={mode} onChange={setTheme} />
-\`\`\`
-
-3. **通过 useTheme hook**：
-\`\`\`tsx
-const { setTheme } = useTheme();
-
-setTheme('dark'); // 切换到深色主题
-setTheme('light'); // 切换到浅色主题
-\`\`\`
-
-**主题样式变量：**
-- \`--color-background\`: 背景色
-- \`--color-surface\`: 表面色
-- \`--color-primary\`: 主色调
-- \`--color-text\`: 文本色
-- \`--color-border\`: 边框色
-- \`--spacing-*\`: 间距变量
-        `,
+        story:
+          '展示浅色和深色两种主题下的布局效果，支持通过 ThemeSwitcher 组件或 data-theme 属性切换主题。',
       },
     },
   },
@@ -387,16 +314,9 @@ setTheme('light'); // 切换到浅色主题
  * 英文版本
  *
  * 展示英文语言环境下的布局效果。
- * 通过 I18nProvider 的 locale 属性设置语言。
  *
  * @description
- * SDK 支持多语言国际化，默认支持中文和英文。
- * 语言切换方式：
- * - 使用 LanguageSwitcher 组件（顶部工具栏）
- * - 通过 I18nProvider 的 locale 属性
- * - 通过 useLanguage hook 的 setLanguage 方法
- *
- * 语言文件位于 src/locales/ 目录下。
+ * SDK 支持多语言国际化，默认支持中文和英文，可通过 LanguageSwitcher 组件或 I18nProvider 切换语言。
  */
 export const English: Story = {
   args: {},
@@ -420,54 +340,8 @@ export const English: Story = {
   parameters: {
     docs: {
       description: {
-        story: `
-展示英文语言环境下的布局效果。
-
-**语言切换方式：**
-
-1. **通过 I18nProvider**（应用级别设置）：
-\`\`\`tsx
-<I18nProvider locale="en-US" messages={enUS}>
-  <DefaultChatLayout />
-</I18nProvider>
-\`\`\`
-
-2. **通过 LanguageSwitcher 组件**（动态切换）：
-\`\`\`tsx
-const { code, setLanguage } = useLanguage();
-
-<LanguageSwitcher value={code} onChange={setLanguage} />
-\`\`\`
-
-3. **通过 useLanguage hook**：
-\`\`\`tsx
-const { setLanguage } = useLanguage();
-
-setLanguage('zh-CN'); // 切换到中文
-setLanguage('en-US'); // 切换到英文
-\`\`\`
-
-**添加新语言：**
-
-1. 在 \`src/locales/\` 目录下创建新的语言文件（如 \`ja-JP.json\`）
-2. 复制现有语言文件的结构并翻译内容
-3. 在 I18nProvider 中导入并使用新的语言文件
-
-**语言文件结构：**
-\`\`\`json
-{
-  "chat": {
-    "title": "Chat",
-    "send": "Send",
-    "typeMessage": "Type a message..."
-  },
-  "conversation": {
-    "list": "Conversations",
-    "search": "Search conversations..."
-  }
-}
-\`\`\`
-        `,
+        story:
+          '展示英文语言环境下的布局效果。SDK 支持中文和英文两种语言，可通过 LanguageSwitcher 组件或 I18nProvider 的 locale 属性切换。',
       },
     },
   },

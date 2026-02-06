@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { ComposerToolbarContainer } from '@/components/composer/ComposerWithSend';
 import { ConversationList } from '@/components/conversation/ConversationList';
 import { AvailableChannelTypes } from '@/interfaces/channel.interface';
+import { useTranslation } from '@/providers/I18n.provider';
 import { useActions, useConversation, useProfile, useStrategy } from '@/store';
 import { ConversationHeader } from '../conversation/ConversationHeader';
 import { ConversationPanel } from '../conversation/ConversationPanel';
@@ -39,6 +40,7 @@ export interface DefaultChatLayoutProps {
  * ```
  */
 export function DefaultChatLayout({ children }: DefaultChatLayoutProps) {
+  const { t } = useTranslation();
   const strategy = useStrategy();
   const conversation = useConversation();
   const profileState = useProfile();
@@ -53,9 +55,7 @@ export function DefaultChatLayout({ children }: DefaultChatLayoutProps) {
       className="max-w-[1400px] max-h-[85vh]"
       topbar={
         <Topbar
-          title={
-            activeConversationId ? `会话 ${activeConversationId}` : undefined
-          }
+          title={t('title')}
           subtitle={strategy.activeChannel}
           extra={<TopbarTools />}
         />
@@ -63,13 +63,7 @@ export function DefaultChatLayout({ children }: DefaultChatLayoutProps) {
       conversationPanel={
         <ConversationPanel
           header={
-            <ConversationHeader
-              title={
-                activeConversationId
-                  ? `会话 ${activeConversationId}`
-                  : undefined
-              }
-            >
+            <ConversationHeader title={t('conversation.title')}>
               <ChannelFilter
                 channels={AvailableChannelTypes}
                 activeChannel={strategy.activeChannel}
