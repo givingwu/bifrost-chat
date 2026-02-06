@@ -88,16 +88,19 @@ export const ConversationItem = memo(
             : ''
         }`}
       >
-        <div className="flex items-start gap-3">
+        <div className="flex w-full items-start gap-3">
           <ConversationAvatar
             src={conversation.user.avatarUrl}
             name={conversation.user.name}
             channel={conversation.channel}
           />
           <div className="min-w-0 flex-1">
-            <div className="flex items-baseline justify-between gap-2">
+            <div className="flex items-baseline justify-around gap-2">
               <h4
-                className={cn('truncate text-sm font-semibold', styles.title)}
+                className={cn(
+                  'truncate text-sm font-semibold flex-1',
+                  styles.title,
+                )}
               >
                 {conversation.user.name}
               </h4>
