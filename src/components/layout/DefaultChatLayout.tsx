@@ -55,7 +55,7 @@ export function DefaultChatLayout({ children }: DefaultChatLayoutProps) {
       className="max-w-[1400px] max-h-[85vh]"
       topbar={
         <Topbar
-          title={t('title')}
+          title={t('conversation.title')}
           subtitle={strategy.activeChannel}
           extra={<TopbarTools />}
         />
@@ -63,7 +63,7 @@ export function DefaultChatLayout({ children }: DefaultChatLayoutProps) {
       conversationPanel={
         <ConversationPanel
           header={
-            <ConversationHeader title={t('conversation.title')}>
+            <ConversationHeader title={t('title')}>
               <ChannelFilter
                 channels={AvailableChannelTypes}
                 activeChannel={strategy.activeChannel}
