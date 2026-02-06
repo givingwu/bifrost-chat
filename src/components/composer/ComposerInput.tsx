@@ -11,6 +11,7 @@ import {
   useState,
 } from 'react';
 import { cn } from '@/utils/class.util';
+import { Button } from '../Button';
 import {
   ARIA_LABELS,
   BUTTON_SIZES,
@@ -32,8 +33,8 @@ export interface ComposerInputProps {
   value: string;
   /** 输入框值变更回调 */
   onChange: (value: string) => void;
-  /** 回车回调 */
-  onEnter?: () => void;
+  /** 回车回调，支持异步操作 */
+  onEnter?: () => void | Promise<void>;
   /** 输入框占位符 */
   placeholder?: string;
   /** 是否禁用 */
@@ -144,7 +145,7 @@ export const ComposerInput = forwardRef<ComposerInputRef, ComposerInputProps>(
     }, [isEmojiPickerOpen]);
 
     const handleKeyDown = useCallback(
-      (event: KeyboardEvent<HTMLInputElement>) => {
+      async (event: KeyboardEvent<HTMLInputElement>) => {
         // 仅在非禁用状态下处理
         if (disabled) {
           return;
@@ -155,7 +156,12 @@ export const ComposerInput = forwardRef<ComposerInputRef, ComposerInputProps>(
           event.preventDefault();
           // 仅在有内容时触发发送
           if (value.trim().length > 0) {
-            onEnter?.();
+            // 等待 onEnter 完成（支持异步操作）
+            await onEnter?.();
+            // 发送完成后自动聚焦输入框
+            requestAnimationFrame(() => {
+              inputRef.current?.focus();
+            });
           }
         }
       },
@@ -195,14 +201,21 @@ export const ComposerInput = forwardRef<ComposerInputRef, ComposerInputProps>(
       [disabled, onChange, value],
     );
 
-    const handleEmojiClick = useCallback(() => {
-      if (disabled) {
-        return;
-      }
+    const handleEmojiClick = useCallback(
+      (event: React.MouseEvent<HTMLButtonElement>) => {
+        if (disabled) {
+          return;
+        }
 
-      onEmojiClick?.();
-      setIsEmojiPickerOpen((prevOpen) => !prevOpen);
-    }, [disabled, onEmojiClick]);
+        // 阻止事件冒泡，防止触发父元素的点击事件
+        event.preventDefault();
+        event.stopPropagation();
+
+        onEmojiClick?.();
+        setIsEmojiPickerOpen((prevOpen) => !prevOpen);
+      },
+      [disabled, onEmojiClick],
+    );
 
     return (
       <div ref={containerRef} className="relative flex-1">
@@ -228,7 +241,7 @@ export const ComposerInput = forwardRef<ComposerInputRef, ComposerInputProps>(
           data-testid={TEST_IDS.COMPOSER_INPUT}
         />
 
-        <button
+        <Button
           type="button"
           disabled={disabled}
           className={cn(
@@ -243,7 +256,7 @@ export const ComposerInput = forwardRef<ComposerInputRef, ComposerInputProps>(
           data-testid={TEST_IDS.COMPOSER_EMOJI}
         >
           <Smile className={BUTTON_SIZES.ICON_MEDIUM} />
-        </button>
+        </Button>
 
         <EmojiPicker
           open={isEmojiPickerOpen}
