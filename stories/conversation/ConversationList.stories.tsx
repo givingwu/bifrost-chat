@@ -5,6 +5,7 @@ import { AgentStatusEnum } from '@/interfaces/agent.interface';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import type { Conversation } from '@/interfaces/conversation.interface';
 import '@/styles/theme.css';
+import { I18nProvider, zhCNMessages } from '@/index';
 
 /**
  * ConversationList 组件 Story 文档
@@ -20,6 +21,13 @@ const meta: Meta<typeof ConversationList> = {
   title: 'Conversation/ConversationList',
   component: ConversationList,
   tags: ['autodocs'],
+  decorators: [
+    (Story) => (
+      <I18nProvider locale="zh-CN" messages={zhCNMessages}>
+        <Story />
+      </I18nProvider>
+    ),
+  ],
   argTypes: {
     conversations: {
       control: false,
