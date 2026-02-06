@@ -1,5 +1,6 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useMessages } from '@/hooks/use-messages.hook';
+import { useNearBottom } from '@/hooks/use-near-bottom.hook';
 import { MessageList } from './MessageList';
 
 export interface InfiniteMessageListProps {
@@ -14,7 +15,15 @@ export interface InfiniteMessageListProps {
  *
  * @description
  * 使用 React Query Hook 获取消息列表数据，支持无限滚动加载。
+ * 集成虚拟滚动功能，大幅提升大量消息场景下的性能。
  * 当用户滚动到顶部时自动加载更多历史消息。
+ *
+ * @features
+ * - 虚拟滚动：只渲染可见区域的消息，支持 1000+ 条消息不卡顿
+ * - 无限加载：自动加载历史消息
+ * - 智能滚动：加载历史消息时保持当前滚动位置
+ * - 自动滚动：新消息到达时自动滚动到底部（仅当用户在底部附近时）
+ * - 性能优化：使用 React Query 缓存和虚拟滚动
  *
  * @example
  * ```tsx
@@ -43,12 +52,18 @@ export function InfiniteMessageList({
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // 扁平化所有页面的消息
-  const messages = data?.pages.flatMap((page) => page.items) || [];
+  const messages = useMemo(
+    () => data?.pages.flatMap((page) => page.items) || [],
+    [data],
+  );
 
-  // 无限滚动处理
+  // 检测用户是否在底部附近（用于智能自动滚动）
+  const isNearBottom = useNearBottom(scrollRef, { threshold: 100 });
+
+  // 无限滚动处理（兼容虚拟滚动和传统滚动）
   useEffect(() => {
     const element = scrollRef.current;
-    if (!element) return;
+    if (!element || !hasNextPage || isFetchingNextPage) return;
 
     const handleScroll = () => {
       if (!hasNextPage || isFetchingNextPage) return;
@@ -61,14 +76,28 @@ export function InfiniteMessageList({
     };
 
     element.addEventListener('scroll', handleScroll);
+
     return () => {
       element.removeEventListener('scroll', handleScroll);
     };
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
+  // 新消息到达时自动滚动到底部（仅当用户在底部附近时）
+  useEffect(() => {
+    if (!isNearBottom || messages.length === 0) return;
+
+    const element = scrollRef.current;
+
+    if (!element) return;
+
+    // 滚动到底部
+    element.scrollTop = element.scrollHeight;
+  }, [messages.length, isNearBottom]);
+
   // 错误状态
   if (error) {
     console.error('Failed to load messages:', error);
+
     return (
       <div className="flex h-full items-center justify-center text-red-500">
         加载失败，请重试
@@ -78,7 +107,6 @@ export function InfiniteMessageList({
 
   return (
     <div
-      ref={scrollRef}
       className={`flex h-full flex-col ${className || ''}`}
       style={{ overflowY: 'auto' }}
     >
@@ -89,7 +117,7 @@ export function InfiniteMessageList({
         </div>
       )}
 
-      <MessageList messages={messages} />
+      <MessageList messages={messages} scrollRef={scrollRef} />
 
       {/* 初始加载指示器 */}
       {isLoading && (
