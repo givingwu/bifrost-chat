@@ -1,9 +1,9 @@
 import { render, waitFor } from '@testing-library/react';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { ChatContainer } from '@/components/layout/ChatContainer';
 import { LanguageCodeEnum } from '@/interfaces/language.interface';
 import { ThemeModeEnum } from '@/interfaces/theme.interface';
-import { useChatStore } from '@/store';
-import { ChatContainer } from './ChatContainer';
+import { ConfigProvider } from '@/providers/config.provider';
 
 interface MatchMediaController {
   mediaQueryList: MediaQueryList;
@@ -55,16 +55,27 @@ const createMatchMediaController = (
         matches,
         media: mediaQueryList.media,
       } as MediaQueryListEvent;
-      listeners.forEach((listener) => listener(event));
+      listeners.forEach((listener) => {
+        listener(event);
+      });
     },
   };
 };
 
-const renderChatContainer = () =>
+const renderChatContainer = (mode: ThemeModeEnum) =>
   render(
-    <ChatContainer locale={LanguageCodeEnum.EnUS}>
-      <div>theme-test-child</div>
-    </ChatContainer>,
+    <ConfigProvider
+      config={{
+        theme: {
+          mode,
+          systemPrefersDark: false,
+        },
+      }}
+    >
+      <ChatContainer locale={LanguageCodeEnum.EnUS}>
+        <div>theme-test-child</div>
+      </ChatContainer>
+    </ConfigProvider>,
   );
 
 const getContainerElement = (root: HTMLElement): HTMLElement => {
@@ -76,11 +87,6 @@ const getContainerElement = (root: HTMLElement): HTMLElement => {
 };
 
 describe('ChatContainer theme behavior', () => {
-  beforeEach(() => {
-    useChatStore.getState().actions.setTheme(ThemeModeEnum.Light);
-    useChatStore.getState().actions.setSystemPrefersDark(false);
-  });
-
   afterEach(() => {
     vi.restoreAllMocks();
   });
@@ -88,9 +94,8 @@ describe('ChatContainer theme behavior', () => {
   it('should apply dark class when theme is manually set to dark', async () => {
     const controller = createMatchMediaController(false);
     window.matchMedia = vi.fn().mockReturnValue(controller.mediaQueryList);
-    useChatStore.getState().actions.setTheme(ThemeModeEnum.Dark);
 
-    const { container } = renderChatContainer();
+    const { container } = renderChatContainer(ThemeModeEnum.Dark);
     const chatContainer = getContainerElement(container);
 
     await waitFor(() => {
@@ -105,9 +110,8 @@ describe('ChatContainer theme behavior', () => {
   it('should resolve system theme to light when system prefers light', async () => {
     const controller = createMatchMediaController(false);
     window.matchMedia = vi.fn().mockReturnValue(controller.mediaQueryList);
-    useChatStore.getState().actions.setTheme(ThemeModeEnum.System);
 
-    const { container } = renderChatContainer();
+    const { container } = renderChatContainer(ThemeModeEnum.System);
     const chatContainer = getContainerElement(container);
 
     await waitFor(() => {
@@ -124,9 +128,8 @@ describe('ChatContainer theme behavior', () => {
   it('should update resolved theme when system preference changes', async () => {
     const controller = createMatchMediaController(false);
     window.matchMedia = vi.fn().mockReturnValue(controller.mediaQueryList);
-    useChatStore.getState().actions.setTheme(ThemeModeEnum.System);
 
-    const { container } = renderChatContainer();
+    const { container } = renderChatContainer(ThemeModeEnum.System);
     const chatContainer = getContainerElement(container);
 
     await waitFor(() => {
