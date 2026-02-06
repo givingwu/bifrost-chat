@@ -38,18 +38,12 @@ const meta: Meta<typeof ComposerWithSend> = {
       options: Object.values(ChannelTypeEnum),
       description: '当前激活渠道',
     },
-    className: {
-      control: 'text',
-      description: '自定义类名',
-    },
   },
   decorators: [
     (Story) => (
       <QueryClientProvider client={queryClient}>
         <I18nProvider locale="zh-CN" messages={zhCNMessages}>
-          <div className="w-full max-w-2xl p-4 bg-muted rounded-lg">
-            <Story />
-          </div>
+          <Story />
         </I18nProvider>
       </QueryClientProvider>
     ),

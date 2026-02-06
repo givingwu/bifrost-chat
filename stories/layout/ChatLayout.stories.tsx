@@ -54,7 +54,7 @@ const meta: Meta<typeof ChatLayout> = {
       control: 'text',
       description: '自定义类名',
     },
-    styles: {
+    style: {
       control: 'object',
       description: '自定义样式',
     },
@@ -359,7 +359,7 @@ export const CustomStyled = () => {
         <ChatContainer locale={LanguageCodeEnum.ZhCN}>
           <ChatLayout
             className="border-primary bg-gradient-to-br from-primary/5 to-primary/10"
-            styles={{
+            style={{
               boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
             }}
             topbar={

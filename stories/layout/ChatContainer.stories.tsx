@@ -19,8 +19,8 @@ import {
 } from '@/interfaces/message.interface';
 import { NetworkStatusEnum } from '@/interfaces/network.interface';
 import { ThemeModeEnum } from '@/interfaces/theme.interface';
-import '@/styles/theme.css';
 import { useActions, useLanguage, useTheme } from '@/store';
+import '@/styles/theme.css';
 
 /**
  * ChatContainer 组件 Story 文档
@@ -531,7 +531,7 @@ export const CustomStyled = () => {
         <ChatContainer locale={LanguageCodeEnum.ZhCN}>
           <ChatLayout
             className="border-primary bg-gradient-to-br from-primary/5 to-primary/10"
-            styles={{
+            style={{
               boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
             }}
             topbar={

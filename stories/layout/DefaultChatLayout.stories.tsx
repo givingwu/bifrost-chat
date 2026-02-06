@@ -262,6 +262,10 @@ const meta: Meta<typeof DefaultChatLayout> = {
         },
       },
     },
+    className: {
+      control: 'text',
+      description: 'class name',
+    },
   },
   decorators: [
     (Story) => (
@@ -272,9 +276,7 @@ const meta: Meta<typeof DefaultChatLayout> = {
           templateService={new MockTemplateService()}
         >
           <I18nProvider locale="zh-CN" messages={zhCN}>
-            <div className="w-full h-[900px]">
-              <Story />
-            </div>
+            <Story />
           </I18nProvider>
         </ServiceProvider>
       </QueryClientProvider>
