@@ -3,13 +3,19 @@ import { enUSMessages, zhCNMessages } from '@/index';
 import { LanguageCodeEnum } from '@/interfaces/language.interface';
 import { ThemeModeEnum } from '@/interfaces/theme.interface';
 import { I18nProvider } from '@/providers/I18n.provider';
-import { useActions, useChatStore, useLanguage, useTheme } from '@/store';
+import {
+  type ChatStoreState,
+  useActions,
+  useChatStore,
+  useLanguage,
+  useTheme,
+} from '@/store';
 
 export interface ChatContainerProps {
   /** 语言代码 */
   locale?: LanguageCodeEnum;
   /** 子组件或 render props 函数 */
-  children: ReactNode | ((store: ReturnType<typeof useChatStore>) => ReactNode);
+  children: ReactNode | ((store: ChatStoreState) => ReactNode);
 }
 
 export const LanguageMessages = {
@@ -73,15 +79,13 @@ export const ChatContainer = ({ locale, children }: ChatContainerProps) => {
     [setLanguage],
   );
 
-  // 优先使用 prop 传入的 locale，否则使用 store 中的语言
-  const currentLanguage = locale || languageCode;
-
   // 初始化时，如果 prop 提供了 locale，同步到 store
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <Only execute it once after it mounted>
   useEffect(() => {
-    if (locale && locale !== languageCode) {
+    if (locale) {
       setLanguage(locale);
     }
-  }, [locale, languageCode, setLanguage]);
+  }, [setLanguage]);
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -102,19 +106,20 @@ export const ChatContainer = ({ locale, children }: ChatContainerProps) => {
   }, [setSystemPrefersDark]);
 
   const finalMessages = useMemo(() => {
-    return LanguageMessages[currentLanguage] || enUSMessages;
-  }, [currentLanguage]);
+    return LanguageMessages[languageCode] || enUSMessages;
+  }, [languageCode]);
+  console.log('finalMessages: ', finalMessages);
 
   return (
     <I18nProvider
-      locale={currentLanguage}
+      locale={languageCode}
       messages={finalMessages}
       onChangeLanguage={handleLanguageChange}
     >
       <div
         data-component="chat-container"
         data-theme={theme.mode}
-        data-language={currentLanguage}
+        data-language={languageCode}
         className={theme.mode === ThemeModeEnum.Dark ? 'dark' : ''}
       >
         {typeof children === 'function'

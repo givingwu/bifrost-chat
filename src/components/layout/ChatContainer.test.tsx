@@ -96,9 +96,7 @@ describe('ChatContainer', () => {
           <ChatContainer locale={LanguageCodeEnum.EnUS}>
             {(store) => (
               <div data-testid="render-props">
-                <span data-testid="theme-mode">
-                  {(store as typeof mockStore).theme.mode}
-                </span>
+                <span data-testid="theme-mode">{store.theme.mode}</span>
               </div>
             )}
           </ChatContainer>

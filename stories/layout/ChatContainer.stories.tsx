@@ -20,6 +20,7 @@ import {
 import { NetworkStatusEnum } from '@/interfaces/network.interface';
 import { ThemeModeEnum } from '@/interfaces/theme.interface';
 import '@/styles/theme.css';
+import { useActions, useLanguage, useTheme } from '@/store';
 
 /**
  * ChatContainer 组件 Story 文档
@@ -332,12 +333,12 @@ export const RenderPropsMode = () => {
                   extra={
                     <div className="flex items-center gap-2">
                       <span className="rounded-lg bg-primary/10 px-2 py-1 text-xs text-primary">
-                        Theme: {(store as any).theme.mode}
+                        Theme: {store.theme.mode}
                       </span>
                       <ThemeSwitcher
-                        value={(store as any).theme.mode}
+                        value={store.theme.mode}
                         onChange={(mode) => {
-                          (store as any).theme.setTheme(mode);
+                          store.actions.setTheme(mode);
                         }}
                       />
                     </div>
@@ -356,15 +357,11 @@ export const RenderPropsMode = () => {
               <div className="flex h-full flex-col gap-4 overflow-y-auto p-6">
                 <div className="rounded-lg bg-muted/50 p-4">
                   <p className="text-sm">当前输入内容：</p>
-                  <p className="mt-1 font-medium">
-                    {(store as any).ui.inputText || '（空）'}
-                  </p>
+                  <p className="mt-1 font-medium">{'Empty content'}</p>
                 </div>
                 <div className="rounded-lg bg-primary/10 p-4">
                   <p className="text-sm">当前语言：</p>
-                  <p className="mt-1 font-medium">
-                    {(store as any).language.locale}
-                  </p>
+                  <p className="mt-1 font-medium">{store.language.code}</p>
                 </div>
               </div>
             </ChatLayout>
@@ -382,6 +379,10 @@ export const RenderPropsMode = () => {
  * - 使用内置组件
  */
 export const FullChatInterface = () => {
+  const { mode } = useTheme();
+  const { code } = useLanguage();
+  const { setLanguage, setTheme } = useActions();
+
   return (
     <div className="flex h-[800px] items-center justify-center bg-background p-4">
       <div className="h-[700px] w-full max-w-7xl">
@@ -403,14 +404,8 @@ export const FullChatInterface = () => {
                 extra={
                   <div className="flex items-center gap-2">
                     <NetworkStatus status={NetworkStatusEnum.Connected} />
-                    <ThemeSwitcher
-                      value={ThemeModeEnum.Light}
-                      onChange={() => {}}
-                    />
-                    <LanguageSwitcher
-                      value={LanguageCodeEnum.ZhCN}
-                      onChange={() => {}}
-                    />
+                    <ThemeSwitcher value={mode} onChange={setTheme} />
+                    <LanguageSwitcher value={code} onChange={setLanguage} />
                   </div>
                 }
               />

@@ -43,8 +43,8 @@ export const createThemeSlice: StateCreator<ThemeSlice, [], [], ThemeSlice> = (
       set((state) => ({
         theme: {
           ...state.theme,
+          // mode: resolveThemeMode(state.theme.mode, prefersDark),
           systemPrefersDark: prefersDark,
-          resolvedMode: resolveThemeMode(state.theme.mode, prefersDark),
         },
       })),
   },
