@@ -29,7 +29,7 @@ export const createStrategySlice: StateCreator<
   StrategySlice
 > = (set) => ({
   strategy: {
-    allowedChannels: [],
+    allowedChannels: [ChannelTypeEnum.SMS],
     activeChannel: ChannelTypeEnum.SMS,
   },
   actions: {

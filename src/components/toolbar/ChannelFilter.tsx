@@ -23,8 +23,8 @@ export const ChannelFilter = ({
   onChannelClick,
 }: ChannelFilterProps) => {
   return (
-    <div className="w-full overflow-x-auto no-scrollbar py-2">
-      <div className="flex items-center space-x-2 px-1">
+    <div className="w-full overflow-x-auto no-scrollbar">
+      <div className="flex items-center space-x-1">
         {channels.map((channel) => (
           <ChannelButtonFactory
             active={activeChannel === channel}

@@ -51,17 +51,15 @@ export const ConversationHeader = memo(
           ))}
 
         {showSearch && (
-          <div className="relative" data-component="conversation-list-search">
-            <SearchInput
-              type="search"
-              placeholder={searchPlaceholder}
-              value={searchValue}
-              onChange={onSearchChange}
-              onEnter={onSearchSubmit}
-              clearable
-              aria-label="搜索会话"
-            />
-          </div>
+          <SearchInput
+            type="search"
+            placeholder={searchPlaceholder}
+            value={searchValue}
+            onChange={onSearchChange}
+            onEnter={onSearchSubmit}
+            clearable
+            aria-label="搜索会话"
+          />
         )}
 
         {children}

@@ -47,7 +47,7 @@ export interface DefaultChatLayoutProps {
 export function DefaultChatLayout({ children }: DefaultChatLayoutProps) {
   const { t } = useTranslation();
   const actions = useActions();
-  const strategy = useStrategy();
+  const { activeChannel, allowedChannels } = useStrategy();
   const { profile } = useProfile();
   const sendMessage = useSendMessage();
   const { data: conversations = [] } = useConversations();
@@ -71,7 +71,7 @@ export function DefaultChatLayout({ children }: DefaultChatLayoutProps) {
   // 计算 subtitle：如果有激活的会话，显示"渠道 · 状态"；否则显示当前渠道
   const subtitle = activeConversation
     ? `${t(`toolbar.channel.${activeConversation.channel}`)} · ${t(`conversation.status.${activeConversation.status || 'active'}`)}`
-    : strategy.activeChannel;
+    : activeChannel;
 
   // 搜索过滤逻辑（使用 startTransition 标记为过渡更新）
   const filteredConversations = useMemo(() => {
@@ -148,12 +148,7 @@ export function DefaultChatLayout({ children }: DefaultChatLayoutProps) {
     <ChatLayout
       className="max-w-[1400px] max-h-[85vh]"
       topbar={
-        <Topbar
-          title={title}
-          subtitle={subtitle}
-          avatarUrl={activeConversation?.user.avatarUrl}
-          extra={<TopbarTools />}
-        />
+        <Topbar title={title} subtitle={subtitle} extra={<TopbarTools />} />
       }
       conversationPanel={
         <ConversationPanel
@@ -164,11 +159,13 @@ export function DefaultChatLayout({ children }: DefaultChatLayoutProps) {
               onSearchChange={handleSearchChange}
               onSearchSubmit={handleSearchSubmit}
             >
-              <ChannelFilter
-                channels={AvailableChannelTypes}
-                activeChannel={strategy.activeChannel}
-                onChannelClick={actions.setActiveChannel}
-              />
+              {allowedChannels.length > 1 && (
+                <ChannelFilter
+                  channels={allowedChannels}
+                  activeChannel={activeChannel}
+                  onChannelClick={actions.setActiveChannel}
+                />
+              )}
             </ConversationHeader>
           }
         >
@@ -184,7 +181,7 @@ export function DefaultChatLayout({ children }: DefaultChatLayoutProps) {
         activeConversationId ? (
           <ComposerWithSend
             conversationId={activeConversationId}
-            channel={strategy.activeChannel}
+            channel={activeChannel}
           />
         ) : null
       }
