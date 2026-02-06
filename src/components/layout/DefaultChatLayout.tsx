@@ -1,15 +1,16 @@
 import type { ReactNode } from 'react';
 import { ComposerToolbarContainer } from '@/components/composer/ComposerWithSend';
+import { ConversationHeader } from '@/components/conversation/ConversationHeader';
 import { ConversationList } from '@/components/conversation/ConversationList';
+import { ConversationPanel } from '@/components/conversation/ConversationPanel';
+import { Profile } from '@/components/profile/Profile';
+import { ChannelFilter } from '@/components/toolbar/ChannelFilter';
+import { Topbar } from '@/components/toolbar/Topbar';
+import { TopbarTools } from '@/components/toolbar/TopbarTools';
+import { useConversations } from '@/hooks/use-conversations.hook';
 import { AvailableChannelTypes } from '@/interfaces/channel.interface';
 import { useTranslation } from '@/providers/I18n.provider';
 import { useActions, useConversation, useProfile, useStrategy } from '@/store';
-import { ConversationHeader } from '../conversation/ConversationHeader';
-import { ConversationPanel } from '../conversation/ConversationPanel';
-import { Profile } from '../profile/Profile';
-import { ChannelFilter } from '../toolbar/ChannelFilter';
-import { Topbar } from '../toolbar/Topbar';
-import { TopbarTools } from '../toolbar/TopbarTools';
 import { ChatLayout } from './ChatLayout';
 
 export interface DefaultChatLayoutProps {
@@ -45,18 +46,34 @@ export function DefaultChatLayout({ children }: DefaultChatLayoutProps) {
   const conversation = useConversation();
   const profileState = useProfile();
   const actions = useActions();
+  const { data: conversations } = useConversations();
 
-  // 从 conversation ID 获取会话数据（这里需要从 React Query 获取）
-  // 暂时使用 activeConversationId，实际应该从 useConversations Hook 获取
+  // 获取当前激活的会话 ID
   const activeConversationId = conversation.activeConversationId;
+
+  // 从会话列表中找到当前激活的会话
+  const activeConversation = conversations?.find(
+    (c) => c.id === activeConversationId,
+  );
+
+  // 计算 title：如果有激活的会话，显示用户名；否则显示默认标题
+  const title = activeConversation
+    ? activeConversation.user.name
+    : t('conversation.title');
+
+  // 计算 subtitle：如果有激活的会话，显示"渠道 · 状态"；否则显示当前渠道
+  const subtitle = activeConversation
+    ? `${t(`toolbar.channel.${activeConversation.channel}`)} · ${t(`conversation.status.${activeConversation.status || 'active'}`)}`
+    : strategy.activeChannel;
 
   return (
     <ChatLayout
       className="max-w-[1400px] max-h-[85vh]"
       topbar={
         <Topbar
-          title={t('conversation.title')}
-          subtitle={strategy.activeChannel}
+          title={title}
+          subtitle={subtitle}
+          avatarUrl={activeConversation?.user.avatarUrl}
           extra={<TopbarTools />}
         />
       }
