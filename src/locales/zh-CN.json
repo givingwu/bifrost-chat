@@ -37,7 +37,13 @@
     "title": "会话",
     "empty": "暂无会话",
     "search": "搜索会话",
-    "ariaLabel": "与 {{name}} 的会话{{unread, plural, =0 {} other {，有 {{count}} 条未读消息}}}"
+    "ariaLabel": "与 {{name}} 的会话{{unread, plural, =0 {} other {，有 {{count}} 条未读消息}}}",
+    "status": {
+      "active": "活跃",
+      "waiting": "等待中",
+      "closed": "已关闭",
+      "archived": "已归档"
+    }
   },
   "template": {
     "title": "消息模板",

@@ -37,7 +37,7 @@ export * from '@/interfaces/theme.interface';
 // Locales
 export { default as enUSMessages } from '@/locales/en-US.json';
 export { default as zhCNMessages } from '@/locales/zh-CN.json';
-
+export { ConfigProvider, useConfig } from '@/providers/config.provider';
 // Providers
 // I18n Provider
 export { I18nProvider } from '@/providers/I18n.provider';

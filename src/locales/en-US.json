@@ -37,7 +37,13 @@
     "title": "Conversations",
     "empty": "No conversations yet",
     "search": "Search conversations",
-    "ariaLabel": "Conversation with {{name}}{{unread, plural, =0 {} other {, {{count}} unread messages}}}"
+    "ariaLabel": "Conversation with {{name}}{{unread, plural, =0 {} other {, {{count}} unread messages}}}",
+    "status": {
+      "active": "Active",
+      "waiting": "Waiting",
+      "closed": "Closed",
+      "archived": "Archived"
+    }
   },
   "template": {
     "title": "Message Templates",
