@@ -64,8 +64,7 @@ export const MentionPicker = memo<MentionPickerProps>(
     // 重置选中索引（当查询词或用户列表变化时）
     useEffect(() => {
       setSelectedIndex(0);
-      // biome-ignore lint/correctness/useExhaustiveDependencies: 只需要 query 变化时重置
-    }, [query]);
+    }, []);
 
     // 键盘导航
     useEffect(() => {

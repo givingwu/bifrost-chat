@@ -1,4 +1,4 @@
-import { type ReactNode, useCallback, useMemo, useTransition } from 'react';
+import { useCallback, useMemo, useTransition } from 'react';
 import { ComposerWithSend } from '@/components/composer/ComposerWithSend';
 import { ConversationHeader } from '@/components/conversation/ConversationHeader';
 import { ConversationList } from '@/components/conversation/ConversationList';
