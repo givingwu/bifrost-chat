@@ -49,7 +49,9 @@ export function InfiniteMessageList({
     isFetchingNextPage,
   } = useMessages(conversationId);
 
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement | null>(
+    null,
+  ) as React.RefObject<HTMLDivElement>;
 
   // 扁平化所有页面的消息
   const messages = useMemo(

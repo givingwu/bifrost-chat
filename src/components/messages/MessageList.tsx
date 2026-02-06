@@ -15,7 +15,7 @@ export interface MessageListProps {
   /** 消息流 */
   messages: StandardMessage[];
   /** 虚拟滚动容器的引用（用于外部访问） */
-  scrollRef?: React.RefObject<HTMLDivElement | null>;
+  scrollRef?: React.RefObject<HTMLDivElement>;
   /** 是否启用虚拟滚动，默认启用 */
   enableVirtualization?: boolean;
 }
