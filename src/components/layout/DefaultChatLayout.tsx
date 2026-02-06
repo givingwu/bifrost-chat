@@ -174,12 +174,11 @@ export function DefaultChatLayout({
             </ConversationHeader>
           }
         >
-          <div className={isPending ? 'animate-pulse' : ''}>
-            <ConversationList
-              conversations={filteredConversations}
-              onSelect={actions.setActiveConversationId}
-            />
-          </div>
+          <ConversationList
+            className={cn(isPending ? 'animate-pulse' : '')}
+            conversations={filteredConversations}
+            onSelect={actions.setActiveConversationId}
+          />
         </ConversationPanel>
       }
       composer={

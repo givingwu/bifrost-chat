@@ -3,9 +3,14 @@ import { useConversations } from '@/hooks/use-conversations.hook';
 import type { Conversation } from '@/interfaces/conversation.interface';
 import { useTranslation } from '@/providers/I18n.provider';
 import { useChatStore } from '@/store';
+import { cn } from '@/utils/class.util';
 import { ConversationItem } from './ConversationItem';
 
 export interface ConversationListProps {
+  /** 自定义类名 */
+  className?: string;
+  /** 自定义样式 */
+  style?: React.CSSProperties;
   /** 会话列表（可选，如果不提供则自动获取） */
   conversations?: Conversation[] | null;
   /** 选择会话回调函数 */
@@ -14,8 +19,6 @@ export interface ConversationListProps {
   emptyState?: ReactNode;
   /** 加载状态（仅在手动提供 conversations 时有效） */
   isLoading?: boolean;
-  /** 自定义类名 */
-  className?: string;
   /** 是否自动获取数据（默认 true） */
   autoFetch?: boolean;
 }
@@ -51,6 +54,7 @@ export const ConversationList = memo(
     onSelect,
     emptyState,
     isLoading: externalIsLoading = false,
+    style,
     className = '',
     autoFetch = true,
   }: ConversationListProps) => {
@@ -136,7 +140,15 @@ export const ConversationList = memo(
     }
 
     return (
-      <ul className={containerClassName} aria-label={t('conversation.title')}>
+      <ul
+        style={style}
+        className={cn(
+          containerClassName,
+          className,
+          'flex flex-col flex-1 overflow-y-auto',
+        )}
+        aria-label={t('conversation.title')}
+      >
         {conversations.map((conversation: Conversation) => {
           const resolvedIsActive =
             activeConversationId === null
