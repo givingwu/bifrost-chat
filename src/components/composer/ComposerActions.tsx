@@ -33,7 +33,7 @@ export const ComposerActions = memo<ComposerActionsProps>(
     if (canSend) {
       return (
         <IconButton
-          icon={<Send className={BUTTON_SIZES.ICON_SMALL} />}
+          icon={<Send className={BUTTON_SIZES.ICON_MEDIUM} />}
           variant="primary"
           size="md"
           onClick={onSend}

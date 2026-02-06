@@ -8,8 +8,6 @@ export interface ComposerWithSendProps {
   conversationId: string;
   /** 当前激活渠道 */
   channel?: ChannelTypeEnum;
-  /** 自定义类名 */
-  className?: string;
 }
 
 /**
@@ -36,7 +34,6 @@ export interface ComposerWithSendProps {
 export const ComposerWithSend = memo(function ComposerWithSend({
   conversationId,
   channel,
-  className,
 }: ComposerWithSendProps) {
   const sendMessage = useSendMessage();
   // 处理发送消息
@@ -56,14 +53,12 @@ export const ComposerWithSend = memo(function ComposerWithSend({
   );
 
   return (
-    <div className={className}>
-      <ComposerToolbar
-        channel={channel}
-        onSend={handleSend}
-        disabled={sendMessage.isPending}
-        loading={sendMessage.isPending}
-      />
-    </div>
+    <ComposerToolbar
+      channel={channel}
+      onSend={handleSend}
+      disabled={sendMessage.isPending}
+      loading={sendMessage.isPending}
+    />
   );
 });
 

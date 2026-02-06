@@ -15,6 +15,8 @@ export const TEXT_SIZES = {
 export const INPUT_LIMITS = {
   /** SMS 单条消息最大字符数 */
   SMS_MAX_LENGTH: 160,
+  /** EMAIL 单条消息最大字符数 */
+  EMAIL_MAX_LENGTH: Infinity,
   /** WhatsApp 最大消息长度 */
   WHATSAPP_MAX_LENGTH: 4096,
   /** WABA 最大消息长度（与 WhatsApp 相同） */

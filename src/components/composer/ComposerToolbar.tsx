@@ -26,6 +26,16 @@ export interface ComposerToolbarProps {
 }
 
 /**
+ * 最大长度数量
+ */
+export const MAX_LENGTH_MAP: Record<ChannelTypeEnum, number> = {
+  [ChannelTypeEnum.SMS]: INPUT_LIMITS.SMS_MAX_LENGTH,
+  [ChannelTypeEnum.Email]: INPUT_LIMITS.DEFAULT_MAX_LENGTH,
+  [ChannelTypeEnum.WhatsApp]: INPUT_LIMITS.WHATSAPP_MAX_LENGTH,
+  [ChannelTypeEnum.Waba]: INPUT_LIMITS.WABA_MAX_LENGTH,
+};
+
+/**
  * ComposerToolbar 组件
  *
  * 输入框策略工具栏，根据不同渠道展示不同的交互方式
@@ -59,16 +69,11 @@ export const ComposerToolbar = ({
       return maxLength;
     }
 
-    switch (channel) {
-      case ChannelTypeEnum.SMS:
-        return INPUT_LIMITS.SMS_MAX_LENGTH;
-      case ChannelTypeEnum.WhatsApp:
-        return INPUT_LIMITS.WHATSAPP_MAX_LENGTH;
-      case ChannelTypeEnum.Waba:
-        return INPUT_LIMITS.WABA_MAX_LENGTH;
-      default:
-        return INPUT_LIMITS.DEFAULT_MAX_LENGTH;
+    if (channel) {
+      return MAX_LENGTH_MAP[channel];
     }
+
+    return INPUT_LIMITS.DEFAULT_MAX_LENGTH;
   }, [channel, maxLength]);
 
   // 计算占位符文本
@@ -153,9 +158,8 @@ export const ComposerToolbar = ({
       data-component={TEST_IDS.COMPOSER}
       data-channel={channel}
       className={cn(
-        'rounded-2xl border border-border bg-card/80 px-4 py-3',
-        'shadow-soft backdrop-blur-md',
-        'transition-all duration-200',
+        'p-4 bg-white/50 dark:bg-gray-900/50 backdrop-blur-md',
+        'border-t border-gray-200/50 dark:border-white/10',
         disabled && 'opacity-50 cursor-not-allowed',
       )}
     >
