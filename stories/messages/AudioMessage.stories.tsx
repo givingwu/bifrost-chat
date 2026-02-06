@@ -1,18 +1,18 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { VoiceMessage } from '@/components/messages/VoiceMessage';
+import { AudioMessage } from '@/components/messages/AudioMessage';
 import '@/styles/theme.css';
 
 /**
- * VoiceMessage 组件 Story 文档
+ * AudioMessage 组件 Story 文档
  *
  * 展示语音消息的各种用法：
  * - 不同时长
  * - 播放状态
  */
 
-const meta: Meta<typeof VoiceMessage> = {
-  title: 'Messages/VoiceMessage',
-  component: VoiceMessage,
+const meta: Meta<typeof AudioMessage> = {
+  title: 'Messages/AudioMessage',
+  component: AudioMessage,
   tags: ['autodocs'],
   argTypes: {
     content: {
@@ -23,7 +23,7 @@ const meta: Meta<typeof VoiceMessage> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof VoiceMessage>;
+type Story = StoryObj<typeof AudioMessage>;
 
 /**
  * 基础示例 - 默认语音消息
@@ -31,7 +31,7 @@ type Story = StoryObj<typeof VoiceMessage>;
 export const Default = () => {
   return (
     <div className="p-4 bg-muted rounded-lg">
-      <VoiceMessage
+      <AudioMessage
         content={{
           url: 'https://example.com/voice.mp3',
           mimeType: 'audio/mp3',
@@ -50,7 +50,7 @@ export const DifferentDurations = () => {
       <div className="flex justify-start">
         <div className="max-w-[70%] px-4 py-2 bg-card text-text rounded-2xl rounded-tl-sm">
           <p className="text-xs text-text-muted mb-2">短语音 (5s)</p>
-          <VoiceMessage
+          <AudioMessage
             content={{
               url: 'https://example.com/voice1.mp3',
               mimeType: 'audio/mp3',
@@ -63,7 +63,7 @@ export const DifferentDurations = () => {
           <p className="text-xs text-primary-foreground/70 mb-2">
             长语音 (60s)
           </p>
-          <VoiceMessage
+          <AudioMessage
             content={{
               url: 'https://example.com/voice2.mp3',
               mimeType: 'audio/mp3',
@@ -83,7 +83,7 @@ export const InMessageBubble = () => {
     <div className="space-y-3">
       <div className="flex justify-start">
         <div className="max-w-[70%] px-4 py-2 bg-card text-text rounded-2xl rounded-tl-sm">
-          <VoiceMessage
+          <AudioMessage
             content={{
               url: 'https://example.com/voice.mp3',
               mimeType: 'audio/mp3',

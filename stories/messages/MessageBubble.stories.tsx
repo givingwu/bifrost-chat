@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { MessageBubble } from '@/components/messages/MessageBubble';
+import { I18nProvider, zhCNMessages } from '@/index';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import {
   MessageDirectionEnum,
@@ -22,6 +23,13 @@ const meta: Meta<typeof MessageBubble> = {
   title: 'Messages/MessageBubble',
   component: MessageBubble,
   tags: ['autodocs'],
+  decorators: [
+    (Story) => (
+      <I18nProvider locale="zh-CN" messages={zhCNMessages}>
+        <Story />
+      </I18nProvider>
+    ),
+  ],
   argTypes: {
     message: {
       control: 'object',

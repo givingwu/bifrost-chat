@@ -1,16 +1,16 @@
 import type { MessageContent } from '@/interfaces/message.interface';
 
-export interface VoiceMessageProps {
+export interface AudioMessageProps {
   /** 消息内容 */
   content: MessageContent;
 }
 
 /**
- * VoiceMessage：语音消息组件。
+ * AudioMessage：语音消息组件。
  * - 渲染语音消息，预留实现。
  * - TODO: 添加音频播放器功能。
  */
-export const VoiceMessage = ({ content }: VoiceMessageProps) => {
+export const AudioMessage = ({ content }: AudioMessageProps) => {
   if (!('url' in content)) {
     return null;
   }

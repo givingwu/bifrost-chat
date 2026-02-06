@@ -4,6 +4,7 @@ import {
   MessageTypeEnum,
   type StandardMessage,
 } from '@/interfaces/message.interface';
+import { AudioMessage } from './AudioMessage';
 import { FileMessage } from './FileMessage';
 import { ImageMessage } from './ImageMessage';
 import { LocationMessage } from './LocationMessage';
@@ -11,7 +12,6 @@ import { RichMediaMessage } from './RichMediaMessage';
 import { TextMessage } from './TextMessage';
 import { UnsupportedMessage } from './UnsupportedMessage';
 import { VideoMessage } from './VideoMessage';
-import { VoiceMessage } from './VoiceMessage';
 import { WhatsAppMessage } from './WhatsAppMessage';
 
 export interface MessageContentRendererProps {
@@ -36,7 +36,7 @@ const MESSAGE_COMPONENT_MAP: Record<MessageTypeEnum, MessageContentComponent> =
   {
     [MessageTypeEnum.Text]: TextMessage,
     [MessageTypeEnum.Image]: ImageMessage,
-    [MessageTypeEnum.Audio]: VoiceMessage,
+    [MessageTypeEnum.Audio]: AudioMessage,
     [MessageTypeEnum.Video]: VideoMessage,
     [MessageTypeEnum.File]: FileMessage,
     [MessageTypeEnum.Template]: WhatsAppMessage,

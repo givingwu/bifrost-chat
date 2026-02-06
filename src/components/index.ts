@@ -27,6 +27,7 @@ export { LoadingState } from './LoadingState';
 export { ChatContainer } from './layout/ChatContainer';
 export { ChatLayout } from './layout/ChatLayout';
 export { DefaultChatLayout } from './layout/DefaultChatLayout';
+export { AudioMessage } from './messages/AudioMessage';
 // Message Components
 export { FileMessage } from './messages/FileMessage';
 export { ImageMessage } from './messages/ImageMessage';
@@ -42,7 +43,6 @@ export { StatusIndicator } from './messages/StatusIndicator';
 export { TextMessage } from './messages/TextMessage';
 export { UnsupportedMessage } from './messages/UnsupportedMessage';
 export { VideoMessage } from './messages/VideoMessage';
-export { VoiceMessage } from './messages/VoiceMessage';
 export { WhatsAppMessage } from './messages/WhatsAppMessage';
 // Profile Components
 export { Profile } from './profile/Profile';
