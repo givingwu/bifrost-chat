@@ -233,3 +233,27 @@ export const WithCallback: Story = {
     },
   },
 };
+
+/**
+ * 点击即发送（示例）
+ */
+export const ClickToSend: Story = {
+  args: {
+    templates: mockTemplates,
+    showCategory: true,
+  },
+  render: (args) => {
+    const handleSelect = (template: Template) => {
+      console.log('Send template content:', template.content);
+    };
+    return <TemplatePanel {...args} onTemplateSelect={handleSelect} />;
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '示例：点击模板后直接发送模板内容（此处用 console 代替发送逻辑）。',
+      },
+    },
+  },
+};

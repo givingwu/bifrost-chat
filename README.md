@@ -283,7 +283,6 @@ function ChatApp() {
 
 ### 消息组件
 - `MessageList` - 消息列表（推荐使用）
-- `ChatMessageList` - 消息列表别名（向后兼容）
 - `InfiniteMessageList` - 无限滚动消息列表
 - `MessageBubble` - 消息气泡
 - `MessageContentRenderer` - 消息内容渲染器
@@ -305,7 +304,6 @@ function ChatApp() {
 - `ComposerActions` - 输入操作按钮
 - `ComposerToolbar` - 输入工具栏
 - `ComposerWithSend` - 带发送功能的输入工具栏（推荐）
-- `ComposerToolbarContainer` - 输入工具栏容器别名（向后兼容）
 - `ComposerAttachments` - 附件预览
 - `AttachmentPreview` - 附件预览项
 - `ComposerHint` - 输入提示

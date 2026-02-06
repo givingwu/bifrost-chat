@@ -1,5 +1,7 @@
-import { FileText, Search, X } from 'lucide-react';
+import { FileText } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import { Button } from '@/components/Button';
+import { SearchInput } from '@/components/SearchInput';
 import { useTemplates } from '@/hooks/use-templates.hook';
 import type { Template } from '@/interfaces/template.interface';
 import { cn } from '@/utils/class.util';
@@ -52,11 +54,13 @@ export const TemplatePanel = ({
   // 提取所有分类
   const categories = useMemo(() => {
     const categorySet = new Set<string>();
+
     templates.forEach((template: Template) => {
       if (template.category) {
         categorySet.add(template.category);
       }
     });
+
     return Array.from(categorySet).sort();
   }, [templates]);
 
@@ -86,48 +90,19 @@ export const TemplatePanel = ({
     <div className="flex h-full flex-1 flex-col">
       {/* 头部 */}
       <div className="border-b border-border bg-card px-4 py-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <FileText className="h-4 w-4 text-primary" />
-            <h3 className="text-sm font-semibold text-text">消息模板</h3>
-          </div>
-          {searchQuery || selectedCategory ? (
-            <button
-              type="button"
-              onClick={() => {
-                setSearchQuery('');
-                setSelectedCategory(undefined);
-              }}
-              className="rounded p-1 text-text-muted transition hover:bg-muted hover:text-text"
-              aria-label="清除筛选"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          ) : null}
-        </div>
-
         {/* 搜索框 */}
-        <div className="mt-3 relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
-          <input
-            type="text"
+        <div className="mt-2 relative">
+          <SearchInput
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="搜索模板..."
-            className={cn(
-              'w-full rounded-lg border border-border bg-muted py-2 pl-10 pr-4',
-              'text-sm text-text',
-              'placeholder:text-text-muted/50',
-              'outline-none transition-all duration-200',
-              'focus:border-primary focus:ring-2 focus:ring-primary/40',
-            )}
+            onChange={setSearchQuery}
+            placeholder="Search..."
+            clearable
           />
         </div>
-
         {/* 分类过滤 */}
         {categories.length > 0 && (
           <div className="mt-3 flex flex-wrap gap-2">
-            <button
+            <Button
               type="button"
               onClick={() => setSelectedCategory(undefined)}
               className={cn(
@@ -138,10 +113,10 @@ export const TemplatePanel = ({
                   : 'border-border bg-card text-text hover:border-primary/50',
               )}
             >
-              全部
-            </button>
+              All
+            </Button>
             {categories.map((category) => (
-              <button
+              <Button
                 key={category}
                 type="button"
                 onClick={() => setSelectedCategory(category)}
@@ -154,7 +129,7 @@ export const TemplatePanel = ({
                 )}
               >
                 {category}
-              </button>
+              </Button>
             ))}
           </div>
         )}
