@@ -1,4 +1,3 @@
-import { useCallback, useMemo, useTransition } from 'react';
 import { ComposerWithSend } from '@/components/composer/ComposerWithSend';
 import { ConversationHeader } from '@/components/conversation/ConversationHeader';
 import { ConversationList } from '@/components/conversation/ConversationList';
@@ -16,6 +15,7 @@ import type { Template } from '@/interfaces/template.interface';
 import { useTranslation } from '@/providers/I18n.provider';
 import { useActions, useConversation, useProfile, useStrategy } from '@/store';
 import { cn } from '@/utils/class.util';
+import { useCallback, useMemo, useTransition } from 'react';
 import { ChatLayout } from './ChatLayout';
 
 export interface DefaultChatLayoutProps {
@@ -64,7 +64,7 @@ export function DefaultChatLayout({
   const activeConversation = useMemo(
     () =>
       conversations?.find(
-        (conversation) => conversation.id === activeConversationId,
+        conversation => conversation.id === activeConversationId,
       ),
     [activeConversationId, conversations?.find],
   );
@@ -190,7 +190,7 @@ export function DefaultChatLayout({
         ) : null
       }
       profilePanel={
-        <aside className="flex-col hidden xl:flex w-[300px] shrink-0 border-l border-gray-200/50 dark:border-white/10 bg-gray-50/50 dark:bg-black/20">
+        <aside className="flex flex-col w-[300px] shrink-0 border-l border-gray-200/50 dark:border-white/10 bg-gray-50/50 dark:bg-black/20">
           {profile && <Profile profile={profile} />}
           <TemplatePanel onTemplateSelect={handleTemplateSelect} />
         </aside>

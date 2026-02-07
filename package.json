@@ -42,16 +42,8 @@
     "./package.json": "./package.json"
   },
   "types": "./dist/src/index.d.ts",
-  "files": [
-    "dist",
-    "LICENSE",
-    "README.md",
-    "CHANGELOG.md"
-  ],
-  "sideEffects": [
-    "*.css",
-    "dist/styles/*.css"
-  ],
+  "files": ["dist", "LICENSE", "README.md", "CHANGELOG.md"],
+  "sideEffects": ["*.css", "dist/styles/*.css"],
   "publishConfig": {
     "access": "public"
   },
