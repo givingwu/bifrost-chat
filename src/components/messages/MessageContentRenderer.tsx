@@ -1,9 +1,14 @@
-import { memo, type ReactElement, useMemo } from 'react';
 import {
   type MessageContent,
   MessageTypeEnum,
   type StandardMessage,
 } from '@/interfaces/message.interface';
+import {
+  type FunctionComponent,
+  type ReactElement,
+  memo,
+  useMemo,
+} from 'react';
 import { AudioMessage } from './AudioMessage';
 import { FileMessage } from './FileMessage';
 import { ImageMessage } from './ImageMessage';
@@ -39,7 +44,7 @@ const MESSAGE_COMPONENT_MAP: Record<MessageTypeEnum, MessageContentComponent> =
   {
     [MessageTypeEnum.Text]: TextMessage,
     [MessageTypeEnum.Image]: ImageMessage,
-    [MessageTypeEnum.Audio]: AudioMessage,
+    [MessageTypeEnum.Audio]: AudioMessage as MessageContentComponent,
     [MessageTypeEnum.Video]: VideoMessage,
     [MessageTypeEnum.File]: FileMessage,
     [MessageTypeEnum.Template]: WhatsAppMessage,
