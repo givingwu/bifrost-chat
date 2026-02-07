@@ -1,5 +1,8 @@
 import type { StateCreator } from 'zustand';
 import { create } from 'zustand';
+import type { LanguageState } from '@/interfaces/language.interface';
+import type { NetworkState } from '@/interfaces/network.interface';
+import type { ThemeState } from '@/interfaces/theme.interface';
 import type {
   ConversationSlice,
   ConversationState,
@@ -31,10 +34,11 @@ export type ChatStoreState = StrategySlice &
   ProfileSlice;
 
 export type ChatStoreConfigState = {
+  activeConversationId: ConversationState['activeConversationId'];
   strategy: StrategyState;
-  network: NetworkSlice['network'];
-  theme: ThemeSlice['theme'];
-  language: LanguageSlice['language'];
+  network: NetworkState;
+  theme: ThemeState;
+  language: LanguageState;
   profile: ProfileState;
 };
 
@@ -124,6 +128,12 @@ const mergeInitialState = (
     profile: initialState.profile
       ? { ...baseState.profile, ...initialState.profile }
       : baseState.profile,
+    conversation: initialState.activeConversationId
+      ? {
+          ...baseState.conversation,
+          activeConversationId: initialState.activeConversationId,
+        }
+      : baseState.conversation,
   };
 };
 
