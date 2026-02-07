@@ -1,4 +1,3 @@
-import { Smile } from 'lucide-react';
 import {
   type ChangeEvent,
   type FocusEvent,
@@ -8,18 +7,10 @@ import {
   useEffect,
   useImperativeHandle,
   useRef,
-  useState,
 } from 'react';
-import { Button } from '@/components/Button';
 import { cn } from '@/utils/class.util';
-import {
-  ARIA_LABELS,
-  BUTTON_SIZES,
-  INPUT_LIMITS,
-  TEST_IDS,
-  TEXT_SIZES,
-} from './composer.constants';
-import { EmojiPicker } from './EmojiPicker';
+import { INPUT_LIMITS, TEST_IDS, TEXT_SIZES } from './composer.constants';
+import { EmojiPickerButton } from './EmojiPickerButton';
 
 /**
  * ComposerInput 暴露的 ref 接口
@@ -77,92 +68,6 @@ const debugLog = {
   error: (...args: unknown[]) => {
     console.error('[ComposerInput]', ...args);
   },
-};
-
-/**
- * 表情选择器 Hook
- * 封装表情选择器的状态和交互逻辑
- */
-const useEmojiPicker = (
-  disabled: boolean,
-  onEmojiSelect: (emoji: string) => void,
-  onEmojiClick?: () => void,
-) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const containerRef = useRef<HTMLFieldSetElement>(null);
-
-  // 使用 ref 存储回调，避免事件监听器重新绑定
-  const callbacksRef = useRef({
-    onEmojiSelect,
-    onEmojiClick,
-  });
-
-  useEffect(() => {
-    callbacksRef.current = { onEmojiSelect, onEmojiClick };
-  });
-
-  // 禁用时自动关闭表情选择器
-  useEffect(() => {
-    if (disabled && isOpen) {
-      setIsOpen(false);
-    }
-  }, [disabled, isOpen]);
-
-  // 处理外部点击和 ESC 键关闭
-  useEffect(() => {
-    if (!isOpen) {
-      return;
-    }
-
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(event.target as Node)
-      ) {
-        setIsOpen(false);
-      }
-    };
-
-    const handleEscape = (event: globalThis.KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        event.preventDefault();
-        setIsOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('keydown', handleEscape);
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('keydown', handleEscape);
-    };
-  }, [isOpen]);
-
-  const toggle = useCallback(
-    (event: React.MouseEvent<HTMLButtonElement>) => {
-      if (disabled) {
-        debugLog.warn('Emoji picker toggle ignored: disabled');
-        return;
-      }
-
-      event.stopPropagation();
-      callbacksRef.current.onEmojiClick?.();
-      setIsOpen((prev) => !prev);
-    },
-    [disabled],
-  );
-
-  const close = useCallback(() => {
-    setIsOpen(false);
-  }, []);
-
-  return {
-    isOpen,
-    containerRef,
-    toggle,
-    close,
-  };
 };
 
 /**
@@ -255,12 +160,6 @@ export const ComposerInput = forwardRef<ComposerInputRef, ComposerInputProps>(
       [disabled, onChange, value],
     );
 
-    const emojiPicker = useEmojiPicker(
-      disabled,
-      handleEmojiSelect,
-      onEmojiClick,
-    );
-
     // 键盘事件处理
     const handleKeyDown = useCallback(
       async (event: KeyboardEvent<HTMLInputElement>) => {
@@ -335,11 +234,7 @@ export const ComposerInput = forwardRef<ComposerInputRef, ComposerInputProps>(
     const isAtMaxLength = value.length >= maxLength;
 
     return (
-      <fieldset
-        ref={emojiPicker.containerRef}
-        className="relative flex-1 border-0 p-0 m-0"
-        aria-label={ARIA_LABELS.COMPOSER_INPUT}
-      >
+      <fieldset className="relative flex-1 border-0 p-0 m-0">
         <input
           ref={inputRef}
           value={value}
@@ -365,7 +260,7 @@ export const ComposerInput = forwardRef<ComposerInputRef, ComposerInputProps>(
           onKeyDown={handleKeyDown}
           onBlur={onBlur}
           onFocus={onFocus}
-          aria-label={ARIA_LABELS.COMPOSER_INPUT}
+          aria-label="消息输入框"
           aria-describedby={
             showCharCount ? TEST_IDS.COMPOSER_CHAR_COUNT : undefined
           }
@@ -378,34 +273,13 @@ export const ComposerInput = forwardRef<ComposerInputRef, ComposerInputProps>(
 
         {/* 表情按钮 */}
         {showEmojiButton && (
-          <Button
-            type="button"
+          <EmojiPickerButton
             disabled={disabled}
-            className={cn(
-              'absolute right-3 top-1/2 -translate-y-1/2',
-              'text-text-muted transition-all duration-200',
-              'hover:text-text hover:scale-110',
-              'disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100',
-              'focus:outline-none focus:ring-2 focus:ring-primary/40 rounded-full',
-              // 激活状态
-              emojiPicker.isOpen && 'text-text rotate-12',
-            )}
-            onClick={emojiPicker.toggle}
-            aria-label={ARIA_LABELS.EMOJI}
-            aria-pressed={emojiPicker.isOpen}
-            aria-haspopup="dialog"
-            data-testid={TEST_IDS.COMPOSER_EMOJI}
-          >
-            <Smile className={BUTTON_SIZES.ICON_MEDIUM} />
-          </Button>
+            onEmojiSelect={handleEmojiSelect}
+            onButtonClick={onEmojiClick}
+            containerClassName="absolute inset-y-0 right-3 flex items-center"
+          />
         )}
-
-        {/* 表情选择器 */}
-        <EmojiPicker
-          open={emojiPicker.isOpen}
-          onClose={emojiPicker.close}
-          onEmojiSelect={handleEmojiSelect}
-        />
       </fieldset>
     );
   },

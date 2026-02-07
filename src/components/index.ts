@@ -10,6 +10,7 @@ export { ComposerInput } from './composer/ComposerInput';
 export { ComposerToolbar } from './composer/ComposerToolbar';
 export { ComposerWithSend } from './composer/ComposerWithSend';
 export { EmojiPicker } from './composer/EmojiPicker';
+export { EmojiPickerButton } from './composer/EmojiPickerButton';
 export { MentionPicker } from './composer/MentionPicker';
 export { TemplatePicker } from './composer/TemplatePicker';
 // Conversation Components

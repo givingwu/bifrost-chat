@@ -334,6 +334,15 @@ export const EmojiPicker = memo<EmojiPickerProps>(
       useState<EmojiCategory>(defaultCategory);
     const [focusedEmoji, setFocusedEmoji] = useState<string | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
+    const resolvedGridColumns = useMemo(() => {
+      const parsedColumns = Math.floor(gridColumns);
+
+      if (!Number.isFinite(parsedColumns) || parsedColumns <= 0) {
+        return 8;
+      }
+
+      return parsedColumns;
+    }, [gridColumns]);
 
     // 重置焦点状态当打开/关闭时
     useEffect(() => {
@@ -374,6 +383,15 @@ export const EmojiPicker = memo<EmojiPickerProps>(
       [onEmojiSelect, onClose],
     );
 
+    // 阻止鼠标按下导致输入框失焦，避免点击选择失效
+    const handleEmojiMouseDown = useCallback(
+      (event: MouseEvent<HTMLButtonElement>) => {
+        event.preventDefault();
+        event.stopPropagation();
+      },
+      [],
+    );
+
     // 处理表情键盘事件
     const handleEmojiKeyDown = useCallback(
       (
@@ -394,12 +412,13 @@ export const EmojiPicker = memo<EmojiPickerProps>(
             break;
           case 'ArrowDown':
             event.preventDefault();
-            nextIndex = (index + gridColumns) % emojiList.length;
+            nextIndex = (index + resolvedGridColumns) % emojiList.length;
             break;
           case 'ArrowUp':
             event.preventDefault();
             nextIndex =
-              (index - gridColumns + emojiList.length) % emojiList.length;
+              (index - resolvedGridColumns + emojiList.length) %
+              emojiList.length;
             break;
           case 'Enter':
           case ' ':
@@ -421,7 +440,7 @@ export const EmojiPicker = memo<EmojiPickerProps>(
         const nextButton = buttons?.[nextIndex] as HTMLButtonElement;
         nextButton?.focus();
       },
-      [emojiList.length, gridColumns, onEmojiSelect, onClose],
+      [emojiList.length, onEmojiSelect, onClose, resolvedGridColumns],
     );
 
     // 处理分类切换
@@ -501,9 +520,6 @@ export const EmojiPicker = memo<EmojiPickerProps>(
         <div className="sticky top-0 z-10 border-b border-border bg-card px-4 py-3">
           <h3 className="flex items-baseline gap-2">
             <span className="text-sm font-semibold text-text">选择表情</span>
-            <span className="text-[10px] text-text-muted">
-              点击或使用方向键选择，Enter 确认
-            </span>
           </h3>
         </div>
 
@@ -527,7 +543,10 @@ export const EmojiPicker = memo<EmojiPickerProps>(
 
         {/* 表情网格 */}
         <div
-          className={cn('grid gap-1 p-2', `grid-cols-${gridColumns}`)}
+          className="grid gap-1 p-2"
+          style={{
+            gridTemplateColumns: `repeat(${resolvedGridColumns}, minmax(0, 1fr))`,
+          }}
           role="listbox"
           aria-label="表情列表"
         >
@@ -536,11 +555,12 @@ export const EmojiPicker = memo<EmojiPickerProps>(
               key={emoji}
               type="button"
               data-emoji={emoji}
+              onMouseDown={handleEmojiMouseDown}
               onClick={(e) => handleEmojiClick(e, emoji)}
               onKeyDown={(e) => handleEmojiKeyDown(e, emoji, index)}
               className={cn(
                 'flex aspect-square items-center justify-center',
-                'text-2xl',
+                'text-xl leading-none',
                 'rounded-lg',
                 'transition-all duration-150',
                 'hover:bg-muted',
