@@ -1,5 +1,6 @@
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { MessageCircle } from 'lucide-react';
-import { memo, type ReactNode, useCallback, useMemo } from 'react';
+import { memo, type ReactNode, useCallback, useMemo, useRef } from 'react';
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { LoadingState } from '@/components/LoadingState';
@@ -8,6 +9,13 @@ import type { Conversation } from '@/interfaces/conversation.interface';
 import { useTranslation } from '@/providers/I18n.provider';
 import { useActiveConversationId } from '@/store';
 import { cn } from '@/utils/class.util';
+import {
+  CONVERSATION_LIST_ITEM_GAP,
+  estimateConversationHeight,
+  getCachedConversationHeight,
+  getConversationHeightCacheKey,
+  setCachedConversationHeight,
+} from '@/utils/conversation-height.util';
 import { ConversationItem } from './ConversationItem';
 
 // ==================== 常量定义 ====================
@@ -35,6 +43,10 @@ export interface ConversationListProps {
   autoFetch?: boolean;
   /** 错误重试回调 */
   onRetry?: () => void;
+  /** 虚拟滚动容器的引用（用于外部访问） */
+  scrollRef?: React.RefObject<HTMLDivElement>;
+  /** 是否启用虚拟滚动，默认启用 */
+  enableVirtualization?: boolean;
 }
 
 // ==================== 辅助函数 ====================
@@ -73,6 +85,13 @@ function resolveConversationActive(
  * - 支持空状态、加载状态和错误状态
  * - 使用 memo 优化性能，避免不必要的重新渲染
  * - 支持无障碍访问（ARIA 标签）
+ * - 使用 @tanstack/react-virtual 实现虚拟滚动，提升大量会话场景的性能
+ *
+ * @features
+ * - 虚拟滚动：只渲染可见区域的会话，支持 100+ 条会话不卡顿
+ * - 动态高度：自动测量会话项的实际高度
+ * - 性能优化：使用稳定 key 缓存已测量的高度
+ * - 向后兼容：可通过 `enableVirtualization` 禁用虚拟滚动
  *
  * @example
  * // 自动获取数据（推荐）
@@ -80,6 +99,9 @@ function resolveConversationActive(
  *
  * // 手动传入数据（用于测试）
  * <ConversationList conversations={mockData} onSelect={(id) => console.log(id)} />
+ *
+ * @example 禁用虚拟滚动
+ * <ConversationList conversations={mockData} enableVirtualization={false} />
  */
 export const ConversationList = memo(
   ({
@@ -91,6 +113,8 @@ export const ConversationList = memo(
     className = '',
     autoFetch = true,
     onRetry,
+    scrollRef: externalScrollRef,
+    enableVirtualization = true,
   }: ConversationListProps) => {
     const { t } = useTranslation();
 
@@ -131,6 +155,58 @@ export const ConversationList = memo(
         resolveConversationActive(conversation, activeConversationId),
       );
     }, [conversations, activeConversationId]);
+
+    // ==================== 虚拟滚动配置 ====================
+    const internalScrollRef = useRef<HTMLDivElement>(null);
+    const scrollRef = externalScrollRef || internalScrollRef;
+
+    // 始终调用 useVirtualizer hook（避免条件性调用 hook）
+    // 当禁用虚拟滚动或会话数量较少时，count 设置为 0
+    const shouldUseVirtualization =
+      enableVirtualization &&
+      processedConversations !== null &&
+      processedConversations.length >= 20;
+
+    const virtualizer = useVirtualizer({
+      count: shouldUseVirtualization ? processedConversations.length : 0,
+      getScrollElement: () => scrollRef.current,
+      getItemKey: (index) => {
+        const conversation = processedConversations?.[index];
+        if (!conversation) return index;
+        return getConversationHeightCacheKey(conversation) ?? index;
+      },
+      estimateSize: (index) => {
+        const conversation = processedConversations?.[index];
+        if (!conversation) return estimateConversationHeight();
+        return (
+          getCachedConversationHeight(conversation) ??
+          estimateConversationHeight()
+        );
+      },
+      measureElement: (element) => {
+        if (!element) return 0;
+
+        // 动态测量实际高度
+        const height = element.getBoundingClientRect().height;
+        // 缓存已测量的高度
+        const dataIndex = Number(element.getAttribute('data-index'));
+
+        if (
+          dataIndex >= 0 &&
+          processedConversations &&
+          dataIndex < processedConversations.length
+        ) {
+          setCachedConversationHeight(
+            processedConversations[dataIndex],
+            height,
+          );
+        }
+
+        return height;
+      },
+      gap: CONVERSATION_LIST_ITEM_GAP,
+      overscan: 5, // 预渲染上下各 5 个元素
+    });
 
     // ==================== 回调函数 ====================
 
@@ -193,19 +269,55 @@ export const ConversationList = memo(
       );
     }
 
-    // 会话列表
+    // 如果禁用虚拟滚动或会话数量较少，使用传统渲染方式
+    if (!shouldUseVirtualization) {
+      return (
+        <div ref={scrollRef} style={style} className={containerClassName}>
+          {processedConversations.map((conversation) => (
+            <div key={conversation.id}>
+              <ConversationItem
+                conversation={conversation}
+                onSelect={onSelect}
+              />
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    // 使用虚拟滚动渲染
+    const virtualItems = virtualizer.getVirtualItems();
+
     return (
-      <ul
-        style={style}
-        className={containerClassName}
-        aria-label={t('conversation.title')}
-      >
-        {processedConversations.map((conversation) => (
-          <li key={conversation.id}>
-            <ConversationItem conversation={conversation} onSelect={onSelect} />
-          </li>
-        ))}
-      </ul>
+      <div ref={scrollRef} style={style} className={containerClassName}>
+        <div
+          style={{
+            height: `${virtualizer.getTotalSize()}px`,
+            width: '100%',
+            position: 'relative',
+          }}
+        >
+          {virtualItems.map((virtualItem) => (
+            <div
+              key={virtualItem.key}
+              ref={virtualizer.measureElement}
+              data-index={virtualItem.index}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                transform: `translateY(${virtualItem.start}px)`,
+              }}
+            >
+              <ConversationItem
+                conversation={processedConversations[virtualItem.index]}
+                onSelect={onSelect}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
     );
   },
 );
