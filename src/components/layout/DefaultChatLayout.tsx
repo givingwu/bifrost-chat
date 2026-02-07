@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useTransition } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useTransition } from 'react';
 import type { ComposerToolbarRef } from '@/components/composer/ComposerToolbar';
 import { ComposerWithSend } from '@/components/composer/ComposerWithSend';
 import { ConversationHeader } from '@/components/conversation/ConversationHeader';
@@ -70,6 +70,14 @@ export function DefaultChatLayout({
 
   // 使用 useTransition 标记搜索过滤为过渡更新（低优先级）
   const [isPending, startTransition] = useTransition();
+
+  // 自动选中第一个会话
+  useEffect(() => {
+    // 如果当前没有选中会话，且会话列表已加载且不为空
+    if (!activeConversationId && conversations && conversations.length > 0) {
+      actions.setActiveConversationId(conversations[0].id);
+    }
+  }, [conversations, activeConversationId, actions]);
 
   // 从会话列表中找到当前激活的会话
   const activeConversation = useMemo(
@@ -194,7 +202,10 @@ export function DefaultChatLayout({
           }
         >
           <ConversationList
-            className={cn(isPending ? 'animate-pulse' : '')}
+            className={cn(
+              'transition',
+              isPending ? 'animate-pulse opacity-80' : 'opacity-100',
+            )}
             conversations={filteredConversations}
             onSelect={actions.setActiveConversationId}
           />
