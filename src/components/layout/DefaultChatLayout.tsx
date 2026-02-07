@@ -1,3 +1,4 @@
+import { useCallback, useMemo, useTransition } from 'react';
 import { ComposerWithSend } from '@/components/composer/ComposerWithSend';
 import { ConversationHeader } from '@/components/conversation/ConversationHeader';
 import { ConversationList } from '@/components/conversation/ConversationList';
@@ -15,7 +16,6 @@ import type { Template } from '@/interfaces/template.interface';
 import { useTranslation } from '@/providers/I18n.provider';
 import { useActions, useConversation, useProfile, useStrategy } from '@/store';
 import { cn } from '@/utils/class.util';
-import { useCallback, useMemo, useTransition } from 'react';
 import { ChatLayout } from './ChatLayout';
 
 export interface DefaultChatLayoutProps {
@@ -64,7 +64,7 @@ export function DefaultChatLayout({
   const activeConversation = useMemo(
     () =>
       conversations?.find(
-        conversation => conversation.id === activeConversationId,
+        (conversation) => conversation.id === activeConversationId,
       ),
     [activeConversationId, conversations?.find],
   );

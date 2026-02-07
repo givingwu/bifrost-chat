@@ -40,6 +40,14 @@ const meta: Meta<typeof ComposerInput> = {
       control: 'boolean',
       description: '是否自动聚焦',
     },
+    showEmojiButton: {
+      control: 'boolean',
+      description: '是否显示表情按钮',
+    },
+    showCharCount: {
+      control: 'boolean',
+      description: '是否显示字符计数',
+    },
   },
 };
 
@@ -226,6 +234,124 @@ export const DifferentChannels = () => {
           placeholder="输入邮件内容..."
         />
       </div>
+    </div>
+  );
+};
+
+/**
+ * 带表情按钮 - 展示表情按钮功能
+ */
+export const WithEmojiButton = () => {
+  const [value, setValue] = useState('');
+
+  return (
+    <div className="w-96 space-y-2">
+      <ComposerInput
+        value={value}
+        onChange={setValue}
+        placeholder="点击表情按钮选择表情..."
+        showEmojiButton
+        onEmojiClick={() => console.log('Emoji button clicked')}
+      />
+      <p className="text-sm text-text-muted">点击右侧表情按钮选择表情</p>
+    </div>
+  );
+};
+
+/**
+ * 不带表情按钮 - 展示不带表情按钮的输入框
+ */
+export const WithoutEmojiButton = () => {
+  const [value, setValue] = useState('');
+
+  return (
+    <div className="w-96 space-y-2">
+      <ComposerInput
+        value={value}
+        onChange={setValue}
+        placeholder="不显示表情按钮的输入框"
+        showEmojiButton={false}
+      />
+      <p className="text-sm text-text-muted">不显示表情按钮</p>
+    </div>
+  );
+};
+
+/**
+ * 带字符计数 - 展示字符计数功能
+ */
+export const WithCharCount = () => {
+  const [value, setValue] = useState('');
+
+  return (
+    <div className="w-96 space-y-2">
+      <ComposerInput
+        value={value}
+        onChange={setValue}
+        placeholder="带字符计数的输入框"
+        maxLength={200}
+        showCharCount
+      />
+      <p className="text-sm text-text-muted">
+        显示字符计数：{value.length} / 200
+      </p>
+    </div>
+  );
+};
+
+/**
+ * 可配置 - 展示所有配置选项的组合
+ */
+export const Configurable = () => {
+  const [value, setValue] = useState('');
+  const [showEmojiButton, setShowEmojiButton] = useState(true);
+  const [showCharCount, setShowCharCount] = useState(false);
+  const [maxLength, setMaxLength] = useState(2000);
+
+  return (
+    <div className="space-y-4">
+      <div className="space-y-2">
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={showEmojiButton}
+            onChange={(e) => setShowEmojiButton(e.target.checked)}
+          />
+          <span className="text-sm">显示表情按钮</span>
+        </label>
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={showCharCount}
+            onChange={(e) => setShowCharCount(e.target.checked)}
+          />
+          <span className="text-sm">显示字符计数</span>
+        </label>
+        <label className="flex items-center gap-2">
+          <span className="text-sm">最大长度：</span>
+          <input
+            type="number"
+            value={maxLength}
+            onChange={(e) => setMaxLength(Number(e.target.value))}
+            className="w-20 px-2 py-1 border rounded"
+          />
+        </label>
+      </div>
+      <div className="w-96">
+        <ComposerInput
+          value={value}
+          onChange={setValue}
+          placeholder="可配置的输入框"
+          maxLength={maxLength}
+          showEmojiButton={showEmojiButton}
+          showCharCount={showCharCount}
+          onEmojiClick={() => console.log('Emoji button clicked')}
+        />
+      </div>
+      <p className="text-sm text-text-muted">
+        当前配置：表情按钮 {showEmojiButton ? '显示' : '隐藏'}，字符计数{' '}
+        {showCharCount ? '显示' : '隐藏'}，最大长度 {maxLength}
+      </p>
     </div>
   );
 };

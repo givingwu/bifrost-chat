@@ -9,17 +9,26 @@ import type { AudioOutputFormatEnum } from './audio.interface';
  * @example
  * ```typescript
  * const composer: ComposerConfig = {
+ *   // 功能启用配置
  *   enableAttachments: true,
  *   enableAudioInput: true,
+ *   // 限制参数配置
  *   maxAttachments: 5,
  *   maxAttachmentSize: 10 * 1024 * 1024, // 10MB
  *   allowedFileTypes: ['image/*', 'application/pdf'],
  *   maxAudioDuration: 60, // 60秒
  *   audioOutputFormat: AudioOutputFormatEnum.Raw,
+ *   // UI 显示配置
+ *   showChannelBadge: true,
+ *   showCharCount: true,
+ *   showHint: true,
+ *   showEmojiButton: true,
  * };
  * ```
  */
 export interface IComposerConfig {
+  // ==================== 功能启用配置 ====================
+
   /**
    * 是否启用附件功能
    * @default true
@@ -31,6 +40,8 @@ export interface IComposerConfig {
    * @default true
    */
   enableAudioInput: boolean;
+
+  // ==================== 限制参数配置 ====================
 
   /**
    * 最大附件数量
@@ -62,6 +73,32 @@ export interface IComposerConfig {
    * @default AudioOutputFormatEnum.Raw
    */
   audioOutputFormat?: AudioOutputFormatEnum;
+
+  // ==================== UI 显示配置 ====================
+
+  /**
+   * 是否显示渠道徽章
+   * @default true
+   */
+  showChannelBadge?: boolean;
+
+  /**
+   * 是否显示字符计数
+   * @default true
+   */
+  showCharCount?: boolean;
+
+  /**
+   * 是否显示提示信息
+   * @default true
+   */
+  showHint?: boolean;
+
+  /**
+   * 是否显示表情按钮
+   * @default true
+   */
+  showEmojiButton?: boolean;
 }
 
 /**

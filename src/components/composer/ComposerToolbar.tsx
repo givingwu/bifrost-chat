@@ -366,6 +366,8 @@ export const ComposerToolbar = ({
             disabled={disabled || isSending || isRecording}
             maxLength={effectiveMaxLength}
             onEmojiClick={onEmojiClick}
+            showEmojiButton={composerConfig.showEmojiButton}
+            showCharCount={composerConfig.showCharCount}
           />
           <ComposerActions
             canSend={canSend}
@@ -375,26 +377,35 @@ export const ComposerToolbar = ({
             disabled={disabled || isRecording}
           />
         </div>
-        <div className="mt-2 flex items-center justify-between text-[10px] text-text-muted">
-          <span
-            className="rounded-full border border-border px-2.5 py-1"
-            data-testid={TEST_IDS.COMPOSER_CHANNEL_BADGE}
-          >
-            {channel ?? 'default'}
-          </span>
-          <div className="flex items-center gap-3">
-            <ComposerHint channel={channel} />
-            <span
-              className={cn(
-                'transition-colors duration-200',
-                value.length > effectiveMaxLength && 'text-destructive',
+        {/* 底部信息栏 - 根据配置控制显示 */}
+        {(composerConfig.showChannelBadge ||
+          composerConfig.showCharCount ||
+          composerConfig.showHint) && (
+          <div className="mt-2 flex items-center justify-between text-[10px] text-text-muted">
+            {composerConfig.showChannelBadge && (
+              <span
+                className="rounded-full border border-border px-2.5 py-1"
+                data-testid={TEST_IDS.COMPOSER_CHANNEL_BADGE}
+              >
+                {channel ?? 'default'}
+              </span>
+            )}
+            <div className="flex items-center gap-3">
+              {composerConfig.showHint && <ComposerHint channel={channel} />}
+              {composerConfig.showCharCount && (
+                <span
+                  className={cn(
+                    'transition-colors duration-200',
+                    value.length > effectiveMaxLength && 'text-destructive',
+                  )}
+                  data-testid={TEST_IDS.COMPOSER_CHAR_COUNT}
+                >
+                  {value.length} / {effectiveMaxLength}
+                </span>
               )}
-              data-testid={TEST_IDS.COMPOSER_CHAR_COUNT}
-            >
-              {value.length} / {effectiveMaxLength}
-            </span>
+            </div>
           </div>
-        </div>
+        )}
       </form>
     </div>
   );

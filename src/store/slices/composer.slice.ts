@@ -29,13 +29,20 @@ export type ComposerState = IComposerConfig;
  * 默认 Composer 配置
  */
 const DEFAULT_COMPOSER_CONFIG: IComposerConfig = {
+  // 功能启用配置
   enableAttachments: false,
   enableAudioInput: false,
+  // 限制参数配置
   maxAttachments: 10,
   maxAttachmentSize: 10 * 1024 * 1024, // 10MB
   allowedFileTypes: undefined,
   maxAudioDuration: 300, // 5分钟
   audioOutputFormat: AudioOutputFormatEnum.Raw,
+  // UI 显示配置
+  showChannelBadge: true,
+  showCharCount: true,
+  showHint: true,
+  showEmojiButton: true,
 };
 
 /**
