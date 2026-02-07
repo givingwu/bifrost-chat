@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import type { Mock } from 'vitest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ChatContainer } from '@/components/layout/ChatContainer';
+import { enUSMessages } from '@/index';
 import { LanguageCodeEnum } from '@/interfaces/language.interface';
 import { useChatStore } from '@/store';
 
@@ -13,11 +14,13 @@ vi.mock('@/store', () => ({
   })),
   useLanguage: vi.fn(() => ({
     code: LanguageCodeEnum.EnUS,
+    messages: enUSMessages,
   })),
   useTheme: vi.fn(() => ({
     mode: 'light',
     systemPrefersDark: false,
   })),
+  configureChatStore: vi.fn(),
 }));
 
 describe('ChatContainer', () => {
@@ -36,7 +39,7 @@ describe('ChatContainer', () => {
 
   it('应该渲染子组件', () => {
     render(
-      <ChatContainer locale={LanguageCodeEnum.EnUS}>
+      <ChatContainer>
         <TestChildComponent />
       </ChatContainer>,
     );
@@ -46,7 +49,7 @@ describe('ChatContainer', () => {
 
   it('应该设置正确的 data-language 属性', () => {
     render(
-      <ChatContainer locale={LanguageCodeEnum.EnUS}>
+      <ChatContainer>
         <TestChildComponent />
       </ChatContainer>,
     );
@@ -59,7 +62,7 @@ describe('ChatContainer', () => {
 
   it('应该设置正确的 data-theme 属性', () => {
     render(
-      <ChatContainer locale={LanguageCodeEnum.EnUS}>
+      <ChatContainer>
         <TestChildComponent />
       </ChatContainer>,
     );
@@ -73,7 +76,7 @@ describe('ChatContainer', () => {
 
   it('应该支持 render props 模式', () => {
     render(
-      <ChatContainer locale={LanguageCodeEnum.EnUS}>
+      <ChatContainer>
         {(store) => (
           <div data-testid="render-props">
             <span data-testid="theme-mode">{store.theme.mode}</span>

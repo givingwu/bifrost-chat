@@ -72,7 +72,7 @@ const renderChatContainer = (mode: ThemeModeEnum) =>
         },
       }}
     >
-      <ChatContainer locale={LanguageCodeEnum.EnUS}>
+      <ChatContainer>
         <div>theme-test-child</div>
       </ChatContainer>
     </ConfigProvider>,

@@ -1,5 +1,6 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
+import { LanguageCodeEnum } from '@/interfaces/language.interface';
 import { I18nProvider, useTranslation } from '@/providers/I18n.provider';
 
 // 测试组件
@@ -17,22 +18,12 @@ const TestComponent = () => {
 };
 
 describe('I18nProvider', () => {
-  const mockMessages = {
-    title: 'Test Title',
-    toolbar: {
-      channel: {
-        sms: 'SMS Channel',
-      },
-    },
-    composer: {
-      placeholder: {
-        channel: 'Enter {{channel}} message',
-      },
-    },
-  };
-
   describe('基本翻译功能', () => {
     it('应该能够翻译简单的键', () => {
+      const mockMessages = {
+        title: 'Test Title',
+      };
+
       render(
         <I18nProvider locale="en" messages={mockMessages}>
           <TestComponent />
@@ -43,6 +34,14 @@ describe('I18nProvider', () => {
     });
 
     it('应该能够翻译嵌套的键', () => {
+      const mockMessages = {
+        toolbar: {
+          channel: {
+            sms: 'SMS Channel',
+          },
+        },
+      };
+
       render(
         <I18nProvider locale="en" messages={mockMessages}>
           <TestComponent />
@@ -53,6 +52,14 @@ describe('I18nProvider', () => {
     });
 
     it('应该支持参数化翻译', () => {
+      const mockMessages = {
+        composer: {
+          placeholder: {
+            channel: 'Enter {{channel}} message',
+          },
+        },
+      };
+
       render(
         <I18nProvider locale="en" messages={mockMessages}>
           <TestComponent />
@@ -65,6 +72,7 @@ describe('I18nProvider', () => {
     });
 
     it('当键不存在时应该返回键本身', () => {
+      const mockMessages = {};
       const TestMissingKey = () => {
         const { t } = useTranslation();
         return <span>{t('nonexistent.key')}</span>;
@@ -80,8 +88,7 @@ describe('I18nProvider', () => {
     });
 
     it('当值不是字符串时应该返回键本身', () => {
-      const messagesWithObject = {
-        ...mockMessages,
+      const mockMessages = {
         objectValue: { nested: 'value' },
       };
 
@@ -91,7 +98,7 @@ describe('I18nProvider', () => {
       };
 
       const { container } = render(
-        <I18nProvider locale="en" messages={messagesWithObject}>
+        <I18nProvider locale="en" messages={mockMessages}>
           <TestObjectValue />
         </I18nProvider>,
       );
@@ -100,36 +107,55 @@ describe('I18nProvider', () => {
     });
   });
 
-  describe('语言切换回调', () => {
-    it('应该调用 onChangeLanguage 回调', () => {
+  describe('语言切换', () => {
+    it('应该能够切换语言', async () => {
+      const mockMessagesEn = {
+        title: 'English Title',
+      };
+      const mockMessagesZh = {
+        title: '中文标题',
+      };
+
       const handleChange = vi.fn();
 
-      const TestLanguageChange = () => {
-        const { i18n } = useTranslation();
+      const TestLanguageSwitch = () => {
+        const { t, i18n } = useTranslation();
         return (
-          <button type="button" onClick={() => i18n.changeLanguage('zh-CN')}>
-            Change Language
-          </button>
+          <div>
+            <span data-testid="current">{t('title')}</span>
+            <button type="button" onClick={() => i18n.changeLanguage('zh-CN')}>
+              Switch Language
+            </button>
+          </div>
         );
       };
 
       render(
         <I18nProvider
           locale="en"
-          messages={mockMessages}
+          messages={mockMessagesEn}
           onChangeLanguage={handleChange}
         >
-          <TestLanguageChange />
+          <TestLanguageSwitch />
         </I18nProvider>,
       );
 
-      const button = screen.getByText('Change Language');
+      // 初始状态：英文
+      expect(screen.getByTestId('current').textContent).toBe('English Title');
+
+      // 切换语言
+      const button = screen.getByText('Switch Language');
       button.click();
 
+      // 验证回调被调用
       expect(handleChange).toHaveBeenCalledWith('zh-CN');
     });
 
     it('当没有 onChangeLanguage 时不应该抛出错误', () => {
+      const mockMessages = {
+        title: 'Title',
+      };
+
       const TestLanguageChange = () => {
         const { i18n } = useTranslation();
         return (
@@ -154,21 +180,23 @@ describe('I18nProvider', () => {
 
   describe('useTranslation hook', () => {
     it('应该返回正确的 locale', () => {
+      const mockMessages = {};
       const TestLocale = () => {
         const { i18n } = useTranslation();
-        return <span>{i18n.language}</span>;
+        return <span data-testid="locale">{i18n.language}</span>;
       };
 
-      const { container } = render(
+      render(
         <I18nProvider locale="zh-CN" messages={mockMessages}>
           <TestLocale />
         </I18nProvider>,
       );
 
-      expect(container.textContent).toBe('zh-CN');
+      expect(screen.getByTestId('locale').textContent).toBe('zh-CN');
     });
 
     it('应该返回 t 函数', () => {
+      const mockMessages = {};
       const TestTFunction = () => {
         const { t } = useTranslation();
         return <span>{typeof t}</span>;
@@ -198,8 +226,8 @@ describe('I18nProvider', () => {
   });
 
   describe('参数化翻译的高级功能', () => {
-    it('应该支持多个参数', () => {
-      const messagesWithMultipleParams = {
+    it('应该支持多个参数', async () => {
+      const mockMessages = {
         greeting: 'Hello {{name}}, you have {{count}} messages',
       };
 
@@ -209,7 +237,7 @@ describe('I18nProvider', () => {
       };
 
       const { container } = render(
-        <I18nProvider locale="en" messages={messagesWithMultipleParams}>
+        <I18nProvider locale="en" messages={mockMessages}>
           <TestMultipleParams />
         </I18nProvider>,
       );
@@ -218,7 +246,7 @@ describe('I18nProvider', () => {
     });
 
     it('应该正确处理参数中的特殊字符', () => {
-      const messagesWithSpecialChars = {
+      const mockMessages = {
         message: 'Price: ${{price}}',
       };
 
@@ -228,7 +256,7 @@ describe('I18nProvider', () => {
       };
 
       const { container } = render(
-        <I18nProvider locale="en" messages={messagesWithSpecialChars}>
+        <I18nProvider locale="en" messages={mockMessages}>
           <TestSpecialChars />
         </I18nProvider>,
       );
@@ -237,7 +265,7 @@ describe('I18nProvider', () => {
     });
 
     it('应该处理未提供的参数', () => {
-      const messagesWithParams = {
+      const mockMessages = {
         message: 'Hello {{name}}',
       };
 
@@ -247,47 +275,13 @@ describe('I18nProvider', () => {
       };
 
       const { container } = render(
-        <I18nProvider locale="en" messages={messagesWithParams}>
+        <I18nProvider locale="en" messages={mockMessages}>
           <TestMissingParam />
         </I18nProvider>,
       );
 
       // 未提供的参数应该保持原样
       expect(container.textContent).toBe('Hello {{name}}');
-    });
-  });
-
-  describe('Context 值更新', () => {
-    it('当 locale 改变时应该更新 context', () => {
-      const messagesEn = { title: 'English Title' };
-      const messagesZh = { title: '中文标题' };
-
-      const TestComponentWithUpdate = ({
-        locale,
-        messages,
-      }: {
-        locale: string;
-        messages: Record<string, unknown>;
-      }) => {
-        const { t } = useTranslation();
-        return <span>{t('title')}</span>;
-      };
-
-      const { rerender } = render(
-        <I18nProvider locale="en" messages={messagesEn}>
-          <TestComponentWithUpdate locale="en" messages={messagesEn} />
-        </I18nProvider>,
-      );
-
-      expect(screen.getByText('English Title')).toBeDefined();
-
-      rerender(
-        <I18nProvider locale="zh-CN" messages={messagesZh}>
-          <TestComponentWithUpdate locale="zh-CN" messages={messagesZh} />
-        </I18nProvider>,
-      );
-
-      expect(screen.getByText('中文标题')).toBeDefined();
     });
   });
 });

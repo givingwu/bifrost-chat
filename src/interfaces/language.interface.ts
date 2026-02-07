@@ -22,11 +22,18 @@ export const AvailableLanguageCodes = [
 export type AvailableLanguageCode = (typeof AvailableLanguageCodes)[number];
 
 /**
+ * i18n 文案字典类型
+ */
+export type I18nMessages = Record<string, unknown>;
+
+/**
  * 语言状态接口
  */
 export interface LanguageState {
   /** 当前语言代码 */
   code: LanguageCodeEnum;
+  /** 当前语言的文案字典 */
+  messages: I18nMessages;
   /** 是否自动检测语言 */
   autoDetect?: boolean;
 }

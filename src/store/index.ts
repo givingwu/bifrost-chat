@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import type { LanguageState } from '@/interfaces/language.interface';
 import type { NetworkState } from '@/interfaces/network.interface';
 import type { ThemeState } from '@/interfaces/theme.interface';
+import { loadMessagesSync } from '@/utils/i18n.util';
 import type {
   ConversationSlice,
   ConversationState,
@@ -123,7 +124,16 @@ const mergeInitialState = (
       ? { ...baseState.theme, ...initialState.theme }
       : baseState.theme,
     language: initialState.language
-      ? { ...baseState.language, ...initialState.language }
+      ? {
+          ...baseState.language,
+          ...initialState.language,
+          // 确保 messages 始终存在，如果 code 变化了则重新加载 messages
+          messages:
+            initialState.language.code &&
+            initialState.language.code !== baseState.language.code
+              ? loadMessagesSync(initialState.language.code)
+              : baseState.language.messages,
+        }
       : baseState.language,
     profile: initialState.profile
       ? { ...baseState.profile, ...initialState.profile }

@@ -1,6 +1,5 @@
-import { type ReactNode, useCallback, useEffect, useMemo } from 'react';
-import { cn, enUSMessages, zhCNMessages } from '@/index';
-import { LanguageCodeEnum } from '@/interfaces/language.interface';
+import { type ReactNode, useEffect } from 'react';
+import { cn } from '@/index';
 import { ThemeModeEnum } from '@/interfaces/theme.interface';
 import { I18nProvider } from '@/providers/I18n.provider';
 import {
@@ -12,77 +11,76 @@ import {
 } from '@/store';
 
 export interface ChatContainerProps {
-  /** 语言代码 */
-  locale?: LanguageCodeEnum;
   /** 子组件或 render props 函数 */
   children: ReactNode | ((store: ChatStoreState) => ReactNode);
 }
 
-export const LanguageMessages = {
-  [LanguageCodeEnum.EnUS]: enUSMessages,
-  [LanguageCodeEnum.ZhCN]: zhCNMessages,
-};
-
 /**
  * ChatContainer：SDK 根容器（Provider + Store 绑定）。
  *
+ * @description
+ * 提供统一的容器组件，整合 ConfigProvider、I18nProvider 和主题系统。
+ * 作为桥梁，从 store 读取语言配置并传递给 I18nProvider。
+ *
  * @example Headless 模式（完全自定义）
- * <ChatContainer locale="zh-CN">
- *   <MyCustomLayout />
- * </ChatContainer>
+ * ```tsx
+ * <ConfigProvider config={{ language: { code: LanguageCodeEnum.ZhCN } }}>
+ *   <ChatContainer>
+ *     <MyCustomLayout />
+ *   </ChatContainer>
+ * </ConfigProvider>
+ * ```
  *
  * @example Compound 模式（部分自定义）
- * <ChatContainer locale="zh-CN">
- *   <ChatLayout
- *     topbar={<CustomTopbar />}
- *     conversationPanel={<CustomConversationPanel />}
- *     composer={<CustomComposer />}
- *     contextPanel={<CustomProfile />}
- *   >
- *     <CustomMessageList />
- *   </ChatLayout>
- * </ChatContainer>
+ * ```tsx
+ * <ConfigProvider config={{ language: { code: LanguageCodeEnum.ZhCN } }}>
+ *   <ChatContainer>
+ *     <ChatLayout
+ *       topbar={<CustomTopbar />}
+ *       conversationPanel={<CustomConversationPanel />}
+ *       composer={<CustomComposer />}
+ *       profile={<CustomProfile />}
+ *     >
+ *       <CustomMessageList />
+ *     </ChatLayout>
+ *   </ChatContainer>
+ * </ConfigProvider>
+ * ```
  *
  * @example All-in-One 模式（开箱即用，通过特定组件自定义）
- * <ChatContainer locale="zh-CN">
- *   <DefaultChatLayout contextPanel={<CustomProfile />} />
- * </ChatContainer>
+ * ```tsx
+ * <ConfigProvider config={{ language: { code: LanguageCodeEnum.ZhCN } }}>
+ *   <ChatContainer>
+ *     <DefaultChatLayout profile={<CustomProfile />} />
+ *   </ChatContainer>
+ * </ConfigProvider>
+ * ```
  *
  * @example Render Props 模式（显式传递状态）
- * <ChatContainer locale="zh-CN">
- *   {({ store, actions, strategy, network, theme, language, conversation, profile }) => (
- *     <CustomLayout
- *       store={store}
- *       actions={actions}
- *       strategy={strategy}
- *       network={network}
- *       theme={theme}
- *       language={language}
- *       conversation={conversation}
- *       profile={profile}
- *     />
- *   )}
- * </ChatContainer>
+ * ```tsx
+ * <ConfigProvider config={{ language: { code: LanguageCodeEnum.ZhCN } }}>
+ *   <ChatContainer>
+ *     {({ store, actions, strategy, network, theme, language, conversation, profile }) => (
+ *       <CustomLayout
+ *         store={store}
+ *         actions={actions}
+ *         strategy={strategy}
+ *         network={network}
+ *         theme={theme}
+ *         language={language}
+ *         conversation={conversation}
+ *         profile={profile}
+ *       />
+ *     )}
+ *   </ChatContainer>
+ * </ConfigProvider>
+ * ```
  */
-export const ChatContainer = ({ locale, children }: ChatContainerProps) => {
+export const ChatContainer = ({ children }: ChatContainerProps) => {
   const theme = useTheme();
   const store = useChatStore();
-  const { code: languageCode } = useLanguage();
+  const { code: languageCode, messages } = useLanguage();
   const { setLanguage, setSystemPrefersDark } = useActions();
-
-  const handleLanguageChange = useCallback(
-    (newLocale: string) => {
-      setLanguage(newLocale as LanguageCodeEnum);
-    },
-    [setLanguage],
-  );
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <Ignore locale changes>
-  useEffect(() => {
-    if (locale) {
-      setLanguage(locale);
-    }
-  }, [setLanguage]);
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -102,10 +100,6 @@ export const ChatContainer = ({ locale, children }: ChatContainerProps) => {
     };
   }, [setSystemPrefersDark]);
 
-  const finalMessages = useMemo(() => {
-    return LanguageMessages[languageCode] || enUSMessages;
-  }, [languageCode]);
-
   const resolvedThemeMode =
     theme.mode === ThemeModeEnum.System
       ? theme.systemPrefersDark
@@ -116,8 +110,8 @@ export const ChatContainer = ({ locale, children }: ChatContainerProps) => {
   return (
     <I18nProvider
       locale={languageCode}
-      messages={finalMessages}
-      onChangeLanguage={handleLanguageChange}
+      messages={messages}
+      onChangeLanguage={setLanguage}
     >
       <div
         data-component="chat-container"
