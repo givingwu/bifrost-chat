@@ -16,6 +16,6 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src", ".storybook", "stories"],
+  "include": ["src", ".storybook", "stories", "vitest.d.ts"],
   "exclude": ["tests", "node_modules"]
 }
