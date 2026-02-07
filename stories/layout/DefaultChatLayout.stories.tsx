@@ -201,26 +201,78 @@ class MockMessageService implements IMessageService {
     throw new Error('Method not implemented.');
   }
   async list(conversationId: string) {
-    const messages: StandardMessage[] = [
-      {
-        id: 'msg-1',
-        direction: MessageDirectionEnum.Incoming,
-        channelType: ChannelTypeEnum.WhatsApp,
-        status: MessageStatusEnum.Read,
-        timestamp: Date.now(),
-        type: MessageTypeEnum.Text,
-        content: { text: '你好，请问有什么可以帮助您的？' },
+    // 随机生成 20~100 条消息数据用于测试虚拟滚动
+    const messageCount = Math.floor(Math.random() * 81) + 20; // 20-100
+    const messages: StandardMessage[] = Array.from(
+      { length: messageCount },
+      (_, i) => {
+        const id = i + 1;
+        const directions = [
+          MessageDirectionEnum.Incoming,
+          MessageDirectionEnum.Outgoing,
+        ];
+        const statuses = [
+          MessageStatusEnum.Created,
+          MessageStatusEnum.Sending,
+          MessageStatusEnum.Sent,
+          MessageStatusEnum.Delivered,
+          MessageStatusEnum.Read,
+          MessageStatusEnum.Failed,
+        ];
+        const channels = [
+          ChannelTypeEnum.WhatsApp,
+          ChannelTypeEnum.SMS,
+          ChannelTypeEnum.Email,
+          ChannelTypeEnum.Waba,
+        ];
+        const textMessages = [
+          '你好，请问有什么可以帮助您的？',
+          '我想咨询一下产品信息',
+          '请问产品价格是多少？',
+          '好的，谢谢',
+          '什么时候可以发货？',
+          '收到，谢谢您的回复',
+          '请问还有其他问题吗？',
+          '好的，我稍后联系您',
+          '请问有什么优惠活动吗？',
+          '感谢您的耐心解答',
+          '我需要咨询一下售后服务',
+          '请问支持哪些支付方式？',
+          '好的，我明白了',
+          '请问可以开发票吗？',
+          '感谢您的支持',
+          '请问产品有保修吗？',
+          '好的，我会考虑的',
+          '请问什么时候有货？',
+          '感谢您的反馈',
+          '请问可以退货吗？',
+          '这个产品看起来很不错',
+          '请问有其他颜色吗？',
+          '好的，我下单了',
+          '请问发货需要多长时间？',
+          '感谢您的服务',
+          '请问可以加急处理吗？',
+          '好的，我等您消息',
+          '请问有现货吗？',
+          '感谢您的耐心等待',
+          '请问可以修改订单吗？',
+        ];
+
+        const direction = directions[i % directions.length];
+
+        return {
+          id: `msg-${id}`,
+          direction,
+          channelType: channels[i % channels.length],
+          status: statuses[i % statuses.length],
+          timestamp: Date.now() - i * 60000 * 3,
+          type: MessageTypeEnum.Text,
+          content: {
+            text: textMessages[i % textMessages.length],
+          },
+        };
       },
-      {
-        id: 'msg-2',
-        direction: MessageDirectionEnum.Outgoing,
-        channelType: ChannelTypeEnum.WhatsApp,
-        status: MessageStatusEnum.Delivered,
-        timestamp: Date.now() - 60000,
-        type: MessageTypeEnum.Text,
-        content: { text: '我想咨询一下产品信息' },
-      },
-    ];
+    );
     return messages;
   }
 

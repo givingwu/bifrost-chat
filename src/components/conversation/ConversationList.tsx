@@ -1,6 +1,13 @@
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { MessageCircle } from 'lucide-react';
-import { memo, type ReactNode, useCallback, useMemo, useRef } from 'react';
+import {
+  memo,
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+} from 'react';
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { LoadingState } from '@/components/LoadingState';
@@ -207,6 +214,34 @@ export const ConversationList = memo(
       gap: CONVERSATION_LIST_ITEM_GAP,
       overscan: 5, // 预渲染上下各 5 个元素
     });
+
+    // ==================== 自动滚动到激活会话 ====================
+    // 当 activeConversationId 更新时，自动滚动到对应会话位置
+    useEffect(() => {
+      if (
+        !activeConversationId ||
+        !processedConversations ||
+        !shouldUseVirtualization
+      ) {
+        return;
+      }
+
+      // 找到激活会话在列表中的索引
+      const activeIndex = processedConversations.findIndex(
+        (conversation) => conversation.id === activeConversationId,
+      );
+
+      if (activeIndex >= 0) {
+        // 使用虚拟滚动的 scrollToIndex 方法滚动到该位置
+        // align: 'center' 将会话项滚动到视图中心
+        virtualizer.scrollToIndex(activeIndex, { align: 'auto' });
+      }
+    }, [
+      activeConversationId,
+      processedConversations,
+      shouldUseVirtualization,
+      virtualizer,
+    ]);
 
     // ==================== 回调函数 ====================
 
