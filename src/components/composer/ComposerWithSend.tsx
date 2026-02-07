@@ -1,7 +1,6 @@
 import { forwardRef, memo, useCallback } from 'react';
 import { useSendMessage } from '@/hooks/use-send-message.hook';
 import type { ChannelTypeEnum } from '@/interfaces/channel.interface';
-import { useComposerConfig } from '@/store';
 import type { ComposerToolbarRef } from './ComposerToolbar';
 import { ComposerToolbar } from './ComposerToolbar';
 
@@ -37,7 +36,6 @@ export const ComposerWithSend = memo(
   forwardRef<ComposerToolbarRef, ComposerWithSendProps>(
     function ComposerWithSend({ conversationId, channel }, ref) {
       const sendMessage = useSendMessage();
-      const { templateMode, allowTemplateEdit } = useComposerConfig();
 
       // 处理发送消息
       const handleSend = useCallback(
@@ -55,10 +53,9 @@ export const ComposerWithSend = memo(
         [conversationId, sendMessage.mutateAsync],
       );
 
-      // 根据 allowTemplateEdit 配置决定是否锁定输入框
-      const templateLocked =
-        templateMode === 'edit' && allowTemplateEdit === false;
-
+      // templateLocked 由 ComposerToolbar 内部管理
+      // 只有在点击模板后、输入框有值时才锁定
+      // 初始化时不传递 templateLocked，默认为 false（不锁定）
       return (
         <ComposerToolbar
           ref={ref}
@@ -66,7 +63,6 @@ export const ComposerWithSend = memo(
           onSend={handleSend}
           disabled={sendMessage.isPending}
           loading={sendMessage.isPending}
-          templateLocked={templateLocked}
         />
       );
     },
