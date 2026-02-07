@@ -70,7 +70,9 @@ export const TemplateList = ({
               {template.name || (showCategory && template.category) ? (
                 <div className="flex items-center gap-2">
                   {template.name && (
-                    <span className="font-medium">{template.name}</span>
+                    <span className="font-medium text-black/80 hover:text-black/90">
+                      {template.name}
+                    </span>
                   )}
                   {showCategory && template.category && (
                     <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] text-primary">
@@ -81,13 +83,13 @@ export const TemplateList = ({
               ) : null}
 
               {/* 内容预览 */}
-              <p className="line-clamp-1 text-xs text-text-muted">
+              <p className="line-clamp-1 text-xs text-gray-500 dark:text-gray-400">
                 {template.content}
               </p>
 
               {/* 使用次数 */}
               {showUsageCount && template.usageCount !== undefined && (
-                <p className="text-[10px] text-text-muted">
+                <p className="text-[10px] text-gray-500 dark:text-gray-400">
                   使用 {template.usageCount} 次
                 </p>
               )}

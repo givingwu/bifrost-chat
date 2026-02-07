@@ -37,15 +37,14 @@ export const TemplateCategoryButton = ({
       type="button"
       onClick={onClick}
       className={cn(
-        'rounded-full px-3 py-1 text-xs font-medium transition',
-        'border',
+        'rounded-full px-3 py-1 text-xs font-medium transition tracking-wider',
         isSelected
           ? 'border-primary bg-primary text-primary-foreground'
-          : 'border-border bg-card text-text hover:border-primary/50',
+          : 'border-border bg-card text-gray-400 hover:text-gray-500 hover:border-primary/50',
         className,
       )}
       aria-pressed={isSelected}
-      aria-label={`${label} ${isSelected ? '(已选中)' : ''}`}
+      aria-label={`${label} ${isSelected ? '(Selected)' : ''}`}
     >
       {label}
     </Button>

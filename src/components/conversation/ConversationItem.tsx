@@ -27,8 +27,8 @@ const ACTIVE_STATE_STYLES = {
 const INACTIVE_STATE_STYLES = {
   container: 'hover:bg-gray-200/50 dark:hover:bg-white/5 bg-transparent',
   title: 'text-text',
-  time: 'text-text-muted',
-  message: 'text-text-muted',
+  time: ' text-gray-500 dark:text-gray-400',
+  message: ' text-gray-500 dark:text-gray-400',
 } as const;
 
 /**
@@ -108,7 +108,12 @@ export const ConversationItem = memo(
                 {lastReplyTime}
               </span>
             </div>
-            <p className={cn('line-clamp-2 text-sm', styles.message)}>
+            <p
+              className={cn(
+                'line-clamp-2 text-sm truncate leading-snug',
+                styles.message,
+              )}
+            >
               {conversation.lastMessage}
             </p>
           </div>

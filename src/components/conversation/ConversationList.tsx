@@ -14,7 +14,7 @@ import { ConversationItem } from './ConversationItem';
 
 /** 默认容器类名 */
 const DEFAULT_CONTAINER_CLASSNAME =
-  'px-4 py-2 space-y-1 scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-gray-700 flex flex-col flex-1 overflow-y-auto';
+  'flex-1 overflow-y-auto px-2 py-2 space-y-1 scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-gray-700 overflow-y-auto';
 
 // ==================== 类型定义 ====================
 

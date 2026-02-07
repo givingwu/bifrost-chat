@@ -109,8 +109,8 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
             'focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-gray-900 dark:text-white placeholder-gray-500',
             // 背景和边框
             bordered
-              ? 'border border-border bg-card focus:border-primary focus:ring-2 focus:ring-primary/40'
-              : 'border border-transparent bg-muted focus:ring-1 focus:ring-primary/30',
+              ? 'border focus:border-primary'
+              : 'border border-transparent',
             // 文本样式
             'text-text placeholder:text-text-muted/50',
             // 禁用状态

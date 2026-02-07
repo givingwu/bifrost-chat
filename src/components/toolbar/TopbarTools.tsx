@@ -16,6 +16,8 @@ export const TopbarTools = () => {
     <div className="flex items-center gap-4">
       <NetworkStatus status={status} />
 
+      <div className="h-6 w-px bg-gray-200 dark:bg-white/10 mx-2"></div>
+
       <div className="flex gap-1">
         <LanguageSwitcher value={code} onChange={setLanguage} />
         <ThemeSwitcher value={mode} onChange={setTheme} />
