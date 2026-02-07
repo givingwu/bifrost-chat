@@ -1,6 +1,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { StandardMessage } from '@/interfaces/message.interface';
-import { MessageStatusEnum } from '@/interfaces/message.interface';
+import {
+  MessagePriorityEnum,
+  MessageStatusEnum,
+} from '@/interfaces/message.interface';
 import { queryKeys } from '@/providers/query.provider';
 import { useServices } from '@/providers/service.provider';
 import { MessageBuilder } from '@/utils/message-builder.util';
@@ -51,7 +54,7 @@ import { MessageBuilder } from '@/utils/message-builder.util';
  */
 export function useSendMessage<TParams = any>() {
   const queryClient = useQueryClient();
-  const { messageService } = useServices();
+  const { messageService, offlineMessageQueue } = useServices();
 
   return useMutation({
     mutationFn: async (params: {
@@ -87,6 +90,7 @@ export function useSendMessage<TParams = any>() {
         },
       );
       tempMessage.status = MessageStatusEnum.Sending;
+      tempMessage.tempId = MessageBuilder.generateTempId();
 
       // 乐观更新：立即添加消息到列表
       queryClient.setQueryData(
@@ -110,17 +114,58 @@ export function useSendMessage<TParams = any>() {
       return { previousMessages, tempMessage };
     },
 
-    // 如果出错，回滚到之前的状态
-    onError: (error, variables, context) => {
+    // 如果出错，保存到离线队列而不是回滚
+    onError: async (error, variables, context) => {
       if (error) {
-        console.error(error);
+        console.error('消息发送失败:', error);
       }
-      if (context?.previousMessages) {
-        queryClient.setQueryData(
-          queryKeys.messages.list(variables.conversationId),
-          context.previousMessages,
-        );
+
+      // 如果有离线队列服务，将失败的消息保存到队列
+      if (offlineMessageQueue && context?.tempMessage) {
+        try {
+          const offlineMessage = offlineMessageQueue.createOfflineMessage(
+            context.tempMessage,
+            variables.conversationId,
+            {
+              content: variables.content,
+              ...variables.extra,
+            },
+            MessagePriorityEnum.Normal,
+          );
+
+          // 添加错误信息
+          offlineMessage.error =
+            error instanceof Error ? error.message : String(error);
+
+          await offlineMessageQueue.enqueue(offlineMessage);
+
+          console.info(
+            '[useSendMessage] 消息已保存到离线队列:',
+            offlineMessage.id,
+          );
+        } catch (queueError) {
+          console.error('[useSendMessage] 保存到离线队列失败:', queueError);
+        }
       }
+
+      // 更新消息状态为 Failed（而不是回滚）
+      queryClient.setQueryData(
+        queryKeys.messages.list(variables.conversationId),
+        (old: any) => {
+          if (!old) return old;
+          return {
+            ...old,
+            pages: old.pages.map((page: any) => ({
+              ...page,
+              items: page.items.map((item: StandardMessage) =>
+                item.tempId === context?.tempMessage.tempId
+                  ? { ...item, status: MessageStatusEnum.Failed }
+                  : item,
+              ),
+            })),
+          };
+        },
+      );
     },
 
     // 成功后，更新临时消息的状态

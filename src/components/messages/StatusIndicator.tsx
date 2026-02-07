@@ -56,6 +56,12 @@ export const StatusIndicator = memo(
         MessageStatusEnum,
         Omit<StatusConfig, 'ariaLabel'>
       > = {
+        [MessageStatusEnum.Queued]: {
+          icon: Loader2,
+          size: 'h-3 w-3',
+          colorClass: 'text-white/50',
+          animate: true,
+        },
         [MessageStatusEnum.Created]: {
           icon: Loader2,
           size: 'h-3 w-3',

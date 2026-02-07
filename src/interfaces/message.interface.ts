@@ -26,6 +26,8 @@ export enum MessageStatusEnum {
   Read = 'read',
   /** 消息发送失败 */
   Failed = 'failed',
+  /** 消息在离线队列中等待发送 */
+  Queued = 'queued',
 }
 
 /**

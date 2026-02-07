@@ -93,3 +93,36 @@ export class MapperError extends SDKError {
     Object.setPrototypeOf(this, MapperError.prototype);
   }
 }
+
+/**
+ * 离线队列错误码枚举
+ */
+export enum OfflineQueueErrorCode {
+  /** 队列已满 */
+  QueueFull = 'QUEUE_FULL',
+  /** 存储失败 */
+  StorageError = 'STORAGE_ERROR',
+  /** 消息过期 */
+  MessageExpired = 'MESSAGE_EXPIRED',
+  /** 达到最大重试次数 */
+  MaxRetriesExceeded = 'MAX_RETRIES_EXCEEDED',
+  /** 数据库未初始化 */
+  DatabaseNotInitialized = 'DATABASE_NOT_INITIALIZED',
+  /** 消息未找到 */
+  MessageNotFound = 'MESSAGE_NOT_FOUND',
+}
+
+/**
+ * 离线队列错误
+ */
+export class OfflineQueueError extends SDKError {
+  constructor(
+    message: string,
+    public queueCode: OfflineQueueErrorCode,
+    details?: Record<string, unknown>,
+  ) {
+    super(message, 'OFFLINE_QUEUE_ERROR', details);
+    this.name = 'OfflineQueueError';
+    Object.setPrototypeOf(this, OfflineQueueError.prototype);
+  }
+}

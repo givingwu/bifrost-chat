@@ -1,0 +1,506 @@
+# 离线消息队列使用指南
+
+## 文档版本
+
+| 版本 | 日期 | 作者 | 变更说明 |
+|------|------|------|----------|
+| 1.0.0 | 2026-02-07 | Kilo Code | 初始版本 |
+
+---
+
+## 概述
+
+离线消息队列系统确保发送失败的消息不会丢失，并在网络恢复时自动重试发送。
+
+### 当前已实现（As-Is）
+
+- ✅ IndexedDB 持久化存储
+- ✅ 自动重试机制（网络恢复时）
+- ✅ 手动重试功能
+- ✅ 消息优先级支持
+- ✅ 重试策略配置（指数退避/线性/固定）
+- ✅ 队列状态订阅
+- ✅ UI 指示器组件
+
+### 目标架构（To-Be）
+
+- [ ] 跨标签页同步
+- [ ] 消息去重
+- [ ] 消息合并（批量发送）
+- [ ] 云端备份
+
+---
+
+## 快速开始
+
+### 1. 启用离线消息队列
+
+在应用根组件中包裹 `OfflineMessageProvider`：
+
+```tsx
+import { OfflineMessageProvider } from '@feoe/bifrost-chat';
+import { ServiceProvider } from '@feoe/bifrost-chat';
+
+function App() {
+  return (
+    <ServiceProvider
+      conversationService={myConversationService}
+      messageService={myMessageService}
+      templateService={myTemplateService}
+    >
+      <OfflineMessageProvider
+        config={{
+          maxQueueSize: 500,
+          messageExpiration: 3 * 24 * 60 * 60 * 1000, // 3 天
+          defaultMaxRetries: 3,
+          retryStrategy: 'exponential',
+        }}
+      >
+        <ChatApp />
+      </OfflineMessageProvider>
+    </ServiceProvider>
+  );
+}
+```
+
+### 2. 在工具栏中显示队列状态
+
+```tsx
+import { OfflineQueueIndicator, useOfflineQueueIndicator } from '@feoe/bifrost-chat';
+
+function Toolbar() {
+  const { count, isSyncing } = useOfflineQueueIndicator();
+
+  return (
+    <div className="toolbar">
+      {/* 其他工具栏组件 */}
+      <OfflineQueueIndicator
+        count={count}
+        isSyncing={isSyncing}
+        onClick={() => console.log('查看离线队列')}
+      />
+    </div>
+  );
+}
+```
+
+### 3. 在消息气泡中添加重试按钮
+
+```tsx
+import { MessageStatusEnum } from '@feoe/bifrost-chat';
+import { useRetryOfflineMessage } from '@feoe/bifrost-chat';
+
+function MessageBubble({ message }) {
+  const { retryMessage, isRetrying } = useRetryOfflineMessage();
+
+  return (
+    <div className="message-bubble">
+      {/* 消息内容 */}
+      <div>{message.content.text}</div>
+
+      {/* 失败消息的重试按钮 */}
+      {message.status === MessageStatusEnum.Failed && (
+        <button
+          onClick={() => retryMessage(message.id)}
+          disabled={isRetrying}
+          className="retry-button"
+        >
+          {isRetrying ? '重试中...' : '重试'}
+        </button>
+      )}
+    </div>
+  );
+}
+```
+
+### 4. 手动触发同步
+
+```tsx
+import { useOfflineSync } from '@feoe/bifrost-chat';
+
+function SyncButton() {
+  const { sync, isSyncing } = useOfflineSync();
+
+  return (
+    <button onClick={sync} disabled={isSyncing}>
+      {isSyncing ? '同步中...' : '立即同步'}
+    </button>
+  );
+}
+```
+
+---
+
+## 配置选项
+
+### OfflineQueueConfig
+
+| 参数 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `enabled` | `boolean` | `true` | 是否启用离线队列 |
+| `dbName` | `string` | `'bifrost-offline-queue'` | IndexedDB 数据库名称 |
+| `dbVersion` | `number` | `1` | 数据库版本 |
+| `maxQueueSize` | `number` | `1000` | 最大队列长度 |
+| `messageExpiration` | `number` | `7 * 24 * 60 * 60 * 1000` | 消息过期时间（毫秒） |
+| `defaultMaxRetries` | `number` | `3` | 默认最大重试次数 |
+| `retryStrategy` | `'exponential' \| 'linear' \| 'fixed'` | `'exponential'` | 重试延迟策略 |
+| `autoRetryOnReconnect` | `boolean` | `true` | 网络恢复时自动重试 |
+| `batchSize` | `number` | `10` | 批量重试大小 |
+| `fixedRetryDelay` | `number` | `5000` | 固定重试延迟（毫秒） |
+| `linearRetryDelay` | `number` | `2000` | 线性重试延迟增量（毫秒） |
+| `maxRetryDelay` | `number` | `30000` | 最大重试延迟（毫秒） |
+
+### 重试策略说明
+
+#### 指数退避（Exponential）
+
+默认策略，重试延迟呈指数增长：
+
+```
+第 1 次重试：1 秒
+第 2 次重试：2 秒
+第 3 次重试：4 秒
+第 4 次重试：8 秒
+...
+最大延迟：30 秒
+```
+
+#### 线性（Linear）
+
+重试延迟线性增长：
+
+```
+第 1 次重试：1 秒
+第 2 次重试：3 秒（1 + 2）
+第 3 次重试：5 秒（1 + 2*2）
+第 4 次重试：7 秒（1 + 2*3）
+...
+最大延迟：30 秒
+```
+
+#### 固定（Fixed）
+
+每次重试使用固定延迟：
+
+```
+所有重试：5 秒
+```
+
+---
+
+## API 参考
+
+### Hooks
+
+#### `useOfflineMessage()`
+
+获取离线消息队列服务实例。
+
+```tsx
+const { queueService, isInitialized, error } = useOfflineMessage();
+```
+
+**返回值：**
+
+| 属性 | 类型 | 说明 |
+|------|------|------|
+| `queueService` | `OfflineMessageQueueService \| null` | 队列服务实例 |
+| `isInitialized` | `boolean` | 是否已初始化 |
+| `error` | `Error \| null` | 初始化错误 |
+
+#### `useOfflineSync()`
+
+监听网络状态并自动同步离线消息。
+
+```tsx
+const { sync, isSyncing, lastSyncAt } = useOfflineSync();
+```
+
+**返回值：**
+
+| 属性 | 类型 | 说明 |
+|------|------|------|
+| `sync` | `() => Promise<void>` | 手动触发同步 |
+| `isSyncing` | `boolean` | 是否正在同步 |
+| `lastSyncAt` | `number \| null` | 上次同步时间戳 |
+
+#### `useRetryOfflineMessage()`
+
+手动重试单条离线消息。
+
+```tsx
+const { retryMessage, isRetrying } = useRetryOfflineMessage();
+
+await retryMessage(messageId);
+```
+
+**返回值：**
+
+| 属性 | 类型 | 说明 |
+|------|------|------|
+| `retryMessage` | `(messageId: string) => Promise<void>` | 重试消息 |
+| `isRetrying` | `boolean` | 是否正在重试 |
+
+#### `useOfflineQueueIndicator()`
+
+订阅离线队列状态。
+
+```tsx
+const { count, isSyncing } = useOfflineQueueIndicator();
+```
+
+**返回值：**
+
+| 属性 | 类型 | 说明 |
+|------|------|------|
+| `count` | `number` | 队列中的消息数量 |
+| `isSyncing` | `boolean` | 是否正在同步 |
+
+### 组件
+
+#### `<OfflineQueueIndicator />`
+
+显示离线队列状态的指示器。
+
+```tsx
+<OfflineQueueIndicator
+  count={5}
+  isSyncing={false}
+  onClick={() => console.log('查看队列')}
+  showLabel={true}
+/>
+```
+
+**Props：**
+
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `count` | `number` | - | 队列中的消息数量 |
+| `isSyncing` | `boolean` | `false` | 是否正在同步 |
+| `className` | `string` | `''` | 自定义类名 |
+| `onClick` | `() => void` | - | 点击回调 |
+| `showLabel` | `boolean` | `true` | 是否显示文本标签 |
+| `label` | `string` | - | 自定义文本标签 |
+
+### 服务
+
+#### `OfflineMessageQueueService`
+
+离线消息队列服务类。
+
+**方法：**
+
+| 方法 | 参数 | 返回值 | 说明 |
+|------|------|--------|------|
+| `initialize()` | - | `Promise<void>` | 初始化数据库 |
+| `enqueue(message)` | `OfflineMessage` | `Promise<void>` | 将消息加入队列 |
+| `dequeue(messageId)` | `string` | `Promise<void>` | 从队列中移除消息 |
+| `getAll()` | - | `Promise<OfflineMessage[]>` | 获取所有消息 |
+| `getByConversation(conversationId)` | `string` | `Promise<OfflineMessage[]>` | 获取指定会话的消息 |
+| `getPendingRetry()` | - | `Promise<OfflineMessage[]>` | 获取需要重试的消息 |
+| `update(messageId, updates)` | `string, Partial<OfflineMessage>` | `Promise<void>` | 更新消息 |
+| `clear()` | - | `Promise<void>` | 清空队列 |
+| `getStats()` | - | `Promise<OfflineQueueStats>` | 获取统计信息 |
+| `cleanup(maxAge?)` | `number` | `Promise<number>` | 清理过期消息 |
+| `subscribe(callback)` | `(messages) => void` | `() => void` | 订阅队列变化 |
+| `destroy()` | - | `void` | 销毁服务 |
+| `calculateNextRetry(retryCount)` | `number` | `number` | 计算下次重试时间 |
+| `createOfflineMessage(...)` | `...` | `OfflineMessage` | 创建离线消息对象 |
+
+---
+
+## 高级用法
+
+### 自定义重试逻辑
+
+```tsx
+import { useOfflineMessage } from '@feoe/bifrost-chat';
+
+function CustomRetry() {
+  const { queueService } = useOfflineMessage();
+
+  const handleCustomRetry = async () => {
+    if (!queueService) return;
+
+    const messages = await queueService.getAll();
+
+    // 只重试高优先级消息
+    const highPriorityMessages = messages.filter(
+      (m) => m.priority === 'urgent' || m.priority === 'high'
+    );
+
+    for (const msg of highPriorityMessages) {
+      // 自定义重试逻辑
+      await customRetryLogic(msg);
+    }
+  };
+
+  return <button onClick={handleCustomRetry}>重试高优先级消息</button>;
+}
+```
+
+### 监听队列变化
+
+```tsx
+import { useOfflineMessage } from '@feoe/bifrost-chat';
+import { useEffect } from 'react';
+
+function QueueMonitor() {
+  const { queueService } = useOfflineMessage();
+
+  useEffect(() => {
+    if (!queueService) return;
+
+    const unsubscribe = queueService.subscribe((messages) => {
+      console.log('队列更新:', messages.length, '条消息');
+
+      // 自定义逻辑
+      if (messages.length > 10) {
+        console.warn('离线队列积压过多');
+      }
+    });
+
+    return unsubscribe;
+  }, [queueService]);
+
+  return null;
+}
+```
+
+### 获取队列统计信息
+
+```tsx
+import { useOfflineMessage } from '@feoe/bifrost-chat';
+
+function QueueStats() {
+  const { queueService } = useOfflineMessage();
+  const [stats, setStats] = useState(null);
+
+  useEffect(() => {
+    if (!queueService) return;
+
+    queueService.getStats().then(setStats);
+  }, [queueService]);
+
+  if (!stats) return null;
+
+  return (
+    <div>
+      <p>总消息数: {stats.total}</p>
+      <p>最旧消息: {new Date(stats.oldestMessageAt).toLocaleString()}</p>
+      <p>最新消息: {new Date(stats.newestMessageAt).toLocaleString()}</p>
+    </div>
+  );
+}
+```
+
+---
+
+## 故障排查
+
+### 消息未保存到离线队列
+
+**可能原因：**
+
+1. 离线队列未启用
+2. 队列已满（超过 `maxQueueSize`）
+3. IndexedDB 初始化失败
+
+**解决方案：**
+
+```tsx
+// 检查初始化状态
+const { isInitialized, error } = useOfflineMessage();
+
+if (!isInitialized) {
+  return <div>初始化中...</div>;
+}
+
+if (error) {
+  return <div>初始化失败: {error.message}</div>;
+}
+```
+
+### 消息重试失败
+
+**可能原因：**
+
+1. 网络仍未连接
+2. 消息服务实现有问题
+3. 达到最大重试次数
+
+**解决方案：**
+
+```tsx
+// 检查网络状态
+import { useNetwork } from '@/store';
+
+const networkStatus = useNetwork().status;
+
+if (networkStatus !== 'connected') {
+  return <div>网络未连接</div>;
+}
+
+// 检查重试次数
+const messages = await queueService.getAll();
+const failedMessages = messages.filter(
+  (m) => m.retryCount >= m.maxRetries
+);
+
+console.log('达到最大重试次数的消息:', failedMessages);
+```
+
+### IndexedDB 配额超限
+
+**可能原因：**
+
+存储的消息过多，超过浏览器配额。
+
+**解决方案：**
+
+```tsx
+// 定期清理过期消息
+useEffect(() => {
+  const cleanupInterval = setInterval(async () => {
+    if (queueService) {
+      const cleaned = await queueService.cleanup();
+      console.log(`清理了 ${cleaned} 条过期消息`);
+    }
+  }, 60 * 60 * 1000); // 每小时清理一次
+
+  return () => clearInterval(cleanupInterval);
+}, [queueService]);
+```
+
+---
+
+## 最佳实践
+
+1. **合理设置队列大小**：根据应用场景设置 `maxQueueSize`，避免占用过多存储空间
+2. **选择合适的重试策略**：指数退避适合大多数场景，固定延迟适合测试
+3. **定期清理过期消息**：设置合理的 `messageExpiration`，避免消息堆积
+4. **监控队列状态**：使用 `subscribe` 监听队列变化，及时发现异常
+5. **提供用户反馈**：使用 `OfflineQueueIndicator` 显示队列状态，让用户了解待发送消息数量
+
+---
+
+## 浏览器兼容性
+
+| 浏览器 | 最低版本 | IndexedDB 支持 |
+|--------|----------|----------------|
+| Chrome | 23+ | ✅ |
+| Firefox | 10+ | ✅ |
+| Safari | 7+ | ✅ |
+| Edge | 12+ | ✅ |
+| Opera | 15+ | ✅ |
+| IE | 10+ | ✅ |
+
+**注意：** 不支持 IndexedDB 的浏览器会自动降级到 localStorage（容量限制更小）。
+
+---
+
+## 相关文档
+
+- [离线消息队列架构设计](./offline-message-queue-design.md)
+- [消息接口定义](../src/interfaces/message.interface.ts)
+- [错误处理](../src/interfaces/error.interface.ts)

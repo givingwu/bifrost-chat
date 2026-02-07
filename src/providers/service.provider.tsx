@@ -15,6 +15,13 @@ export interface ServiceContextValue {
   messageService: IMessageService;
   /** 模版服务 */
   templateService: ITemplateService;
+  /**
+   * 离线消息队列服务（可选）
+   * @description
+   * 如果使用 OfflineMessageProvider，此属性将自动注入
+   * 否则为 undefined，需要手动处理离线消息
+   */
+  offlineMessageQueue?: import('@/services/offline-message-queue.service').OfflineMessageQueueService;
 }
 
 /**
@@ -49,6 +56,13 @@ export interface ServiceProviderProps {
   messageService: IMessageService;
   /** 模版服务实现 */
   templateService: ITemplateService;
+  /**
+   * 离线消息队列服务（可选）
+   * @description
+   * 如果提供，将注入到服务上下文中
+   * 通常由 OfflineMessageProvider 自动管理
+   */
+  offlineMessageQueue?: import('@/services/offline-message-queue.service').OfflineMessageQueueService;
 }
 
 /**
@@ -83,14 +97,21 @@ export function ServiceProvider({
   conversationService,
   messageService,
   templateService,
+  offlineMessageQueue,
 }: ServiceProviderProps) {
   const value: ServiceContextValue = useMemo(() => {
     return {
       conversationService,
       messageService,
       templateService,
+      offlineMessageQueue,
     };
-  }, [conversationService, messageService, templateService]);
+  }, [
+    conversationService,
+    messageService,
+    templateService,
+    offlineMessageQueue,
+  ]);
 
   return (
     <ServiceContext.Provider value={value}>{children}</ServiceContext.Provider>
@@ -118,5 +139,6 @@ export function createNotImplementedServices(): ServiceContextValue {
     conversationService: createNotImplementedProxy<IConversationService>(),
     messageService: createNotImplementedProxy<IMessageService>(),
     templateService: createNotImplementedProxy<ITemplateService>(),
+    offlineMessageQueue: undefined,
   };
 }

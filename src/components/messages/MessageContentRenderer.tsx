@@ -22,10 +22,13 @@ export interface MessageContentRendererProps {
 /**
  * 消息内容组件类型定义
  * 允许返回 null，因为某些消息组件可能返回 null
+ * 支持普通组件和 memo 包装的组件
  */
-type MessageContentComponent = (props: {
-  content: MessageContent;
-}) => ReactElement | null;
+type MessageContentComponent =
+  | ((props: { content: MessageContent }) => ReactElement | null)
+  | React.MemoExoticComponent<
+      (props: { content: MessageContent }) => ReactElement | null
+    >;
 
 /**
  * 消息类型到组件的映射表
