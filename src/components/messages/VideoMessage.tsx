@@ -15,7 +15,7 @@ export const VideoMessage = ({ content }: VideoMessageProps) => {
   }
 
   return (
-    <div className="relative h-40 w-56 overflow-hidden rounded-xl">
+    <div className="relative w-56 overflow-hidden rounded-xl">
       {/* biome-ignore lint: 字幕轨道将由用户提供 */}
       <video
         src={content.url}
