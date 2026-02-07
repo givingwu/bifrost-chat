@@ -57,7 +57,7 @@ export const TemplateList = ({
             type="button"
             onClick={() => onTemplateClick?.(template)}
             className={cn(
-              'flex w-full items-center justify-between rounded-lg border',
+              'flex w-full items-center justify-between rounded-md border border-gray-200/50 dark:border-white/10',
               'bg-card px-3 py-2 text-left text-sm',
               'transition hover:border-primary/50',
               isSelected && 'border-primary bg-primary/5',
