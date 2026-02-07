@@ -5,7 +5,7 @@ import {
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import type { ReactNode } from 'react';
 
-export interface ReactQueryProviderProps {
+export interface QueryProviderProps {
   children: ReactNode;
   /**
    * 是否启用 React Query DevTools
@@ -88,14 +88,14 @@ export const queryKeys = {
 } as const;
 
 /**
- * React Query Provider 组件
+ * Query Provider 组件
  * 提供全局的 React Query 配置和缓存管理
  */
-export function ReactQueryProvider({
+export function QueryProvider({
   children,
   enableDevtools = process.env.NODE_ENV === 'development',
   queryClient = createQueryClient(),
-}: ReactQueryProviderProps) {
+}: QueryProviderProps) {
   return (
     <TanStackQueryClientProvider client={queryClient}>
       {children}
