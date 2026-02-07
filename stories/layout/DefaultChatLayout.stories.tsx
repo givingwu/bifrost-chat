@@ -392,9 +392,7 @@ export const English: Story = {
           templateService={new MockTemplateService()}
         >
           <I18nProvider locale={LanguageCodeEnum.EnUS} messages={enUS}>
-            <div className="w-full h-[900px]">
-              <Story />
-            </div>
+            <Story />
           </I18nProvider>
         </ServiceProvider>
       </QueryClientProvider>

@@ -58,21 +58,19 @@ export const TemplateList = ({
             onClick={() => onTemplateClick?.(template)}
             className={cn(
               'flex w-full items-center justify-between rounded-lg border',
-              'bg-card px-3 py-2 text-left text-sm text-text',
+              'bg-card px-3 py-2 text-left text-sm',
               'transition hover:border-primary/50',
               isSelected && 'border-primary bg-primary/5',
             )}
             role="option"
             aria-selected={isSelected}
           >
-            <div className="flex flex-1 flex-col gap-1">
+            <div className="flex flex-1 flex-col gap-1 text-gray-600 hover:text-gray-800 dark:text-white">
               {/* 标题和分类 */}
               {template.name || (showCategory && template.category) ? (
                 <div className="flex items-center gap-2">
                   {template.name && (
-                    <span className="font-medium text-black/80 hover:text-black/90">
-                      {template.name}
-                    </span>
+                    <span className="font-medium">{template.name}</span>
                   )}
                   {showCategory && template.category && (
                     <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] text-primary">

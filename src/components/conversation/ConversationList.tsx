@@ -6,7 +6,7 @@ import { LoadingState } from '@/components/LoadingState';
 import { useConversations } from '@/hooks/use-conversations.hook';
 import type { Conversation } from '@/interfaces/conversation.interface';
 import { useTranslation } from '@/providers/I18n.provider';
-import { useChatStore } from '@/store';
+import { useActiveConversationId } from '@/store';
 import { cn } from '@/utils/class.util';
 import { ConversationItem } from './ConversationItem';
 
@@ -51,7 +51,7 @@ function resolveConversationActive(
 ): Conversation {
   const resolvedIsActive =
     activeConversationId === null
-      ? conversation.isActive
+      ? (conversation.isActive ?? false)
       : conversation.id === activeConversationId;
 
   // 只有当状态不同时才创建新对象
@@ -95,9 +95,7 @@ export const ConversationList = memo(
     const { t } = useTranslation();
 
     // ==================== 状态获取 ====================
-    const activeConversationId = useChatStore(
-      (state) => state.conversation.activeConversationId,
-    );
+    const activeConversationId = useActiveConversationId();
 
     // ==================== 数据获取 ====================
     // 判断是否应该自动获取数据

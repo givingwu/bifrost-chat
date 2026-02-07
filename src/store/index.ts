@@ -220,6 +220,13 @@ export const useConversation = () =>
   useChatStore((state) => state.conversation);
 
 /**
+ * 当前激活的会话 ID
+ * @returns
+ */
+export const useActiveConversationId = () =>
+  useChatStore((state) => state.conversation.activeConversationId);
+
+/**
  * Profile 状态选择器
  * 返回客户画像相关的状态（客户信息等）
  *
