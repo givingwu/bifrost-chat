@@ -38,7 +38,16 @@
   "message": {
     "type": {
       "text": "文本消息",
-      "image": "图片消息"
+      "image": "图片消息",
+      "audio": "语音消息"
+    },
+    "audio": {
+      "play": "播放语音",
+      "pause": "暂停播放",
+      "loading": "加载中",
+      "error": "加载失败",
+      "progress": "播放进度",
+      "invalidContent": "无效的消息内容类型，期望 MediaMessage"
     },
     "status": {
       "created": "消息创建中",

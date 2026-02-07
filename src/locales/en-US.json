@@ -38,7 +38,16 @@
   "message": {
     "type": {
       "text": "Text message",
-      "image": "Image message"
+      "image": "Image message",
+      "audio": "Audio message"
+    },
+    "audio": {
+      "play": "Play audio",
+      "pause": "Pause playback",
+      "loading": "Loading",
+      "error": "Failed to load",
+      "progress": "Playback progress",
+      "invalidContent": "Invalid message content type, expected MediaMessage"
     },
     "status": {
       "created": "Creating message",
