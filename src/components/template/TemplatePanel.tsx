@@ -188,10 +188,7 @@ export const TemplatePanel = ({
 
       {/* 底部统计 */}
       {stats.total > 0 && (
-        <output
-          className="block border-t px-4 py-2 border-gray-200/50 dark:border-white/10 bg-gray-50/50 dark:bg-black/20"
-          aria-live="polite"
-        >
+        <output className="block border-t px-4 py-2" aria-live="polite">
           <p className="text-[10px] text-text-muted">
             {t('template.panel.showingCount', {
               filtered: stats.filtered,

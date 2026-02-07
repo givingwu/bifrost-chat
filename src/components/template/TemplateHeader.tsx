@@ -44,12 +44,7 @@ export const TemplateHeader = ({
   const { t } = useTranslation();
 
   return (
-    <div
-      className={
-        className ||
-        'border-b border-gray-200/50 dark:border-white/10 px-4 py-3'
-      }
-    >
+    <div className={className || 'border-b px-4 py-3'}>
       {/* 搜索框 */}
       <SearchInput
         value={searchQuery}
