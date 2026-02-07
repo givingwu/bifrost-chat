@@ -1,7 +1,9 @@
 import {
   type FormEvent,
+  forwardRef,
   useCallback,
   useEffect,
+  useImperativeHandle,
   useMemo,
   useRef,
   useState,
@@ -24,6 +26,18 @@ import { ComposerHint } from './ComposerHint';
 import { ComposerInput, type ComposerInputRef } from './ComposerInput';
 import { INPUT_LIMITS, TEST_IDS } from './composer.constants';
 
+/**
+ * ComposerToolbar 暴露的 ref 接口
+ */
+export interface ComposerToolbarRef {
+  /** 设置输入框的值 */
+  setValue: (value: string) => void;
+  /** 聚焦输入框 */
+  focus: () => void;
+  /** 获取当前输入框的值 */
+  getValue: () => string;
+}
+
 export interface ComposerToolbarProps {
   /** 当前激活渠道 */
   channel?: ChannelTypeEnum;
@@ -44,6 +58,8 @@ export interface ComposerToolbarProps {
   onEmojiClick?: () => void;
   /** 最大长度 */
   maxLength?: number;
+  /** 是否锁定输入（禁止编辑，如模板内容不允许编辑时） */
+  templateLocked?: boolean;
 }
 
 /**
@@ -71,23 +87,53 @@ export const MAX_LENGTH_MAP: Record<ChannelTypeEnum, number> = {
  * />
  * ```
  */
-export const ComposerToolbar = ({
-  channel,
-  onSend,
-  onSendAttachment,
-  onSendAudio,
-  disabled = false,
-  loading = false,
-  onEmojiClick,
-  maxLength,
-}: ComposerToolbarProps) => {
+export const ComposerToolbar = forwardRef<
+  ComposerToolbarRef,
+  ComposerToolbarProps
+>(function ComposerToolbar(
+  {
+    channel,
+    onSend,
+    onSendAttachment,
+    onSendAudio,
+    disabled = false,
+    loading = false,
+    onEmojiClick,
+    maxLength,
+    templateLocked = false,
+  }: ComposerToolbarProps,
+  ref,
+) {
   const { t } = useTranslation();
   const composerConfig = useComposerConfig();
   const [value, setValue] = useState('');
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [isRecording, setIsRecording] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [isTemplateLocked, setIsTemplateLocked] = useState(templateLocked);
   const inputRef = useRef<ComposerInputRef>(null);
+
+  // 暴露 ref 方法给父组件
+  useImperativeHandle(
+    ref,
+    () => ({
+      setValue: (newValue: string) => {
+        setValue(newValue);
+        // 当设置新值时，如果是模板模式且不允许编辑，则锁定输入框
+        if (
+          composerConfig.templateMode === 'edit' &&
+          composerConfig.allowTemplateEdit === false
+        ) {
+          setIsTemplateLocked(true);
+        }
+      },
+      focus: () => {
+        inputRef.current?.focus();
+      },
+      getValue: () => value,
+    }),
+    [value, composerConfig.templateMode, composerConfig.allowTemplateEdit],
+  );
 
   // 清理附件预览 URL
   useEffect(() => {
@@ -156,8 +202,9 @@ export const ComposerToolbar = ({
       } else if (messageToSend && onSend) {
         await onSend(messageToSend);
       }
-      // 仅在发送成功后清空输入框
+      // 仅在发送成功后清空输入框并解除锁定
       setValue('');
+      setIsTemplateLocked(false);
       console.log('[ComposerToolbar] Message sent successfully');
     } catch (error) {
       // 错误处理由调用方负责，这里只重置状态
@@ -288,6 +335,16 @@ export const ComposerToolbar = ({
     setIsRecording(false);
   }, []);
 
+  // 处理清空输入框
+  const handleClear = useCallback(() => {
+    setValue('');
+    setIsTemplateLocked(false);
+    // 使用 setTimeout 确保在状态更新后再聚焦
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 0);
+  }, []);
+
   // 处理表单提交（防止意外的表单提交）
   const handleSubmit = useCallback(
     (event: FormEvent<HTMLFormElement>) => {
@@ -351,7 +408,13 @@ export const ComposerToolbar = ({
         <div className="flex items-center gap-3">
           {composerConfig.enableAttachments && (
             <ComposerAttachments
-              disabled={disabled || isSending || isRecording || !accept}
+              disabled={
+                disabled ||
+                isSending ||
+                isRecording ||
+                isTemplateLocked ||
+                !accept
+              }
               onAttachmentSelect={handleAttachmentSelect}
               accept={accept}
               multiple
@@ -363,7 +426,7 @@ export const ComposerToolbar = ({
             placeholder={placeholder}
             onChange={setValue}
             onEnter={handleSend}
-            disabled={disabled || isSending || isRecording}
+            disabled={disabled || isSending || isRecording || isTemplateLocked}
             maxLength={effectiveMaxLength}
             onEmojiClick={onEmojiClick}
             showEmojiButton={composerConfig.showEmojiButton}
@@ -375,6 +438,8 @@ export const ComposerToolbar = ({
             onAudioInput={handleAudioInput}
             loading={isSending || loading}
             disabled={disabled || isRecording}
+            showClear={isTemplateLocked}
+            onClear={handleClear}
           />
         </div>
         {/* 底部信息栏 - 根据配置控制显示 */}
@@ -409,4 +474,6 @@ export const ComposerToolbar = ({
       </form>
     </div>
   );
-};
+});
+
+ComposerToolbar.displayName = 'ComposerToolbar';

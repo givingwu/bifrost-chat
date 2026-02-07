@@ -43,6 +43,9 @@ const DEFAULT_COMPOSER_CONFIG: IComposerConfig = {
   showCharCount: true,
   showHint: true,
   showEmojiButton: true,
+  // 模板配置
+  templateMode: 'edit',
+  allowTemplateEdit: false,
 };
 
 /**

@@ -1,4 +1,4 @@
-import { Mic, Send } from 'lucide-react';
+import { Mic, Send, X } from 'lucide-react';
 import { memo } from 'react';
 import { IconButton } from '@/components/IconButton';
 import { useComposerConfig } from '@/store';
@@ -15,6 +15,10 @@ export interface ComposerActionsProps {
   disabled?: boolean;
   /** 音频输入回调 */
   onAudioInput?: () => void;
+  /** 是否显示清空按钮 */
+  showClear?: boolean;
+  /** 清空回调 */
+  onClear?: () => void;
 }
 
 /**
@@ -29,12 +33,49 @@ export interface ComposerActionsProps {
  *   onSend={handleSend}
  *   onAudioInput={handleAudioInput}
  *   loading={isSending}
+ *   showClear={true}
+ *   onClear={handleClear}
  * />
  * ```
  */
 export const ComposerActions = memo<ComposerActionsProps>(
-  ({ canSend, onSend, loading = false, disabled = false, onAudioInput }) => {
+  ({
+    canSend,
+    onSend,
+    loading = false,
+    disabled = false,
+    onAudioInput,
+    showClear = false,
+    onClear,
+  }) => {
     const composerConfig = useComposerConfig();
+
+    // 如果显示清空按钮，显示发送和清空按钮
+    if (canSend && showClear) {
+      return (
+        <div className="flex items-center gap-2">
+          <IconButton
+            icon={<X className={BUTTON_SIZES.ICON_MEDIUM} />}
+            variant="muted"
+            size="md"
+            onClick={onClear}
+            disabled={disabled}
+            aria-label="清空"
+            data-testid="composer-clear"
+          />
+          <IconButton
+            icon={<Send className={BUTTON_SIZES.ICON_MEDIUM} />}
+            variant="primary"
+            size="md"
+            onClick={onSend}
+            loading={loading}
+            disabled={disabled}
+            aria-label={ARIA_LABELS.SEND}
+            data-testid={TEST_IDS.COMPOSER_SEND}
+          />
+        </div>
+      );
+    }
 
     if (canSend) {
       return (

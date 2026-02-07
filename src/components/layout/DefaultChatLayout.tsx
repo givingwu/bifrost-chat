@@ -1,4 +1,5 @@
-import { useCallback, useMemo, useTransition } from 'react';
+import { useCallback, useMemo, useRef, useTransition } from 'react';
+import type { ComposerToolbarRef } from '@/components/composer/ComposerToolbar';
 import { ComposerWithSend } from '@/components/composer/ComposerWithSend';
 import { ConversationHeader } from '@/components/conversation/ConversationHeader';
 import { ConversationList } from '@/components/conversation/ConversationList';
@@ -14,7 +15,13 @@ import { useSendMessage } from '@/hooks/use-send-message.hook';
 import type { Conversation } from '@/interfaces/conversation.interface';
 import type { Template } from '@/interfaces/template.interface';
 import { useTranslation } from '@/providers/I18n.provider';
-import { useActions, useConversation, useProfile, useStrategy } from '@/store';
+import {
+  useActions,
+  useComposerConfig,
+  useConversation,
+  useProfile,
+  useStrategy,
+} from '@/store';
 import { cn } from '@/utils/class.util';
 import { ChatLayout } from './ChatLayout';
 
@@ -54,8 +61,12 @@ export function DefaultChatLayout({
   const { activeChannel, allowedChannels } = useStrategy();
   const { profile } = useProfile();
   const sendMessage = useSendMessage();
+  const { templateMode } = useComposerConfig();
   const { data: conversations = [] } = useConversations();
   const { activeConversationId, searchQuery } = useConversation();
+
+  // Composer ref，用于外部控制输入框
+  const composerRef = useRef<ComposerToolbarRef>(null);
 
   // 使用 useTransition 标记搜索过滤为过渡更新（低优先级）
   const [isPending, startTransition] = useTransition();
@@ -121,9 +132,10 @@ export function DefaultChatLayout({
     [actions],
   );
   /**
-   * TODO: 这里需要支持 2 种模式
-   * 1. 点击模版后直接发送。（当前模式）
-   * 2. 点击模版后将文案输出到 Composer 输入框，然后用户自己决定修改后发或者直接发
+   * 处理模板选择
+   * 根据 templateMode 配置决定行为：
+   * - direct: 直接发送模板消息
+   * - edit: 将模板内容填充到输入框，用户可编辑后发送
    */
   const handleTemplateSelect = useCallback(
     async (template: Template) => {
@@ -131,26 +143,33 @@ export function DefaultChatLayout({
         return;
       }
 
-      try {
-        await sendMessage.mutateAsync({
-          conversationId: activeConversationId,
-          content: template.content,
-          extra: {
-            templateId: template.id,
-            templateName: template.name,
-            templateCategory: template.category,
-          },
-        });
-      } catch (error) {
-        console.error('Failed to send template message:', error);
+      if (templateMode === 'direct') {
+        // 模式 1：直接发送
+        try {
+          await sendMessage.mutateAsync({
+            conversationId: activeConversationId,
+            content: template.content,
+            extra: {
+              templateId: template.id,
+              templateName: template.name,
+              templateCategory: template.category,
+            },
+          });
+        } catch (error) {
+          console.error('Failed to send template message:', error);
+        }
+      } else {
+        // 模式 2：填充到输入框
+        composerRef.current?.setValue(template.content);
+        composerRef.current?.focus();
       }
     },
-    [activeConversationId, sendMessage],
+    [activeConversationId, sendMessage, templateMode],
   );
 
   return (
     <ChatLayout
-      className={cn('max-w-[1400px] h-[80vh]', className)}
+      className={cn('max-w-350 h-[80vh]', className)}
       style={style}
       topbar={
         <Topbar title={title} subtitle={subtitle} extra={<TopbarTools />} />
@@ -184,13 +203,14 @@ export function DefaultChatLayout({
       composer={
         activeConversationId ? (
           <ComposerWithSend
+            ref={composerRef}
             conversationId={activeConversationId}
             channel={activeChannel}
           />
         ) : null
       }
       profilePanel={
-        <aside className="flex flex-col w-[300px] shrink-0 border-l border-gray-200/50 dark:border-white/10 bg-gray-50/50 dark:bg-black/20">
+        <aside className="flex flex-col w-75 shrink-0 border-l border-gray-200/50 dark:border-white/10 bg-gray-50/50 dark:bg-black/20">
           {profile && <Profile profile={profile} />}
           <TemplatePanel onTemplateSelect={handleTemplateSelect} />
         </aside>

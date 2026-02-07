@@ -1,6 +1,8 @@
-import { memo, useCallback } from 'react';
+import { forwardRef, memo, useCallback } from 'react';
 import { useSendMessage } from '@/hooks/use-send-message.hook';
 import type { ChannelTypeEnum } from '@/interfaces/channel.interface';
+import { useComposerConfig } from '@/store';
+import type { ComposerToolbarRef } from './ComposerToolbar';
 import { ComposerToolbar } from './ComposerToolbar';
 
 export interface ComposerWithSendProps {
@@ -31,35 +33,44 @@ export interface ComposerWithSendProps {
  * }
  * ```
  */
-export const ComposerWithSend = memo(function ComposerWithSend({
-  conversationId,
-  channel,
-}: ComposerWithSendProps) {
-  const sendMessage = useSendMessage();
-  // 处理发送消息
-  const handleSend = useCallback(
-    async (content: string) => {
-      try {
-        await sendMessage.mutateAsync({
-          conversationId,
-          content,
-        });
-      } catch (error) {
-        console.error('Failed to send message:', error);
-        throw error; // 重新抛出错误，让 ComposerToolbar 处理
-      }
-    },
-    [conversationId, sendMessage.mutateAsync],
-  );
+export const ComposerWithSend = memo(
+  forwardRef<ComposerToolbarRef, ComposerWithSendProps>(
+    function ComposerWithSend({ conversationId, channel }, ref) {
+      const sendMessage = useSendMessage();
+      const { templateMode, allowTemplateEdit } = useComposerConfig();
 
-  return (
-    <ComposerToolbar
-      channel={channel}
-      onSend={handleSend}
-      disabled={sendMessage.isPending}
-      loading={sendMessage.isPending}
-    />
-  );
-});
+      // 处理发送消息
+      const handleSend = useCallback(
+        async (content: string) => {
+          try {
+            await sendMessage.mutateAsync({
+              conversationId,
+              content,
+            });
+          } catch (error) {
+            console.error('Failed to send message:', error);
+            throw error; // 重新抛出错误，让 ComposerToolbar 处理
+          }
+        },
+        [conversationId, sendMessage.mutateAsync],
+      );
+
+      // 根据 allowTemplateEdit 配置决定是否锁定输入框
+      const templateLocked =
+        templateMode === 'edit' && allowTemplateEdit === false;
+
+      return (
+        <ComposerToolbar
+          ref={ref}
+          channel={channel}
+          onSend={handleSend}
+          disabled={sendMessage.isPending}
+          loading={sendMessage.isPending}
+          templateLocked={templateLocked}
+        />
+      );
+    },
+  ),
+);
 
 ComposerWithSend.displayName = 'ComposerWithSend';

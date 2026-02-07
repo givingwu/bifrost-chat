@@ -99,6 +99,25 @@ export interface IComposerConfig {
    * @default true
    */
   showEmojiButton?: boolean;
+
+  // ==================== 模板配置 ====================
+
+  /**
+   * 模板选择模式
+   * - `direct`: 点击模板后直接发送
+   * - `edit`: 点击模板后将内容填充到输入框，用户可编辑后发送
+   * @default 'direct'
+   */
+  templateMode?: 'direct' | 'edit';
+
+  /**
+   * 是否允许编辑模板内容
+   * 仅在 `templateMode` 为 `edit` 时生效
+   * - `true`: 用户可以编辑模板内容
+   * - `false`: 用户只能直接发送或清空，不能编辑
+   * @default true
+   */
+  allowTemplateEdit?: boolean;
 }
 
 /**
