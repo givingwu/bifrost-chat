@@ -18,7 +18,22 @@
       "default": "输入内容",
       "channel": "输入 {{channel}} 内容"
     },
-    "send": "发送"
+    "send": "发送",
+    "audio": {
+      "recording": "录音中",
+      "pause": "暂停",
+      "resume": "继续",
+      "stop": "停止",
+      "send": "发送",
+      "delete": "删除"
+    },
+    "attachment": {
+      "add": "添加附件",
+      "remove": "移除附件",
+      "maxSize": "文件大小超过限制",
+      "maxCount": "附件数量超过限制",
+      "invalidType": "不支持的文件类型"
+    }
   },
   "message": {
     "type": {

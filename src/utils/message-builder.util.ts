@@ -50,14 +50,14 @@ export class MessageBuilder {
   /**
    * 生成消息 ID
    */
-  private static generateId(): string {
+  static generateId(): string {
     return `msg_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
   }
 
   /**
    * 生成临时消息 ID
    */
-  private static generateTempId(): string {
+  static generateTempId(): string {
     return `temp_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
   }
 }

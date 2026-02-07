@@ -18,7 +18,22 @@
       "default": "Enter message",
       "channel": "Enter {{channel}} message"
     },
-    "send": "Send"
+    "send": "Send",
+    "audio": {
+      "recording": "Recording",
+      "pause": "Pause",
+      "resume": "Resume",
+      "stop": "Stop",
+      "send": "Send",
+      "delete": "Delete"
+    },
+    "attachment": {
+      "add": "Add Attachment",
+      "remove": "Remove Attachment",
+      "maxSize": "File size exceeds limit",
+      "maxCount": "Maximum attachments limit reached",
+      "invalidType": "Unsupported file type"
+    }
   },
   "message": {
     "type": {

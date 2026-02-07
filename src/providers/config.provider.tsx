@@ -2,15 +2,17 @@ import type { ReactNode } from 'react';
 import { createContext, useContext, useRef } from 'react';
 import { type ChatStoreInitialState, configureChatStore } from '@/store';
 
+export interface IConfigSettings extends ChatStoreInitialState {}
+
 /**
  * SDK Config 上下文（与 ChatStoreState 结构对齐）
  */
-const ConfigContext = createContext<ChatStoreInitialState | null>(null);
+const ConfigContext = createContext<IConfigSettings | null>(null);
 
 export interface ConfigProviderProps {
   children: ReactNode;
   /** SDK 配置（用于初始化 Store 状态） */
-  config: ChatStoreInitialState;
+  config: IConfigSettings;
 }
 
 /**

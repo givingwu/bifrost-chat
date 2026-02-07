@@ -13,6 +13,8 @@ import {
   ServiceProvider,
 } from '@/index';
 import { AgentStatusEnum } from '@/interfaces/agent.interface';
+import type { SendAttachmentResult } from '@/interfaces/attachment.interface';
+import type { SendAudioResult } from '@/interfaces/audio.interface';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import type { Conversation } from '@/interfaces/conversation.interface';
 import { LanguageCodeEnum } from '@/interfaces/language.interface';
@@ -128,6 +130,12 @@ class MockConversationService implements IConversationService {
 }
 
 class MockMessageService implements IMessageService {
+  sendAttachment(params: any): Promise<SendAttachmentResult> {
+    throw new Error('Method not implemented.');
+  }
+  sendAudio(params: any): Promise<SendAudioResult> {
+    throw new Error('Method not implemented.');
+  }
   async list(conversationId: string) {
     const messages: StandardMessage[] = [
       {

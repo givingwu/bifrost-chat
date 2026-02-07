@@ -4,6 +4,8 @@ import type { LanguageState } from '@/interfaces/language.interface';
 import type { NetworkState } from '@/interfaces/network.interface';
 import type { ThemeState } from '@/interfaces/theme.interface';
 import { loadMessagesSync } from '@/utils/i18n.util';
+import type { ComposerSlice, ComposerState } from './slices/composer.slice';
+import { createComposerSlice } from './slices/composer.slice';
 import type {
   ConversationSlice,
   ConversationState,
@@ -21,7 +23,7 @@ import type { ThemeSlice } from './slices/theme.slice';
 import { createThemeSlice } from './slices/theme.slice';
 
 // 导出状态类型，供外部使用
-export type { StrategyState, ConversationState, ProfileState };
+export type { StrategyState, ConversationState, ProfileState, ComposerState };
 
 /**
  * Chat Store 状态类型
@@ -32,7 +34,8 @@ export type ChatStoreState = StrategySlice &
   ThemeSlice &
   LanguageSlice &
   ConversationSlice &
-  ProfileSlice;
+  ProfileSlice &
+  ComposerSlice;
 
 export type ChatStoreConfigState = {
   activeConversationId: ConversationState['activeConversationId'];
@@ -41,6 +44,7 @@ export type ChatStoreConfigState = {
   theme: ThemeState;
   language: LanguageState;
   profile: ProfileState;
+  composer: ComposerState;
 };
 
 export type ChatStoreInitialState = Partial<{
@@ -85,6 +89,7 @@ const createDefaultState: StateCreator<
   const languageSlice = createLanguageSlice(...args);
   const conversationSlice = createConversationSlice(...args);
   const profileSlice = createProfileSlice(...args);
+  const composerConfigSlice = createComposerSlice(...args);
 
   return {
     ...strategySlice,
@@ -93,6 +98,7 @@ const createDefaultState: StateCreator<
     ...languageSlice,
     ...conversationSlice,
     ...profileSlice,
+    ...composerConfigSlice,
     actions: {
       ...strategySlice.actions,
       ...networkSlice.actions,
@@ -100,6 +106,7 @@ const createDefaultState: StateCreator<
       ...languageSlice.actions,
       ...conversationSlice.actions,
       ...profileSlice.actions,
+      ...composerConfigSlice.actions,
     },
   };
 };
@@ -144,6 +151,9 @@ const mergeInitialState = (
           activeConversationId: initialState.activeConversationId,
         }
       : baseState.conversation,
+    composer: initialState.composer
+      ? { ...baseState.composer, ...initialState.composer }
+      : baseState.composer,
   };
 };
 
@@ -217,6 +227,15 @@ export const useConversation = () =>
  * const { profile } = useProfile();
  */
 export const useProfile = () => useChatStore((state) => state.profile);
+
+/**
+ * Composer 配置状态选择器
+ * 返回 Composer 功能配置（附件、语音等）
+ *
+ * @example
+ * const { enableAttachments, enableVoiceInput, maxAttachments } = useComposerConfig();
+ */
+export const useComposerConfig = () => useChatStore((state) => state.composer);
 
 /**
  * Actions 选择器

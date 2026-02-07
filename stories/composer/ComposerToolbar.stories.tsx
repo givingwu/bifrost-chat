@@ -29,7 +29,8 @@ const meta: Meta<typeof ComposerToolbar> = {
       options: AvailableChannelTypes,
     },
     onSend: { action: 'send' },
-    onAttachmentSelect: { action: 'attachmentSelect' },
+    onSendAttachment: { action: 'sendAttachment' },
+    onSendAudio: { action: 'sendAudio' },
     disabled: { control: 'boolean' },
     loading: { control: 'boolean' },
     onEmojiClick: { action: 'emojiClick' },
@@ -50,7 +51,10 @@ export const WhatsApp = () => {
         <ComposerToolbar
           channel={ChannelTypeEnum.WhatsApp}
           onSend={(content) => console.log('Send:', content)}
-          onAttachmentSelect={(files) => console.log('Files:', files)}
+          onSendAttachment={(attachments, text) =>
+            console.log('Attachments:', attachments, 'Text:', text)
+          }
+          onSendAudio={(audio) => console.log('Audio:', audio)}
         />
       </div>
     </I18nProvider>

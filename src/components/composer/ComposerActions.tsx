@@ -1,6 +1,7 @@
 import { Mic, Send } from 'lucide-react';
 import { memo } from 'react';
 import { IconButton } from '@/components/IconButton';
+import { useComposerConfig } from '@/store';
 import { ARIA_LABELS, BUTTON_SIZES, TEST_IDS } from './composer.constants';
 
 export interface ComposerActionsProps {
@@ -12,24 +13,29 @@ export interface ComposerActionsProps {
   loading?: boolean;
   /** 是否禁用 */
   disabled?: boolean;
+  /** 音频输入回调 */
+  onAudioInput?: () => void;
 }
 
 /**
  * ComposerActions 组件
  *
- * 根据输入状态显示发送按钮或语音输入按钮
+ * 根据输入状态显示发送按钮或音频输入按钮
  *
  * @example
  * ```tsx
  * <ComposerActions
  *   canSend={hasContent}
  *   onSend={handleSend}
+ *   onAudioInput={handleAudioInput}
  *   loading={isSending}
  * />
  * ```
  */
 export const ComposerActions = memo<ComposerActionsProps>(
-  ({ canSend, onSend, loading = false, disabled = false }) => {
+  ({ canSend, onSend, loading = false, disabled = false, onAudioInput }) => {
+    const composerConfig = useComposerConfig();
+
     if (canSend) {
       return (
         <IconButton
@@ -45,20 +51,23 @@ export const ComposerActions = memo<ComposerActionsProps>(
       );
     }
 
-    return (
-      <IconButton
-        icon={<Mic className={BUTTON_SIZES.ICON_MEDIUM} />}
-        variant="muted"
-        size="md"
-        disabled={disabled}
-        aria-label={ARIA_LABELS.VOICE_INPUT}
-        data-testid={TEST_IDS.COMPOSER_VOICE}
-        // TODO: 实现语音输入功能
-        onClick={() => {
-          console.warn('Voice input not implemented yet');
-        }}
-      />
-    );
+    // 如果启用了音频输入功能，显示音频按钮
+    if (composerConfig.enableAudioInput && onAudioInput) {
+      return (
+        <IconButton
+          icon={<Mic className={BUTTON_SIZES.ICON_MEDIUM} />}
+          variant="muted"
+          size="md"
+          disabled={disabled}
+          onClick={onAudioInput}
+          aria-label={ARIA_LABELS.VOICE_INPUT}
+          data-testid={TEST_IDS.COMPOSER_VOICE}
+        />
+      );
+    }
+
+    // 如果没有启用音频输入，不显示任何按钮
+    return null;
   },
 );
 

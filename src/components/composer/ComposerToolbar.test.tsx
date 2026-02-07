@@ -145,9 +145,9 @@ describe('ComposerToolbar', () => {
     expect(charCount.textContent).toContain('500');
   });
 
-  it('should call onAttachmentSelect when files are selected', () => {
-    const onAttachmentSelect = vi.fn();
-    render(<ComposerToolbar onAttachmentSelect={onAttachmentSelect} />);
+  it('should call onSendAttachment when files are selected and sent', () => {
+    const onSendAttachment = vi.fn();
+    render(<ComposerToolbar onSendAttachment={onSendAttachment} />);
     const attachButton = screen.getByTestId('composer-attach');
 
     // Note: This test simulates the button click, but actual file selection
@@ -155,7 +155,7 @@ describe('ComposerToolbar', () => {
     fireEvent.click(attachButton);
 
     // The function creates a file input dynamically, so we verify the callback exists
-    expect(onAttachmentSelect).toBeDefined();
+    expect(onSendAttachment).toBeDefined();
   });
 
   it('should not allow attachments for SMS channel', () => {
