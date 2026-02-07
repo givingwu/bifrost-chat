@@ -85,11 +85,11 @@ export function DefaultChatLayout({
       conversations?.find(
         (conversation) => conversation.id === activeConversationId,
       ),
-    [activeConversationId, conversations?.find],
+    [activeConversationId, conversations],
   );
   // 计算 title：如果有激活的会话，显示用户名；否则显示默认标题
   const title = activeConversation
-    ? activeConversation.user.name
+    ? (activeConversation?.user?.name ?? t('conversation.title'))
     : t('conversation.title');
   // 计算 subtitle：如果有激活的会话，显示"渠道 · 状态"；否则显示当前渠道
   const subtitle = activeConversation
@@ -133,7 +133,6 @@ export function DefaultChatLayout({
   );
   const handleSearchSubmit = useCallback(
     (value: string) => {
-      console.log('搜索会话:', value);
       // 搜索提交时，立即更新搜索关键词
       actions.setSearchQuery(value);
     },
