@@ -1,11 +1,14 @@
 import type { Preview } from '@storybook/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
-import '../src/styles/index.css';
+import '@/styles/index.css';
+import { LanguageCodeEnum } from '@/interfaces/language.interface';
+import zhCNMessages from '@/locales/zh-CN.json';
+import { I18nProvider } from '@/providers/I18n.provider';
 import {
   createNotImplementedServices,
   ServiceProvider,
-} from '../src/providers/service.provider';
+} from '@/providers/service.provider';
 
 // 创建 QueryClient 实例
 const queryClient = new QueryClient({
@@ -35,7 +38,14 @@ export const decorators = [
           messageService: mockServices.messageService,
           templateService: mockServices.templateService,
         } as React.ComponentProps<typeof ServiceProvider>,
-        React.createElement(Story),
+        React.createElement(
+          I18nProvider,
+          {
+            locale: LanguageCodeEnum.ZhCN,
+            messages: zhCNMessages,
+          },
+          React.createElement(Story),
+        ),
       ),
     ),
 ];

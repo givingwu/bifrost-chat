@@ -1,5 +1,4 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { TemplatePanel } from '@/components/template/TemplatePanel';
 import type { Template } from '@/interfaces/template.interface';
 import '@/styles/theme.css';
@@ -9,16 +8,6 @@ import '@/styles/theme.css';
  *
  * 展示完整的模板面板，包含搜索、分类过滤和模板列表
  */
-
-// 创建 QueryClient
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: false,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
 
 // Mock 模板数据
 const mockTemplates: Template[] = [
@@ -100,11 +89,9 @@ const meta: Meta<typeof TemplatePanel> = {
   },
   decorators: [
     (Story) => (
-      <QueryClientProvider client={queryClient}>
-        <div className="w-full h-[600px] bg-background rounded-lg border border-border">
-          <Story />
-        </div>
-      </QueryClientProvider>
+      <div className="w-full h-[600px] bg-background rounded-lg border border-border">
+        <Story />
+      </div>
     ),
   ],
 };

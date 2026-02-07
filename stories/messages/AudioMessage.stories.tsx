@@ -33,8 +33,8 @@ export const Default = () => {
     <div className="p-4 bg-muted rounded-lg">
       <AudioMessage
         content={{
-          url: 'https://example.com/voice.mp3',
-          mimeType: 'audio/mp3',
+          url: 'https://cdn.pixabay.com/audio/2025/09/17/audio_32aeb1ec12.mp3',
+          mimeType: 'audio/ogg',
         }}
       />
     </div>
@@ -52,8 +52,8 @@ export const DifferentDurations = () => {
           <p className="text-xs text-text-muted mb-2">短语音 (5s)</p>
           <AudioMessage
             content={{
-              url: 'https://example.com/voice1.mp3',
-              mimeType: 'audio/mp3',
+              url: 'https://cdn.pixabay.com/audio/2025/09/17/audio_32aeb1ec12.mp3',
+              mimeType: 'audio/ogg',
             }}
           />
         </div>
@@ -65,8 +65,8 @@ export const DifferentDurations = () => {
           </p>
           <AudioMessage
             content={{
-              url: 'https://example.com/voice2.mp3',
-              mimeType: 'audio/mp3',
+              url: 'https://cdn.pixabay.com/audio/2025/09/17/audio_32aeb1ec12.mp3',
+              mimeType: 'audio/ogg',
             }}
           />
         </div>
@@ -85,12 +85,28 @@ export const InMessageBubble = () => {
         <div className="max-w-[70%] px-4 py-2 bg-card text-text rounded-2xl rounded-tl-sm">
           <AudioMessage
             content={{
-              url: 'https://example.com/voice.mp3',
-              mimeType: 'audio/mp3',
+              url: 'https://cdn.pixabay.com/audio/2025/09/17/audio_32aeb1ec12.mp3',
+              mimeType: 'audio/ogg',
             }}
           />
         </div>
       </div>
+    </div>
+  );
+};
+
+/**
+ * 错误状态 - 资源不可用
+ */
+export const ErrorState = () => {
+  return (
+    <div className="p-4 bg-muted rounded-lg">
+      <AudioMessage
+        content={{
+          url: 'https://example.com/invalid-audio.mp3',
+          mimeType: 'audio/mp3',
+        }}
+      />
     </div>
   );
 };

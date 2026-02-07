@@ -1,26 +1,13 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ComposerWithSend } from '@/components/composer/ComposerWithSend';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
-import { LanguageCodeEnum } from '@/interfaces/language.interface';
 import '@/styles/theme.css';
-import { I18nProvider, zhCNMessages } from '@/index';
 
 /**
  * ComposerWithSend 组件 Story 文档
  *
  * 展示带发送功能的输入工具栏的各种用法
  */
-
-// 创建 QueryClient
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: false,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
 
 const meta: Meta<typeof ComposerWithSend> = {
   title: 'Composer/ComposerWithSend',
@@ -40,15 +27,6 @@ const meta: Meta<typeof ComposerWithSend> = {
       description: '当前激活渠道',
     },
   },
-  decorators: [
-    (Story) => (
-      <QueryClientProvider client={queryClient}>
-        <I18nProvider locale={LanguageCodeEnum.ZhCN} messages={zhCNMessages}>
-          <Story />
-        </I18nProvider>
-      </QueryClientProvider>
-    ),
-  ],
 };
 
 export default meta;

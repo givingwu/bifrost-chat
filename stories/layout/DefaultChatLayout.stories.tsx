@@ -1,9 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { DefaultChatLayout } from '@/components/layout/DefaultChatLayout';
 import { InfiniteMessageList } from '@/components/messages/InfiniteMessageList';
 import enUS from '@/locales/en-US.json';
-import zhCN from '@/locales/zh-CN.json';
 import { I18nProvider } from '@/providers/I18n.provider';
 import '@/styles/theme.css';
 import {
@@ -360,16 +358,6 @@ class MockTemplateService implements ITemplateService {
   }
 }
 
-// 创建 QueryClient
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: false,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
-
 const meta: Meta<typeof DefaultChatLayout> = {
   title: 'Layout/DefaultChatLayout',
   component: DefaultChatLayout,
@@ -382,17 +370,13 @@ const meta: Meta<typeof DefaultChatLayout> = {
   },
   decorators: [
     (Story) => (
-      <QueryClientProvider client={queryClient}>
-        <ServiceProvider
-          conversationService={new MockConversationService()}
-          messageService={new MockMessageService()}
-          templateService={new MockTemplateService()}
-        >
-          <I18nProvider locale={LanguageCodeEnum.ZhCN} messages={zhCN}>
-            <Story />
-          </I18nProvider>
-        </ServiceProvider>
-      </QueryClientProvider>
+      <ServiceProvider
+        conversationService={new MockConversationService()}
+        messageService={new MockMessageService()}
+        templateService={new MockTemplateService()}
+      >
+        <Story />
+      </ServiceProvider>
     ),
   ],
 };
@@ -501,17 +485,15 @@ export const English: Story = {
   args: {},
   decorators: [
     (Story) => (
-      <QueryClientProvider client={queryClient}>
-        <ServiceProvider
-          conversationService={new MockConversationService()}
-          messageService={new MockMessageService()}
-          templateService={new MockTemplateService()}
-        >
-          <I18nProvider locale={LanguageCodeEnum.EnUS} messages={enUS}>
-            <Story />
-          </I18nProvider>
-        </ServiceProvider>
-      </QueryClientProvider>
+      <ServiceProvider
+        conversationService={new MockConversationService()}
+        messageService={new MockMessageService()}
+        templateService={new MockTemplateService()}
+      >
+        <I18nProvider locale={LanguageCodeEnum.EnUS} messages={enUS}>
+          <Story />
+        </I18nProvider>
+      </ServiceProvider>
     ),
   ],
   parameters: {

@@ -1,5 +1,4 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { InfiniteMessageList } from '@/components/messages/InfiniteMessageList';
 import '@/styles/theme.css';
 
@@ -8,16 +7,6 @@ import '@/styles/theme.css';
  *
  * 展示无限滚动消息列表的各种用法
  */
-
-// 创建 QueryClient
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: false,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
 
 const meta: Meta<typeof InfiniteMessageList> = {
   title: 'Messages/InfiniteMessageList',
@@ -44,11 +33,9 @@ const meta: Meta<typeof InfiniteMessageList> = {
   },
   decorators: [
     (Story) => (
-      <QueryClientProvider client={queryClient}>
-        <div className="w-full h-[600px] bg-background rounded-lg border border-border">
-          <Story />
-        </div>
-      </QueryClientProvider>
+      <div className="w-full h-[600px] bg-background rounded-lg border border-border">
+        <Story />
+      </div>
     ),
   ],
 };
