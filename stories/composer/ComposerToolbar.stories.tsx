@@ -4,6 +4,7 @@ import {
   AvailableChannelTypes,
   ChannelTypeEnum,
 } from '@/interfaces/channel.interface';
+import { LanguageCodeEnum } from '@/interfaces/language.interface';
 import zhCN from '@/locales/zh-CN.json';
 import { I18nProvider } from '@/providers/I18n.provider';
 import '@/styles/theme.css';
@@ -44,7 +45,7 @@ type Story = StoryObj<typeof ComposerToolbar>;
  */
 export const WhatsApp = () => {
   return (
-    <I18nProvider locale="zh-CN" messages={zhCN}>
+    <I18nProvider locale={LanguageCodeEnum.ZhCN} messages={zhCN}>
       <div className="p-4 bg-muted rounded-lg">
         <ComposerToolbar
           channel={ChannelTypeEnum.WhatsApp}
@@ -61,7 +62,7 @@ export const WhatsApp = () => {
  */
 export const SMS = () => {
   return (
-    <I18nProvider locale="zh-CN" messages={zhCN}>
+    <I18nProvider locale={LanguageCodeEnum.ZhCN} messages={zhCN}>
       <div className="p-4 bg-muted rounded-lg">
         <ComposerToolbar
           channel={ChannelTypeEnum.SMS}
@@ -77,7 +78,7 @@ export const SMS = () => {
  */
 export const Email = () => {
   return (
-    <I18nProvider locale="zh-CN" messages={zhCN}>
+    <I18nProvider locale={LanguageCodeEnum.ZhCN} messages={zhCN}>
       <div className="p-4 bg-muted rounded-lg">
         <ComposerToolbar
           channel={ChannelTypeEnum.Email}
@@ -93,7 +94,7 @@ export const Email = () => {
  */
 export const Disabled = () => {
   return (
-    <I18nProvider locale="zh-CN" messages={zhCN}>
+    <I18nProvider locale={LanguageCodeEnum.ZhCN} messages={zhCN}>
       <div className="p-4 bg-muted rounded-lg">
         <ComposerToolbar
           channel={ChannelTypeEnum.WhatsApp}

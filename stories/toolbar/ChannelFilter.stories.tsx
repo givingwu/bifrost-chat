@@ -5,6 +5,7 @@ import {
   AvailableChannelTypes,
   ChannelTypeEnum,
 } from '@/interfaces/channel.interface';
+import { LanguageCodeEnum } from '@/interfaces/language.interface';
 import zhCN from '@/locales/zh-CN.json';
 import { I18nProvider } from '@/providers/I18n.provider';
 import '@/styles/theme.css';
@@ -24,7 +25,7 @@ const meta: Meta<typeof ChannelFilter> = {
   tags: ['autodocs'],
   decorators: [
     (Story) => (
-      <I18nProvider locale="zh-CN" messages={zhCN}>
+      <I18nProvider locale={LanguageCodeEnum.ZhCN} messages={zhCN}>
         <Story />
       </I18nProvider>
     ),

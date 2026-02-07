@@ -19,6 +19,7 @@ import {
 } from '@/interfaces/message.interface';
 import { NetworkStatusEnum } from '@/interfaces/network.interface';
 import { ThemeModeEnum } from '@/interfaces/theme.interface';
+import { ConfigProvider } from '@/providers/config.provider';
 import '@/styles/theme.css';
 
 /**
@@ -172,60 +173,62 @@ export const FullLayout = () => {
   return (
     <div className="flex h-[800px] items-center justify-center bg-background p-4">
       <div className="h-[700px] w-full max-w-7xl">
-        <ChatContainer locale={LanguageCodeEnum.ZhCN}>
-          <ChatLayout
-            conversationPanel={
-              <div className="flex h-full flex-col bg-muted/30">
-                <div className="border-b border-border p-4">
-                  <h3 className="font-semibold text-text">会话列表</h3>
-                </div>
-                <ConversationList conversations={mockConversations} />
-              </div>
-            }
-            topbar={
-              <Topbar
-                title="张三"
-                subtitle="在线"
-                avatarUrl="https://i.pravatar.cc/150?img=1"
-                extra={
-                  <div className="flex items-center gap-2">
-                    <NetworkStatus status={NetworkStatusEnum.Connected} />
-                    <ThemeSwitcher
-                      value={ThemeModeEnum.Light}
-                      onChange={() => {}}
-                    />
-                    <LanguageSwitcher
-                      value={LanguageCodeEnum.ZhCN}
-                      onChange={() => {}}
-                    />
+        <ConfigProvider config={{ language: { code: LanguageCodeEnum.ZhCN } }}>
+          <ChatContainer>
+            <ChatLayout
+              conversationPanel={
+                <div className="flex h-full flex-col bg-muted/30">
+                  <div className="border-b border-border p-4">
+                    <h3 className="font-semibold text-text">会话列表</h3>
                   </div>
-                }
-              />
-            }
-            profilePanel={
-              <div className="flex h-full flex-col bg-muted/30">
-                <div className="border-b border-border p-4">
-                  <h3 className="font-semibold text-text">客户信息</h3>
+                  <ConversationList conversations={mockConversations} />
                 </div>
-                <Profile profile={mockProfile} />
+              }
+              topbar={
+                <Topbar
+                  title="张三"
+                  subtitle="在线"
+                  avatarUrl="https://i.pravatar.cc/150?img=1"
+                  extra={
+                    <div className="flex items-center gap-2">
+                      <NetworkStatus status={NetworkStatusEnum.Connected} />
+                      <ThemeSwitcher
+                        value={ThemeModeEnum.Light}
+                        onChange={() => {}}
+                      />
+                      <LanguageSwitcher
+                        value={LanguageCodeEnum.ZhCN}
+                        onChange={() => {}}
+                      />
+                    </div>
+                  }
+                />
+              }
+              profilePanel={
+                <div className="flex h-full flex-col bg-muted/30">
+                  <div className="border-b border-border p-4">
+                    <h3 className="font-semibold text-text">客户信息</h3>
+                  </div>
+                  <Profile profile={mockProfile} />
+                </div>
+              }
+              composer={
+                <ComposerToolbar
+                  channel={ChannelTypeEnum.Waba}
+                  onSend={async (message) => {
+                    console.log('Send message:', message);
+                  }}
+                />
+              }
+            >
+              <div className="flex h-full flex-col gap-4 overflow-y-auto p-6">
+                {mockMessages.map((message) => (
+                  <MessageBubble key={message.id} message={message} />
+                ))}
               </div>
-            }
-            composer={
-              <ComposerToolbar
-                channel={ChannelTypeEnum.Waba}
-                onSend={async (message) => {
-                  console.log('Send message:', message);
-                }}
-              />
-            }
-          >
-            <div className="flex h-full flex-col gap-4 overflow-y-auto p-6">
-              {mockMessages.map((message) => (
-                <MessageBubble key={message.id} message={message} />
-              ))}
-            </div>
-          </ChatLayout>
-        </ChatContainer>
+            </ChatLayout>
+          </ChatContainer>
+        </ConfigProvider>
       </div>
     </div>
   );
@@ -239,27 +242,29 @@ export const WithConversationPanel = () => {
   return (
     <div className="flex h-[800px] items-center justify-center bg-background p-4">
       <div className="h-[600px] w-full max-w-5xl">
-        <ChatContainer locale={LanguageCodeEnum.ZhCN}>
-          <ChatLayout
-            conversationPanel={
-              <div className="flex h-full flex-col bg-muted/30">
-                <div className="border-b border-border p-4">
-                  <h3 className="font-semibold text-text">会话列表</h3>
+        <ConfigProvider config={{ language: { code: LanguageCodeEnum.ZhCN } }}>
+          <ChatContainer>
+            <ChatLayout
+              conversationPanel={
+                <div className="flex h-full flex-col bg-muted/30">
+                  <div className="border-b border-border p-4">
+                    <h3 className="font-semibold text-text">会话列表</h3>
+                  </div>
+                  <ConversationList conversations={mockConversations} />
                 </div>
-                <ConversationList conversations={mockConversations} />
+              }
+            >
+              <div className="flex h-full items-center justify-center text-text">
+                <div className="text-center">
+                  <h2 className="mb-2 text-xl font-semibold">消息区域</h2>
+                  <p className="text-sm text-muted-foreground">
+                    带会话列表的布局
+                  </p>
+                </div>
               </div>
-            }
-          >
-            <div className="flex h-full items-center justify-center text-text">
-              <div className="text-center">
-                <h2 className="mb-2 text-xl font-semibold">消息区域</h2>
-                <p className="text-sm text-muted-foreground">
-                  带会话列表的布局
-                </p>
-              </div>
-            </div>
-          </ChatLayout>
-        </ChatContainer>
+            </ChatLayout>
+          </ChatContainer>
+        </ConfigProvider>
       </div>
     </div>
   );
@@ -274,40 +279,42 @@ export const WithTopbarAndComposer = () => {
   return (
     <div className="flex h-[800px] items-center justify-center bg-background p-4">
       <div className="h-[600px] w-full max-w-4xl">
-        <ChatContainer locale={LanguageCodeEnum.ZhCN}>
-          <ChatLayout
-            topbar={
-              <Topbar
-                title="张三"
-                subtitle="在线"
-                avatarUrl="https://i.pravatar.cc/150?img=1"
-                extra={
-                  <div className="flex items-center gap-2">
-                    <NetworkStatus status={NetworkStatusEnum.Connected} />
-                    <ThemeSwitcher
-                      value={ThemeModeEnum.Light}
-                      onChange={() => {}}
-                    />
-                  </div>
-                }
-              />
-            }
-            composer={
-              <ComposerToolbar
-                channel={ChannelTypeEnum.Waba}
-                onSend={async (message) => {
-                  console.log('Send message:', message);
-                }}
-              />
-            }
-          >
-            <div className="flex h-full flex-col gap-4 overflow-y-auto p-6">
-              {mockMessages.map((message) => (
-                <MessageBubble key={message.id} message={message} />
-              ))}
-            </div>
-          </ChatLayout>
-        </ChatContainer>
+        <ConfigProvider config={{ language: { code: LanguageCodeEnum.ZhCN } }}>
+          <ChatContainer>
+            <ChatLayout
+              topbar={
+                <Topbar
+                  title="张三"
+                  subtitle="在线"
+                  avatarUrl="https://i.pravatar.cc/150?img=1"
+                  extra={
+                    <div className="flex items-center gap-2">
+                      <NetworkStatus status={NetworkStatusEnum.Connected} />
+                      <ThemeSwitcher
+                        value={ThemeModeEnum.Light}
+                        onChange={() => {}}
+                      />
+                    </div>
+                  }
+                />
+              }
+              composer={
+                <ComposerToolbar
+                  channel={ChannelTypeEnum.Waba}
+                  onSend={async (message) => {
+                    console.log('Send message:', message);
+                  }}
+                />
+              }
+            >
+              <div className="flex h-full flex-col gap-4 overflow-y-auto p-6">
+                {mockMessages.map((message) => (
+                  <MessageBubble key={message.id} message={message} />
+                ))}
+              </div>
+            </ChatLayout>
+          </ChatContainer>
+        </ConfigProvider>
       </div>
     </div>
   );
@@ -322,27 +329,29 @@ export const WithProfilePanel = () => {
   return (
     <div className="flex h-[800px] items-center justify-center bg-background p-4">
       <div className="h-[600px] w-full max-w-5xl">
-        <ChatContainer locale={LanguageCodeEnum.ZhCN}>
-          <ChatLayout
-            profilePanel={
-              <div className="flex h-full flex-col bg-muted/30">
-                <div className="border-b border-border p-4">
-                  <h3 className="font-semibold text-text">客户信息</h3>
+        <ConfigProvider config={{ language: { code: LanguageCodeEnum.ZhCN } }}>
+          <ChatContainer>
+            <ChatLayout
+              profilePanel={
+                <div className="flex h-full flex-col bg-muted/30">
+                  <div className="border-b border-border p-4">
+                    <h3 className="font-semibold text-text">客户信息</h3>
+                  </div>
+                  <Profile profile={mockProfile} />
                 </div>
-                <Profile profile={mockProfile} />
+              }
+            >
+              <div className="flex h-full items-center justify-center text-text">
+                <div className="text-center">
+                  <h2 className="mb-2 text-xl font-semibold">消息区域</h2>
+                  <p className="text-sm text-muted-foreground">
+                    带右侧上下文面板的布局
+                  </p>
+                </div>
               </div>
-            }
-          >
-            <div className="flex h-full items-center justify-center text-text">
-              <div className="text-center">
-                <h2 className="mb-2 text-xl font-semibold">消息区域</h2>
-                <p className="text-sm text-muted-foreground">
-                  带右侧上下文面板的布局
-                </p>
-              </div>
-            </div>
-          </ChatLayout>
-        </ChatContainer>
+            </ChatLayout>
+          </ChatContainer>
+        </ConfigProvider>
       </div>
     </div>
   );
@@ -356,47 +365,49 @@ export const CustomStyled = () => {
   return (
     <div className="flex h-[800px] items-center justify-center bg-background p-4">
       <div className="h-[600px] w-full max-w-4xl">
-        <ChatContainer locale={LanguageCodeEnum.ZhCN}>
-          <ChatLayout
-            className="border-primary bg-gradient-to-br from-primary/5 to-primary/10"
-            style={{
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-            }}
-            topbar={
-              <Topbar
-                title="自定义样式示例"
-                subtitle="使用内置组件"
-                extra={
-                  <div className="flex items-center gap-2">
-                    <ThemeSwitcher
-                      value={ThemeModeEnum.Light}
-                      onChange={() => {}}
-                    />
-                  </div>
-                }
-              />
-            }
-            composer={
-              <ComposerToolbar
-                channel={ChannelTypeEnum.Waba}
-                onSend={async (message) => {
-                  console.log('Send message:', message);
-                }}
-              />
-            }
-          >
-            <div className="flex h-full items-center justify-center text-text">
-              <div className="text-center">
-                <h2 className="mb-2 text-xl font-semibold text-primary">
-                  自定义样式示例
-                </h2>
-                <p className="text-sm text-muted-foreground">
-                  使用 className 和 styles 自定义外观
-                </p>
+        <ConfigProvider config={{ language: { code: LanguageCodeEnum.ZhCN } }}>
+          <ChatContainer>
+            <ChatLayout
+              className="border-primary bg-gradient-to-br from-primary/5 to-primary/10"
+              style={{
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+              }}
+              topbar={
+                <Topbar
+                  title="自定义样式示例"
+                  subtitle="使用内置组件"
+                  extra={
+                    <div className="flex items-center gap-2">
+                      <ThemeSwitcher
+                        value={ThemeModeEnum.Light}
+                        onChange={() => {}}
+                      />
+                    </div>
+                  }
+                />
+              }
+              composer={
+                <ComposerToolbar
+                  channel={ChannelTypeEnum.Waba}
+                  onSend={async (message) => {
+                    console.log('Send message:', message);
+                  }}
+                />
+              }
+            >
+              <div className="flex h-full items-center justify-center text-text">
+                <div className="text-center">
+                  <h2 className="mb-2 text-xl font-semibold text-primary">
+                    自定义样式示例
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    使用 className 和 styles 自定义外观
+                  </p>
+                </div>
               </div>
-            </div>
-          </ChatLayout>
-        </ChatContainer>
+            </ChatLayout>
+          </ChatContainer>
+        </ConfigProvider>
       </div>
     </div>
   );
@@ -411,57 +422,59 @@ export const Responsive = () => {
   return (
     <div className="flex h-[800px] items-center justify-center bg-background p-4">
       <div className="h-[600px] w-full max-w-7xl">
-        <ChatContainer locale={LanguageCodeEnum.ZhCN}>
-          <ChatLayout
-            conversationPanel={
-              <div className="flex h-full flex-col bg-muted/30">
-                <div className="border-b border-border p-4">
-                  <h3 className="font-semibold text-text">会话列表</h3>
+        <ConfigProvider config={{ language: { code: LanguageCodeEnum.ZhCN } }}>
+          <ChatContainer>
+            <ChatLayout
+              conversationPanel={
+                <div className="flex h-full flex-col bg-muted/30">
+                  <div className="border-b border-border p-4">
+                    <h3 className="font-semibold text-text">会话列表</h3>
+                  </div>
+                  <ConversationList conversations={mockConversations} />
                 </div>
-                <ConversationList conversations={mockConversations} />
-              </div>
-            }
-            topbar={
-              <Topbar
-                title="响应式布局"
-                subtitle="调整窗口大小查看效果"
-                extra={
-                  <NetworkStatus
-                    status={NetworkStatusEnum.Connected}
-                    showLabel
-                  />
-                }
-              />
-            }
-            profilePanel={
-              <div className="flex h-full flex-col bg-muted/30">
-                <div className="border-b border-border p-4">
-                  <h3 className="font-semibold text-text">
-                    上下文面板（大屏幕显示）
-                  </h3>
+              }
+              topbar={
+                <Topbar
+                  title="响应式布局"
+                  subtitle="调整窗口大小查看效果"
+                  extra={
+                    <NetworkStatus
+                      status={NetworkStatusEnum.Connected}
+                      showLabel
+                    />
+                  }
+                />
+              }
+              profilePanel={
+                <div className="flex h-full flex-col bg-muted/30">
+                  <div className="border-b border-border p-4">
+                    <h3 className="font-semibold text-text">
+                      上下文面板（大屏幕显示）
+                    </h3>
+                  </div>
+                  <Profile profile={mockProfile} />
                 </div>
-                <Profile profile={mockProfile} />
+              }
+              composer={
+                <ComposerToolbar
+                  channel={ChannelTypeEnum.Waba}
+                  onSend={async (message) => {
+                    console.log('Send message:', message);
+                  }}
+                />
+              }
+            >
+              <div className="flex h-full items-center justify-center text-text">
+                <div className="text-center">
+                  <h2 className="mb-2 text-xl font-semibold">消息区域</h2>
+                  <p className="text-sm text-muted-foreground">
+                    调整浏览器窗口大小查看响应式效果
+                  </p>
+                </div>
               </div>
-            }
-            composer={
-              <ComposerToolbar
-                channel={ChannelTypeEnum.Waba}
-                onSend={async (message) => {
-                  console.log('Send message:', message);
-                }}
-              />
-            }
-          >
-            <div className="flex h-full items-center justify-center text-text">
-              <div className="text-center">
-                <h2 className="mb-2 text-xl font-semibold">消息区域</h2>
-                <p className="text-sm text-muted-foreground">
-                  调整浏览器窗口大小查看响应式效果
-                </p>
-              </div>
-            </div>
-          </ChatLayout>
-        </ChatContainer>
+            </ChatLayout>
+          </ChatContainer>
+        </ConfigProvider>
       </div>
     </div>
   );
@@ -475,29 +488,31 @@ export const EmptyState = () => {
   return (
     <div className="flex h-[800px] items-center justify-center bg-background p-4">
       <div className="h-[600px] w-full max-w-4xl">
-        <ChatContainer locale={LanguageCodeEnum.ZhCN}>
-          <ChatLayout
-            conversationPanel={
-              <div className="flex h-full flex-col bg-muted/30">
-                <div className="border-b border-border p-4">
-                  <h3 className="font-semibold text-text">会话列表</h3>
+        <ConfigProvider config={{ language: { code: LanguageCodeEnum.ZhCN } }}>
+          <ChatContainer>
+            <ChatLayout
+              conversationPanel={
+                <div className="flex h-full flex-col bg-muted/30">
+                  <div className="border-b border-border p-4">
+                    <h3 className="font-semibold text-text">会话列表</h3>
+                  </div>
+                  <ConversationList conversations={[]} />
                 </div>
-                <ConversationList conversations={[]} />
+              }
+              topbar={<Topbar title="选择一个会话" />}
+            >
+              <div className="flex h-full items-center justify-center text-text">
+                <div className="text-center">
+                  <div className="mb-4 text-6xl">💬</div>
+                  <h2 className="mb-2 text-xl font-semibold">开始聊天</h2>
+                  <p className="text-sm text-muted-foreground">
+                    从左侧选择一个会话开始对话
+                  </p>
+                </div>
               </div>
-            }
-            topbar={<Topbar title="选择一个会话" />}
-          >
-            <div className="flex h-full items-center justify-center text-text">
-              <div className="text-center">
-                <div className="mb-4 text-6xl">💬</div>
-                <h2 className="mb-2 text-xl font-semibold">开始聊天</h2>
-                <p className="text-sm text-muted-foreground">
-                  从左侧选择一个会话开始对话
-                </p>
-              </div>
-            </div>
-          </ChatLayout>
-        </ChatContainer>
+            </ChatLayout>
+          </ChatContainer>
+        </ConfigProvider>
       </div>
     </div>
   );

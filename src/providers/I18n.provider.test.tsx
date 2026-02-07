@@ -25,7 +25,7 @@ describe('I18nProvider', () => {
       };
 
       render(
-        <I18nProvider locale="en" messages={mockMessages}>
+        <I18nProvider locale={LanguageCodeEnum.EnUS} messages={mockMessages}>
           <TestComponent />
         </I18nProvider>,
       );
@@ -43,7 +43,7 @@ describe('I18nProvider', () => {
       };
 
       render(
-        <I18nProvider locale="en" messages={mockMessages}>
+        <I18nProvider locale={LanguageCodeEnum.EnUS} messages={mockMessages}>
           <TestComponent />
         </I18nProvider>,
       );
@@ -61,7 +61,7 @@ describe('I18nProvider', () => {
       };
 
       render(
-        <I18nProvider locale="en" messages={mockMessages}>
+        <I18nProvider locale={LanguageCodeEnum.EnUS} messages={mockMessages}>
           <TestComponent />
         </I18nProvider>,
       );
@@ -79,7 +79,7 @@ describe('I18nProvider', () => {
       };
 
       const { container } = render(
-        <I18nProvider locale="en" messages={mockMessages}>
+        <I18nProvider locale={LanguageCodeEnum.EnUS} messages={mockMessages}>
           <TestMissingKey />
         </I18nProvider>,
       );
@@ -98,7 +98,7 @@ describe('I18nProvider', () => {
       };
 
       const { container } = render(
-        <I18nProvider locale="en" messages={mockMessages}>
+        <I18nProvider locale={LanguageCodeEnum.EnUS} messages={mockMessages}>
           <TestObjectValue />
         </I18nProvider>,
       );
@@ -123,7 +123,10 @@ describe('I18nProvider', () => {
         return (
           <div>
             <span data-testid="current">{t('title')}</span>
-            <button type="button" onClick={() => i18n.changeLanguage('zh-CN')}>
+            <button
+              type="button"
+              onClick={() => i18n.changeLanguage(LanguageCodeEnum.ZhCN)}
+            >
               Switch Language
             </button>
           </div>
@@ -132,7 +135,7 @@ describe('I18nProvider', () => {
 
       render(
         <I18nProvider
-          locale="en"
+          locale={LanguageCodeEnum.EnUS}
           messages={mockMessagesEn}
           onChangeLanguage={handleChange}
         >
@@ -148,7 +151,7 @@ describe('I18nProvider', () => {
       button.click();
 
       // 验证回调被调用
-      expect(handleChange).toHaveBeenCalledWith('zh-CN');
+      expect(handleChange).toHaveBeenCalledWith(LanguageCodeEnum.ZhCN);
     });
 
     it('当没有 onChangeLanguage 时不应该抛出错误', () => {
@@ -159,7 +162,10 @@ describe('I18nProvider', () => {
       const TestLanguageChange = () => {
         const { i18n } = useTranslation();
         return (
-          <button type="button" onClick={() => i18n.changeLanguage('zh-CN')}>
+          <button
+            type="button"
+            onClick={() => i18n.changeLanguage(LanguageCodeEnum.ZhCN)}
+          >
             Change Language
           </button>
         );
@@ -167,7 +173,7 @@ describe('I18nProvider', () => {
 
       expect(() => {
         render(
-          <I18nProvider locale="en" messages={mockMessages}>
+          <I18nProvider locale={LanguageCodeEnum.EnUS} messages={mockMessages}>
             <TestLanguageChange />
           </I18nProvider>,
         );
@@ -187,12 +193,14 @@ describe('I18nProvider', () => {
       };
 
       render(
-        <I18nProvider locale="zh-CN" messages={mockMessages}>
+        <I18nProvider locale={LanguageCodeEnum.ZhCN} messages={mockMessages}>
           <TestLocale />
         </I18nProvider>,
       );
 
-      expect(screen.getByTestId('locale').textContent).toBe('zh-CN');
+      expect(screen.getByTestId('locale').textContent).toBe(
+        LanguageCodeEnum.ZhCN,
+      );
     });
 
     it('应该返回 t 函数', () => {
@@ -203,7 +211,7 @@ describe('I18nProvider', () => {
       };
 
       const { container } = render(
-        <I18nProvider locale="en" messages={mockMessages}>
+        <I18nProvider locale={LanguageCodeEnum.EnUS} messages={mockMessages}>
           <TestTFunction />
         </I18nProvider>,
       );
@@ -237,7 +245,7 @@ describe('I18nProvider', () => {
       };
 
       const { container } = render(
-        <I18nProvider locale="en" messages={mockMessages}>
+        <I18nProvider locale={LanguageCodeEnum.EnUS} messages={mockMessages}>
           <TestMultipleParams />
         </I18nProvider>,
       );
@@ -256,7 +264,7 @@ describe('I18nProvider', () => {
       };
 
       const { container } = render(
-        <I18nProvider locale="en" messages={mockMessages}>
+        <I18nProvider locale={LanguageCodeEnum.EnUS} messages={mockMessages}>
           <TestSpecialChars />
         </I18nProvider>,
       );
@@ -275,7 +283,7 @@ describe('I18nProvider', () => {
       };
 
       const { container } = render(
-        <I18nProvider locale="en" messages={mockMessages}>
+        <I18nProvider locale={LanguageCodeEnum.EnUS} messages={mockMessages}>
           <TestMissingParam />
         </I18nProvider>,
       );

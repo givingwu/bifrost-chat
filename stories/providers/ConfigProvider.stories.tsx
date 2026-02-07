@@ -55,13 +55,10 @@ const StoreSnapshot = ({ state }: { state: ChatStoreState }) => {
   );
 };
 
-const renderWithSnapshot = (
-  config: ChatStoreInitialState,
-  locale?: LanguageCodeEnum,
-) => {
+const renderWithSnapshot = (config: ChatStoreInitialState) => {
   return (
     <ConfigProvider config={config}>
-      <ChatContainer locale={locale}>
+      <ChatContainer>
         {(state) => <StoreSnapshot state={state} />}
       </ChatContainer>
     </ConfigProvider>
@@ -84,20 +81,17 @@ export const StaticInitialization: Story = {
 };
 
 /**
- * locale 优先级：ChatContainer locale 会覆盖 config.language。
+ * ConfigProvider 初始化语言
  */
 export const LocaleOverride: Story = {
   render: () =>
-    renderWithSnapshot(
-      {
-        language: { code: LanguageCodeEnum.ZhCN },
-        strategy: {
-          allowedChannels: [ChannelTypeEnum.WhatsApp],
-          activeChannel: ChannelTypeEnum.WhatsApp,
-        },
+    renderWithSnapshot({
+      language: { code: LanguageCodeEnum.EnUS },
+      strategy: {
+        allowedChannels: [ChannelTypeEnum.WhatsApp],
+        activeChannel: ChannelTypeEnum.WhatsApp,
       },
-      LanguageCodeEnum.EnUS,
-    ),
+    }),
 };
 
 /**

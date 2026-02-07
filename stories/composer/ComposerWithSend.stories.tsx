@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ComposerWithSend } from '@/components/composer/ComposerWithSend';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
+import { LanguageCodeEnum } from '@/interfaces/language.interface';
 import '@/styles/theme.css';
 import { I18nProvider, zhCNMessages } from '@/index';
 
@@ -42,7 +43,7 @@ const meta: Meta<typeof ComposerWithSend> = {
   decorators: [
     (Story) => (
       <QueryClientProvider client={queryClient}>
-        <I18nProvider locale="zh-CN" messages={zhCNMessages}>
+        <I18nProvider locale={LanguageCodeEnum.ZhCN} messages={zhCNMessages}>
           <Story />
         </I18nProvider>
       </QueryClientProvider>

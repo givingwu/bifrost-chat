@@ -15,6 +15,7 @@ import {
 import { AgentStatusEnum } from '@/interfaces/agent.interface';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import type { Conversation } from '@/interfaces/conversation.interface';
+import { LanguageCodeEnum } from '@/interfaces/language.interface';
 import type {
   MessageSendResult,
   StandardMessage,
@@ -263,7 +264,7 @@ const meta: Meta<typeof DefaultChatLayout> = {
           messageService={new MockMessageService()}
           templateService={new MockTemplateService()}
         >
-          <I18nProvider locale="zh-CN" messages={zhCN}>
+          <I18nProvider locale={LanguageCodeEnum.ZhCN} messages={zhCN}>
             <Story />
           </I18nProvider>
         </ServiceProvider>
@@ -382,7 +383,7 @@ export const English: Story = {
           messageService={new MockMessageService()}
           templateService={new MockTemplateService()}
         >
-          <I18nProvider locale="en-US" messages={enUS}>
+          <I18nProvider locale={LanguageCodeEnum.EnUS} messages={enUS}>
             <div className="w-full h-[900px]">
               <Story />
             </div>

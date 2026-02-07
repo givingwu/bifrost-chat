@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { MessageBubble } from '@/components/messages/MessageBubble';
 import { I18nProvider, zhCNMessages } from '@/index';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
+import { LanguageCodeEnum } from '@/interfaces/language.interface';
 import {
   MessageDirectionEnum,
   MessageStatusEnum,
@@ -25,7 +26,7 @@ const meta: Meta<typeof MessageBubble> = {
   tags: ['autodocs'],
   decorators: [
     (Story) => (
-      <I18nProvider locale="zh-CN" messages={zhCNMessages}>
+      <I18nProvider locale={LanguageCodeEnum.ZhCN} messages={zhCNMessages}>
         <Story />
       </I18nProvider>
     ),
