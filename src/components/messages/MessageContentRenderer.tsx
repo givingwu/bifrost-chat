@@ -44,7 +44,7 @@ const MESSAGE_COMPONENT_MAP: Record<MessageTypeEnum, MessageContentComponent> =
   {
     [MessageTypeEnum.Text]: TextMessage,
     [MessageTypeEnum.Image]: ImageMessage,
-    [MessageTypeEnum.Audio]: AudioMessage as MessageContentComponent,
+    [MessageTypeEnum.Audio]: AudioMessage,
     [MessageTypeEnum.Video]: VideoMessage,
     [MessageTypeEnum.File]: FileMessage,
     [MessageTypeEnum.Template]: WhatsAppMessage,
