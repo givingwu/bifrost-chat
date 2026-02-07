@@ -1,47 +1,78 @@
-# SDK 接口抽象与依赖注入设计（v3）
+# SDK 接口抽象与依赖注入设计（v3.1）
 
 ## 1. 目标
 
 通过“接口抽象 + 依赖注入”实现：
 
-- SDK 提供稳定契约和默认组件
-- 调用方提供具体数据实现
-- UI 与请求实现彻底解耦
+- SDK 提供稳定契约与默认组件。
+- 调用方提供具体数据实现。
+- UI 与请求实现解耦。
 
 ## 2. 职责分工
 
-### SDK 提供
+### 2.1 SDK 提供（As-Is）
 
-- 默认组件（ConversationList、MessageList、ComposerToolbar 等）
-- 服务接口契约（`IConversationService`/`IMessageService`/`ITemplateService`）
-- Provider（`ReactQueryProvider`、`ServiceProvider`、`I18nProvider`）
-- 声明式 Hooks（查询 + mutation）
+- 默认组件（ConversationList、InfiniteMessageList、ComposerWithSend 等）
+- 服务接口契约（`IConversationService` / `IMessageService` / `ITemplateService`）
+- Provider（`ConfigProvider`、`QueryProvider`、`ServiceProvider`、`I18nProvider`）
+- 声明式 hooks（query + mutation）
 
-### 调用方提供
+### 2.2 调用方提供（As-Is）
 
-- 服务实现类（HTTP/WebSocket/GraphQL 等）
-- 请求鉴权与业务网关
-- 协议与 DTO 适配细节（若存在）
+- 服务实现（HTTP/WebSocket/GraphQL 等）
+- 鉴权与业务网关
+- 协议与 DTO 适配细节
 
-> 说明：SDK 不约束协议适配与字段转换方案，调用方可自由选择。
+## 3. 服务接口（当前签名）
 
-## 3. 服务接口
+### 3.1 IConversationService
 
-以仓库现有接口为准：
+```ts
+interface IConversationService<
+  TListParams = any,
+  TCreateParams = any,
+  TQueryParams = any,
+> {
+  list(params?: TListParams): Promise<Conversation[]>;
+  get(conversationId: string): Promise<Conversation | null>;
+  create(params: TCreateParams): Promise<Conversation>;
+  query(params: TQueryParams): Promise<Conversation | null>;
+}
+```
 
-- `src/services/conversation.service.ts`
-- `src/services/message.service.ts`
-- `src/services/template.service.ts`
+### 3.2 IMessageService
 
-核心特征：
+```ts
+interface IMessageService<
+  TListParams = any,
+  TSendParams = any,
+  TReadParams = any,
+  TAttachmentParams = any,
+  TAudioParams = any,
+> {
+  list(conversationId: string, params: TListParams): Promise<StandardMessage[]>;
+  send(conversationId: string, params: TSendParams): Promise<MessageSendResult>;
+  markAsRead(params: TReadParams): Promise<void>;
+  subscribeToMessages(callback: (message: StandardMessage) => void): () => void;
+  subscribeToMessageStatus(callback: (update: MessageStatusUpdate) => void): () => void;
+  sendAttachment(params: TAttachmentParams): Promise<SendAttachmentResult>;
+  sendAudio(params: TAudioParams): Promise<SendAudioResult>;
+}
+```
 
-- 参数使用泛型，适配不同业务参数结构
-- 返回统一 SDK 实体（Conversation / StandardMessage / Template）
-- 支持订阅接口（可选）承接实时更新
+### 3.3 ITemplateService
 
-## 4. 注入机制
+```ts
+interface ITemplateService<TListParams = any, TSendParams = any> {
+  list(params: TListParams): Promise<Template[]>;
+  send(params: TSendParams): Promise<MessageSendResult>;
+  preview?(templateId: string, variables: Record<string, string>): Promise<string>;
+}
+```
 
-`ServiceProvider` 是唯一注入入口：
+## 4. 注入机制（As-Is）
+
+`ServiceProvider` 是服务注入入口：
 
 ```tsx
 <ServiceProvider
@@ -49,16 +80,18 @@
   messageService={messageServiceImpl}
   templateService={templateServiceImpl}
 >
-  <ChatContainer />
+  <ChatContainer>
+    <DefaultChatLayout />
+  </ChatContainer>
 </ServiceProvider>
 ```
 
 约束：
 
-- SDK 内部组件/Hooks 只能通过 `useServices()` 获取服务。
+- SDK 内部 hooks/组件通过 `useServices()` 取服务。
 - 组件禁止直接 `fetch/axios`。
 
-## 5. Hooks 与接口关系
+## 5. Hooks 与接口关系（As-Is）
 
 - `useConversations` -> `conversationService.list`
 - `useCreateConversation` -> `conversationService.create`
@@ -67,42 +100,14 @@
 - `useMarkAsRead` -> `messageService.markAsRead`
 - `useTemplates` -> `templateService.list`
 
-## 6. 最小宿主实现示例
+## 6. 目标架构（To-Be）
 
-```ts
-import type {
-  IConversationService,
-  IMessageService,
-  ITemplateService,
-} from '@feoe/bifrost-chat';
-
-export class ConversationServiceImpl
-  implements IConversationService<MyListParams, MyCreateParams, MyQueryParams> {
-  async list(params?: MyListParams) { /* ... */ }
-  async get(conversationId: string) { /* ... */ }
-  async create(params: MyCreateParams) { /* ... */ }
-  async query(params: MyQueryParams) { /* ... */ }
-}
-
-export class MessageServiceImpl
-  implements IMessageService<MyListParams, MySendParams, MyReadParams> {
-  async list(conversationId: string, params: MyListParams) { /* ... */ }
-  async send(conversationId: string, params: MySendParams) { /* ... */ }
-  async markAsRead(params: MyReadParams) { /* ... */ }
-  subscribeToMessages() { return () => {}; }
-  subscribeToMessageStatus() { return () => {}; }
-}
-
-export class TemplateServiceImpl
-  implements ITemplateService<MyTemplateListParams, MyTemplateSendParams> {
-  async list(params: MyTemplateListParams) { /* ... */ }
-  async send(params: MyTemplateSendParams) { /* ... */ }
-}
-```
+- 模板链路分拆独立 mutation/query。
+- 实时订阅与缓存回灌模型标准化。
 
 ## 7. 设计红线
 
 - 公开 API 禁止 `Session` 命名。
 - Template 相关类型禁止复用 Profile 类型。
-- 服务端数据禁止进入 Zustand 长驻。
-- SDK 文档与示例必须使用 `@/` 别名风格。
+- 服务端实体列表禁止写入 Zustand。
+- 对外文档示例必须与真实导出一致。

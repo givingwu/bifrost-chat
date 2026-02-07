@@ -1,35 +1,39 @@
-# 架构图（v3 基线）
+# 架构图（v3.1）
 
-## 1. 系统架构图
+## 1. 当前实现数据流（As-Is）
 
 ```mermaid
 graph TB
   subgraph Host[宿主应用]
-    C1[ConversationServiceImpl]
-    C2[MessageServiceImpl]
-    C3[TemplateServiceImpl]
+    S1[ConversationServiceImpl]
+    S2[MessageServiceImpl]
+    S3[TemplateServiceImpl]
   end
 
   subgraph SDK[SDK]
-    P1[ServiceProvider]
-    P2[QueryProvider]
-    H[Hooks]
-    U[Default Components]
+    CP[ConfigProvider]
+    QP[QueryProvider]
+    SP[ServiceProvider]
+    ST[Zustand Store]
+    HK[Hooks]
+    UI[Default Components]
   end
 
-  C1 --> P1
-  C2 --> P1
-  C3 --> P1
-  P1 --> H
-  P2 --> H
-  H --> U
+  S1 --> SP
+  S2 --> SP
+  S3 --> SP
+  CP --> ST
+  SP --> HK
+  QP --> HK
+  HK --> UI
+  ST --> UI
 ```
 
-## 2. 发送消息流程
+## 2. 当前发送消息流程（As-Is）
 
 ```mermaid
 sequenceDiagram
-  participant UI as ComposerToolbar
+  participant UI as ComposerWithSend
   participant Hook as useSendMessage
   participant Svc as IMessageService
   participant Host as Host Impl
@@ -44,15 +48,28 @@ sequenceDiagram
   API-->>Host: 响应
   Host-->>Svc: MessageSendResult
   Svc-->>Hook: result
-  Hook->>Cache: onSuccess(替换临时消息)
-  Hook->>UI: 自动刷新
+  Hook->>Cache: onSuccess(替换状态)
+  Hook->>UI: 刷新
 ```
 
-## 3. 模板数据边界图
+## 3. 当前模板链路（As-Is）
 
 ```mermaid
 graph LR
-  TAPI[TemplateServiceImpl] --> TQ[useTemplates/useSendTemplateMessage]
-  TQ --> TCache[React Query templates cache]
-  TCache --> TUI[TemplateList/TemplatePicker]
+  TP[TemplatePanel] --> DSL[DefaultChatLayout.onTemplateSelect]
+  DSL --> USM[useSendMessage]
+  USM --> IMS[IMessageService.send]
+  USM --> MQC[Messages Query Cache]
 ```
+
+## 4. 目标数据流（To-Be）
+
+```mermaid
+graph LR
+  TP[TemplatePanel] --> UST[useSendTemplateMessage]
+  UST --> ITS[ITemplateService.send]
+  UST --> MQC[Messages Query Cache]
+  UTP[useTemplatePreview] --> ITS
+```
+
+说明：目标流尚未作为公开 API 落地，当前以 `useSendMessage` 路径为准。

@@ -1,9 +1,10 @@
-# 命名规范（v4）
+# 命名规范（v3.1）
 
 ## 1. 术语红线
 
 - 公开 API 必须使用 `Conversation`，禁止 `Session`。
-- 模板统一写作"模板（Template）"，禁止"模版"混写。
+- 统一写作“模板（Template）”，禁止同音错别字混写。
+- Provider 统一命名为 `QueryProvider`。
 
 ## 2. 类型命名
 
@@ -25,41 +26,19 @@ interface SendMessageOptions {}
 
 ## 3. 组件与 Hook 命名
 
-### 3.1 基本规则
+### 3.1 组件
 
-- 组件：PascalCase（`ConversationList`）
-- Hook：`use*`（`useConversations`）
-- 禁止：`useSessions`、`SessionList`
+- 组件：PascalCase
+- 示例：`Topbar`、`AudioMessage`、`TemplatePanel`
 
-### 3.2 Container 组件命名
+### 3.2 Hook
 
-**原则**：避免使用 `Container` 后缀，优先使用功能描述性名称。
+- Hook：`use*`
+- 示例：`useConversations`、`useMessages`、`useSendMessage`
 
-| 旧命名（不推荐） | 新命名（推荐） | 理由 |
-|-----------------|---------------|------|
-| `ConversationListContainer` | `ConversationList` | 简单数据获取，直接合并 |
-| `ChatMessageListContainer` | `InfiniteMessageList` | 强调无限滚动特性 |
-| `ComposerToolbarContainer` | `ComposerWithSend` | 明确发送功能 |
-| `DefaultChatLayoutContainer` | `DefaultChatLayout` | 去掉冗余后缀 |
+禁止示例：
 
-**例外情况**：
-- 如果组件职责复杂且需要明确区分，可以使用功能描述性名称
-- 保持向后兼容时，可以导出别名（如 `export const ChatMessageList = MessageList`）
-
-### 3.3 组件命名示例
-
-```tsx
-// ✅ 好的命名
-<ConversationList />        // 清晰明确
-<InfiniteMessageList />     // 强调特性
-<ComposerWithSend />        // 功能描述
-<TemplateSearch />          // 职责明确
-
-// ❌ 避免的命名
-<ChatMessageList />         // Chat 前缀冗余（已废弃）
-<ConversationListContainer /> // Container 后缀不必要
-<ProfileSearch />           // 命名与职责不符（应为 TemplateSearch）
-```
+- `useSessions`
 
 ## 4. 字段命名
 
@@ -76,38 +55,16 @@ interface SendMessageOptions {}
 
 ## 6. 导出规范
 
-- 类型导出使用 `export type`
-- 组件导出使用命名导出
-- 对外入口统一在 `src/index.ts`
-- 向后兼容时可以导出别名（如 `export const ChatMessageList = MessageList`）
+- 对外入口统一 `src/index.ts`。
+- 组件导出统一 `src/components/index.ts`。
+- 文档中的 API 清单只能引用公开导出符号。
 
-## 7. 迁移指南
+## 7. 迁移对照
 
-### 从 v3 升级到 v4
+```tsx
+// 旧写法（禁用）
+import { useSessions } from '@feoe/bifrost-chat';
 
-1. **Container 组件重命名**：
-   ```tsx
-   // 旧代码
-   import { ConversationListContainer } from '@feoe/bifrost-chat';
-
-   // 新代码
-   import { ConversationList } from '@feoe/bifrost-chat';
-   ```
-
-2. **ChatMessageList 重命名**：
-   ```tsx
-   // 旧代码
-   import { ChatMessageList } from '@feoe/bifrost-chat';
-
-   // 新代码（推荐）
-   import { MessageList } from '@feoe/bifrost-chat';
-   ```
-
-3. **ProfileSearch 重命名**：
-   ```tsx
-   // 旧代码
-   import { ProfileSearch } from '@feoe/bifrost-chat';
-
-   // 新代码
-   import { TemplateSearch } from '@feoe/bifrost-chat';
-   ```
+// 新写法（公开导出）
+import { useConversations } from '@feoe/bifrost-chat';
+```

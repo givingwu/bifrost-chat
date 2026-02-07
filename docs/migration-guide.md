@@ -1,52 +1,51 @@
-# 架构迁移指南（迁移到 v3）
+# 架构迁移指南（v3.1）
 
 ## 1. 迁移目标
 
-从旧实现迁移到：
+- 公开 API 统一 `Conversation` 命名。
+- 对齐接口注入（`ServiceProvider`）。
+- 服务端状态归 React Query。
+- 客户端交互态归 Zustand。
+- 文档示例严格对齐公开导出。
 
-- 公开 API 仅使用 `Conversation`
-- 接口注入（ServiceProvider）
-- React Query 管服务端状态（含模板）
-- UI 状态由外部控制
+## 2. 当前基线（As-Is）
 
-## 2. 分阶段迁移
+- 已有 `QueryProvider`、`ServiceProvider`、`ConfigProvider`。
+- 已有 `useConversations`、`useMessages`、`useSendMessage`、`useTemplates`。
+- 默认布局已可运行。
 
-### 阶段 1：命名治理
+## 3. 迁移步骤（To-Be）
 
-- 将公开 `Session` 命名迁移为 `Conversation`。
-- 统一 QueryKey：`conversations/messages/templates`。
+### 步骤 1：命名治理
 
-### 阶段 2：接口注入
+- 清理公开文档中的 `Session` 术语。
+- 统一 QueryKey 术语：`conversations/messages/templates`。
 
-- 实现 `IConversationService`。
-- 实现 `IMessageService`。
-- 实现 `ITemplateService`。
-- 用 `ServiceProvider` 注入实现。
+### 步骤 2：导出边界治理
 
-### 阶段 3：状态迁移
+- 文档 API 清单以 `src/index.ts`、`src/components/index.ts` 为准。
+- 移除未导出能力的“公开 API”描述。
 
-- 会话列表迁移到 `useConversations`。
-- 消息列表迁移到 `useMessages`。
-- 模板列表迁移到 `useTemplates`。
-- 清理 Store 中服务端状态字段。
+### 步骤 3：状态边界治理
 
-### 阶段 4：发送链路迁移
+- 保证会话/消息/模板列表只在 React Query。
+- 保证 Zustand 只保留 UI 交互状态。
 
-- 使用 `useSendMessage` + optimistic update。
-- 失败回滚并输出统一错误类型。
-- 模板发送使用独立 mutation。
+### 步骤 4：模板链路治理
 
-### 阶段 5：清理与验收
+- 当前：沿用 `TemplatePanel` -> `useSendMessage`。
+- 目标：演进独立模板 mutation/query（保持兼容）。
 
-- 删除公开 API 中 `session*` 字段与类型。
-- 验证 Storybook stories 与测试通过。
-- 文档与代码示例统一到 v3 口径。
+### 步骤 5：验收
 
-## 3. 迁移检查清单
+- 运行 `pnpm run check && pnpm run test && pnpm run build`。
+- 核对文档关键词回归（见下方检查清单）。
+
+## 4. 迁移检查清单
 
 - [ ] 无公开 `Session` 命名
-- [ ] 三大服务接口已注入
-- [ ] 模板数据已归 React Query
-- [ ] UI 状态由外部控制
-- [ ] 发送链路具备 optimistic + rollback
-- [ ] 关键组件 Storybook stories 完整
+- [ ] API 清单仅包含公开导出
+- [ ] Provider 命名统一为 `QueryProvider`
+- [ ] 模板目录统一为 `src/components/template/`
+- [ ] 无失效命令引用（如历史脚本名）
+- [ ] 关键文档均区分 As-Is / To-Be

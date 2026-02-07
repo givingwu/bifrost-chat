@@ -1,17 +1,16 @@
-# 主题与视觉方案
+# 主题与视觉方案（v3.1）
 
-## 1) 当前主题机制
+## 1) 当前已实现（As-Is）
 
 - 模式枚举：`ThemeModeEnum` = `system | light | dark`
-- 状态来源：`theme.slice.ts`
+- 状态来源：`src/store/slices/theme.slice.ts`
 - token 定义：`src/styles/theme.css`
 - 切换入口：`ThemeSwitcher`
 
-## 2) 三套方案落地方式
+## 2) 目标架构（To-Be）
 
-1. `light`：浅色基线方案
-2. `dark`：深色基线方案
-3. `system`：跟随系统
+- 语义 token 进一步细分并形成主题验收基线。
+- 渠道特有状态色语义标准化。
 
 ## 3) 约束
 

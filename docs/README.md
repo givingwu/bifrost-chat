@@ -1,37 +1,68 @@
-# Bifrost-Chat JS SDK 文档导航（v3 基线）
+# Bifrost-Chat JS SDK 文档导航（v3.1）
 
-本目录文档统一遵循以下基线：
+本目录采用双轨口径：**当前已实现（As-Is）** 与
+**目标架构（To-Be）** 并行描述，避免混写。
 
-- 公开 API 彻底禁用 `Session`，统一使用 `Conversation`
-- SDK 形态：`纯接口 + DI + 默认组件实现`
-- SDK 不关心协议适配与字段转换细节（由调用方在宿主侧处理）
-- 服务端状态统一归 React Query（包含模板数据）
-- UI 状态由外部控制（不在 SDK 内部管理）
+## 文档分层
+
+### 1) SSOT（单一事实源）
+
+- `final-architecture.md`
+
+用途：
+
+- 定义当前生效的不可变决策。
+- 记录当前实现事实（公开导出、状态边界、接口签名）。
+- 标记目标架构阶段与前置条件。
+
+### 2) 当前实现（As-Is）
+
+- `architecture-overview.md`
+- `architecture-diagrams.md`
+- `component-architecture.md`
+- `reactive-architecture-design.md`
+
+用途：
+
+- 说明仓库当前代码行为和数据流。
+- 作为排查问题、评审改动的直接依据。
+
+### 3) 目标架构（To-Be）
+
+- `sdk-interface-abstraction-design.md`
+- `sdk-final-architecture-design.md`
+- `ui-flexibility-design.md`
+- `migration-guide.md`
+- `naming-conventions.md`
+
+用途：
+
+- 定义未来演进方向和迁移步骤。
+- 与当前实现冲突时，必须在文档中显式标注“未落地”。
+
+### 4) 历史记录（非 SSOT）
+
+- `virtual-scroll-implementation.md`
+- `virtual-scroll-research.md`
+
+用途：
+
+- 保留历史设计与实施背景。
+- 不作为当前实现的唯一依据。
 
 ## 推荐阅读顺序
 
-1. `final-architecture.md`（单一事实源，先读）
-2. `sdk-interface-abstraction-design.md`（接口与 DI）
-3. `reactive-architecture-design.md`（React Query + Zustand 边界）
-4. `component-architecture.md`（组件职责与数据流）
-5. `migration-guide.md`（迁移落地步骤）
-6. `naming-conventions.md`（命名红线）
+1. `final-architecture.md`
+2. `architecture-overview.md`
+3. `architecture-diagrams.md`
+4. `component-architecture.md`
+5. `reactive-architecture-design.md`
+6. 其余 To-Be 文档
 
-## 文档说明
+## 口径规则
 
-- `final-architecture.md`：v3 架构基线与实现约束。
-- `sdk-interface-abstraction-design.md`：服务接口、Provider 注入、宿主实现。
-- `reactive-architecture-design.md`：声明式状态管理与 Hooks 规范。
-- `architecture-overview.md`：高层架构总览。
-- `architecture-diagrams.md`：架构图与关键流程图。
-- `component-architecture.md`：默认组件与可扩展边界。
-- `ui-flexibility-design.md`：Headless/Compound/All-in-One 设计。
-- `migration-guide.md`：从旧架构迁移到 v3 的步骤。
-- `naming-conventions.md`：术语、命名、QueryKey 规则。
-- `sdk-final-architecture-design.md`：v3 决策记录（ADR 风格）。
-
-## 执行原则
-
-- 文档中的路径、类型名、Hook 名必须与仓库实现一致。
-- 设计描述必须区分“当前已实现”和“目标落地”。
-- 若与本基线冲突，以 `final-architecture.md` 为准。
+- 与代码冲突时，优先核对 `src/index.ts`、`src/components/index.ts`、
+  `src/store/index.ts`、`src/services/*.service.ts`。
+- 文档冲突时，以 `final-architecture.md` 为准。
+- `Session` 仅允许出现在“禁用说明/迁移对照”语境。
+- 术语统一：`Conversation`、`Template`、`QueryProvider`。

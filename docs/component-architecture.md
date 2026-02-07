@@ -1,42 +1,53 @@
-# 组件架构（v3）
+# 组件架构（v3.1）
 
-## 1. 组件分层
+## 1. 当前已实现（As-Is）
+
+### 1.1 组件分层
 
 - 容器级：`ChatContainer`、`DefaultChatLayout`
-- 业务级：`ConversationList`、`ChatMessageList`、`ComposerToolbar`
-- 辅助级：`Profile`、`TemplateList/TemplatePicker`、`ThemeSwitcher` 等
+- 布局级：`ChatLayout`、`Topbar`、`TopbarTools`
+- 业务级：`ConversationList`、`InfiniteMessageList`、`ComposerWithSend`
+- 上下文级：`Profile`、`TemplatePanel`
+- 基础级：`Avatar`、`Button`、`IconButton` 等
 
-## 2. 组件职责
+### 1.2 组件职责
 
 | 组件 | 只做什么 | 不做什么 |
 |---|---|---|
-| ChatContainer | 组织 Provider、注入 i18n/theme 上下文 | 不直接请求服务端 |
-| ConversationList | 展示会话与选择态 | 不管理后端分页策略 |
-| MessageList | 展示消息流与滚动触发 | 不解析协议包 |
-| ComposerToolbar | 输入与发送交互 | 不包含后端发送逻辑 |
-| TemplatePicker | 模板选择与变量输入 | 不直接请求模板 API |
+| ChatContainer | 组织 I18n 与主题容器，消费 Store | 不直接请求服务端 |
+| DefaultChatLayout | 组合默认聊天页面与交互 | 不实现宿主协议适配 |
+| ConversationList | 渲染会话列表与选择态 | 不管理后端分页策略 |
+| InfiniteMessageList | 渲染消息流与无限滚动 | 不解析原始协议包 |
+| ComposerWithSend | 输入与发送交互 | 不直连后端 API |
+| TemplatePanel | 模板筛选与选择 | 不直连模板 API（默认用 hooks） |
 
-## 3. 数据来源映射
+### 1.3 数据来源映射
 
 - 会话列表：`useConversations`
 - 消息列表：`useMessages`
 - 模板列表：`useTemplates`
-- 本地 UI：`useChatStore`（Zustand）
+- 发送消息：`useSendMessage`
+- 本地 UI 状态：`useChatStore` 与子选择器
 
-## 4. 交互基线
+### 1.4 模板链路（当前）
 
-- 选择模板 -> 写入 `composerText` 或模板变量草稿（Zustand）
-- 发送模板 -> mutation -> 刷新 `messages`
-- 切换会话 -> 更新 `activeConversationId`（UI 选择）+ 触发消息查询
+- `TemplatePanel` 触发 `DefaultChatLayout` 的 `onTemplateSelect`。
+- `onTemplateSelect` 调用 `useSendMessage` 发送模板内容。
 
-## 5. 扩展规范
+## 2. 目标架构（To-Be）
+
+- 新增独立模板发送 mutation（如 `useSendTemplateMessage`）。
+- 新增模板预览 query（如 `useTemplatePreview`）。
+- 保持 `src/components/template/` 与 `src/components/profile/` 边界。
+
+## 3. 扩展规范
 
 新增消息类型：
 
 1. 扩展 `MessageTypeEnum`
-2. 新增对应消息组件
+2. 新增消息组件
 3. 注册到 `MessageRendererFactory`
-4. 增加 Storybook stories
+4. 增加 Storybook stories 与测试
 
 新增模板能力：
 

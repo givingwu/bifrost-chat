@@ -1,44 +1,46 @@
-# UI 灵活性设计（v3）
+# UI 灵活性设计（v3.1）
 
 ## 1. 设计目标
 
-- 提供默认实现，开箱即用
-- 保留 Headless 能力，支持深度定制
-- 不破坏接口注入和状态边界
+- 提供默认实现，开箱即用。
+- 保留组合与替换能力，支持深度定制。
+- 不破坏接口注入和状态边界。
 
-## 2. 三层 API 模式
+## 2. 当前能力（As-Is）
 
-### A. Headless
+### A. Headless（完全自定义）
 
 ```tsx
-<QueryProvider>
-  <ServiceProvider {...services}>
-    <ChatContainer locale="zh-CN">
-      <MyLayout />
-    </ChatContainer>
-  </ServiceProvider>
-</QueryProvider>
+<ConfigProvider config={config}>
+  <QueryProvider>
+    <ServiceProvider {...services}>
+      <ChatContainer>
+        <MyLayout />
+      </ChatContainer>
+    </ServiceProvider>
+  </QueryProvider>
+</ConfigProvider>
 ```
 
-### B. Compound
+### B. Compound（组合式）
 
 ```tsx
-<ChatContainer locale="zh-CN">
+<ChatContainer>
   <ChatLayout
-    topbar={<CustomTopbar />}
+    topbar={<Topbar title="聊天窗口" />}
     conversationPanel={<CustomConversationPanel />}
     composer={<CustomComposer />}
-    contextPanel={<CustomContextPanel />}
+    profilePanel={<CustomContextPanel />}
   >
     <CustomMessageList />
   </ChatLayout>
 </ChatContainer>
 ```
 
-### C. All-in-One
+### C. All-in-One（默认布局）
 
 ```tsx
-<ChatContainer locale="zh-CN">
+<ChatContainer>
   <DefaultChatLayout />
 </ChatContainer>
 ```
@@ -47,10 +49,9 @@
 
 - 自定义组件仍需通过 hooks 获取服务端状态。
 - 不允许绕过 Provider 直接请求 API。
-- 所有自定义 UI 仍应遵守 Conversation 命名与 QueryKey 规范。
+- 公开命名遵循 Conversation 术语与 QueryKey 规范。
 
-## 4. 推荐实践
+## 4. 目标架构（To-Be）
 
-- 业务复杂场景优先 Headless。
-- 品牌定制场景优先 Compound。
-- 快速上线优先 All-in-One。
+- 渠道策略矩阵配置化输出。
+- 模板链路独立 mutation/query 能力。
