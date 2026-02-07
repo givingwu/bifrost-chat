@@ -12,7 +12,7 @@ graph TB
 
   subgraph SDK[SDK]
     P1[ServiceProvider]
-    P2[ReactQueryProvider]
+    P2[QueryProvider]
     H[Hooks]
     U[Default Components]
   end

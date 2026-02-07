@@ -34,13 +34,13 @@ export interface DefaultChatLayoutProps {
  * ```tsx
  * function App() {
  *   return (
- *     <ReactQueryProvider>
+ *     <QueryProvider>
  *       <ServiceProvider {...services}>
  *         <DefaultChatLayout>
  *           <InfiniteMessageList conversationId="conv-123" />
  *         </DefaultChatLayout>
  *       </ServiceProvider>
- *     </ReactQueryProvider>
+ *     </QueryProvider>
  *   );
  * }
  * ```
@@ -190,7 +190,7 @@ export function DefaultChatLayout({
         ) : null
       }
       profilePanel={
-        <aside className="flex w-[300px] shrink-0 border-l border-gray-200/50 dark:border-white/10 flex-col bg-gray-50/50 dark:bg-black/20">
+        <aside className="flex-col hidden xl:flex w-[300px] shrink-0 border-l border-gray-200/50 dark:border-white/10 bg-gray-50/50 dark:bg-black/20">
           {profile && <Profile profile={profile} />}
           <TemplatePanel onTemplateSelect={handleTemplateSelect} />
         </aside>

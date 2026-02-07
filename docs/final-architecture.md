@@ -41,7 +41,7 @@ graph TB
       end
 
       subgraph Providers[Provider层]
-        P1[ReactQueryProvider]
+        P1[QueryProvider]
         P2[ServiceProvider]
         P3[I18nProvider]
       end
@@ -112,12 +112,12 @@ graph TB
 
 ```tsx
 import {
-  ReactQueryProvider,
+  QueryProvider,
   ServiceProvider,
   ChatContainer,
 } from '@feoe/bifrost-chat';
 
-<ReactQueryProvider>
+<QueryProvider>
   <ServiceProvider
     conversationService={conversationServiceImpl}
     messageService={messageServiceImpl}
@@ -125,7 +125,7 @@ import {
   >
     <ChatContainer locale="zh-CN">...</ChatContainer>
   </ServiceProvider>
-</ReactQueryProvider>
+</QueryProvider>
 ```
 
 ## 5. QueryKey 规范

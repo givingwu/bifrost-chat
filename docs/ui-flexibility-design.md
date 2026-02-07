@@ -11,13 +11,13 @@
 ### A. Headless
 
 ```tsx
-<ReactQueryProvider>
+<QueryProvider>
   <ServiceProvider {...services}>
     <ChatContainer locale="zh-CN">
       <MyLayout />
     </ChatContainer>
   </ServiceProvider>
-</ReactQueryProvider>
+</QueryProvider>
 ```
 
 ### B. Compound

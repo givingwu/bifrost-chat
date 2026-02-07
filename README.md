@@ -136,7 +136,7 @@ SDK 采用依赖注入模式，您需要提供具体的服务实现：
 ```tsx
 import React from 'react';
 import {
-  ReactQueryProvider,
+  QueryProvider,
   ServiceProvider,
   IConversationService,
   IMessageService,
@@ -233,7 +233,7 @@ const templateService = new MyTemplateService();
 // 3. 使用 Provider 包装应用
 function App() {
   return (
-    <ReactQueryProvider>
+    <QueryProvider>
       <ServiceProvider
         conversationService={conversationService}
         messageService={messageService}
@@ -243,7 +243,7 @@ function App() {
           <DefaultChatLayout />
         </ChatContainer>
       </ServiceProvider>
-    </ReactQueryProvider>
+    </QueryProvider>
   );
 }
 

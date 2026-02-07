@@ -3,7 +3,7 @@
 ## 1) 当前实现（代码现状）
 
 - `src/services/*`：接口契约（Conversation/Message/Template）
-- `src/providers/*`：ServiceProvider + ReactQueryProvider + I18nProvider
+- `src/providers/*`：ServiceProvider + QueryProvider + I18nProvider
 - `src/hooks/*`：声明式 Query/Mutation
 - `src/components/*`：默认组件实现
 - `src/store/*`：客户端状态 + 遗留服务端状态（迁移中）

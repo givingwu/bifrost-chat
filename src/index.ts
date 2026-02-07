@@ -44,8 +44,8 @@ export { I18nProvider } from '@/providers/I18n.provider';
 // React Query Provider
 export {
   createQueryClient,
+  QueryProvider,
   queryKeys,
-  ReactQueryProvider,
 } from '@/providers/query.provider';
 // Service Provider (依赖注入)
 export {
