@@ -55,7 +55,8 @@
       "sent": "Message sent",
       "delivered": "Message delivered",
       "read": "Message read",
-      "failed": "Message failed to send"
+      "failed": "Message failed to send",
+      "queued": "Message queued"
     },
     "retry": "Retry",
     "empty": "No messages yet",

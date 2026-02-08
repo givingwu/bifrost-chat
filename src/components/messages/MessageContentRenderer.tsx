@@ -1,14 +1,14 @@
 import {
+  type FunctionComponent,
+  memo,
+  type ReactElement,
+  useMemo,
+} from 'react';
+import {
   type MessageContent,
   MessageTypeEnum,
   type StandardMessage,
 } from '@/interfaces/message.interface';
-import {
-  type FunctionComponent,
-  type ReactElement,
-  memo,
-  useMemo,
-} from 'react';
 import { AudioMessage } from './AudioMessage';
 import { FileMessage } from './FileMessage';
 import { ImageMessage } from './ImageMessage';

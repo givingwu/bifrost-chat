@@ -55,7 +55,8 @@
       "sent": "消息已发送",
       "delivered": "消息已送达",
       "read": "消息已读",
-      "failed": "消息发送失败"
+      "failed": "消息发送失败",
+      "queued": "消息已排队"
     },
     "retry": "重试",
     "empty": "暂无消息",

@@ -70,10 +70,11 @@ export function useMessages<TParams = any>(
           nextCursor: undefined,
         } as MessagesPage;
       }
-      const messages = await services.messageService.list(
-        conversationId,
-        { ...(params ?? {}), page: pageParam } as TParams,
-      );
+
+      const messages = await services.messageService.list(conversationId, {
+        ...(params ?? {}),
+        page: pageParam,
+      } as TParams);
 
       return {
         items: messages,

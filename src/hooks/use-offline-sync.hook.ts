@@ -38,6 +38,8 @@ export function useOfflineSync() {
   const networkStatus = useNetwork().status;
   const [isSyncing, setIsSyncing] = useState(false);
   const [lastSyncAt, setLastSyncAt] = useState<number | null>(null);
+  // 跟踪上一次的网络状态，避免重复触发
+  const [prevNetworkStatus, setPrevNetworkStatus] = useState(networkStatus);
 
   /**
    * 同步离线消息队列
@@ -145,7 +147,11 @@ export function useOfflineSync() {
 
   // 监听网络状态变化
   useEffect(() => {
-    if (networkStatus === NetworkStatusEnum.Connected) {
+    // 只在从非连接状态切换到连接状态时触发同步
+    if (
+      prevNetworkStatus !== NetworkStatusEnum.Connected &&
+      networkStatus === NetworkStatusEnum.Connected
+    ) {
       console.info('[useOfflineSync] 网络已连接，触发自动同步');
       // 使用 setTimeout 避免阻塞 UI
       const timer = setTimeout(() => {
@@ -154,7 +160,10 @@ export function useOfflineSync() {
 
       return () => clearTimeout(timer);
     }
-  }, [networkStatus, sync]);
+
+    // 更新上一次的网络状态
+    setPrevNetworkStatus(networkStatus);
+  }, [networkStatus, sync, prevNetworkStatus]);
 
   return {
     sync,

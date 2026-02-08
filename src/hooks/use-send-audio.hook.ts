@@ -5,8 +5,8 @@ import type {
 } from '@/interfaces/audio.interface';
 import { AudioOutputFormatEnum } from '@/interfaces/audio.interface';
 import { MessageTypeEnum } from '@/interfaces/message.interface';
+import { MessageBuilder } from '@/services/message-builder.service';
 import { useConversation } from '@/store';
-import { MessageBuilder } from '@/utils/message-builder.util';
 
 /**
  * 发送音频消息 Hook 的参数

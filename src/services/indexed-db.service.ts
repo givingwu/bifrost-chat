@@ -1,41 +1,8 @@
-/**
- * IndexedDB 对象存储定义
- */
-export interface ObjectStoreDefinition {
-  /** 主键路径 */
-  keyPath: string;
-  /** 是否自动递增 */
-  autoIncrement?: boolean;
-  /** 索引定义 */
-  indexes?: Array<{
-    /** 索引名称 */
-    name: string;
-    /** 索引键路径 */
-    keyPath: string | string[];
-    /** 索引选项 */
-    options?: IDBIndexParameters;
-  }>;
-}
-
-/**
- * IndexedDB 配置
- */
-export interface IndexedDBConfig {
-  /** 数据库名称 */
-  dbName: string;
-  /** 数据库版本 */
-  dbVersion: number;
-  /** 对象存储定义 */
-  stores: Record<string, ObjectStoreDefinition>;
-}
-
-/**
- * 批量操作类型
- */
-export type BatchOperation =
-  | { type: 'add'; storeName: string; data: unknown }
-  | { type: 'put'; storeName: string; data: unknown }
-  | { type: 'delete'; storeName: string; key: string | number };
+import type {
+  BatchOperation,
+  IndexedDBConfig,
+  IStorage,
+} from '@/interfaces/storage.interface';
 
 /**
  * IndexedDB 错误
@@ -59,7 +26,7 @@ export class IndexedDBError extends Error {
  *
  * @example
  * ```typescript
- * const helper = new IndexedDBHelper({
+ * const helper = new IndexedDB({
  *   dbName: 'my-db',
  *   dbVersion: 1,
  *   stores: {
@@ -78,7 +45,7 @@ export class IndexedDBError extends Error {
  * const messages = await helper.getAll('messages');
  * ```
  */
-export class IndexedDBHelper {
+export class IndexedDBImpl implements IStorage {
   private db: IDBDatabase | null = null;
   private config: IndexedDBConfig;
 
@@ -88,12 +55,12 @@ export class IndexedDBHelper {
 
   /**
    * 打开数据库
-   * @returns Promise<IDBDatabase>
+   * @returns Promise<void>
    * @throws {IndexedDBError} 打开数据库失败
    */
-  async open(): Promise<IDBDatabase> {
+  async open(): Promise<void> {
     if (this.db) {
-      return this.db;
+      return;
     }
 
     return new Promise((resolve, reject) => {
@@ -111,35 +78,50 @@ export class IndexedDBHelper {
 
       request.onsuccess = () => {
         this.db = request.result;
-        resolve(this.db);
+        resolve();
       };
 
       // 数据库升级或首次创建
       request.onupgradeneeded = (event) => {
         const db = (event.target as IDBOpenDBRequest).result;
+        const oldVersion = event.oldVersion;
 
-        // 创建对象存储
+        // 创建对象存储（仅在不存在时创建，避免数据丢失）
         for (const [storeName, storeDef] of Object.entries(
           this.config.stores,
         )) {
-          // 如果对象存储已存在，删除它（重新创建）
+          let objectStore: IDBObjectStore;
+
           if (db.objectStoreNames.contains(storeName)) {
-            db.deleteObjectStore(storeName);
+            // 对象存储已存在，获取引用
+            objectStore = (
+              event.target as IDBOpenDBRequest
+            ).transaction!.objectStore(storeName);
+          } else {
+            // 创建新对象存储
+            objectStore = db.createObjectStore(storeName, {
+              keyPath: storeDef.keyPath,
+              autoIncrement: storeDef.autoIncrement,
+            });
           }
 
-          // 创建对象存储
-          const objectStore = db.createObjectStore(storeName, {
-            keyPath: storeDef.keyPath,
-            autoIncrement: storeDef.autoIncrement,
-          });
-
-          // 创建索引
+          // 创建索引（仅在不存在时创建）
           if (storeDef.indexes) {
             for (const index of storeDef.indexes) {
-              objectStore.createIndex(index.name, index.keyPath, index.options);
+              if (!objectStore.indexNames.contains(index.name)) {
+                objectStore.createIndex(
+                  index.name,
+                  index.keyPath,
+                  index.options,
+                );
+              }
             }
           }
         }
+
+        console.info(
+          `[IndexedDB] Database upgraded from version ${oldVersion} to ${this.config.dbVersion}`,
+        );
       };
     });
   }
@@ -543,16 +525,11 @@ export class IndexedDBHelper {
       };
     });
   }
-}
 
-/**
- * 生成唯一 ID
- * @returns UUID v4 格式的字符串
- */
-export function generateUniqueId(): string {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-    const r = (Math.random() * 16) | 0;
-    const v = c === 'x' ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
+  /**
+   * 获取存储类型
+   */
+  getStorageType(): 'indexeddb' {
+    return 'indexeddb';
+  }
 }

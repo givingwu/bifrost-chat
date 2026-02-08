@@ -1,21 +1,23 @@
-import type { MessageStatusEnum } from '@/interfaces/message.interface';
+import type { StandardMessage } from '@/interfaces/message.interface';
 import { MessagePriorityEnum } from '@/interfaces/message.interface';
 import type {
   OfflineMessage,
   OfflineQueueConfig,
   OfflineQueueStats,
 } from '@/interfaces/offline-message.interface';
-import { generateUniqueId, IndexedDBHelper } from '@/utils/indexed-db.util';
+import type { IStorage } from '@/interfaces/storage.interface';
+import { createStorageHelper } from '@/utils/storage.util';
+import { MessageBuilder } from './message-builder.service';
 
 /**
  * 离线消息队列服务
  *
  * @description
  * 管理离线消息队列，提供消息入队、出队、更新、查询等操作
- * 使用 IndexedDB 进行持久化存储
+ * 优先使用 IndexedDB，不可用时自动回退到 LocalStorage
  */
 export class OfflineMessageQueueService {
-  private db: IndexedDBHelper;
+  private db: IStorage;
   private config: OfflineQueueConfig;
   private subscribers: Set<(messages: OfflineMessage[]) => void> = new Set();
   private currentMessages: OfflineMessage[] = [];
@@ -23,9 +25,17 @@ export class OfflineMessageQueueService {
 
   constructor(config: OfflineQueueConfig) {
     this.config = config;
-    this.db = new IndexedDBHelper({
-      dbName: config.dbName ?? 'bifrost-offline-queue',
-      dbVersion: config.dbVersion ?? 1,
+    // 注意：这里创建一个临时的配置对象，实际的存储会在 initialize 中创建
+    this.db = null as unknown as IStorage;
+  }
+
+  /**
+   * 初始化数据库
+   */
+  async initialize(): Promise<void> {
+    const dbConfig = {
+      dbName: this.config.dbName ?? 'bifrost-offline-queue',
+      dbVersion: this.config.dbVersion ?? 1,
       stores: {
         offline_messages: {
           keyPath: 'id',
@@ -37,19 +47,24 @@ export class OfflineMessageQueueService {
           ],
         },
       },
-    });
+    };
+
+    // 自动选择 IndexedDB 或 LocalStorage
+    this.db = await createStorageHelper(dbConfig);
+
+    await this.db.open();
+
+    // 加载当前消息到内存
+    this.currentMessages = await this.getAll();
 
     // 启动定期清理任务
     this.startCleanupTask();
-  }
 
-  /**
-   * 初始化数据库
-   */
-  async initialize(): Promise<void> {
-    await this.db.open();
-    // 加载当前消息到内存
-    this.currentMessages = await this.getAll();
+    const storageType = this.db.getStorageType();
+
+    console.info(
+      `[OfflineMessageQueueService] Initialized with ${storageType}`,
+    );
   }
 
   /**
@@ -61,11 +76,13 @@ export class OfflineMessageQueueService {
     // 检查队列是否已满
     const count = await this.db.count('offline_messages');
     const maxSize = this.config.maxQueueSize ?? 1000;
+
     if (count >= maxSize) {
       throw new Error(`Offline message queue is full (max: ${maxSize})`);
     }
 
     await this.db.add('offline_messages', message);
+
     this.currentMessages.push(message);
     this.notifySubscribers();
   }
@@ -76,6 +93,7 @@ export class OfflineMessageQueueService {
    */
   async dequeue(messageId: string): Promise<void> {
     await this.db.delete('offline_messages', messageId);
+
     this.currentMessages = this.currentMessages.filter(
       (m) => m.id !== messageId,
     );
@@ -88,6 +106,7 @@ export class OfflineMessageQueueService {
    */
   async getAll(): Promise<OfflineMessage[]> {
     const messages = await this.db.getAll<OfflineMessage>('offline_messages');
+
     // 按优先级排序（高优先级在前）和创建时间排序（旧消息在前）
     return messages.sort((a, b) => {
       const priorityOrder: Record<MessagePriorityEnum, number> = {
@@ -98,9 +117,11 @@ export class OfflineMessageQueueService {
       };
       const priorityDiff =
         priorityOrder[a.priority] - priorityOrder[b.priority];
+
       if (priorityDiff !== 0) {
         return priorityDiff;
       }
+
       return a.createdAt - b.createdAt;
     });
   }
@@ -115,6 +136,7 @@ export class OfflineMessageQueueService {
       'conversationId',
       conversationId,
     );
+
     return messages.sort((a, b) => a.createdAt - b.createdAt);
   }
 
@@ -124,6 +146,7 @@ export class OfflineMessageQueueService {
   async getPendingRetry(): Promise<OfflineMessage[]> {
     const now = Date.now();
     const messages = await this.db.getAll<OfflineMessage>('offline_messages');
+
     return messages
       .filter((m) => !m.nextRetryAt || m.nextRetryAt <= now)
       .sort((a, b) => {
@@ -135,9 +158,11 @@ export class OfflineMessageQueueService {
         };
         const priorityDiff =
           priorityOrder[a.priority] - priorityOrder[b.priority];
+
         if (priorityDiff !== 0) {
           return priorityDiff;
         }
+
         return (a.nextRetryAt ?? a.createdAt) - (b.nextRetryAt ?? b.createdAt);
       });
   }
@@ -155,6 +180,7 @@ export class OfflineMessageQueueService {
       'offline_messages',
       messageId,
     );
+
     if (!existing) {
       throw new Error(`Message not found: ${messageId}`);
     }
@@ -164,9 +190,11 @@ export class OfflineMessageQueueService {
 
     // 更新内存中的消息
     const index = this.currentMessages.findIndex((m) => m.id === messageId);
+
     if (index !== -1) {
       this.currentMessages[index] = updated;
     }
+
     this.notifySubscribers();
   }
 
@@ -175,6 +203,7 @@ export class OfflineMessageQueueService {
    */
   async clear(): Promise<void> {
     await this.db.clear('offline_messages');
+
     this.currentMessages = [];
     this.notifySubscribers();
   }
@@ -229,6 +258,7 @@ export class OfflineMessageQueueService {
    */
   async cleanup(maxAge?: number): Promise<number> {
     const expiration = maxAge ?? this.config.messageExpiration;
+
     if (!expiration) {
       return 0;
     }
@@ -346,21 +376,24 @@ export class OfflineMessageQueueService {
 
   /**
    * 创建离线消息对象
-   * @param message 原始消息数据
+   * @param message 原始消息数据（可以是完整的 StandardMessage）
    * @param conversationId 会话 ID
    * @param sendParams 发送参数
    * @param priority 消息优先级
    * @returns 离线消息对象
    */
   createOfflineMessage(
-    message: Omit<OfflineMessage['message'], 'id' | 'status'>,
+    message: StandardMessage,
     conversationId: string,
     sendParams: Record<string, unknown>,
     priority: MessagePriorityEnum = MessagePriorityEnum.Normal,
   ): OfflineMessage {
+    // 从 StandardMessage 中提取 message 字段（排除 id 和 status）
+    const { id, status, ...messageData } = message;
+
     return {
-      id: generateUniqueId(),
-      message,
+      id: MessageBuilder.generateUniqueId(),
+      message: messageData,
       conversationId,
       sendParams,
       retryCount: 0,

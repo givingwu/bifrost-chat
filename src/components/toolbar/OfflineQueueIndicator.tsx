@@ -151,7 +151,8 @@ OfflineQueueIndicator.displayName = 'OfflineQueueIndicator';
  * 使用离线队列指示器的 Hook
  *
  * @description
- * 自动订阅离线队列状态，返回队列数量和同步状态
+ * 自动订阅离线队列状态，返回队列数量
+ * 注意：isSyncing 状态需要从 useOfflineSync 获取并传入
  *
  * @returns 队列状态
  *
@@ -159,15 +160,15 @@ OfflineQueueIndicator.displayName = 'OfflineQueueIndicator';
  * ```tsx
  * function MyToolbar() {
  *   const queueIndicator = useOfflineQueueIndicator();
+ *   const { isSyncing } = useOfflineSync();
  *
- *   return <OfflineQueueIndicator {...queueIndicator} />;
+ *   return <OfflineQueueIndicator {...queueIndicator} isSyncing={isSyncing} />;
  * }
  * ```
  */
 export function useOfflineQueueIndicator() {
   const { queueService } = useOfflineMessage();
   const [count, setCount] = useState(0);
-  const [isSyncing, setIsSyncing] = useState(false);
 
   useEffect(() => {
     if (!queueService) {
@@ -184,6 +185,5 @@ export function useOfflineQueueIndicator() {
 
   return {
     count,
-    isSyncing,
   };
 }

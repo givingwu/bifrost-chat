@@ -5,7 +5,7 @@ import {
   MessageStatusEnum,
   MessageTypeEnum,
 } from '@/interfaces/message.interface';
-import { MessageBuilder } from './message-builder.util';
+import { MessageBuilder } from './message-builder.service';
 
 describe('MessageBuilder', () => {
   it('should build a valid text message', () => {

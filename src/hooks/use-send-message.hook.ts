@@ -6,7 +6,7 @@ import {
 } from '@/interfaces/message.interface';
 import { queryKeys } from '@/providers/query.provider';
 import { useServices } from '@/providers/service.provider';
-import { MessageBuilder } from '@/utils/message-builder.util';
+import { MessageBuilder } from '@/services/message-builder.service';
 
 /**
  * 使用发送消息的 Hook

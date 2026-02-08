@@ -60,4 +60,15 @@ export class MessageBuilder {
   static generateTempId(): string {
     return `temp_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
   }
+
+  /**
+   * 生成唯一 UUID
+   */
+  static generateUniqueId(): string {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+      const r = (Math.random() * 16) | 0;
+      const v = c === 'x' ? r : (r & 0x3) | 0x8;
+      return v.toString(16);
+    });
+  }
 }

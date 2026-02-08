@@ -3,8 +3,8 @@ import type {
   SendAttachmentParams,
   SendAttachmentResult,
 } from '@/interfaces/attachment.interface';
+import { MessageBuilder } from '@/services/message-builder.service';
 import { useConversation } from '@/store';
-import { MessageBuilder } from '@/utils/message-builder.util';
 
 /**
  * 发送附件 Hook 的参数
