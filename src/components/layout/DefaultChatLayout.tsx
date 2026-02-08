@@ -203,7 +203,7 @@ export function DefaultChatLayout({
           <ConversationList
             className={cn(
               'transition',
-              isPending ? 'animate-pulse opacity-80' : 'opacity-100',
+              isPending ? 'opacity-80' : 'opacity-100',
             )}
             conversations={filteredConversations}
             onSelect={actions.setActiveConversationId}
