@@ -11,6 +11,7 @@ export * from '@/events/client-bus.event';
 // 会话相关 Hooks
 export { useConversations } from '@/hooks/use-conversations.hook';
 export { useCreateConversation } from '@/hooks/use-create-conversation.hook';
+export { useInViewport } from '@/hooks/use-in-viewport.hook';
 export { useMarkAsRead } from '@/hooks/use-mark-as-read.hook';
 // 消息相关 Hooks
 export { useMessages } from '@/hooks/use-messages.hook';

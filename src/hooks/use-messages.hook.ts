@@ -16,7 +16,21 @@ export interface MessagesPage {
  *
  * @description
  * 使用 React Query Infinite Query 管理消息列表的获取和缓存。
- * 支持无限滚动加载更多消息。
+ * 支持从下往上的无限滚动加载（聊天应用模式）。
+ *
+ * **后端分页格式**：
+ * - 第一页：返回最新的30条消息（降序：[30, 29, ..., 1]，索引0是最新的）
+ * - 第二页：返回更早的30条消息（降序：[60, 59, ..., 31]，索引0是第31新的）
+ * - 以此类推...
+ *
+ * **前端显示顺序**：
+ * - 前端需要反转页面顺序：`[...pages].reverse().flatMap(page => page.items)`
+ * - 最终显示：[60, 59, ..., 31, 30, 29, ..., 1]（更旧的在上，更新的在下）
+ *
+ * **滚动行为**：
+ * - 初始加载：自动滚动到底部（最新消息）
+ * - 向上滚动：滚动到顶部时加载更早的消息
+ * - 新消息：仅在用户靠近底部时自动滚动
  *
  * @param conversationId 会话 ID
  * @param params 查询参数（可选，类型由服务实现决定）
@@ -37,19 +51,22 @@ export interface MessagesPage {
  *   if (isLoading) return <Spinner />;
  *   if (error) return <Error message={error.message} />;
  *
- *   const messages = data?.pages.flatMap(page => page.items) || [];
+ *   // ✅ 正确：反转页面顺序
+ *   const messages = data?.pages.slice().reverse().flatMap(page => page.items) || [];
+ *
+ *   // 向上滚动到顶部时加载历史消息
+ *   const handleScroll = (e) => {
+ *     if (e.target.scrollTop < 100 && hasNextPage && !isFetchingNextPage) {
+ *       fetchNextPage();
+ *     }
+ *   };
  *
  *   return (
- *     <div onScroll={(e) => {
- *       const bottom = e.target.scrollHeight - e.target.scrollTop === e.target.clientHeight;
- *       if (bottom && hasNextPage && !isFetchingNextPage) {
- *         fetchNextPage();
- *       }
- *     }}>
- *       {messages.map(message => (
- *         <MessageBubble key={message.id} {...message} />
+ *     <div onScroll={handleScroll}>
+ *       {isFetchingNextPage && <Spinner />} // 顶部加载指示器
+ *       {messages.map(msg => (
+ *         <MessageBubble key={msg.id} {...msg} />
  *       ))}
- *       {isFetchingNextPage && <Spinner />}
  *     </div>
  *   );
  * }

@@ -1,7 +1,11 @@
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useMarkAsRead } from '@/hooks/use-mark-as-read.hook';
-import type { StandardMessage } from '@/interfaces/message.interface';
+import {
+  MessageDirectionEnum,
+  MessageStatusEnum,
+  type StandardMessage,
+} from '@/interfaces/message.interface';
 import { useTranslation } from '@/providers/I18n.provider';
 import {
   estimateMessageHeight,
@@ -61,6 +65,66 @@ export const MessageList = ({
   const { t } = useTranslation();
   const internalScrollRef = useRef<HTMLDivElement>(null);
   const scrollRef = externalScrollRef || internalScrollRef;
+  const { mutate: markAsReadMutate } = useMarkAsRead<{
+    conversationId: string;
+    messageIds: string[];
+  }>();
+  const readMessageIdsRef = useRef<Set<string>>(new Set());
+  const markAsReadTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clearMarkAsReadTimer = useCallback(() => {
+    if (!markAsReadTimerRef.current) return;
+    clearTimeout(markAsReadTimerRef.current);
+
+    markAsReadTimerRef.current = null;
+  }, []);
+
+  const flushReadMessageIds = useCallback(
+    (targetConversationId?: string) => {
+      const currentConversationId = targetConversationId ?? conversationId;
+      if (!enableAutoMarkAsRead || !currentConversationId) return;
+      if (readMessageIdsRef.current.size === 0) return;
+
+      const messageIds = Array.from(readMessageIdsRef.current);
+      readMessageIdsRef.current.clear();
+
+      markAsReadMutate({
+        conversationId: currentConversationId,
+        messageIds,
+      });
+    },
+    [conversationId, enableAutoMarkAsRead, markAsReadMutate],
+  );
+
+  const scheduleMarkAsRead = useCallback(() => {
+    if (!enableAutoMarkAsRead || !conversationId) return;
+
+    clearMarkAsReadTimer();
+    markAsReadTimerRef.current = setTimeout(() => {
+      flushReadMessageIds();
+    }, markAsReadDebounceDelay);
+  }, [
+    clearMarkAsReadTimer,
+    conversationId,
+    enableAutoMarkAsRead,
+    flushReadMessageIds,
+    markAsReadDebounceDelay,
+  ]);
+
+  const handleMessageInViewport = useCallback(
+    (message: StandardMessage) => {
+      if (!enableAutoMarkAsRead || !conversationId) return;
+      if (message.direction !== MessageDirectionEnum.Incoming) return;
+      if (message.status === MessageStatusEnum.Read) return;
+
+      const messageId = message.id || message.tempId;
+      if (!messageId) return;
+
+      readMessageIdsRef.current.add(messageId);
+      scheduleMarkAsRead();
+    },
+    [conversationId, enableAutoMarkAsRead, scheduleMarkAsRead],
+  );
 
   // 开发模式下验证 props
   if (process.env.NODE_ENV === 'development') {
@@ -105,6 +169,20 @@ export const MessageList = ({
     overscan: 5, // 预渲染上下各 5 个元素
   });
 
+  useEffect(() => {
+    if (enableAutoMarkAsRead && conversationId) return;
+    readMessageIdsRef.current.clear();
+    clearMarkAsReadTimer();
+  }, [clearMarkAsReadTimer, conversationId, enableAutoMarkAsRead]);
+
+  useEffect(() => {
+    return () => {
+      clearMarkAsReadTimer();
+      flushReadMessageIds(conversationId);
+      readMessageIdsRef.current.clear();
+    };
+  }, [clearMarkAsReadTimer, conversationId, flushReadMessageIds]);
+
   // ==================== markAsRead：可见消息追踪 ====================
   // 获取虚拟滚动的可见项
   const virtualItems = shouldUseVirtualization
@@ -117,14 +195,17 @@ export const MessageList = ({
       <div
         ref={scrollRef}
         data-component="message-list"
-        className="flex h-full flex-col gap-2 overflow-y-auto bg-card/60 p-4 shadow-soft"
+        className="flex h-full flex-col gap-2 bg-card/60 p-4 shadow-soft"
       >
         {messages.length ? (
           messages.map((message) => {
             const messageId = message.id || message.tempId;
             return (
               <div key={messageId} data-message-id={messageId}>
-                <MessageRendererFactory message={message} />
+                <MessageRendererFactory
+                  message={message}
+                  onInViewport={handleMessageInViewport}
+                />
               </div>
             );
           })
@@ -144,7 +225,7 @@ export const MessageList = ({
     <div
       ref={scrollRef}
       data-component="message-list"
-      className="h-full overflow-y-auto bg-card/60 p-4 shadow-soft"
+      className="h-full bg-card/60 p-4 shadow-soft"
     >
       {messages.length === 0 ? (
         <div className="flex h-full flex-1 items-center justify-center">
@@ -176,7 +257,10 @@ export const MessageList = ({
                   transform: `translateY(${virtualItem.start}px)`,
                 }}
               >
-                <MessageRendererFactory message={message} />
+                <MessageRendererFactory
+                  message={message}
+                  onInViewport={handleMessageInViewport}
+                />
               </div>
             );
           })}

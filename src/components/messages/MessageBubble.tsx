@@ -1,3 +1,5 @@
+import { useEffect, useRef } from 'react';
+import { useInViewport } from '@/hooks/use-in-viewport.hook';
 import {
   MessageDirectionEnum,
   MessageStatusEnum,
@@ -13,6 +15,8 @@ import { StatusIndicator } from './StatusIndicator';
 export interface MessageBubbleProps {
   /** 标准消息 */
   message: StandardMessage;
+  /** 消息进入视口时触发 */
+  onInViewport?: (message: StandardMessage) => void;
 }
 
 /**
@@ -20,13 +24,32 @@ export interface MessageBubbleProps {
  * - 组合消息内容、状态指示器和时间戳
  * - 根据消息方向和类型应用不同的样式
  */
-export const MessageBubble = ({ message }: MessageBubbleProps) => {
+export const MessageBubble = ({
+  message,
+  onInViewport,
+}: MessageBubbleProps) => {
   const { t } = useTranslation();
   const isMe = message.direction === MessageDirectionEnum.Outgoing;
+  const bubbleRef = useRef<HTMLDivElement>(null);
+  const latestMessageRef = useRef(message);
+  const [inViewport] = useInViewport(bubbleRef, {
+    threshold: 0.15,
+  });
+
+  useEffect(() => {
+    latestMessageRef.current = message;
+  }, [message]);
+
+  useEffect(() => {
+    if (!inViewport || !onInViewport) return;
+    onInViewport(latestMessageRef.current);
+  }, [inViewport, onInViewport]);
 
   return (
     <div
+      ref={bubbleRef}
       data-component="message-bubble"
+      data-message-status={message.status}
       data-type={message.type}
       className={cn('flex w-full', isMe ? 'justify-end' : 'justify-start')}
     >
