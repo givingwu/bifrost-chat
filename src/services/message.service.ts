@@ -27,16 +27,6 @@ export interface MessageStatusUpdate {
 }
 
 /**
- * 已读消息参数
- */
-export interface MessageReadPrams {
-  /** 会话 ID */
-  conversationId: string;
-  /** 消息 ID 数组 */
-  messageIds: string[];
-}
-
-/**
  * 消息服务接口 (泛型版本)
  * @template TListParams 列表查询参数类型
  * @template TSendParams 发送参数类型
@@ -74,7 +64,7 @@ export interface MessageReadPrams {
 export interface IMessageService<
   TListParams = any,
   TSendParams = any,
-  TReadParams = MessageReadPrams,
+  TReadParams = any,
   TAttachmentParams = any,
   TAudioParams = any,
 > {
