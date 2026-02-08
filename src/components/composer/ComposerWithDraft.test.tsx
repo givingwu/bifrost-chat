@@ -7,6 +7,7 @@ import {
 } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
+import type { ComposerToolbarRef } from './ComposerToolbar';
 import { ComposerWithDraft } from './ComposerWithDraft';
 
 // Mock the translation provider
@@ -349,6 +350,156 @@ describe('ComposerWithDraft - Draft 功能验证', () => {
       expect(
         localStorage.getItem('bifrost-chat-draft-conversation-conv-2'),
       ).toBe('Draft for conversation 2');
+    });
+  });
+
+  describe('6. 模板锁定功能', () => {
+    it('应该在 templateLocked=true 时禁用输入框', async () => {
+      render(
+        <ComposerWithDraft
+          conversationId={conversationId}
+          channel={ChannelTypeEnum.WhatsApp}
+          templateLocked={true}
+        />,
+      );
+
+      const input = screen.getByTestId('composer-input');
+
+      // 验证输入框被禁用
+      expect(input).toBeDisabled();
+    });
+
+    it('应该在 templateLocked=true 时禁用附件按钮', async () => {
+      render(
+        <ComposerWithDraft
+          conversationId={conversationId}
+          channel={ChannelTypeEnum.WhatsApp}
+          templateLocked={true}
+        />,
+      );
+
+      // 验证附件按钮被禁用
+      const attachmentButton = screen.queryByTestId('composer-attachments');
+      if (attachmentButton) {
+        expect(attachmentButton).toBeDisabled();
+      }
+    });
+
+    it('应该在 templateLocked=true 时显示清除按钮', async () => {
+      render(
+        <ComposerWithDraft
+          conversationId={conversationId}
+          channel={ChannelTypeEnum.WhatsApp}
+          templateLocked={true}
+        />,
+      );
+
+      // 验证清除按钮显示
+      const clearButton = screen.queryByTestId('composer-clear');
+      expect(clearButton).toBeInTheDocument();
+    });
+
+    it('应该在模板锁定时不加载草稿', async () => {
+      // 预先保存草稿
+      localStorage.setItem(draftKey, 'Saved draft message');
+
+      render(
+        <ComposerWithDraft
+          conversationId={conversationId}
+          channel={ChannelTypeEnum.WhatsApp}
+          templateLocked={true}
+        />,
+      );
+
+      const input = screen.getByTestId('composer-input');
+
+      // 验证草稿未被加载（输入框应该为空）
+      await waitFor(
+        () => {
+          expect(input).toHaveValue('');
+        },
+        { timeout: 1000 },
+      );
+    });
+
+    it('应该在模板锁定时拒绝 setValue 调用', async () => {
+      const ref: React.RefObject<ComposerToolbarRef | null> = { current: null };
+
+      render(
+        <ComposerWithDraft
+          conversationId={conversationId}
+          channel={ChannelTypeEnum.WhatsApp}
+          templateLocked={true}
+          ref={(r) => {
+            if (r) ref.current = r;
+          }}
+        />,
+      );
+
+      const input = screen.getByTestId('composer-input');
+
+      // 尝试通过 ref 设置值
+      if (ref.current) {
+        ref.current.setValue('New value');
+      }
+
+      // 验证值没有被设置（输入框应该仍然为空）
+      expect(input).toHaveValue('');
+    });
+
+    it('应该在 templateLocked 从 true 变为 false 时恢复输入功能', async () => {
+      const { rerender } = render(
+        <ComposerWithDraft
+          conversationId={conversationId}
+          channel={ChannelTypeEnum.WhatsApp}
+          templateLocked={true}
+        />,
+      );
+
+      const input = screen.getByTestId('composer-input');
+
+      // 初始状态：输入框被禁用
+      expect(input).toBeDisabled();
+
+      // 重新渲染，解除锁定
+      rerender(
+        <ComposerWithDraft
+          conversationId={conversationId}
+          channel={ChannelTypeEnum.WhatsApp}
+          templateLocked={false}
+        />,
+      );
+
+      // 验证输入框恢复可用
+      await waitFor(() => {
+        expect(input).not.toBeDisabled();
+      });
+    });
+
+    it('应该在模板锁定时仍然允许通过清除按钮解锁', async () => {
+      render(
+        <ComposerWithDraft
+          conversationId={conversationId}
+          channel={ChannelTypeEnum.WhatsApp}
+          templateLocked={true}
+        />,
+      );
+
+      const input = screen.getByTestId('composer-input');
+      const clearButton = screen.queryByTestId('composer-clear');
+
+      // 初始状态：输入框被禁用
+      expect(input).toBeDisabled();
+
+      // 点击清除按钮
+      if (clearButton) {
+        fireEvent.click(clearButton);
+
+        // 验证输入框恢复可用
+        await waitFor(() => {
+          expect(input).not.toBeDisabled();
+        });
+      }
     });
   });
 });

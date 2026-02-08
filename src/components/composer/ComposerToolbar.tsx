@@ -36,6 +36,8 @@ export interface ComposerToolbarRef {
   focus: () => void;
   /** 获取当前输入框的值 */
   getValue: () => string;
+  /** 设置模板锁定状态 */
+  setTemplateLocked: (locked: boolean) => void;
 }
 
 export interface ComposerToolbarProps {
@@ -135,6 +137,11 @@ export const ComposerToolbar = forwardRef<
   const [isTemplateLocked, setIsTemplateLocked] = useState(templateLocked);
   const inputRef = useRef<ComposerInputRef>(null);
 
+  // 同步 templateLocked prop 的变化到内部状态
+  useEffect(() => {
+    setIsTemplateLocked(templateLocked);
+  }, [templateLocked]);
+
   // 暴露 ref 方法给父组件
   useImperativeHandle(
     ref,
@@ -153,6 +160,9 @@ export const ComposerToolbar = forwardRef<
         inputRef.current?.focus();
       },
       getValue: () => value,
+      setTemplateLocked: (locked: boolean) => {
+        setIsTemplateLocked(locked);
+      },
     }),
     [
       value,

@@ -55,19 +55,21 @@ export interface ComposerWithDraftProps extends ComposerToolbarProps {
 export const ComposerWithDraft = forwardRef<
   ComposerToolbarRef,
   ComposerWithDraftProps
->(function ComposerWithDraft(props, ref) {
-  const composerConfig = useComposerConfig();
+>(function ComposerWithDraft(
+  { conversationId, onSend, templateLocked, ...restProps },
+  ref,
+) {
+  const { enableDraft, draftDebounceDelay, clearDraftOnSend } =
+    useComposerConfig();
   const childRef = useRef<ComposerToolbarRef>(null);
   const saveTimeoutRef = useRef<number | undefined>(undefined);
   const loadedDraftKeyRef = useRef<string | null>(null);
-
-  const { conversationId, onSend, ...restProps } = props;
 
   // 本地状态管理
   const [value, setValue] = useState('');
 
   // 草稿功能
-  const draftEnabled = composerConfig.enableDraft ?? true;
+  const draftEnabled = enableDraft ?? true;
   const draftStorageKey = conversationId
     ? `${DRAFT_KEY_PREFIX}conversation-${conversationId}`
     : null;
@@ -123,6 +125,12 @@ export const ComposerWithDraft = forwardRef<
       return;
     }
 
+    // 如果模板被锁定（不允许编辑），则不加载草稿，避免覆盖模板内容
+    if (templateLocked) {
+      console.log('[ComposerWithDraft] Template locked, skipping draft load');
+      return;
+    }
+
     const draft = loadDraft();
 
     if (draft) {
@@ -130,7 +138,7 @@ export const ComposerWithDraft = forwardRef<
     }
 
     loadedDraftKeyRef.current = draftStorageKey;
-  }, [draftEnabled, draftStorageKey, loadDraft]);
+  }, [draftEnabled, draftStorageKey, loadDraft, templateLocked]);
 
   // 防抖保存草稿，避免高频写 localStorage
   useEffect(() => {
@@ -149,20 +157,14 @@ export const ComposerWithDraft = forwardRef<
     saveTimeoutRef.current = window.setTimeout(() => {
       saveDraft(value);
       saveTimeoutRef.current = undefined;
-    }, composerConfig.draftDebounceDelay ?? 500);
+    }, draftDebounceDelay ?? 500);
 
     return () => {
       if (saveTimeoutRef.current !== undefined) {
         clearTimeout(saveTimeoutRef.current);
       }
     };
-  }, [
-    draftEnabled,
-    draftStorageKey,
-    value,
-    saveDraft,
-    composerConfig.draftDebounceDelay,
-  ]);
+  }, [draftEnabled, draftStorageKey, value, saveDraft, draftDebounceDelay]);
 
   // 处理发送消息
   const handleSend = useCallback(
@@ -171,11 +173,11 @@ export const ComposerWithDraft = forwardRef<
       // 发送成功后清空输入框
       setValue('');
       // 清除草稿（如果配置了）
-      if (composerConfig.clearDraftOnSend) {
+      if (clearDraftOnSend) {
         clearDraft();
       }
     },
-    [onSend, clearDraft, composerConfig.clearDraftOnSend],
+    [onSend, clearDraft, clearDraftOnSend],
   );
 
   // 暴露 ref 方法给父组件
@@ -183,12 +185,17 @@ export const ComposerWithDraft = forwardRef<
     ref,
     () => ({
       setValue: (newValue: string) => {
+        // 调用子组件的 setValue，以触发 ComposerToolbar 中的锁定逻辑
+        childRef.current?.setValue(newValue);
         setValue(newValue);
       },
       focus: () => {
         childRef.current?.focus();
       },
       getValue: () => value,
+      setTemplateLocked: (locked: boolean) => {
+        childRef.current?.setTemplateLocked(locked);
+      },
     }),
     [value],
   );
@@ -200,6 +207,7 @@ export const ComposerWithDraft = forwardRef<
       onSend={handleSend}
       value={value}
       onChange={setValue}
+      templateLocked={templateLocked}
       {...restProps}
     />
   );

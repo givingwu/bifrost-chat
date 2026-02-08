@@ -50,8 +50,37 @@ export const ComposerActions = memo<ComposerActionsProps>(
   }) => {
     const composerConfig = useComposerConfig();
 
-    // 如果显示清空按钮，显示发送和清空按钮
-    if (canSend && showClear) {
+    // 如果显示清空按钮，显示清空按钮（即使 canSend 为 false）
+    if (showClear) {
+      return (
+        <div className="flex items-center gap-2">
+          <IconButton
+            icon={<X className={BUTTON_SIZES.ICON_MEDIUM} />}
+            variant="muted"
+            size="md"
+            onClick={onClear}
+            disabled={disabled}
+            aria-label="清空"
+            data-testid="composer-clear"
+          />
+          {canSend && (
+            <IconButton
+              icon={<Send className={BUTTON_SIZES.ICON_MEDIUM} />}
+              variant="primary"
+              size="md"
+              onClick={onSend}
+              loading={loading}
+              disabled={disabled}
+              aria-label={ARIA_LABELS.SEND}
+              data-testid={TEST_IDS.COMPOSER_SEND}
+            />
+          )}
+        </div>
+      );
+    }
+
+    // 如果不显示清空按钮但可以发送，显示发送按钮
+    if (canSend) {
       return (
         <div className="flex items-center gap-2">
           <IconButton
