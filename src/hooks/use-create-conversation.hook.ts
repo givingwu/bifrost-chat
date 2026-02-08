@@ -60,7 +60,12 @@ export function useCreateConversation<TParams = Conversation>() {
     },
 
     // 如果出错，回滚到之前的状态
-    onError: (error, variables, context) => {
+    onError: (error, params, context) => {
+      if (error) {
+        console.error('[use-mark-as-read] error: ', error);
+        console.log('[use-mark-as-read] params: ', params);
+      }
+
       if (context?.previousConversations) {
         queryClient.setQueryData(
           queryKeys.conversations.lists(),

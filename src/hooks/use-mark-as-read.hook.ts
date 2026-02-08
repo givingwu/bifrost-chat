@@ -130,7 +130,11 @@ export function useMarkAsRead<TParams = unknown>() {
         previousData,
       };
     },
-    onError: (_error, _params, context) => {
+    onError: (error, params, context) => {
+      if (error) {
+        console.error('[use-mark-as-read] error: ', error);
+        console.log('[use-mark-as-read] params: ', params);
+      }
       if (!context) return;
 
       queryClient.setQueryData(
