@@ -33,6 +33,11 @@
       "maxSize": "文件大小超过限制",
       "maxCount": "附件数量超过限制",
       "invalidType": "不支持的文件类型"
+    },
+    "draft": {
+      "hint": "检测到未发送的草稿",
+      "restore": "恢复",
+      "discard": "丢弃"
     }
   },
   "message": {

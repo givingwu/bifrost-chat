@@ -41,6 +41,32 @@ export interface IComposerConfig {
    */
   enableAudioInput: boolean;
 
+  // ==================== 草稿功能配置 ====================
+
+  /**
+   * 是否启用草稿自动保存功能
+   * @default true
+   */
+  enableDraft?: boolean;
+
+  /**
+   * 草稿防抖延迟时间（毫秒）
+   * @default 500
+   */
+  draftDebounceDelay?: number;
+
+  /**
+   * 是否在发送成功后自动清除草稿
+   * @default true
+   */
+  clearDraftOnSend?: boolean;
+
+  /**
+   * 是否在切换会话时保留草稿
+   * @default true
+   */
+  keepDraftOnSwitch?: boolean;
+
   // ==================== 限制参数配置 ====================
 
   /**

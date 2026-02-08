@@ -32,6 +32,11 @@ const DEFAULT_COMPOSER_CONFIG: IComposerConfig = {
   // 功能启用配置
   enableAttachments: false,
   enableAudioInput: false,
+  // 草稿功能配置
+  enableDraft: true,
+  draftDebounceDelay: 500,
+  clearDraftOnSend: true,
+  keepDraftOnSwitch: true,
   // 限制参数配置
   maxAttachments: 10,
   maxAttachmentSize: 10 * 1024 * 1024, // 10MB

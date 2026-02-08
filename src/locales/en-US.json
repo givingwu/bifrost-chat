@@ -33,6 +33,11 @@
       "maxSize": "File size exceeds limit",
       "maxCount": "Maximum attachments limit reached",
       "invalidType": "Unsupported file type"
+    },
+    "draft": {
+      "hint": "Unsent draft detected",
+      "restore": "Restore",
+      "discard": "Discard"
     }
   },
   "message": {

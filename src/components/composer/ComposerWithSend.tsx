@@ -59,6 +59,7 @@ export const ComposerWithSend = memo(
       return (
         <ComposerToolbar
           ref={ref}
+          conversationId={conversationId}
           channel={channel}
           onSend={handleSend}
           disabled={sendMessage.isPending}

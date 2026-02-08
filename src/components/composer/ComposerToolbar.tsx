@@ -8,6 +8,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import { useComposerDraft } from '@/hooks/use-composer-draft.hook';
 import type { AudioData } from '@/interfaces/audio.interface';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import { useTranslation } from '@/providers/I18n.provider';
@@ -39,6 +40,8 @@ export interface ComposerToolbarRef {
 }
 
 export interface ComposerToolbarProps {
+  /** 会话 ID（用于草稿存储） */
+  conversationId?: string;
   /** 当前激活渠道 */
   channel?: ChannelTypeEnum;
   /** 发送回调 */
@@ -92,6 +95,7 @@ export const ComposerToolbar = forwardRef<
   ComposerToolbarProps
 >(function ComposerToolbar(
   {
+    conversationId,
     channel,
     onSend,
     onSendAttachment,
@@ -111,7 +115,27 @@ export const ComposerToolbar = forwardRef<
   const [isRecording, setIsRecording] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [isTemplateLocked, setIsTemplateLocked] = useState(templateLocked);
+  const [showDraftHint, setShowDraftHint] = useState(false);
   const inputRef = useRef<ComposerInputRef>(null);
+
+  // 草稿功能
+  const draftEnabled = composerConfig.enableDraft ?? true;
+  const draftKey = conversationId ? `conversation-${conversationId}` : '';
+
+  const { loadDraft, clearDraft, initialValueLoaded } = useComposerDraft(
+    draftKey,
+    value,
+    {
+      debounceDelay: composerConfig.draftDebounceDelay ?? 500,
+      clearOnUnmount: !composerConfig.keepDraftOnSwitch,
+      onSave: (val) => {
+        console.log('[ComposerToolbar] Draft saved:', val.length, 'chars');
+      },
+      onSaveError: (error) => {
+        console.error('[ComposerToolbar] Draft save failed:', error);
+      },
+    },
+  );
 
   // 暴露 ref 方法给父组件
   useImperativeHandle(
@@ -141,6 +165,20 @@ export const ComposerToolbar = forwardRef<
       revokeAttachmentPreviews(attachments);
     };
   }, [attachments]);
+
+  // 初始化时加载草稿
+  useEffect(() => {
+    if (!draftEnabled || !draftKey || initialValueLoaded) {
+      return;
+    }
+
+    const draft = loadDraft();
+
+    if (draft) {
+      setValue(draft);
+      setShowDraftHint(true);
+    }
+  }, [draftEnabled, draftKey, loadDraft, initialValueLoaded]);
 
   // 根据渠道确定最大长度
   const effectiveMaxLength = useMemo(() => {
@@ -206,6 +244,12 @@ export const ComposerToolbar = forwardRef<
       setValue('');
       setIsTemplateLocked(false);
       console.log('[ComposerToolbar] Message sent successfully');
+
+      // 清除草稿（如果配置了）
+      if (draftEnabled && composerConfig.clearDraftOnSend !== false) {
+        clearDraft();
+        setShowDraftHint(false);
+      }
     } catch (error) {
       // 错误处理由调用方负责，这里只重置状态
       console.error('[ComposerToolbar] Failed to send message:', error);
@@ -229,6 +273,9 @@ export const ComposerToolbar = forwardRef<
     attachments,
     onSend,
     onSendAttachment,
+    draftEnabled,
+    composerConfig.clearDraftOnSend,
+    clearDraft,
   ]);
 
   // 处理附件选择
@@ -246,6 +293,7 @@ export const ComposerToolbar = forwardRef<
 
       // 检查附件数量限制
       const maxAttachments = composerConfig.maxAttachments || 10;
+
       if (attachments.length + files.length > maxAttachments) {
         console.error(
           `[ComposerToolbar] Maximum attachments limit reached: ${maxAttachments}`,
@@ -257,6 +305,7 @@ export const ComposerToolbar = forwardRef<
       // 验证文件大小和类型
       for (const file of files) {
         const maxSize = composerConfig.maxAttachmentSize || 10 * 1024 * 1024; // 10MB
+
         if (file.size > maxSize) {
           console.error(
             `[ComposerToolbar] File size exceeds limit: ${file.name}`,
@@ -317,6 +366,7 @@ export const ComposerToolbar = forwardRef<
       }
 
       setIsSending(true);
+
       try {
         await onSendAudio(audio);
         setIsRecording(false);
@@ -344,6 +394,22 @@ export const ComposerToolbar = forwardRef<
       inputRef.current?.focus();
     }, 0);
   }, []);
+
+  // 恢复草稿
+  const handleRestoreDraft = useCallback(() => {
+    const draft = loadDraft();
+
+    if (draft) {
+      setValue(draft);
+      setShowDraftHint(false);
+    }
+  }, [loadDraft]);
+
+  // 丢弃草稿
+  const handleDiscardDraft = useCallback(() => {
+    clearDraft();
+    setShowDraftHint(false);
+  }, [clearDraft]);
 
   // 处理表单提交（防止意外的表单提交）
   const handleSubmit = useCallback(
@@ -386,6 +452,48 @@ export const ComposerToolbar = forwardRef<
       )}
     >
       <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+        {/* 草稿提示 */}
+        {showDraftHint && draftEnabled && (
+          <div
+            className={cn(
+              'flex items-center justify-between rounded-lg',
+              'bg-amber-50 dark:bg-amber-900/20',
+              'border border-amber-200 dark:border-amber-800',
+              'px-3 py-2 text-sm',
+            )}
+          >
+            <span className="text-amber-700 dark:text-amber-300">
+              {t('composer.draft.hint')}
+            </span>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={handleRestoreDraft}
+                className={cn(
+                  'rounded px-2 py-1 text-xs font-medium',
+                  'bg-amber-600 text-white',
+                  'hover:bg-amber-700',
+                  'disabled:cursor-not-allowed disabled:opacity-50',
+                )}
+              >
+                {t('composer.draft.restore')}
+              </button>
+              <button
+                type="button"
+                onClick={handleDiscardDraft}
+                className={cn(
+                  'rounded px-2 py-1 text-xs font-medium',
+                  'bg-transparent text-amber-700 dark:text-amber-300',
+                  'hover:bg-amber-100 dark:hover:bg-amber-900/30',
+                  'disabled:cursor-not-allowed disabled:opacity-50',
+                )}
+              >
+                {t('composer.draft.discard')}
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* 附件预览 */}
         {attachments.length > 0 && (
           <AttachmentPreview

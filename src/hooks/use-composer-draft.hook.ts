@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 /**
  * 草稿 Hook 配置选项
@@ -38,8 +38,11 @@ const DRAFT_KEY_PREFIX = 'bifrost-chat-draft-';
 /**
  * 检查是否在浏览器环境中运行
  */
-const isBrowser =
-  typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';
+function getIsBrowser(): boolean {
+  return (
+    typeof window !== 'undefined' && typeof window.localStorage !== 'undefined'
+  );
+}
 
 /**
  * 草稿自动保存 Hook
@@ -79,14 +82,14 @@ export function useComposerDraft(
   // 使用 number 类型以兼容浏览器环境
   const saveTimeoutRef = useRef<number | undefined>(undefined);
   const lastSavedValueRef = useRef<string>('');
-  const initialValueLoadedRef = useRef(false);
+  const [initialValueLoaded, setInitialValueLoaded] = useState(false);
 
   // 生成完整的存储键名
   const storageKey = `${DRAFT_KEY_PREFIX}${key}`;
 
   // 加载草稿
   const loadDraft = useCallback((): string => {
-    if (!isBrowser) {
+    if (!getIsBrowser()) {
       return '';
     }
 
@@ -97,7 +100,7 @@ export function useComposerDraft(
 
     try {
       const draft = localStorage.getItem(storageKey);
-      initialValueLoadedRef.current = true;
+      setInitialValueLoaded(true);
       return draft ?? '';
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error));
@@ -109,7 +112,7 @@ export function useComposerDraft(
 
   // 清除草稿
   const clearDraft = useCallback((): void => {
-    if (!isBrowser) {
+    if (!getIsBrowser()) {
       return;
     }
 
@@ -130,7 +133,7 @@ export function useComposerDraft(
   // 保存草稿（内部方法）
   const performSave = useCallback(
     (valToSave: string) => {
-      if (!isBrowser) {
+      if (!getIsBrowser()) {
         return;
       }
 
@@ -183,7 +186,7 @@ export function useComposerDraft(
 
   // 检查是否存在草稿
   const hasDraft = useCallback((): boolean => {
-    if (!isBrowser || !key) {
+    if (!getIsBrowser() || !key) {
       return false;
     }
 
@@ -245,6 +248,6 @@ export function useComposerDraft(
     clearDraft,
     saveDraft,
     hasDraft,
-    initialValueLoaded: initialValueLoadedRef.current,
+    initialValueLoaded,
   };
 }
