@@ -59,35 +59,35 @@ export const StatusIndicator = memo(
         [MessageStatusEnum.Queued]: {
           icon: Loader2,
           size: 'h-3 w-3',
-          colorClass: 'text-white/50',
+          colorClass: 'text-primary/40',
           animate: true,
         },
         [MessageStatusEnum.Created]: {
           icon: Loader2,
           size: 'h-3 w-3',
-          colorClass: 'text-white/50',
+          colorClass: 'text-primary/50',
           animate: true,
         },
         [MessageStatusEnum.Sending]: {
           icon: Loader2,
           size: 'h-3 w-3',
-          colorClass: 'text-white/70',
+          colorClass: 'text-primary/60',
           animate: true,
         },
         [MessageStatusEnum.Sent]: {
           icon: Check,
           size: 'h-4 w-4',
-          colorClass: 'text-white/50',
+          colorClass: 'text-primary/70',
         },
         [MessageStatusEnum.Delivered]: {
           icon: CheckCheck,
           size: 'h-4 w-4',
-          colorClass: 'text-white/50',
+          colorClass: 'text-primary/80',
         },
         [MessageStatusEnum.Read]: {
           icon: CheckCheck,
           size: 'h-4 w-4',
-          colorClass: 'text-primary/80',
+          colorClass: 'text-green-500/80',
         },
         [MessageStatusEnum.Failed]: {
           icon: AlertCircle,

@@ -1,5 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import type { StandardMessage } from '@/interfaces/message.interface';
+import type {
+  MessageSendResult,
+  StandardMessage,
+} from '@/interfaces/message.interface';
 import {
   MessagePriorityEnum,
   MessageStatusEnum,
@@ -56,12 +59,20 @@ export function useSendMessage<TParams = any>() {
   const queryClient = useQueryClient();
   const { messageService, offlineMessageQueue } = useServices();
 
-  return useMutation({
-    mutationFn: async (params: {
+  return useMutation<
+    MessageSendResult,
+    Error,
+    {
       conversationId: string;
       content: string;
       extra?: TParams;
-    }) => {
+    },
+    {
+      previousMessages: unknown;
+      tempMessage: StandardMessage;
+    }
+  >({
+    mutationFn: async (params) => {
       return messageService.send(params.conversationId, {
         content: params.content,
         ...params.extra,
@@ -90,7 +101,6 @@ export function useSendMessage<TParams = any>() {
         },
       );
       tempMessage.status = MessageStatusEnum.Sending;
-      tempMessage.tempId = MessageBuilder.generateTempId();
 
       // 乐观更新：立即添加消息到列表
       queryClient.setQueryData(
@@ -170,6 +180,9 @@ export function useSendMessage<TParams = any>() {
 
     // 成功后，更新临时消息的状态
     onSuccess: (data, variables, context) => {
+      const tempId = context?.tempMessage.tempId;
+      if (!tempId) return;
+
       // 更新临时消息为真实消息
       queryClient.setQueryData(
         queryKeys.messages.list(variables.conversationId),
@@ -180,8 +193,12 @@ export function useSendMessage<TParams = any>() {
             pages: old.pages.map((page: any) => ({
               ...page,
               items: page.items.map((item: StandardMessage) =>
-                (item as any).tempId === (context as any)?.tempId
-                  ? { ...item, ...data, status: MessageStatusEnum.Sent }
+                item.tempId === tempId
+                  ? {
+                      ...item,
+                      id: data.messageId ?? item.id,
+                      status: data.status ?? MessageStatusEnum.Sent,
+                    }
                   : item,
               ),
             })),

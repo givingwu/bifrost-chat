@@ -71,13 +71,14 @@ export const MessageBubble = ({
           <MessageContentRenderer message={message} />
         </div>
         <div className="mt-1 flex items-center gap-1 px-1">
+          {isMe && <StatusIndicator status={message.status} />}
           {message.status === MessageStatusEnum.Failed && (
             <span className="text-xs font-medium text-error">
               {t('message.retry')}
             </span>
           )}
           <MessageTimestamp timestamp={message.timestamp} />
-          {isMe && <StatusIndicator status={message.status} />}
+          {!isMe && <StatusIndicator status={message.status} />}
         </div>
       </div>
     </div>
