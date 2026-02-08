@@ -22,8 +22,8 @@ export const createNetworkSlice: StateCreator<
   NetworkSlice
 > = (set) => ({
   network: {
-    status: NetworkStatusEnum.Disconnected,
-    quality: NetworkQualityEnum.Unknown,
+    status: NetworkStatusEnum.Connected,
+    quality: NetworkQualityEnum.Excellent,
   },
   actions: {
     setNetwork: (payload: Partial<NetworkState>) =>
