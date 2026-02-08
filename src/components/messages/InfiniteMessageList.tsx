@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { useMessages } from '@/hooks/use-messages.hook';
-import { useNearBottom } from '@/hooks/use-near-bottom.hook';
 import { MessageList } from './MessageList';
 
 export interface InfiniteMessageListProps {
@@ -65,9 +64,6 @@ export function InfiniteMessageList({
     [data],
   );
 
-  // 检测用户是否在底部附近（用于智能自动滚动）
-  const isNearBottom = useNearBottom(scrollRef, { threshold: 100 });
-
   // 无限滚动处理（兼容虚拟滚动和传统滚动）
   useEffect(() => {
     const element = scrollRef.current;
@@ -92,15 +88,13 @@ export function InfiniteMessageList({
 
   // 新消息到达时自动滚动到底部（仅当用户在底部附近时）
   useEffect(() => {
-    if (!isNearBottom || messages.length === 0) return;
-
     const element = scrollRef.current;
 
     if (!element) return;
 
     // 滚动到底部
     element.scrollTop = element.scrollHeight;
-  }, [messages.length, isNearBottom]);
+  }, []);
 
   // 错误状态
   if (error) {

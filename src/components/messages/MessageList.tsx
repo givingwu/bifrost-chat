@@ -1,8 +1,6 @@
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useRef } from 'react';
 import { useMarkAsRead } from '@/hooks/use-mark-as-read.hook';
-import { useUnreadMessagesCollector } from '@/hooks/use-unread-messages-collector.hook';
-import { useVisibleMessages } from '@/hooks/use-visible-messages.hook';
 import type { StandardMessage } from '@/interfaces/message.interface';
 import { useTranslation } from '@/providers/I18n.provider';
 import {
@@ -74,13 +72,6 @@ export const MessageList = ({
     }
   }
 
-  // ==================== markAsRead 功能 ====================
-  // 标记已读 mutation
-  const markAsRead = useMarkAsRead<{
-    conversationId: string;
-    messageIds: string[];
-  }>();
-
   // 始终调用 useVirtualizer hook（避免条件性调用 hook）
   // 当禁用虚拟滚动时，count 设置为 0
   const shouldUseVirtualization = enableVirtualization && messages.length >= 20;
@@ -119,32 +110,6 @@ export const MessageList = ({
   const virtualItems = shouldUseVirtualization
     ? virtualizer.getVirtualItems()
     : [];
-
-  // 追踪可见的消息 ID
-  const visibleMessageIds = useVisibleMessages(scrollRef, messages, {
-    threshold: 0.1,
-    enabled: enableAutoMarkAsRead && !!conversationId,
-    virtualItems: shouldUseVirtualization ? virtualItems : undefined,
-    messages,
-  });
-
-  // ==================== markAsRead：未读消息收集 ====================
-  // 收集可见的未读消息，并在滚动结束后触发标记
-  useUnreadMessagesCollector(scrollRef, {
-    messages,
-    visibleMessageIds,
-    conversationId: conversationId!,
-    enabled: enableAutoMarkAsRead && !!conversationId,
-    debounceDelay: markAsReadDebounceDelay,
-    scrollEndDelay: 150,
-    onMarkAsRead: (params) => {
-      if (params.messageIds.length > 0) {
-        // 使用 mutateAsync 返回 Promise，以便等待完成
-        return markAsRead.mutateAsync(params);
-      }
-      return Promise.resolve();
-    },
-  });
 
   // 如果禁用虚拟滚动或消息数量较少，使用传统渲染方式
   if (!shouldUseVirtualization) {
