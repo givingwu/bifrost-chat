@@ -8,7 +8,6 @@ import {
   useRef,
   useState,
 } from 'react';
-import { useComposerDraft } from '@/hooks/use-composer-draft.hook';
 import type { AudioData } from '@/interfaces/audio.interface';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import { useTranslation } from '@/providers/I18n.provider';
@@ -40,7 +39,11 @@ export interface ComposerToolbarRef {
 }
 
 export interface ComposerToolbarProps {
-  /** 会话 ID（用于草稿存储） */
+  /** 输入框值（受控组件） */
+  value?: string;
+  /** 输入框值变更回调（受控组件） */
+  onChange?: (value: string) => void;
+  /** 会话 ID（用于日志记录或未来扩展） */
   conversationId?: string;
   /** 当前激活渠道 */
   channel?: ChannelTypeEnum;
@@ -95,7 +98,6 @@ export const ComposerToolbar = forwardRef<
   ComposerToolbarProps
 >(function ComposerToolbar(
   {
-    conversationId,
     channel,
     onSend,
     onSendAttachment,
@@ -105,44 +107,40 @@ export const ComposerToolbar = forwardRef<
     onEmojiClick,
     maxLength,
     templateLocked = false,
+    value: controlledValue,
+    onChange: controlledOnChange,
   }: ComposerToolbarProps,
   ref,
 ) {
   const { t } = useTranslation();
   const composerConfig = useComposerConfig();
-  const [value, setValue] = useState('');
+  // 支持受控和非受控模式
+  const [internalValue, setInternalValue] = useState('');
+  const value = controlledValue !== undefined ? controlledValue : internalValue;
+
+  const handleChange = useCallback(
+    (newValue: string) => {
+      if (controlledOnChange) {
+        controlledOnChange(newValue);
+      } else {
+        setInternalValue(newValue);
+      }
+    },
+    [controlledOnChange],
+  );
+
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [isRecording, setIsRecording] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [isTemplateLocked, setIsTemplateLocked] = useState(templateLocked);
-  const [showDraftHint, setShowDraftHint] = useState(false);
   const inputRef = useRef<ComposerInputRef>(null);
-
-  // 草稿功能
-  const draftEnabled = composerConfig.enableDraft ?? true;
-  const draftKey = conversationId ? `conversation-${conversationId}` : '';
-
-  const { loadDraft, clearDraft, initialValueLoaded } = useComposerDraft(
-    draftKey,
-    value,
-    {
-      debounceDelay: composerConfig.draftDebounceDelay ?? 500,
-      clearOnUnmount: !composerConfig.keepDraftOnSwitch,
-      onSave: (val) => {
-        console.log('[ComposerToolbar] Draft saved:', val.length, 'chars');
-      },
-      onSaveError: (error) => {
-        console.error('[ComposerToolbar] Draft save failed:', error);
-      },
-    },
-  );
 
   // 暴露 ref 方法给父组件
   useImperativeHandle(
     ref,
     () => ({
       setValue: (newValue: string) => {
-        setValue(newValue);
+        handleChange(newValue);
         // 当设置新值时，如果是模板模式且不允许编辑，则锁定输入框
         if (
           composerConfig.templateMode === 'edit' &&
@@ -156,7 +154,12 @@ export const ComposerToolbar = forwardRef<
       },
       getValue: () => value,
     }),
-    [value, composerConfig.templateMode, composerConfig.allowTemplateEdit],
+    [
+      value,
+      composerConfig.templateMode,
+      composerConfig.allowTemplateEdit,
+      handleChange,
+    ],
   );
 
   // 清理附件预览 URL
@@ -165,20 +168,6 @@ export const ComposerToolbar = forwardRef<
       revokeAttachmentPreviews(attachments);
     };
   }, [attachments]);
-
-  // 初始化时加载草稿
-  useEffect(() => {
-    if (!draftEnabled || !draftKey || initialValueLoaded) {
-      return;
-    }
-
-    const draft = loadDraft();
-
-    if (draft) {
-      setValue(draft);
-      setShowDraftHint(true);
-    }
-  }, [draftEnabled, draftKey, loadDraft, initialValueLoaded]);
 
   // 根据渠道确定最大长度
   const effectiveMaxLength = useMemo(() => {
@@ -241,15 +230,9 @@ export const ComposerToolbar = forwardRef<
         await onSend(messageToSend);
       }
       // 仅在发送成功后清空输入框并解除锁定
-      setValue('');
+      handleChange('');
       setIsTemplateLocked(false);
       console.log('[ComposerToolbar] Message sent successfully');
-
-      // 清除草稿（如果配置了）
-      if (draftEnabled && composerConfig.clearDraftOnSend !== false) {
-        clearDraft();
-        setShowDraftHint(false);
-      }
     } catch (error) {
       // 错误处理由调用方负责，这里只重置状态
       console.error('[ComposerToolbar] Failed to send message:', error);
@@ -273,9 +256,7 @@ export const ComposerToolbar = forwardRef<
     attachments,
     onSend,
     onSendAttachment,
-    draftEnabled,
-    composerConfig.clearDraftOnSend,
-    clearDraft,
+    handleChange,
   ]);
 
   // 处理附件选择
@@ -387,29 +368,13 @@ export const ComposerToolbar = forwardRef<
 
   // 处理清空输入框
   const handleClear = useCallback(() => {
-    setValue('');
+    handleChange('');
     setIsTemplateLocked(false);
     // 使用 setTimeout 确保在状态更新后再聚焦
     setTimeout(() => {
       inputRef.current?.focus();
     }, 0);
-  }, []);
-
-  // 恢复草稿
-  const handleRestoreDraft = useCallback(() => {
-    const draft = loadDraft();
-
-    if (draft) {
-      setValue(draft);
-      setShowDraftHint(false);
-    }
-  }, [loadDraft]);
-
-  // 丢弃草稿
-  const handleDiscardDraft = useCallback(() => {
-    clearDraft();
-    setShowDraftHint(false);
-  }, [clearDraft]);
+  }, [handleChange]);
 
   // 处理表单提交（防止意外的表单提交）
   const handleSubmit = useCallback(
@@ -452,48 +417,6 @@ export const ComposerToolbar = forwardRef<
       )}
     >
       <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-        {/* 草稿提示 */}
-        {showDraftHint && draftEnabled && (
-          <div
-            className={cn(
-              'flex items-center justify-between rounded-lg',
-              'bg-amber-50 dark:bg-amber-900/20',
-              'border border-amber-200 dark:border-amber-800',
-              'px-3 py-2 text-sm',
-            )}
-          >
-            <span className="text-amber-700 dark:text-amber-300">
-              {t('composer.draft.hint')}
-            </span>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={handleRestoreDraft}
-                className={cn(
-                  'rounded px-2 py-1 text-xs font-medium',
-                  'bg-amber-600 text-white',
-                  'hover:bg-amber-700',
-                  'disabled:cursor-not-allowed disabled:opacity-50',
-                )}
-              >
-                {t('composer.draft.restore')}
-              </button>
-              <button
-                type="button"
-                onClick={handleDiscardDraft}
-                className={cn(
-                  'rounded px-2 py-1 text-xs font-medium',
-                  'bg-transparent text-amber-700 dark:text-amber-300',
-                  'hover:bg-amber-100 dark:hover:bg-amber-900/30',
-                  'disabled:cursor-not-allowed disabled:opacity-50',
-                )}
-              >
-                {t('composer.draft.discard')}
-              </button>
-            </div>
-          </div>
-        )}
-
         {/* 附件预览 */}
         {attachments.length > 0 && (
           <AttachmentPreview
@@ -532,7 +455,7 @@ export const ComposerToolbar = forwardRef<
             ref={inputRef}
             value={value}
             placeholder={placeholder}
-            onChange={setValue}
+            onChange={handleChange}
             onEnter={handleSend}
             disabled={disabled || isSending || isRecording || isTemplateLocked}
             maxLength={effectiveMaxLength}

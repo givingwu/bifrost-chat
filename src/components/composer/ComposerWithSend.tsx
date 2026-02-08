@@ -2,7 +2,7 @@ import { forwardRef, memo, useCallback } from 'react';
 import { useSendMessage } from '@/hooks/use-send-message.hook';
 import type { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import type { ComposerToolbarRef } from './ComposerToolbar';
-import { ComposerToolbar } from './ComposerToolbar';
+import { ComposerWithDraft } from './ComposerWithDraft';
 
 export interface ComposerWithSendProps {
   /** 会话 ID */
@@ -15,7 +15,7 @@ export interface ComposerWithSendProps {
  * ComposerWithSend：带发送功能的输入工具栏组件
  *
  * @description
- * 组合 ComposerToolbar 和 useSendMessage Hook，提供完整的消息发送功能。
+ * 组合 ComposerWithDraft 和 useSendMessage Hook，提供完整的消息发送和草稿功能。
  * 支持乐观更新和错误处理。
  *
  * @example
@@ -47,7 +47,7 @@ export const ComposerWithSend = memo(
             });
           } catch (error) {
             console.error('Failed to send message:', error);
-            throw error; // 重新抛出错误，让 ComposerToolbar 处理
+            throw error; // 重新抛出错误，让 ComposerWithDraft 处理
           }
         },
         [conversationId, sendMessage.mutateAsync],
@@ -57,7 +57,7 @@ export const ComposerWithSend = memo(
       // 只有在点击模板后、输入框有值时才锁定
       // 初始化时不传递 templateLocked，默认为 false（不锁定）
       return (
-        <ComposerToolbar
+        <ComposerWithDraft
           ref={ref}
           conversationId={conversationId}
           channel={channel}

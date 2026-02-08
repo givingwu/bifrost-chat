@@ -8,8 +8,6 @@ export * from '@/components';
 export * from '@/events/client-bus.event';
 
 // Hooks
-export { useComposerDraft } from '@/hooks/use-composer-draft.hook';
-export { useComposerShortcuts } from '@/hooks/use-composer-shortcuts.hook';
 // 会话相关 Hooks
 export { useConversations } from '@/hooks/use-conversations.hook';
 export { useCreateConversation } from '@/hooks/use-create-conversation.hook';

@@ -8,6 +8,7 @@ export { ComposerAttachments } from './composer/ComposerAttachments';
 export { ComposerHint } from './composer/ComposerHint';
 export { ComposerInput } from './composer/ComposerInput';
 export { ComposerToolbar } from './composer/ComposerToolbar';
+export { ComposerWithDraft } from './composer/ComposerWithDraft';
 export { ComposerWithSend } from './composer/ComposerWithSend';
 export { EmojiPicker } from './composer/EmojiPicker';
 export { EmojiPickerButton } from './composer/EmojiPickerButton';
