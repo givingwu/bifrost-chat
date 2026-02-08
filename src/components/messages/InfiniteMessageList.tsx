@@ -8,6 +8,10 @@ export interface InfiniteMessageListProps {
   conversationId: string;
   /** 自定义类名 */
   className?: string;
+  /** 是否启用自动标记已读，默认 true */
+  enableAutoMarkAsRead?: boolean;
+  /** 标记已读的防抖延迟（毫秒），默认 1000ms */
+  markAsReadDebounceDelay?: number;
 }
 
 /**
@@ -39,6 +43,8 @@ export interface InfiniteMessageListProps {
 export function InfiniteMessageList({
   conversationId,
   className,
+  enableAutoMarkAsRead = true,
+  markAsReadDebounceDelay = 1000,
 }: InfiniteMessageListProps) {
   const {
     data,
@@ -119,7 +125,13 @@ export function InfiniteMessageList({
         </div>
       )}
 
-      <MessageList messages={messages} scrollRef={scrollRef} />
+      <MessageList
+        messages={messages}
+        scrollRef={scrollRef}
+        enableAutoMarkAsRead={enableAutoMarkAsRead}
+        markAsReadDebounceDelay={markAsReadDebounceDelay}
+        conversationId={conversationId}
+      />
 
       {/* 初始加载指示器 */}
       {isLoading && (

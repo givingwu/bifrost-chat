@@ -1,5 +1,8 @@
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useRef } from 'react';
+import { useMarkAsRead } from '@/hooks/use-mark-as-read.hook';
+import { useUnreadMessagesCollector } from '@/hooks/use-unread-messages-collector.hook';
+import { useVisibleMessages } from '@/hooks/use-visible-messages.hook';
 import type { StandardMessage } from '@/interfaces/message.interface';
 import { useTranslation } from '@/providers/I18n.provider';
 import {
@@ -18,6 +21,12 @@ export interface MessageListProps {
   scrollRef?: React.RefObject<HTMLDivElement>;
   /** 是否启用虚拟滚动，默认启用 */
   enableVirtualization?: boolean;
+  /** 是否启用自动标记已读，默认 false */
+  enableAutoMarkAsRead?: boolean;
+  /** 标记已读的防抖延迟（毫秒），默认 1000ms */
+  markAsReadDebounceDelay?: number;
+  /** 会话 ID（用于 markAsRead 调用） */
+  conversationId?: string;
 }
 
 /**
@@ -47,10 +56,30 @@ export const MessageList = ({
   messages,
   scrollRef: externalScrollRef,
   enableVirtualization = true,
+  enableAutoMarkAsRead = false,
+  markAsReadDebounceDelay = 1000,
+  conversationId,
 }: MessageListProps) => {
   const { t } = useTranslation();
   const internalScrollRef = useRef<HTMLDivElement>(null);
   const scrollRef = externalScrollRef || internalScrollRef;
+
+  // 开发模式下验证 props
+  if (process.env.NODE_ENV === 'development') {
+    if (enableAutoMarkAsRead && !conversationId) {
+      console.warn(
+        '[MessageList] enableAutoMarkAsRead is true but conversationId is missing. ' +
+          'Mark as read functionality will be disabled.',
+      );
+    }
+  }
+
+  // ==================== markAsRead 功能 ====================
+  // 标记已读 mutation
+  const markAsRead = useMarkAsRead<{
+    conversationId: string;
+    messageIds: string[];
+  }>();
 
   // 始终调用 useVirtualizer hook（避免条件性调用 hook）
   // 当禁用虚拟滚动时，count 设置为 0
@@ -85,6 +114,38 @@ export const MessageList = ({
     overscan: 5, // 预渲染上下各 5 个元素
   });
 
+  // ==================== markAsRead：可见消息追踪 ====================
+  // 获取虚拟滚动的可见项
+  const virtualItems = shouldUseVirtualization
+    ? virtualizer.getVirtualItems()
+    : [];
+
+  // 追踪可见的消息 ID
+  const visibleMessageIds = useVisibleMessages(scrollRef, messages, {
+    threshold: 0.1,
+    enabled: enableAutoMarkAsRead && !!conversationId,
+    virtualItems: shouldUseVirtualization ? virtualItems : undefined,
+    messages,
+  });
+
+  // ==================== markAsRead：未读消息收集 ====================
+  // 收集可见的未读消息，并在滚动结束后触发标记
+  useUnreadMessagesCollector(scrollRef, {
+    messages,
+    visibleMessageIds,
+    conversationId: conversationId!,
+    enabled: enableAutoMarkAsRead && !!conversationId,
+    debounceDelay: markAsReadDebounceDelay,
+    scrollEndDelay: 150,
+    onMarkAsRead: (params) => {
+      if (params.messageIds.length > 0) {
+        // 使用 mutateAsync 返回 Promise，以便等待完成
+        return markAsRead.mutateAsync(params);
+      }
+      return Promise.resolve();
+    },
+  });
+
   // 如果禁用虚拟滚动或消息数量较少，使用传统渲染方式
   if (!shouldUseVirtualization) {
     return (
@@ -94,12 +155,14 @@ export const MessageList = ({
         className="flex h-full flex-col gap-2 overflow-y-auto bg-card/60 p-4 shadow-soft"
       >
         {messages.length ? (
-          messages.map((message) => (
-            <MessageRendererFactory
-              key={message.id ?? message.tempId}
-              message={message}
-            />
-          ))
+          messages.map((message) => {
+            const messageId = message.id || message.tempId;
+            return (
+              <div key={messageId} data-message-id={messageId}>
+                <MessageRendererFactory message={message} />
+              </div>
+            );
+          })
         ) : (
           <div className="flex h-full flex-1 items-center justify-center">
             <span className="text-sm text-text-muted">
@@ -111,9 +174,7 @@ export const MessageList = ({
     );
   }
 
-  // 使用虚拟滚动渲染
-  const virtualItems = virtualizer.getVirtualItems();
-
+  // 使用虚拟滚动渲染（virtualItems 已在前面声明）
   return (
     <div
       ref={scrollRef}
@@ -132,22 +193,28 @@ export const MessageList = ({
             position: 'relative',
           }}
         >
-          {virtualItems.map((virtualItem) => (
-            <div
-              key={virtualItem.key}
-              ref={virtualizer.measureElement}
-              data-index={virtualItem.index}
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                transform: `translateY(${virtualItem.start}px)`,
-              }}
-            >
-              <MessageRendererFactory message={messages[virtualItem.index]} />
-            </div>
-          ))}
+          {virtualItems.map((virtualItem) => {
+            const message = messages[virtualItem.index];
+            const messageId = message?.id || message?.tempId;
+
+            return (
+              <div
+                key={virtualItem.key}
+                ref={virtualizer.measureElement}
+                data-index={virtualItem.index}
+                data-message-id={messageId}
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  transform: `translateY(${virtualItem.start}px)`,
+                }}
+              >
+                <MessageRendererFactory message={message} />
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
