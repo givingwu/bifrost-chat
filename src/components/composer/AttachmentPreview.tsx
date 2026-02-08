@@ -124,7 +124,7 @@ export const AttachmentPreview = memo<AttachmentPreviewProps>(
               )}
             >
               {/* 图标 */}
-              <div className="flex-shrink-0">
+              <div className="shrink-0">
                 <Icon className="h-4 w-4 text-text-muted" />
               </div>
 
