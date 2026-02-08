@@ -13,6 +13,9 @@ export interface InfiniteMessageListProps {
   markAsReadDebounceDelay?: number;
 }
 
+const TOP_LOAD_THRESHOLD = 80;
+const BOTTOM_STICKY_THRESHOLD = 120;
+
 /**
  * InfiniteMessageList：无限滚动消息列表组件
  *
@@ -24,14 +27,14 @@ export interface InfiniteMessageListProps {
  * @features
  * - 虚拟滚动：只渲染可见区域的消息，支持 1000+ 条消息不卡顿
  * - 无限加载：向上滚动时自动加载历史消息
- * - 智能滚动：加载历史消息时保持当前滚动位置
+ * - 反向渲染：通过 column-reverse 实现底部锚定
  * - 自动滚动：新消息到达时智能滚动到底部（仅当用户在底部附近时）
  * - 性能优化：使用 React Query 缓存和虚拟滚动
  *
  * @scrolling
  * - **初始加载**：自动滚动到底部（最新消息）
  * - **向上滚动**：滚动到顶部时加载更早的消息
- * - **位置保持**：加载历史消息时保持当前视图位置
+ * - **位置保持**：依赖 column-reverse 的天然锚点保持
  * - **智能滚动**：新消息仅在用户靠近底部时自动滚动
  *
  * @example
@@ -63,9 +66,9 @@ export function InfiniteMessageList({
   const scrollRef = useRef<HTMLDivElement | null>(
     null,
   ) as React.RefObject<HTMLDivElement>;
-
-  // 保存加载前的滚动高度，用于加载后恢复位置
-  const previousScrollHeightRef = useRef<number>(0);
+  const hasInitialScrolledRef = useRef(false);
+  const isNearBottomRef = useRef(true);
+  const lastMessageCountRef = useRef(0);
 
   // ✅ Bug 1 修复：反转页面顺序，确保更早的消息显示在上面
   // 后端返回格式：第一页 [30,29,...,1]（降序），第二页 [60,59,...,31]（降序）
@@ -76,95 +79,79 @@ export function InfiniteMessageList({
     [data],
   );
 
-  // ✅ Bug 4 新增：检测用户是否在底部附近（用于智能滚动）
-  const isNearBottom = useMemo(() => {
-    const element = scrollRef.current;
-    if (!element || isLoading) return false;
-    const { scrollTop, scrollHeight, clientHeight } = element;
-    const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
-    return distanceFromBottom < 100;
-  }, [isLoading]);
+  useEffect(() => {
+    hasInitialScrolledRef.current = false;
+    isNearBottomRef.current = !!conversationId;
+    lastMessageCountRef.current = 0;
+  }, [conversationId]);
 
   // 无限滚动处理（兼容虚拟滚动和传统滚动）
   useEffect(() => {
     const element = scrollRef.current;
-    if (!element || !hasNextPage || isFetchingNextPage) return;
+    if (!element) return;
 
     const handleScroll = () => {
-      if (!hasNextPage || isFetchingNextPage) return;
+      const normalizedScrollTop = Math.max(0, Math.abs(element.scrollTop));
+      isNearBottomRef.current = normalizedScrollTop <= BOTTOM_STICKY_THRESHOLD;
 
-      const { scrollTop } = element;
-      // 当滚动到顶部 100px 时加载更多
-      if (scrollTop < 100) {
-        fetchNextPage();
+      const distanceToTop =
+        element.scrollHeight - element.clientHeight - normalizedScrollTop;
+
+      if (
+        distanceToTop <= TOP_LOAD_THRESHOLD &&
+        hasNextPage &&
+        !isFetchingNextPage
+      ) {
+        void fetchNextPage();
       }
     };
 
-    element.addEventListener('scroll', handleScroll);
+    handleScroll();
+    element.addEventListener('scroll', handleScroll, { passive: true });
 
     return () => {
       element.removeEventListener('scroll', handleScroll);
     };
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  // ✅ Bug 2 修复：初始加载完成后滚动到底部
+  // 初始加载完成后滚动到底部（column-reverse 下为 scrollTop=0）
   useEffect(() => {
     const element = scrollRef.current;
     if (!element) return;
-
-    // 只在初始加载完成时滚动到底部
     if (
       !isLoading &&
       !isFetchingNextPage &&
       messages.length > 0 &&
-      data?.pages.length === 1
+      !hasInitialScrolledRef.current
     ) {
-      element.scrollTop = element.scrollHeight;
+      element.scrollTop = 0;
+      hasInitialScrolledRef.current = true;
+      lastMessageCountRef.current = messages.length;
     }
-  }, [isLoading, isFetchingNextPage, messages.length, data?.pages.length]);
+  }, [isLoading, isFetchingNextPage, messages.length]);
 
-  // ✅ Bug 3 新增：加载历史消息前保存滚动位置
+  // 新消息到达时：仅当用户在底部附近，自动贴底
   useEffect(() => {
-    if (isFetchingNextPage && !previousScrollHeightRef.current) {
-      const element = scrollRef.current;
-      if (element) {
-        previousScrollHeightRef.current = element.scrollHeight;
-      }
+    if (!hasInitialScrolledRef.current || isFetchingNextPage) return;
+
+    const previousCount = lastMessageCountRef.current;
+    if (messages.length <= previousCount) {
+      lastMessageCountRef.current = messages.length;
+      return;
     }
-  }, [isFetchingNextPage]);
 
-  // ✅ Bug 3 新增：加载完成后恢复滚动位置
-  useEffect(() => {
-    if (
-      !isFetchingNextPage &&
-      previousScrollHeightRef.current > 0 &&
-      data?.pages &&
-      data.pages.length > 1
-    ) {
-      const element = scrollRef.current;
-      if (element) {
-        const newScrollHeight = element.scrollHeight;
-        const heightDifference =
-          newScrollHeight - previousScrollHeightRef.current;
-        element.scrollTop = element.scrollTop + heightDifference;
-        previousScrollHeightRef.current = 0;
-      }
-    }
-  }, [isFetchingNextPage, data]);
-
-  // ✅ Bug 4 新增：新消息到达时智能滚动到底部
-  useEffect(() => {
-    // 只在第一页数据变化时（新消息到达）且用户在底部附近时触发
-    if (data?.pages.length === 1 && isNearBottom && messages.length > 0) {
+    if (isNearBottomRef.current) {
       const element = scrollRef.current;
       if (element) {
         element.scrollTo({
-          top: element.scrollHeight,
+          top: 0,
           behavior: 'smooth',
         });
       }
     }
-  }, [messages.length, isNearBottom, data?.pages.length]);
+
+    lastMessageCountRef.current = messages.length;
+  }, [isFetchingNextPage, messages.length]);
 
   // 错误状态
   if (error) {
@@ -181,10 +168,8 @@ export function InfiniteMessageList({
     <div
       data-component="infinite-message-list"
       className={`flex h-full flex-col overflow-y-auto ${className || ''}`}
-      style={{ overflowY: 'auto' }}
     >
-      {/* ✅ 优化：历史消息加载指示器（仅在加载第二页及以后时显示） */}
-      {isFetchingNextPage && data?.pages && data.pages.length > 1 && (
+      {isFetchingNextPage && (
         <div className="flex justify-center py-2">
           <div className="w-6 h-6 border-2 border-gray-200 dark:border-gray-700 border-t-blue-500 rounded-full animate-spin" />
         </div>
@@ -196,9 +181,10 @@ export function InfiniteMessageList({
         enableAutoMarkAsRead={enableAutoMarkAsRead}
         markAsReadDebounceDelay={markAsReadDebounceDelay}
         conversationId={conversationId}
+        enableVirtualization={false}
+        reverse={true}
       />
 
-      {/* ✅ 优化：初始加载指示器（仅在首次加载时显示） */}
       {isLoading && !data && (
         <div className="flex justify-center py-2">
           <div className="w-6 h-6 border-2 border-gray-200 dark:border-gray-700 border-t-blue-500 rounded-full animate-spin" />

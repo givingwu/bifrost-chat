@@ -1,5 +1,5 @@
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useMarkAsRead } from '@/hooks/use-mark-as-read.hook';
 import {
   MessageDirectionEnum,
@@ -29,6 +29,8 @@ export interface MessageListProps {
   markAsReadDebounceDelay?: number;
   /** 会话 ID（用于 markAsRead 调用） */
   conversationId?: string;
+  /** 是否启用反向渲染（column-reverse） */
+  reverse?: boolean;
 }
 
 /**
@@ -61,6 +63,7 @@ export const MessageList = ({
   enableAutoMarkAsRead = false,
   markAsReadDebounceDelay = 1000,
   conversationId,
+  reverse = false,
 }: MessageListProps) => {
   const { t } = useTranslation();
   const internalScrollRef = useRef<HTMLDivElement>(null);
@@ -138,7 +141,12 @@ export const MessageList = ({
 
   // 始终调用 useVirtualizer hook（避免条件性调用 hook）
   // 当禁用虚拟滚动时，count 设置为 0
-  const shouldUseVirtualization = enableVirtualization && messages.length >= 20;
+  const shouldUseVirtualization =
+    enableVirtualization && !reverse && messages.length >= 20;
+  const displayMessages = useMemo(
+    () => (reverse ? [...messages].reverse() : messages),
+    [messages, reverse],
+  );
 
   const virtualizer = useVirtualizer({
     count: shouldUseVirtualization ? messages.length : 0,
@@ -195,10 +203,12 @@ export const MessageList = ({
       <div
         ref={scrollRef}
         data-component="message-list"
-        className="flex h-full flex-col gap-2 bg-card/60 p-4 shadow-soft"
+        className={`flex h-full ${
+          reverse ? 'flex-col-reverse' : 'flex-col'
+        } gap-2 overflow-y-auto bg-card/60 p-4 shadow-soft`}
       >
-        {messages.length ? (
-          messages.map((message) => {
+        {displayMessages.length ? (
+          displayMessages.map((message) => {
             const messageId = message.id || message.tempId;
             return (
               <div key={messageId} data-message-id={messageId}>
@@ -225,7 +235,7 @@ export const MessageList = ({
     <div
       ref={scrollRef}
       data-component="message-list"
-      className="h-full bg-card/60 p-4 shadow-soft"
+      className="h-full overflow-y-auto bg-card/60 p-4 shadow-soft"
     >
       {messages.length === 0 ? (
         <div className="flex h-full flex-1 items-center justify-center">
