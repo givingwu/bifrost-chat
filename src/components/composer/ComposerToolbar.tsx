@@ -31,13 +31,15 @@ import { INPUT_LIMITS, TEST_IDS } from './composer.constants';
  */
 export interface ComposerToolbarRef {
   /** 设置输入框的值 */
-  setValue: (value: string) => void;
+  setValue: (value: string, templateId?: string) => void;
   /** 聚焦输入框 */
   focus: () => void;
   /** 获取当前输入框的值 */
   getValue: () => string;
   /** 设置模板锁定状态 */
   setTemplateLocked: (locked: boolean) => void;
+  /** 设置模板 ID（用于发送时携带模板信息） */
+  setTemplateId: (templateId: string | undefined) => void;
 }
 
 export interface ComposerToolbarProps {
@@ -50,7 +52,7 @@ export interface ComposerToolbarProps {
   /** 当前激活渠道 */
   channel?: ChannelTypeEnum;
   /** 发送回调 */
-  onSend?: (message: string) => void | Promise<void>;
+  onSend?: (message: string, templateId?: string) => void | Promise<void>;
   /** 发送附件回调 */
   onSendAttachment?: (
     attachments: Attachment[],
@@ -68,6 +70,8 @@ export interface ComposerToolbarProps {
   maxLength?: number;
   /** 是否锁定输入（禁止编辑，如模板内容不允许编辑时） */
   templateLocked?: boolean;
+  /** 模板 ID（用于发送时携带模板信息） */
+  templateId?: string;
 }
 
 /**
@@ -135,6 +139,9 @@ export const ComposerToolbar = forwardRef<
   const [isRecording, setIsRecording] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [isTemplateLocked, setIsTemplateLocked] = useState(templateLocked);
+  const [currentTemplateId, setCurrentTemplateId] = useState<
+    string | undefined
+  >();
   const inputRef = useRef<ComposerInputRef>(null);
 
   // 同步 templateLocked prop 的变化到内部状态
@@ -146,8 +153,12 @@ export const ComposerToolbar = forwardRef<
   useImperativeHandle(
     ref,
     () => ({
-      setValue: (newValue: string) => {
+      setValue: (newValue: string, templateId?: string) => {
         handleChange(newValue);
+        // 设置模板 ID
+        if (templateId) {
+          setCurrentTemplateId(templateId);
+        }
         // 当设置新值时，如果是模板模式且不允许编辑，则锁定输入框
         if (
           composerConfig.templateMode === 'edit' &&
@@ -162,6 +173,9 @@ export const ComposerToolbar = forwardRef<
       getValue: () => value,
       setTemplateLocked: (locked: boolean) => {
         setIsTemplateLocked(locked);
+      },
+      setTemplateId: (templateId: string | undefined) => {
+        setCurrentTemplateId(templateId);
       },
     }),
     [
@@ -228,8 +242,11 @@ export const ComposerToolbar = forwardRef<
     console.log('[ComposerToolbar] Sending:', {
       message: messageToSend,
       attachments,
+      templateId: currentTemplateId,
     });
+
     setIsSending(true);
+
     try {
       // 如果有附件，使用附件发送回调
       if (hasAttachments && onSendAttachment) {
@@ -237,11 +254,13 @@ export const ComposerToolbar = forwardRef<
         // 清空附件和输入框
         setAttachments([]);
       } else if (messageToSend && onSend) {
-        await onSend(messageToSend);
+        // 传递 templateId 给发送回调
+        await onSend(messageToSend, currentTemplateId);
       }
       // 仅在发送成功后清空输入框并解除锁定
       handleChange('');
       setIsTemplateLocked(false);
+      setCurrentTemplateId(undefined);
       console.log('[ComposerToolbar] Message sent successfully');
     } catch (error) {
       // 错误处理由调用方负责，这里只重置状态
@@ -267,6 +286,7 @@ export const ComposerToolbar = forwardRef<
     onSend,
     onSendAttachment,
     handleChange,
+    currentTemplateId,
   ]);
 
   // 处理附件选择
@@ -380,6 +400,7 @@ export const ComposerToolbar = forwardRef<
   const handleClear = useCallback(() => {
     handleChange('');
     setIsTemplateLocked(false);
+    setCurrentTemplateId(undefined);
     // 使用 setTimeout 确保在状态更新后再聚焦
     setTimeout(() => {
       inputRef.current?.focus();

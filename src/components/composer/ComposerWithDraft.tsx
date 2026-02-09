@@ -184,9 +184,9 @@ export const ComposerWithDraft = forwardRef<
   useImperativeHandle(
     ref,
     () => ({
-      setValue: (newValue: string) => {
+      setValue: (newValue: string, templateId?: string) => {
         // 调用子组件的 setValue，以触发 ComposerToolbar 中的锁定逻辑
-        childRef.current?.setValue(newValue);
+        childRef.current?.setValue(newValue, templateId);
         setValue(newValue);
       },
       focus: () => {
@@ -195,6 +195,9 @@ export const ComposerWithDraft = forwardRef<
       getValue: () => value,
       setTemplateLocked: (locked: boolean) => {
         childRef.current?.setTemplateLocked(locked);
+      },
+      setTemplateId: (templateId: string | undefined) => {
+        childRef.current?.setTemplateId(templateId);
       },
     }),
     [value],

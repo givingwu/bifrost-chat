@@ -1,4 +1,3 @@
-import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import {
   cleanup,
   fireEvent,
@@ -6,6 +5,7 @@ import {
   screen,
   waitFor,
 } from '@testing-library/react';
+import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import type { ComposerToolbarRef } from './ComposerToolbar';
 import { ComposerWithDraft } from './ComposerWithDraft';
 
@@ -431,7 +431,7 @@ describe('ComposerWithDraft - Draft 功能验证', () => {
           conversationId={conversationId}
           channel={ChannelTypeEnum.WhatsApp}
           templateLocked={true}
-          ref={r => {
+          ref={(r) => {
             if (r) ref.current = r;
           }}
         />,

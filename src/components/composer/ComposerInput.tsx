@@ -38,9 +38,9 @@ export interface ComposerInputProps {
   /** 是否自动聚焦 */
   autoFocus?: boolean;
   /** 失焦回调 */
-  onBlur?: (event: FocusEvent<HTMLInputElement>) => void;
+  onBlur?: (event: FocusEvent<HTMLTextAreaElement>) => void;
   /** 聚焦回调 */
-  onFocus?: (event: FocusEvent<HTMLInputElement>) => void;
+  onFocus?: (event: FocusEvent<HTMLTextAreaElement>) => void;
   /** Emoji 按钮点击回调 */
   onEmojiClick?: () => void;
   /** 是否显示表情按钮 */
@@ -73,7 +73,8 @@ const debugLog = {
 /**
  * ComposerInput 组件
  *
- * 消息输入框，支持回车发送、Shift+Enter 换行、表情选择
+ * 消息输入框，使用 textarea 支持多行输入，自动高度调整。
+ * 支持 Enter 发送、Shift+Enter 换行、表情选择。
  *
  * @example
  * ```tsx
@@ -106,17 +107,17 @@ export const ComposerInput = forwardRef<ComposerInputRef, ComposerInputProps>(
     },
     ref,
   ) => {
-    const inputRef = useRef<HTMLInputElement>(null);
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
 
     // 暴露 ref 方法给父组件
     useImperativeHandle(
       ref,
       () => ({
         focus: () => {
-          inputRef.current?.focus();
+          textareaRef.current?.focus();
         },
         blur: () => {
-          inputRef.current?.blur();
+          textareaRef.current?.blur();
         },
       }),
       [],
@@ -124,8 +125,8 @@ export const ComposerInput = forwardRef<ComposerInputRef, ComposerInputProps>(
 
     // 自动聚焦
     useEffect(() => {
-      if (autoFocus && inputRef.current && !disabled) {
-        inputRef.current.focus();
+      if (autoFocus && textareaRef.current && !disabled) {
+        textareaRef.current.focus();
       }
     }, [autoFocus, disabled]);
 
@@ -136,14 +137,14 @@ export const ComposerInput = forwardRef<ComposerInputRef, ComposerInputProps>(
           return;
         }
 
-        const input = inputRef.current;
-        if (!input) {
+        const textarea = textareaRef.current;
+        if (!textarea) {
           onChange(`${value}${emoji} `);
           return;
         }
 
-        const start = input.selectionStart ?? value.length;
-        const end = input.selectionEnd ?? value.length;
+        const start = textarea.selectionStart ?? value.length;
+        const end = textarea.selectionEnd ?? value.length;
         const emojiWithSpace = `${emoji} `;
         const nextValue =
           value.slice(0, start) + emojiWithSpace + value.slice(end);
@@ -152,9 +153,9 @@ export const ComposerInput = forwardRef<ComposerInputRef, ComposerInputProps>(
 
         // 恢复焦点并设置光标位置
         requestAnimationFrame(() => {
-          input.focus();
+          textarea.focus();
           const cursorPosition = start + emojiWithSpace.length;
-          input.setSelectionRange(cursorPosition, cursorPosition);
+          textarea.setSelectionRange(cursorPosition, cursorPosition);
         });
       },
       [disabled, onChange, value],
@@ -162,7 +163,7 @@ export const ComposerInput = forwardRef<ComposerInputRef, ComposerInputProps>(
 
     // 键盘事件处理
     const handleKeyDown = useCallback(
-      async (event: KeyboardEvent<HTMLInputElement>) => {
+      async (event: KeyboardEvent<HTMLTextAreaElement>) => {
         if (disabled) {
           return;
         }
@@ -183,12 +184,12 @@ export const ComposerInput = forwardRef<ComposerInputRef, ComposerInputProps>(
 
             // 发送完成后自动聚焦输入框
             requestAnimationFrame(() => {
-              inputRef.current?.focus();
+              textareaRef.current?.focus();
             });
           } catch (error) {
             debugLog.error('Failed to send message:', error);
             // 错误时仍保持焦点
-            inputRef.current?.focus();
+            textareaRef.current?.focus();
           }
         }
       },
@@ -197,7 +198,7 @@ export const ComposerInput = forwardRef<ComposerInputRef, ComposerInputProps>(
 
     // 输入变更处理
     const handleChange = useCallback(
-      (event: ChangeEvent<HTMLInputElement>) => {
+      (event: ChangeEvent<HTMLTextAreaElement>) => {
         const newValue = event.target.value;
 
         // 检查是否达到最大长度
@@ -235,19 +236,20 @@ export const ComposerInput = forwardRef<ComposerInputRef, ComposerInputProps>(
 
     return (
       <fieldset className="relative flex-1 border-0 p-0 m-0">
-        <input
-          ref={inputRef}
+        <textarea
+          ref={textareaRef}
+          rows={3}
           value={value}
           placeholder={placeholder}
           disabled={disabled}
           maxLength={maxLength}
           className={cn(
-            'w-full rounded-full border border-transparent bg-muted px-4 py-3',
+            'w-full rounded-sm border border-transparent bg-gray-200/50 dark:bg-white/10 px-2 py-1.5',
             TEXT_SIZES.INPUT,
-            'text-text outline-none transition-all duration-200',
+            'text-text dark:text-white outline-none transition-all duration-200',
             'focus:bg-card focus:ring-2 focus:ring-primary/40',
             'disabled:cursor-not-allowed disabled:opacity-50',
-            'placeholder:text-text-muted/50',
+            'placeholder:text-text-muted/50 resize-none',
             // 字符数接近或达到最大长度时的视觉反馈
             isNearMaxLength && !isAtMaxLength && 'focus:ring-orange-400/40',
             isAtMaxLength && 'focus:ring-red-400/40',

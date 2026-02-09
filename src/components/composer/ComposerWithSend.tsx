@@ -39,11 +39,12 @@ export const ComposerWithSend = memo(
 
       // 处理发送消息
       const handleSend = useCallback(
-        async (content: string) => {
+        async (content: string, templateId?: string) => {
           try {
             await sendMessage.mutateAsync({
               conversationId,
               content,
+              extra: templateId ? { templateId } : undefined,
             });
           } catch (error) {
             console.error('Failed to send message:', error);

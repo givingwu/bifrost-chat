@@ -61,7 +61,8 @@ describe('ComposerToolbar', () => {
     // Wait for async operation
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    expect(onSend).toHaveBeenCalledWith('Hello');
+    // onSend 现在接受两个参数：content 和 templateId（可选）
+    expect(onSend).toHaveBeenCalledWith('Hello', undefined);
   });
 
   it('should not call onSend with empty message', async () => {

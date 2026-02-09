@@ -166,8 +166,8 @@ export function DefaultChatLayout({
           console.error('Failed to send template message:', error);
         }
       } else {
-        // 模式 2：填充到输入框
-        composerRef.current?.setValue(template.content);
+        // 模式 2：填充到输入框，并传递 templateId
+        composerRef.current?.setValue(template.content, template.id);
         composerRef.current?.focus();
       }
     },
