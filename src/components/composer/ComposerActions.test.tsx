@@ -1,55 +1,183 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { AudioOutputFormatEnum } from '@/interfaces/audio.interface';
+import { useChatStore } from '@/store';
 import { ComposerActions } from './ComposerActions';
+
+// Mock composer config
+const mockComposerConfig = {
+  enableAudioInput: true,
+  enableAttachments: false,
+  enableDraft: true,
+  draftDebounceDelay: 500,
+  clearDraftOnSend: true,
+  keepDraftOnSwitch: true,
+  maxAttachments: 10,
+  maxAttachmentSize: 10 * 1024 * 1024,
+  allowedFileTypes: undefined,
+  maxAudioDuration: 300,
+  audioOutputFormat: AudioOutputFormatEnum.Raw,
+  showChannelBadge: false,
+  showCharCount: false,
+  showHint: false,
+  showEmojiButton: true,
+  templateMode: 'edit' as const,
+  allowTemplateEdit: false,
+};
 
 describe('ComposerActions', () => {
   beforeEach(() => {
     cleanup();
+    // Reset store to default
+    useChatStore.setState({
+      composer: mockComposerConfig,
+    });
   });
 
-  it('should render send button when canSend is true', () => {
-    render(<ComposerActions canSend={true} onSend={vi.fn()} />);
-    const sendButton = screen.getByTestId('composer-send');
-    expect(sendButton).toBeDefined();
-    expect(sendButton.getAttribute('aria-label')).toBe('Send message');
+  describe('发送按钮', () => {
+    it('当 canSend 为 true 时应显示发送按钮', () => {
+      render(<ComposerActions canSend={true} onSend={vi.fn()} />);
+      const sendButton = screen.getByTestId('composer-send');
+      expect(sendButton).toBeDefined();
+      expect(sendButton.getAttribute('aria-label')).toBe('Send message');
+    });
+
+    it('当 canSend 为 false 时不应显示发送按钮', () => {
+      render(<ComposerActions canSend={false} />);
+      const sendButton = screen.queryByTestId('composer-send');
+      expect(sendButton).toBeNull();
+    });
+
+    it('点击发送按钮应触发 onSend 回调', () => {
+      const onSend = vi.fn();
+      render(<ComposerActions canSend={true} onSend={onSend} />);
+      const sendButton = screen.getByTestId('composer-send');
+      fireEvent.click(sendButton);
+      expect(onSend).toHaveBeenCalledTimes(1);
+    });
+
+    it('当 loading 为 true 时应显示加载状态', () => {
+      render(
+        <ComposerActions canSend={true} onSend={vi.fn()} loading={true} />,
+      );
+      const sendButton = screen.getByTestId('composer-send');
+      expect(sendButton.getAttribute('disabled')).toBeDefined();
+    });
+
+    it('当 disabled 为 true 时应禁用发送按钮', () => {
+      render(
+        <ComposerActions canSend={true} onSend={vi.fn()} disabled={true} />,
+      );
+      const sendButton = screen.getByTestId('composer-send');
+      expect(sendButton.getAttribute('disabled')).toBeDefined();
+    });
   });
 
-  it('should render voice button when canSend is false', () => {
-    render(<ComposerActions canSend={false} />);
-    const voiceButton = screen.getByTestId('composer-voice');
-    expect(voiceButton).toBeDefined();
-    expect(voiceButton.getAttribute('aria-label')).toBe('Voice input');
+  describe('清空按钮', () => {
+    it('当 showClear 为 true 且 onClear 存在时应显示清空按钮', () => {
+      render(
+        <ComposerActions canSend={false} showClear={true} onClear={vi.fn()} />,
+      );
+      const clearButton = screen.getByTestId('composer-clear');
+      expect(clearButton).toBeDefined();
+      expect(clearButton.getAttribute('aria-label')).toBe('Clear input');
+    });
+
+    it('当 canSend 为 true 且 showClear 为 true 时应同时显示清空和发送按钮', () => {
+      render(
+        <ComposerActions
+          canSend={true}
+          showClear={true}
+          onSend={vi.fn()}
+          onClear={vi.fn()}
+        />,
+      );
+      const clearButton = screen.getByTestId('composer-clear');
+      const sendButton = screen.getByTestId('composer-send');
+      expect(clearButton).toBeDefined();
+      expect(sendButton).toBeDefined();
+    });
+
+    it('点击清空按钮应触发 onClear 回调', () => {
+      const onClear = vi.fn();
+      render(
+        <ComposerActions canSend={false} showClear={true} onClear={onClear} />,
+      );
+      const clearButton = screen.getByTestId('composer-clear');
+      fireEvent.click(clearButton);
+      expect(onClear).toHaveBeenCalledTimes(1);
+    });
+
+    it('当 disabled 为 true 时应禁用清空按钮', () => {
+      render(
+        <ComposerActions
+          canSend={false}
+          showClear={true}
+          onClear={vi.fn()}
+          disabled={true}
+        />,
+      );
+      const clearButton = screen.getByTestId('composer-clear');
+      expect(clearButton.getAttribute('disabled')).toBeDefined();
+    });
   });
 
-  it('should call onSend when send button is clicked', () => {
-    const onSend = vi.fn();
-    render(<ComposerActions canSend={true} onSend={onSend} />);
-    const sendButton = screen.getByTestId('composer-send');
-    fireEvent.click(sendButton);
-    expect(onSend).toHaveBeenCalledTimes(1);
+  describe('音频按钮', () => {
+    it('当 canSend 为 false 且启用音频输入时应显示音频按钮', () => {
+      render(<ComposerActions canSend={false} onAudioInput={vi.fn()} />);
+      const voiceButton = screen.getByTestId('composer-voice');
+      expect(voiceButton).toBeDefined();
+      expect(voiceButton.getAttribute('aria-label')).toBe('Voice input');
+    });
+
+    it('当 canSend 为 true 时不应显示音频按钮', () => {
+      render(<ComposerActions canSend={true} onSend={vi.fn()} />);
+      const voiceButton = screen.queryByTestId('composer-voice');
+      expect(voiceButton).toBeNull();
+    });
+
+    it('点击音频按钮应触发 onAudioInput 回调', () => {
+      const onAudioInput = vi.fn();
+      render(<ComposerActions canSend={false} onAudioInput={onAudioInput} />);
+      const voiceButton = screen.getByTestId('composer-voice');
+      fireEvent.click(voiceButton);
+      expect(onAudioInput).toHaveBeenCalledTimes(1);
+    });
   });
 
-  it('should show loading state when loading is true', () => {
-    render(<ComposerActions canSend={true} onSend={vi.fn()} loading={true} />);
-    const sendButton = screen.getByTestId('composer-send');
-    expect(sendButton.getAttribute('disabled')).toBeDefined();
-  });
+  describe('优先级逻辑', () => {
+    it('canSend 优先级最高，应隐藏音频按钮', () => {
+      render(
+        <ComposerActions
+          canSend={true}
+          onSend={vi.fn()}
+          onAudioInput={vi.fn()}
+        />,
+      );
+      const sendButton = screen.getByTestId('composer-send');
+      const voiceButton = screen.queryByTestId('composer-voice');
+      expect(sendButton).toBeDefined();
+      expect(voiceButton).toBeNull();
+    });
 
-  it('should be disabled when disabled is true', () => {
-    render(<ComposerActions canSend={true} onSend={vi.fn()} disabled={true} />);
-    const sendButton = screen.getByTestId('composer-send');
-    expect(sendButton.getAttribute('disabled')).toBeDefined();
-  });
+    it('showClear 优先级高于音频输入', () => {
+      render(
+        <ComposerActions
+          canSend={false}
+          showClear={true}
+          onClear={vi.fn()}
+          onAudioInput={vi.fn()}
+        />,
+      );
+      const clearButton = screen.getByTestId('composer-clear');
+      const voiceButton = screen.queryByTestId('composer-voice');
+      expect(clearButton).toBeDefined();
+      expect(voiceButton).toBeNull();
+    });
 
-  it('should not render voice button when canSend is true', () => {
-    render(<ComposerActions canSend={true} onSend={vi.fn()} />);
-    const voiceButton = screen.queryByTestId('composer-voice');
-    expect(voiceButton).toBeNull();
-  });
-
-  it('should not render send button when canSend is false', () => {
-    render(<ComposerActions canSend={false} />);
-    const sendButton = screen.queryByTestId('composer-send');
-    expect(sendButton).toBeNull();
+    it('当所有条件都不满足时应返回 null', () => {
+      const { container } = render(<ComposerActions canSend={false} />);
+      expect(container.firstChild).toBeNull();
+    });
   });
 });

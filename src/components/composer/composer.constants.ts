@@ -44,6 +44,7 @@ export const ARIA_LABELS = {
   VOICE_INPUT: 'Voice input',
   EMOJI: 'Insert emoji',
   COMPOSER_INPUT: 'Message input',
+  CLEAR: 'Clear input',
 } as const;
 
 /** 渠道提示信息映射 */
@@ -66,4 +67,5 @@ export const TEST_IDS = {
   COMPOSER_HINT: 'composer-hint',
   COMPOSER_CHANNEL_BADGE: 'composer-channel-badge',
   COMPOSER_CHAR_COUNT: 'composer-char-count',
+  COMPOSER_CLEAR: 'composer-clear',
 } as const;

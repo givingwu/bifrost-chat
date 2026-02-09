@@ -497,6 +497,7 @@ export const ComposerToolbar = forwardRef<
           <ComposerActions
             canSend={canSend}
             onSend={handleSend}
+            enableAudioInput={composerConfig.enableAudioInput}
             onAudioInput={handleAudioInput}
             loading={isSending || loading}
             disabled={disabled || isRecording}
