@@ -3,6 +3,8 @@ import { useMemo, useState } from 'react';
 import { ChatContainer } from '@/components/layout/ChatContainer';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import { LanguageCodeEnum } from '@/interfaces/language.interface';
+import { MessageTypeEnum } from '@/interfaces/message.interface';
+import { MessageTypeDisplayStrategy } from '@/interfaces/message-type-config.interface';
 import { ThemeModeEnum } from '@/interfaces/theme.interface';
 import { ConfigProvider } from '@/providers/config.provider';
 import type { ChatStoreInitialState, ChatStoreState } from '@/store';
@@ -139,4 +141,114 @@ export const ConfigIsStaticAfterMount: Story = {
       </div>
     );
   },
+};
+
+/**
+ * 消息类型配置：基本配置
+ */
+export const MessageTypeConfigBasic: Story = {
+  render: () =>
+    renderWithSnapshot({
+      strategy: {
+        activeChannel: ChannelTypeEnum.Waba,
+        allowedMessageTypes: [
+          MessageTypeEnum.Text,
+          MessageTypeEnum.Image,
+          MessageTypeEnum.Video,
+        ],
+        messageDisplayStrategy: MessageTypeDisplayStrategy.ShowUnsupported,
+        unsupportedMessage: '此消息类型暂不支持',
+      },
+    }),
+};
+
+/**
+ * 消息类型配置：按渠道配置
+ */
+export const MessageTypeConfigByChannel: Story = {
+  render: () =>
+    renderWithSnapshot({
+      strategy: {
+        activeChannel: ChannelTypeEnum.WhatsApp,
+        channelMessageTypeConfigs: {
+          [ChannelTypeEnum.SMS]: {
+            allowedTypes: [MessageTypeEnum.Text],
+            displayStrategy: MessageTypeDisplayStrategy.ShowUnsupported,
+            unsupportedMessage: '短信仅支持文本消息',
+          },
+          [ChannelTypeEnum.WhatsApp]: {
+            allowedTypes: [
+              MessageTypeEnum.Text,
+              MessageTypeEnum.Image,
+              MessageTypeEnum.Video,
+              MessageTypeEnum.Audio,
+              MessageTypeEnum.File,
+              MessageTypeEnum.Template,
+              MessageTypeEnum.Location,
+            ],
+            displayStrategy: MessageTypeDisplayStrategy.ShowUnsupported,
+          },
+          [ChannelTypeEnum.Email]: {
+            allowedTypes: [
+              MessageTypeEnum.Text,
+              MessageTypeEnum.Image,
+              MessageTypeEnum.File,
+            ],
+            displayStrategy: MessageTypeDisplayStrategy.ShowUnsupported,
+          },
+        },
+      },
+    }),
+};
+
+/**
+ * 消息类型配置：隐藏不支持的消息
+ */
+export const MessageTypeConfigHideUnsupported: Story = {
+  render: () =>
+    renderWithSnapshot({
+      strategy: {
+        activeChannel: ChannelTypeEnum.SMS,
+        allowedMessageTypes: [MessageTypeEnum.Text],
+        messageDisplayStrategy: MessageTypeDisplayStrategy.Hide,
+      },
+    }),
+};
+
+/**
+ * 消息类型配置：组合配置
+ */
+export const MessageTypeConfigCombined: Story = {
+  render: () =>
+    renderWithSnapshot({
+      strategy: {
+        activeChannel: ChannelTypeEnum.Waba,
+        allowedChannels: [
+          ChannelTypeEnum.SMS,
+          ChannelTypeEnum.WhatsApp,
+          ChannelTypeEnum.Waba,
+        ],
+        allowedMessageTypes: [
+          MessageTypeEnum.Text,
+          MessageTypeEnum.Image,
+          MessageTypeEnum.Video,
+          MessageTypeEnum.Audio,
+          MessageTypeEnum.File,
+          MessageTypeEnum.Template,
+        ],
+        messageDisplayStrategy: MessageTypeDisplayStrategy.ShowUnsupported,
+        channelMessageTypeConfigs: {
+          [ChannelTypeEnum.SMS]: {
+            allowedTypes: [MessageTypeEnum.Text],
+            unsupportedMessage: '短信仅支持文本消息',
+          },
+        },
+      },
+      theme: {
+        mode: ThemeModeEnum.Light,
+      },
+      language: {
+        code: LanguageCodeEnum.ZhCN,
+      },
+    }),
 };
