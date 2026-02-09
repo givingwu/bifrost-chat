@@ -209,4 +209,131 @@ describe('useSendMessage Hook', () => {
       expect(failedMessage?.error).toBe('template limit reached');
     });
   });
+
+  it('应在服务返回 error 但状态非 Failed 时依旧标记失败', async () => {
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+      },
+    });
+    const conversationId = 'conv-template-error';
+
+    queryClient.setQueryData(queryKeys.messages.list(conversationId), {
+      pages: [{ items: [] }],
+      pageParams: [1],
+    });
+
+    let resolveSend:
+      | ((value: {
+          tempId: string;
+          messageId?: string;
+          status: MessageStatusEnum;
+          error?: string;
+        }) => void)
+      | null = null;
+
+    vi.mocked(mockMessageService.send).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveSend = resolve;
+        }),
+    );
+
+    const { result } = renderHook(() => useSendMessage(), {
+      wrapper: createTestWrapper(queryClient),
+    });
+
+    act(() => {
+      result.current.mutate({
+        conversationId,
+        content: 'template error',
+        extra: { templateId: 'tpl-2' },
+      });
+    });
+
+    await waitFor(() => {
+      const optimisticMessages = getMessages(queryClient, conversationId);
+      expect(optimisticMessages).toHaveLength(1);
+      expect(optimisticMessages[0]?.status).toBe(MessageStatusEnum.Sending);
+    });
+
+    act(() => {
+      resolveSend?.({
+        tempId: 'server-temp-id',
+        status: MessageStatusEnum.Sent,
+        error: 'template limit reached',
+      });
+    });
+
+    await waitFor(() => {
+      const failedMessage = getMessages(queryClient, conversationId)[0];
+      expect(failedMessage?.status).toBe(MessageStatusEnum.Failed);
+      expect(failedMessage?.error).toBe('template limit reached');
+    });
+  });
+
+  it('成功返回时应更新 messageId 且不保留 error', async () => {
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+      },
+    });
+    const conversationId = 'conv-template-success';
+
+    queryClient.setQueryData(queryKeys.messages.list(conversationId), {
+      pages: [{ items: [] }],
+      pageParams: [1],
+    });
+
+    let resolveSend:
+      | ((value: {
+          tempId: string;
+          messageId?: string;
+          status: MessageStatusEnum;
+          error?: string;
+        }) => void)
+      | null = null;
+
+    vi.mocked(mockMessageService.send).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveSend = resolve;
+        }),
+    );
+
+    const { result } = renderHook(() => useSendMessage(), {
+      wrapper: createTestWrapper(queryClient),
+    });
+
+    act(() => {
+      result.current.mutate({
+        conversationId,
+        content: 'template ok',
+        extra: { templateId: 'tpl-3' },
+      });
+    });
+
+    await waitFor(() => {
+      const optimisticMessages = getMessages(queryClient, conversationId);
+      expect(optimisticMessages).toHaveLength(1);
+      expect(optimisticMessages[0]?.status).toBe(MessageStatusEnum.Sending);
+    });
+
+    act(() => {
+      resolveSend?.({
+        tempId: 'server-temp-id',
+        messageId: 'message-2001',
+        status: MessageStatusEnum.Sent,
+      });
+    });
+
+    await waitFor(() => {
+      const sentMessage = getMessages(queryClient, conversationId)[0];
+      expect(sentMessage?.status).toBe(MessageStatusEnum.Sent);
+      expect(sentMessage?.id).toBe('message-2001');
+      expect(sentMessage?.error).toBeUndefined();
+    });
+  });
 });

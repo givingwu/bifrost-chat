@@ -3,7 +3,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { StandardMessage } from '@/interfaces/message.interface';
 import { MessageStatusEnum } from '@/interfaces/message.interface';
 import { queryKeys } from '@/providers/query.provider';
-import { MessageCacheHelper } from '@/services/message-cache-helper.service';
+import {
+  type InfiniteQueryData,
+  MessageCacheHelper,
+} from '@/services/message-cache-helper.service';
 
 describe('MessageCacheHelper', () => {
   let queryClient: QueryClient;
@@ -70,7 +73,7 @@ describe('MessageCacheHelper', () => {
         message,
       );
 
-      const data = queryClient.getQueryData(
+      const data = queryClient.getQueryData<InfiniteQueryData>(
         queryKeys.messages.list(conversationId),
       );
 
@@ -98,7 +101,7 @@ describe('MessageCacheHelper', () => {
         newMessage,
       );
 
-      const data = queryClient.getQueryData(
+      const data = queryClient.getQueryData<InfiniteQueryData>(
         queryKeys.messages.list(conversationId),
       );
 
@@ -129,7 +132,7 @@ describe('MessageCacheHelper', () => {
         duplicateMessage,
       );
 
-      const data = queryClient.getQueryData(
+      const data = queryClient.getQueryData<InfiniteQueryData>(
         queryKeys.messages.list(conversationId),
       );
 
@@ -160,7 +163,7 @@ describe('MessageCacheHelper', () => {
         duplicateMessage,
       );
 
-      const data = queryClient.getQueryData(
+      const data = queryClient.getQueryData<InfiniteQueryData>(
         queryKeys.messages.list(conversationId),
       );
 
@@ -197,7 +200,7 @@ describe('MessageCacheHelper', () => {
         undefined,
       );
 
-      const data = queryClient.getQueryData(
+      const data = queryClient.getQueryData<InfiniteQueryData>(
         queryKeys.messages.list(conversationId),
       );
 
@@ -236,7 +239,7 @@ describe('MessageCacheHelper', () => {
         'temp-1',
       );
 
-      const data = queryClient.getQueryData(
+      const data = queryClient.getQueryData<InfiniteQueryData>(
         queryKeys.messages.list(conversationId),
       );
 
@@ -280,7 +283,7 @@ describe('MessageCacheHelper', () => {
         undefined,
       );
 
-      const data = queryClient.getQueryData(
+      const data = queryClient.getQueryData<InfiniteQueryData>(
         queryKeys.messages.list(conversationId),
       );
 
@@ -325,11 +328,11 @@ describe('MessageCacheHelper', () => {
         'msg-1',
       );
 
-      const data = queryClient.getQueryData(
+      const data = queryClient.getQueryData<InfiniteQueryData>(
         queryKeys.messages.list(conversationId),
       );
 
-      expect(data?.pages[0].items[0].status).toBe(MessageStatusEnum.Sent);
+      expect(data?.pages?.[0]?.items?.[0]?.status).toBe(MessageStatusEnum.Sent);
     });
   });
 
@@ -364,11 +367,11 @@ describe('MessageCacheHelper', () => {
         realMessage,
       );
 
-      const data = queryClient.getQueryData(
+      const data = queryClient.getQueryData<InfiniteQueryData>(
         queryKeys.messages.list(conversationId),
       );
 
-      expect(data?.pages[0].items[0]).toEqual(realMessage);
+      expect(data?.pages?.[0]?.items?.[0]).toEqual(realMessage);
     });
   });
 
@@ -392,12 +395,12 @@ describe('MessageCacheHelper', () => {
         newMessages,
       );
 
-      const data = queryClient.getQueryData(
+      const data = queryClient.getQueryData<InfiniteQueryData>(
         queryKeys.messages.list(conversationId),
       );
 
       // 应该只有 3 条消息（msg-1, msg-2, msg-3）
-      expect(data?.pages[0].items.length).toBe(3);
+      expect(data?.pages?.[0]?.items?.length).toBe(3);
     });
   });
 
@@ -423,11 +426,14 @@ describe('MessageCacheHelper', () => {
         'msg-2',
       );
 
-      const data = queryClient.getQueryData(
+      const data = queryClient.getQueryData<InfiniteQueryData>(
         queryKeys.messages.list(conversationId),
       );
 
-      expect(data?.pages[0].items).toEqual([{ id: 'msg-1' }, { id: 'msg-3' }]);
+      expect(data?.pages?.[0]?.items).toEqual([
+        { id: 'msg-1' },
+        { id: 'msg-3' },
+      ]);
     });
   });
 
