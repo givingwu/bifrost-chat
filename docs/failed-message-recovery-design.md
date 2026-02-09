@@ -16,12 +16,13 @@
 
 - 使用 React Query Mutation 管理消息发送
 - 支持乐观更新，发送前立即在 UI 上显示消息
-- 发送失败时，消息被保存到离线队列（[`OfflineMessageQueueService`](src/services/offline-message-queue.service.ts:19)）
-- **问题**：刷新页面后，失败的消息从 UI 中消失，因为：
-  1. 乐观更新的消息只存在于 React Query 的内存缓存中
-  2. [`useMessages`](src/hooks/use-messages.hook.ts:75) 只从服务端获取消息列表
-  3. 离线队列虽然持久化了消息，但不会自动恢复到 UI
-  4. 用户看到消息"消失"，会感到困惑
+- **网络错误（onError）**：保存到离线队列，保留失败消息，支持重试
+- **业务逻辑错误（onSuccess + isFailed）**：完全回滚到发送前状态，临时消息被移除
+- **特点**：
+  - 网络错误时，消息保留在列表中，显示 Failed 状态，可点击重试
+  - 业务错误时（如配额限制、验证失败），消息从 UI 中消失，用户需重新输入
+  - 使用离线队列持久化网络失败的消息
+  - 刷新页面后，网络失败的消息可从离线队列恢复显示
 
 ### 目标架构（To-Be）
 

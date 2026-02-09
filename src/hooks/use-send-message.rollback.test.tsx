@@ -46,7 +46,7 @@ vi.mock('@/services/message-builder.service', () => ({
   },
 }));
 
-describe('useSendMessage - 消息回填功能测试', () => {
+describe('useSendMessage - 消息回滚与离线队列功能测试', () => {
   let queryClient: QueryClient;
   let wrapper: React.FC<{ children: ReactNode }>;
 
@@ -84,13 +84,78 @@ describe('useSendMessage - 消息回填功能测试', () => {
     });
   });
 
-  describe('不可重试错误（业务逻辑错误）', () => {
-    it('应该保留消息并保存到离线队列，显示 retry 按钮', async () => {
+  describe('网络错误场景（onError - 离线队列）', () => {
+    it('应该保存到离线队列并保留失败消息', async () => {
+      const conversationId = 'conv-1';
+      const content = '测试消息';
+
+      // Mock 后端抛出网络错误
+      mockMessageService.send.mockRejectedValue(new Error('网络连接失败'));
+
+      // 发送消息
+      const { result } = renderHook(() => useSendMessage(), { wrapper });
+
+      await act(async () => {
+        await expect(
+          result.current.mutateAsync({
+            conversationId,
+            content,
+          }),
+        ).rejects.toThrow('网络连接失败');
+      });
+
+      // 等待异步操作完成
+      await waitFor(() => {
+        expect(mockMessageService.send).toHaveBeenCalled();
+      });
+
+      // 验证保存到离线队列
+      expect(mockOfflineMessageQueue.createOfflineMessage).toHaveBeenCalled();
+      expect(mockOfflineMessageQueue.enqueue).toHaveBeenCalled();
+
+      // 验证消息保留在缓存中，状态为 Failed
+      const data = queryClient.getQueryData<{
+        pages: Array<{
+          items: Array<{
+            status: string;
+            _source?: string;
+            _offlineMessageId?: string;
+            error?: string;
+          }>;
+        }>;
+      }>(['messages', 'list', conversationId]);
+
+      expect(data).toBeDefined();
+      expect(data?.pages[0].items).toHaveLength(1);
+      expect(data?.pages[0].items[0].status).toBe(MessageStatusEnum.Failed);
+      expect(data?.pages[0].items[0]._source).toBe('local');
+      expect(data?.pages[0].items[0].error).toBe('网络连接失败');
+    });
+  });
+
+  describe('业务逻辑错误场景（onSuccess + isFailed - 完全回滚）', () => {
+    it('应该完全回滚到发送前状态，移除临时消息', async () => {
       const conversationId = 'conv-1';
       const content = '测试消息';
       const errorMessage = '已达到发送次数上限';
 
-      // Mock 后端返回不可重试错误
+      // 初始化缓存（模拟发送前有 1 条消息）
+      queryClient.setQueryData(['messages', 'list', conversationId], {
+        pages: [
+          {
+            items: [
+              {
+                id: 'existing-msg-1',
+                content: { text: '已存在的消息' },
+                status: MessageStatusEnum.Sent,
+                timestamp: Date.now() - 1000,
+              },
+            ],
+          },
+        ],
+      });
+
+      // Mock 后端返回业务逻辑错误
       mockMessageService.send.mockResolvedValue({
         tempId: 'temp-msg-1',
         status: MessageStatusEnum.Failed,
@@ -98,10 +163,6 @@ describe('useSendMessage - 消息回填功能测试', () => {
         errorType: MessageFailureTypeEnum.Quota,
         retryable: false,
       });
-
-      // 监听回填事件
-      const eventListener = vi.fn();
-      window.addEventListener('messageSendFailed', eventListener);
 
       // 发送消息
       const { result } = renderHook(() => useSendMessage(), { wrapper });
@@ -118,30 +179,34 @@ describe('useSendMessage - 消息回填功能测试', () => {
         expect(mockMessageService.send).toHaveBeenCalled();
       });
 
-      // 验证保存到离线队列
-      expect(mockOfflineMessageQueue.createOfflineMessage).toHaveBeenCalled();
-      expect(mockOfflineMessageQueue.enqueue).toHaveBeenCalled();
+      // 验证：不应该调用离线队列（因为业务错误完全回滚）
+      expect(
+        mockOfflineMessageQueue.createOfflineMessage,
+      ).not.toHaveBeenCalled();
+      expect(mockOfflineMessageQueue.enqueue).not.toHaveBeenCalled();
 
-      // 验证触发了回填事件
-      expect(eventListener).toHaveBeenCalled();
-      const event = eventListener.mock.calls[0][0] as CustomEvent;
-      expect(event.detail).toEqual({
-        conversationId,
-        content,
-        templateId: undefined,
-        error: errorMessage,
-      });
+      // 验证：缓存应该回滚到发送前状态（只有 1 条已存在的消息）
+      const data = queryClient.getQueryData<{
+        pages: Array<{ items: Array<{ id: string }> }>;
+      }>(['messages', 'list', conversationId]);
 
-      // 清理
-      window.removeEventListener('messageSendFailed', eventListener);
+      expect(data).toBeDefined();
+      expect(data?.pages).toHaveLength(1);
+      expect(data?.pages[0].items).toHaveLength(1);
+      expect(data?.pages[0].items[0].id).toBe('existing-msg-1');
     });
 
-    it('应该保留失败消息在缓存中，状态为 Failed，并设置 _offlineMessageId', async () => {
+    it('应该在空列表时也正确回滚', async () => {
       const conversationId = 'conv-1';
       const content = '测试消息';
       const errorMessage = '验证失败';
 
-      // Mock 后端返回不可重试错误
+      // 初始化空缓存
+      queryClient.setQueryData(['messages', 'list', conversationId], {
+        pages: [{ items: [] }],
+      });
+
+      // Mock 后端返回业务逻辑错误
       mockMessageService.send.mockResolvedValue({
         tempId: 'temp-msg-1',
         status: MessageStatusEnum.Failed,
@@ -165,77 +230,36 @@ describe('useSendMessage - 消息回填功能测试', () => {
         expect(mockMessageService.send).toHaveBeenCalled();
       });
 
-      // 验证消息保留在缓存中，状态为 Failed
+      // 验证：缓存应该回滚到空列表
       const data = queryClient.getQueryData<{
-        pages: Array<{
-          items: Array<{
-            status: string;
-            _source?: string;
-            _offlineMessageId?: string;
-            error?: string;
-          }>;
-        }>;
+        pages: Array<{ items: unknown[] }>;
       }>(['messages', 'list', conversationId]);
 
-      expect(data).toBeDefined();
-      expect(data?.pages[0].items).toHaveLength(1);
-      expect(data?.pages[0].items[0].status).toBe(MessageStatusEnum.Failed);
-      expect(data?.pages[0].items[0]._source).toBe('local');
-      expect(data?.pages[0].items[0]._offlineMessageId).toBe('offline-msg-1');
-      expect(data?.pages[0].items[0].error).toBe(errorMessage);
-    });
-  });
-
-  describe('非 Sent 状态（即便标记可重试）', () => {
-    it('应该保留消息并保存到离线队列，显示 retry 按钮', async () => {
-      const conversationId = 'conv-1';
-      const content = '测试消息';
-      const errorMessage = '网络连接失败';
-
-      // Mock 后端返回可重试错误
-      mockMessageService.send.mockResolvedValue({
-        tempId: 'temp-msg-1',
-        status: MessageStatusEnum.Failed,
-        error: errorMessage,
-        errorType: MessageFailureTypeEnum.Network,
-        retryable: true,
-      });
-
-      // 监听回填事件
-      const eventListener = vi.fn();
-      window.addEventListener('messageSendFailed', eventListener);
-
-      // 发送消息
-      const { result } = renderHook(() => useSendMessage(), { wrapper });
-
-      await act(async () => {
-        await result.current.mutateAsync({
-          conversationId,
-          content,
-        });
-      });
-
-      // 等待异步操作完成
-      await waitFor(() => {
-        expect(mockMessageService.send).toHaveBeenCalled();
-      });
-
-      // 验证保存到离线队列
-      expect(mockOfflineMessageQueue.createOfflineMessage).toHaveBeenCalled();
-      expect(mockOfflineMessageQueue.enqueue).toHaveBeenCalled();
-      // 验证触发回填事件
-      expect(eventListener).toHaveBeenCalled();
-
-      // 清理
-      window.removeEventListener('messageSendFailed', eventListener);
+      expect(data?.pages[0].items).toHaveLength(0);
     });
 
-    it('应该保留消息在缓存中，状态为 Failed，并设置 _offlineMessageId', async () => {
+    it('即使标记为可重试也应该完全回滚', async () => {
       const conversationId = 'conv-1';
       const content = '测试消息';
       const errorMessage = '服务器错误';
 
-      // Mock 后端返回可重试错误
+      // 初始化缓存
+      queryClient.setQueryData(['messages', 'list', conversationId], {
+        pages: [
+          {
+            items: [
+              {
+                id: 'existing-msg-1',
+                content: { text: '已存在的消息' },
+                status: MessageStatusEnum.Sent,
+                timestamp: Date.now() - 1000,
+              },
+            ],
+          },
+        ],
+      });
+
+      // Mock 后端返回业务逻辑错误（即使标记为可重试）
       mockMessageService.send.mockResolvedValue({
         tempId: 'temp-msg-1',
         status: MessageStatusEnum.Failed,
@@ -259,71 +283,31 @@ describe('useSendMessage - 消息回填功能测试', () => {
         expect(mockMessageService.send).toHaveBeenCalled();
       });
 
-      // 验证消息保留在缓存中，状态为 Failed
+      // 验证：不应该调用离线队列
+      expect(
+        mockOfflineMessageQueue.createOfflineMessage,
+      ).not.toHaveBeenCalled();
+      expect(mockOfflineMessageQueue.enqueue).not.toHaveBeenCalled();
+
+      // 验证：缓存应该回滚到发送前状态
       const data = queryClient.getQueryData<{
-        pages: Array<{
-          items: Array<{
-            status: string;
-            _source?: string;
-            _offlineMessageId?: string;
-            error?: string;
-          }>;
-        }>;
+        pages: Array<{ items: Array<{ id: string }> }>;
       }>(['messages', 'list', conversationId]);
 
-      expect(data).toBeDefined();
       expect(data?.pages[0].items).toHaveLength(1);
-      expect(data?.pages[0].items[0].status).toBe(MessageStatusEnum.Failed);
-      expect(data?.pages[0].items[0]._source).toBe('local');
-      expect(data?.pages[0].items[0]._offlineMessageId).toBe('offline-msg-1');
-      expect(data?.pages[0].items[0].error).toBe(errorMessage);
-    });
-  });
-
-  describe('异常抛出场景（onError）', () => {
-    it('应该写入离线队列并回写 _offlineMessageId 供 retry 使用', async () => {
-      const conversationId = 'conv-1';
-      const content = '测试消息';
-
-      mockMessageService.send.mockRejectedValue(new Error('网络连接失败'));
-
-      const { result } = renderHook(() => useSendMessage(), { wrapper });
-
-      await act(async () => {
-        await expect(
-          result.current.mutateAsync({
-            conversationId,
-            content,
-          }),
-        ).rejects.toThrow('网络连接失败');
-      });
-
-      await waitFor(() => {
-        expect(mockOfflineMessageQueue.enqueue).toHaveBeenCalled();
-      });
-
-      const data = queryClient.getQueryData<{
-        pages: Array<{
-          items: Array<{
-            status: string;
-            _source?: string;
-            _offlineMessageId?: string;
-            error?: string;
-          }>;
-        }>;
-      }>(['messages', 'list', conversationId]);
-
-      expect(data?.pages[0].items[0].status).toBe(MessageStatusEnum.Failed);
-      expect(data?.pages[0].items[0]._source).toBe('local');
-      expect(data?.pages[0].items[0]._offlineMessageId).toBe('offline-msg-1');
-      expect(data?.pages[0].items[0].error).toBe('网络连接失败');
+      expect(data?.pages[0].items[0].id).toBe('existing-msg-1');
     });
   });
 
   describe('向后兼容性测试', () => {
-    it('当没有设置 errorType 和 retryable 时，默认为不可重试', async () => {
+    it('当没有设置 errorType 和 retryable 时，默认为业务错误并回滚', async () => {
       const conversationId = 'conv-1';
       const content = '测试消息';
+
+      // 初始化缓存
+      queryClient.setQueryData(['messages', 'list', conversationId], {
+        pages: [{ items: [] }],
+      });
 
       // Mock 后端返回失败，但没有设置 errorType 和 retryable
       mockMessageService.send.mockResolvedValue({
@@ -332,10 +316,6 @@ describe('useSendMessage - 消息回填功能测试', () => {
         error: '发送失败',
       });
 
-      // 监听回填事件
-      const eventListener = vi.fn();
-      window.addEventListener('messageSendFailed', eventListener);
-
       // 发送消息
       const { result } = renderHook(() => useSendMessage(), { wrapper });
 
@@ -351,11 +331,12 @@ describe('useSendMessage - 消息回填功能测试', () => {
         expect(mockMessageService.send).toHaveBeenCalled();
       });
 
-      // 验证默认行为是触发回填事件（不可重试）
-      expect(eventListener).toHaveBeenCalled();
+      // 验证：缓存应该回滚到空列表
+      const data = queryClient.getQueryData<{
+        pages: Array<{ items: unknown[] }>;
+      }>(['messages', 'list', conversationId]);
 
-      // 清理
-      window.removeEventListener('messageSendFailed', eventListener);
+      expect(data?.pages[0].items).toHaveLength(0);
     });
   });
 

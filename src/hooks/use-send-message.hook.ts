@@ -1,8 +1,4 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  type MessageSendFailedEventDetail,
-  triggerMessageSendFailed,
-} from '@/hooks/use-message-rollback.hook';
 import type {
   MessageSendResult,
   StandardMessage,
@@ -118,18 +114,33 @@ export function useSendMessage<TParams = any>() {
       return { previousMessages, tempMessage };
     },
 
-    // 如果出错，保存到离线队列而不是回滚
+    // 网络错误：保存到离线队列（如果未实现则提示）
     onError: async (error, variables, context) => {
       if (error) {
-        console.error('消息发送失败:', error);
+        console.error('[useSendMessage] 消息发送失败:', error);
       }
 
       const errorMessage =
         error instanceof Error ? error.message : String(error);
-      let offlineMessageId: string | undefined;
 
-      // 如果有离线队列服务，将失败的消息保存到队列
-      if (offlineMessageQueue && context?.tempMessage) {
+      // 如果没有离线队列服务，提示实现
+      if (!offlineMessageQueue) {
+        console.warn(
+          '[useSendMessage] 离线队列未实现，网络错误时消息将丢失。请实现 IOfflineMessageQueueService。',
+        );
+        // 回滚到之前的状态
+        if (context?.previousMessages) {
+          queryClient.setQueryData(
+            queryKeys.messages.list(variables.conversationId),
+            context.previousMessages,
+          );
+          console.info('[useSendMessage] 已回滚到发送前的状态');
+        }
+        return;
+      }
+
+      // 将失败的消息保存到离线队列
+      if (context?.tempMessage) {
         try {
           const offlineMessage = offlineMessageQueue.createOfflineMessage(
             context.tempMessage,
@@ -145,7 +156,6 @@ export function useSendMessage<TParams = any>() {
           offlineMessage.error = errorMessage;
 
           await offlineMessageQueue.enqueue(offlineMessage);
-          offlineMessageId = offlineMessage.id;
 
           console.info(
             '[useSendMessage] 消息已保存到离线队列:',
@@ -153,18 +163,25 @@ export function useSendMessage<TParams = any>() {
           );
         } catch (queueError) {
           console.error('[useSendMessage] 保存到离线队列失败:', queueError);
+          // 保存失败，回滚到之前的状态
+          if (context?.previousMessages) {
+            queryClient.setQueryData(
+              queryKeys.messages.list(variables.conversationId),
+              context.previousMessages,
+            );
+            console.info('[useSendMessage] 已回滚到发送前的状态');
+          }
+          return;
         }
       }
 
+      // 更新消息状态为 Failed
       const updates: Partial<StandardMessage> = {
         status: MessageStatusEnum.Failed,
         error: errorMessage,
+        _source: 'local',
+        _offlineMessageId: context?.tempMessage.tempId,
       };
-
-      if (offlineMessageId) {
-        updates._source = 'local';
-        updates._offlineMessageId = offlineMessageId;
-      }
 
       // 使用 MessageCacheHelper 更新消息状态为 Failed
       // 支持通过 tempId 查找消息
@@ -186,74 +203,17 @@ export function useSendMessage<TParams = any>() {
         data.status !== MessageStatusEnum.Sent || Boolean(data.error);
 
       if (isFailed) {
-        // 业务逻辑错误：保留消息并显示 retry 按钮
-        let offlineMessageId: string | undefined;
+        // 业务逻辑错误：完全回滚到之前的状态（移除临时消息）
+        console.error('[useSendMessage] 业务逻辑错误，执行回滚:', data.error);
 
-        // 将失败消息保存到离线队列
-        if (offlineMessageQueue && context?.tempMessage) {
-          try {
-            const offlineMessage = offlineMessageQueue.createOfflineMessage(
-              context.tempMessage,
-              variables.conversationId,
-              {
-                content: variables.content,
-                ...variables.extra,
-              },
-              MessagePriorityEnum.Normal,
-            );
-
-            // 添加错误信息
-            offlineMessage.error = data.error ?? 'Unknown error';
-
-            await offlineMessageQueue.enqueue(offlineMessage);
-            offlineMessageId = offlineMessage.id;
-
-            console.info(
-              '[useSendMessage] 业务逻辑错误消息已保存到离线队列:',
-              offlineMessage.id,
-            );
-          } catch (queueError) {
-            console.error('[useSendMessage] 保存到离线队列失败:', queueError);
-          }
+        // 回滚到之前的状态（移除临时消息）
+        if (context?.previousMessages) {
+          queryClient.setQueryData(
+            queryKeys.messages.list(variables.conversationId),
+            context.previousMessages,
+          );
+          console.info('[useSendMessage] 已回滚到发送前的状态');
         }
-
-        // 更新消息状态为 Failed
-        const updates: Partial<StandardMessage> = {
-          status: MessageStatusEnum.Failed,
-          error: data.error,
-        };
-
-        if (offlineMessageId) {
-          updates._source = 'local';
-          updates._offlineMessageId = offlineMessageId;
-        }
-
-        // 使用 MessageCacheHelper 更新消息状态为 Failed
-        // 支持通过 tempId 查找消息
-        MessageCacheHelper.updateMessageInCache(
-          queryClient,
-          variables.conversationId,
-          updates,
-          undefined, // messageId
-          tempId, // tempId
-        );
-
-        // 触发消息回填事件
-        const detail: MessageSendFailedEventDetail = {
-          conversationId: variables.conversationId,
-          content: variables.content,
-          templateId: (variables.extra as any)?.templateId as
-            | string
-            | undefined,
-          error: data.error,
-        };
-
-        triggerMessageSendFailed(detail);
-
-        console.info(
-          '[useSendMessage] 业务逻辑错误消息已保留并触发回填:',
-          detail,
-        );
 
         return;
       }
