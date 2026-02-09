@@ -11,6 +11,7 @@ import { queryKeys } from '@/providers/query.provider';
 import { useServices } from '@/providers/service.provider';
 import { MessageBuilder } from '@/services/message-builder.service';
 import { MessageCacheHelper } from '@/services/message-cache-helper.service';
+import { useStrategy } from '@/store';
 
 /**
  * 使用发送消息的 Hook
@@ -59,6 +60,7 @@ import { MessageCacheHelper } from '@/services/message-cache-helper.service';
 export function useSendMessage<TParams = any>() {
   const queryClient = useQueryClient();
   const { messageService, offlineMessageQueue } = useServices();
+  const { activeChannel, allowedChannels } = useStrategy();
 
   return useMutation<
     MessageSendResult,
@@ -98,7 +100,7 @@ export function useSendMessage<TParams = any>() {
         {
           senderId: 'current-user',
           receiverId: params.conversationId,
-          channelType: 'whatsapp' as any,
+          channelType: activeChannel ?? allowedChannels[0],
         },
       );
       tempMessage.status = MessageStatusEnum.Sending;
