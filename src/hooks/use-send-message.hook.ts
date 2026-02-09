@@ -201,12 +201,21 @@ export function useSendMessage<TParams = any>() {
       const tempId = context?.tempMessage.tempId;
       if (!tempId) return;
 
-      const isFailed =
+      // 优先用接口最外层 code 判断：code === 1 回退，code === 0 不回退；未传 responseCode 时沿用 status/error
+      const shouldRollbackByCode =
+        data.responseCode !== undefined && data.responseCode !== 0;
+      const isFailedByStatus =
         data.status !== MessageStatusEnum.Sent || Boolean(data.error);
+      const isFailed = shouldRollbackByCode
+        ? shouldRollbackByCode
+        : isFailedByStatus;
 
       if (isFailed) {
-        // 业务逻辑错误：完全回滚到之前的状态（移除临时消息）
-        console.error('[useSendMessage] 业务逻辑错误，执行回滚:', data.error);
+        // 业务逻辑错误 / code=1：完全回滚到之前的状态（移除临时消息）
+        console.error(
+          '[useSendMessage] 业务逻辑错误或 code=1，执行回滚:',
+          data.error ?? data.responseCode,
+        );
 
         // 回滚到之前的状态（移除临时消息）
         if (context?.previousMessages) {
