@@ -1,3 +1,8 @@
+import type { AudioData } from '@/interfaces/audio.interface';
+import { ChannelTypeEnum } from '@/interfaces/channel.interface';
+import { useTranslation } from '@/providers/I18n.provider';
+import { useComposerConfig } from '@/store';
+import { cn } from '@/utils/class.util';
 import {
   type FormEvent,
   forwardRef,
@@ -8,11 +13,6 @@ import {
   useRef,
   useState,
 } from 'react';
-import type { AudioData } from '@/interfaces/audio.interface';
-import { ChannelTypeEnum } from '@/interfaces/channel.interface';
-import { useTranslation } from '@/providers/I18n.provider';
-import { useComposerConfig } from '@/store';
-import { cn } from '@/utils/class.util';
 import {
   type Attachment,
   AttachmentPreview,
@@ -356,7 +356,7 @@ export const ComposerToolbar = forwardRef<
 
         // 检查文件类型
         if (composerConfig.allowedFileTypes) {
-          const isAllowed = composerConfig.allowedFileTypes.some((type) => {
+          const isAllowed = composerConfig.allowedFileTypes.some(type => {
             if (type.startsWith('.')) {
               return file.name.endsWith(type);
             }
@@ -374,14 +374,14 @@ export const ComposerToolbar = forwardRef<
 
       // 创建附件对象
       const newAttachments = await createAttachments(files);
-      setAttachments((prev) => [...prev, ...newAttachments]);
+      setAttachments(prev => [...prev, ...newAttachments]);
     },
     [disabled, composerConfig, attachments.length],
   );
 
   // 处理移除附件
   const handleRemoveAttachment = useCallback((index: number) => {
-    setAttachments((prev) => {
+    setAttachments(prev => {
       const newAttachments = [...prev];
       const removed = newAttachments.splice(index, 1)[0];
       // 清理预览 URL
