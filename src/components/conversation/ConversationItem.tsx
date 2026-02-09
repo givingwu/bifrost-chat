@@ -1,6 +1,7 @@
 import { type KeyboardEvent, memo, useCallback, useMemo } from 'react';
 import { Button } from '@/components/Button';
 import type { Conversation } from '@/interfaces/conversation.interface';
+import { useLanguage } from '@/store';
 import { cn } from '@/utils/class.util';
 import { formatTimestamp } from '@/utils/time.util';
 import { ConversationAvatar } from './ConversationAvatar';
@@ -54,9 +55,14 @@ export const ConversationItem = memo(
     );
 
     // 上次回复时间
+    const { code: languageCode } = useLanguage();
     const lastReplyTime = useMemo(
-      () => formatTimestamp(new Date(conversation.lastMessageTime).getTime()),
-      [conversation.lastMessageTime],
+      () =>
+        formatTimestamp(
+          new Date(conversation.lastMessageTime).getTime(),
+          languageCode,
+        ),
+      [conversation.lastMessageTime, languageCode],
     );
 
     // 处理键盘事件
