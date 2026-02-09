@@ -1,3 +1,4 @@
+import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import {
   cleanup,
   fireEvent,
@@ -5,8 +6,6 @@ import {
   screen,
   waitFor,
 } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import type { ComposerToolbarRef } from './ComposerToolbar';
 import { ComposerWithDraft } from './ComposerWithDraft';
 
@@ -423,14 +422,16 @@ describe('ComposerWithDraft - Draft 功能验证', () => {
     });
 
     it('应该在模板锁定时拒绝 setValue 调用', async () => {
-      const ref: React.RefObject<ComposerToolbarRef | null> = { current: null };
+      const ref: React.MutableRefObject<ComposerToolbarRef | null> = {
+        current: null,
+      };
 
       render(
         <ComposerWithDraft
           conversationId={conversationId}
           channel={ChannelTypeEnum.WhatsApp}
           templateLocked={true}
-          ref={(r) => {
+          ref={r => {
             if (r) ref.current = r;
           }}
         />,
