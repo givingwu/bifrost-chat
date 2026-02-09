@@ -28,6 +28,7 @@ import { ChatLayout } from './ChatLayout';
 export interface DefaultChatLayoutProps {
   className?: string;
   style?: React.CSSProperties;
+  extraTools?: React.ReactNode;
 }
 
 /**
@@ -53,6 +54,7 @@ export interface DefaultChatLayoutProps {
  * ```
  */
 export function DefaultChatLayout({
+  extraTools,
   className,
   style,
 }: DefaultChatLayoutProps) {
@@ -179,7 +181,11 @@ export function DefaultChatLayout({
       className={cn('max-w-350 h-[80vh]', className)}
       style={style}
       topbar={
-        <Topbar title={title} subtitle={subtitle} extra={<TopbarTools />} />
+        <Topbar
+          title={title}
+          subtitle={subtitle}
+          extra={<TopbarTools extra={extraTools} />}
+        />
       }
       conversationPanel={
         <ConversationPanel
