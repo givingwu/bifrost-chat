@@ -174,8 +174,8 @@ describe('useSendMessage - 消息回填功能测试', () => {
     });
   });
 
-  describe('可重试错误（网络错误）', () => {
-    it('应该保存到离线队列并显示重试按钮', async () => {
+  describe('非 Sent 状态（即便标记可重试）', () => {
+    it('应该撤回消息并触发回填事件', async () => {
       const conversationId = 'conv-1';
       const content = '测试消息';
       const errorMessage = '网络连接失败';
@@ -208,18 +208,16 @@ describe('useSendMessage - 消息回填功能测试', () => {
         expect(mockMessageService.send).toHaveBeenCalled();
       });
 
-      // 验证保存到离线队列
-      expect(mockOfflineMessageQueue.createOfflineMessage).toHaveBeenCalled();
-      expect(mockOfflineMessageQueue.enqueue).toHaveBeenCalled();
-
-      // 验证没有触发回填事件
-      expect(eventListener).not.toHaveBeenCalled();
+      // 验证非 Sent 不入离线队列
+      expect(mockOfflineMessageQueue.enqueue).not.toHaveBeenCalled();
+      // 验证触发回填事件
+      expect(eventListener).toHaveBeenCalled();
 
       // 清理
       window.removeEventListener('messageSendFailed', eventListener);
     });
 
-    it('应该在缓存中更新消息状态为 Failed', async () => {
+    it('应该从缓存中删除消息', async () => {
       const conversationId = 'conv-1';
       const content = '测试消息';
 
@@ -247,12 +245,53 @@ describe('useSendMessage - 消息回填功能测试', () => {
         expect(mockMessageService.send).toHaveBeenCalled();
       });
 
-      // 验证消息状态更新为 Failed
+      // 验证消息从缓存中删除
       const data = queryClient.getQueryData<{
-        pages: Array<{ items: Array<{ status: string }> }>;
+        pages: Array<{ items: Array<{ tempId: string }> }>;
+      }>(['messages', 'list', conversationId]);
+
+      expect(data).toBeDefined();
+      expect(data?.pages[0].items).toHaveLength(0);
+    });
+  });
+
+  describe('异常抛出场景（onError）', () => {
+    it('应该写入离线队列并回写 _offlineMessageId 供 retry 使用', async () => {
+      const conversationId = 'conv-1';
+      const content = '测试消息';
+
+      mockMessageService.send.mockRejectedValue(new Error('网络连接失败'));
+
+      const { result } = renderHook(() => useSendMessage(), { wrapper });
+
+      await act(async () => {
+        await expect(
+          result.current.mutateAsync({
+            conversationId,
+            content,
+          }),
+        ).rejects.toThrow('网络连接失败');
+      });
+
+      await waitFor(() => {
+        expect(mockOfflineMessageQueue.enqueue).toHaveBeenCalled();
+      });
+
+      const data = queryClient.getQueryData<{
+        pages: Array<{
+          items: Array<{
+            status: string;
+            _source?: string;
+            _offlineMessageId?: string;
+            error?: string;
+          }>;
+        }>;
       }>(['messages', 'list', conversationId]);
 
       expect(data?.pages[0].items[0].status).toBe(MessageStatusEnum.Failed);
+      expect(data?.pages[0].items[0]._source).toBe('local');
+      expect(data?.pages[0].items[0]._offlineMessageId).toBe('offline-msg-1');
+      expect(data?.pages[0].items[0].error).toBe('网络连接失败');
     });
   });
 

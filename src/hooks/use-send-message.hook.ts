@@ -8,7 +8,6 @@ import type {
   StandardMessage,
 } from '@/interfaces/message.interface';
 import {
-  MessageFailureTypeEnum,
   MessagePriorityEnum,
   MessageStatusEnum,
 } from '@/interfaces/message.interface';
@@ -125,6 +124,10 @@ export function useSendMessage<TParams = any>() {
         console.error('消息发送失败:', error);
       }
 
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      let offlineMessageId: string | undefined;
+
       // 如果有离线队列服务，将失败的消息保存到队列
       if (offlineMessageQueue && context?.tempMessage) {
         try {
@@ -139,10 +142,10 @@ export function useSendMessage<TParams = any>() {
           );
 
           // 添加错误信息
-          offlineMessage.error =
-            error instanceof Error ? error.message : String(error);
+          offlineMessage.error = errorMessage;
 
           await offlineMessageQueue.enqueue(offlineMessage);
+          offlineMessageId = offlineMessage.id;
 
           console.info(
             '[useSendMessage] 消息已保存到离线队列:',
@@ -153,12 +156,22 @@ export function useSendMessage<TParams = any>() {
         }
       }
 
-      // 使用 MessageCacheHelper 更新消息状态为 Failed（而不是回滚）
+      const updates: Partial<StandardMessage> = {
+        status: MessageStatusEnum.Failed,
+        error: errorMessage,
+      };
+
+      if (offlineMessageId) {
+        updates._source = 'local';
+        updates._offlineMessageId = offlineMessageId;
+      }
+
+      // 使用 MessageCacheHelper 更新消息状态为 Failed
       // 支持通过 tempId 查找消息
-      MessageCacheHelper.updateMessageStatus(
+      MessageCacheHelper.updateMessageInCache(
         queryClient,
         variables.conversationId,
-        MessageStatusEnum.Failed,
+        updates,
         undefined, // messageId
         context?.tempMessage.tempId, // tempId
       );
@@ -170,81 +183,34 @@ export function useSendMessage<TParams = any>() {
       if (!tempId) return;
 
       const isFailed =
-        data.status === MessageStatusEnum.Failed || Boolean(data.error);
+        data.status !== MessageStatusEnum.Sent || Boolean(data.error);
 
       if (isFailed) {
-        // 判断是否可重试
-        // 如果后端明确设置了 retryable，使用后端的值
-        // 否则，根据 errorType 判断：只有 Network 类型的错误才可重试
-        // 默认情况下（向后兼容），假设不可重试
-        const isRetryable =
-          data.retryable ?? data.errorType === MessageFailureTypeEnum.Network;
+        // 非 Sent 统一撤回并回填到输入框
+        // 1. 从缓存中删除消息
+        MessageCacheHelper.removeMessageFromCache(
+          queryClient,
+          variables.conversationId,
+          undefined,
+          tempId,
+        );
 
-        if (isRetryable) {
-          // 可重试：保存到离线队列，显示重试按钮
-          MessageCacheHelper.updateMessageInCache(
-            queryClient,
-            variables.conversationId,
-            {
-              status: MessageStatusEnum.Failed,
-              error: data.error,
-              _source: 'local',
-            },
-            undefined,
-            tempId,
-          );
+        // 2. 触发消息回填事件
+        const detail: MessageSendFailedEventDetail = {
+          conversationId: variables.conversationId,
+          content: variables.content,
+          templateId: (variables.extra as any)?.templateId as
+            | string
+            | undefined,
+          error: data.error,
+        };
 
-          if (offlineMessageQueue && context?.tempMessage) {
-            try {
-              const offlineMessage = offlineMessageQueue.createOfflineMessage(
-                context.tempMessage,
-                variables.conversationId,
-                {
-                  content: variables.content,
-                  ...variables.extra,
-                },
-                MessagePriorityEnum.Normal,
-              );
+        triggerMessageSendFailed(detail);
 
-              offlineMessage.error = data.error ?? 'Message send failed';
-
-              await offlineMessageQueue.enqueue(offlineMessage);
-
-              console.info(
-                '[useSendMessage] 消息已保存到离线队列:',
-                offlineMessage.id,
-              );
-            } catch (queueError) {
-              console.error('[useSendMessage] 保存到离线队列失败:', queueError);
-            }
-          }
-        } else {
-          // 不可重试：撤回消息并回填到输入框
-          // 1. 从缓存中删除消息
-          MessageCacheHelper.removeMessageFromCache(
-            queryClient,
-            variables.conversationId,
-            undefined,
-            tempId,
-          );
-
-          // 2. 触发消息回填事件
-          const detail: MessageSendFailedEventDetail = {
-            conversationId: variables.conversationId,
-            content: variables.content,
-            templateId: (variables.extra as any)?.templateId as
-              | string
-              | undefined,
-            error: data.error,
-          };
-
-          triggerMessageSendFailed(detail);
-
-          console.info(
-            '[useSendMessage] 消息发送失败（不可重试），已撤回并触发回填:',
-            detail,
-          );
-        }
+        console.info(
+          '[useSendMessage] 消息发送返回非 Sent，已撤回并触发回填:',
+          detail,
+        );
 
         return;
       }

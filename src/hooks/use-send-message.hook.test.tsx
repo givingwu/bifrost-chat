@@ -146,7 +146,7 @@ describe('useSendMessage Hook', () => {
     });
   });
 
-  it('应在服务返回失败状态时标记为失败并保留错误', async () => {
+  it('应在服务返回非 Sent 状态时撤回乐观消息', async () => {
     const queryClient = new QueryClient({
       defaultOptions: {
         queries: { retry: false },
@@ -204,13 +204,11 @@ describe('useSendMessage Hook', () => {
     });
 
     await waitFor(() => {
-      const failedMessage = getMessages(queryClient, conversationId)[0];
-      expect(failedMessage?.status).toBe(MessageStatusEnum.Failed);
-      expect(failedMessage?.error).toBe('template limit reached');
+      expect(getMessages(queryClient, conversationId)).toHaveLength(0);
     });
   });
 
-  it('应在服务返回 error 但状态非 Failed 时依旧标记失败', async () => {
+  it('应在服务返回 error 时撤回乐观消息', async () => {
     const queryClient = new QueryClient({
       defaultOptions: {
         queries: { retry: false },
@@ -267,9 +265,7 @@ describe('useSendMessage Hook', () => {
     });
 
     await waitFor(() => {
-      const failedMessage = getMessages(queryClient, conversationId)[0];
-      expect(failedMessage?.status).toBe(MessageStatusEnum.Failed);
-      expect(failedMessage?.error).toBe('template limit reached');
+      expect(getMessages(queryClient, conversationId)).toHaveLength(0);
     });
   });
 
