@@ -214,6 +214,7 @@ export const MessageList = ({
               <div key={messageId} data-message-id={messageId}>
                 <MessageRendererFactory
                   message={message}
+                  conversationId={conversationId}
                   onInViewport={handleMessageInViewport}
                 />
               </div>
@@ -269,6 +270,7 @@ export const MessageList = ({
               >
                 <MessageRendererFactory
                   message={message}
+                  conversationId={conversationId}
                   onInViewport={handleMessageInViewport}
                 />
               </div>

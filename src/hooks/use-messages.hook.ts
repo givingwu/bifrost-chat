@@ -1,7 +1,8 @@
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import type { StandardMessage } from '@/interfaces/message.interface';
 import { queryKeys } from '@/providers/query.provider';
 import { useServices } from '@/providers/service.provider';
+import { MessageMerger } from '@/services/message-merger.service';
 
 /**
  * 消息分页数据
@@ -78,6 +79,26 @@ export function useMessages<TParams = any>(
 ) {
   const services = useServices();
 
+  // 获取离线队列中的失败消息
+  const { data: offlineMessages = [] } = useQuery({
+    queryKey: ['offlineMessages', conversationId],
+    queryFn: async () => {
+      if (!services?.offlineMessageQueue) {
+        return [];
+      }
+      try {
+        return await services.offlineMessageQueue.getByConversation(
+          conversationId,
+        );
+      } catch (error) {
+        console.error('[useMessages] 获取离线消息失败:', error);
+        return [];
+      }
+    },
+    staleTime: 0, // 始终重新获取
+    enabled: !!conversationId && !!services?.offlineMessageQueue,
+  });
+
   return useInfiniteQuery({
     queryKey: queryKeys.messages.list(conversationId),
     queryFn: async ({ pageParam = 1 }) => {
@@ -88,14 +109,23 @@ export function useMessages<TParams = any>(
         } as MessagesPage;
       }
 
-      const messages = await services.messageService.list(conversationId, {
-        ...(params ?? {}),
-        page: pageParam,
-      } as TParams);
+      const serverMessages = await services.messageService.list(
+        conversationId,
+        {
+          ...(params ?? {}),
+          page: pageParam,
+        } as TParams,
+      );
+
+      // 合并服务端消息和失败消息
+      const mergedMessages = MessageMerger.merge(
+        serverMessages,
+        offlineMessages,
+      );
 
       return {
-        items: messages,
-        nextCursor: messages.length >= 20 ? pageParam + 1 : undefined,
+        items: mergedMessages,
+        nextCursor: mergedMessages.length >= 20 ? pageParam + 1 : undefined,
       } as MessagesPage;
     },
     initialPageParam: 1,

@@ -7,6 +7,8 @@ import { MessageBubble } from './MessageBubble';
 export interface MessageRendererFactoryProps {
   /** 标准消息 */
   message: StandardMessage;
+  /** 会话 ID */
+  conversationId?: string;
   /** 消息进入视口时触发 */
   onInViewport?: (message: StandardMessage) => void;
 }
@@ -18,6 +20,7 @@ export interface MessageRendererFactoryProps {
  */
 export const MessageRendererFactory = ({
   message,
+  conversationId,
   onInViewport,
 }: MessageRendererFactoryProps) => {
   // 系统消息（如 Other 类型）居中显示
@@ -32,5 +35,11 @@ export const MessageRendererFactory = ({
   }
 
   // 普通消息使用 MessageBubble 组件
-  return <MessageBubble message={message} onInViewport={onInViewport} />;
+  return (
+    <MessageBubble
+      message={message}
+      conversationId={conversationId}
+      onInViewport={onInViewport}
+    />
+  );
 };

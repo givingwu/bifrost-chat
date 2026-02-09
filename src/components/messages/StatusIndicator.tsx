@@ -2,6 +2,7 @@ import {
   AlertCircle,
   Check,
   CheckCheck,
+  CheckLine,
   Loader2,
   type LucideIcon,
 } from 'lucide-react';
@@ -68,28 +69,28 @@ export const StatusIndicator = memo(
         [MessageStatusEnum.Queued]: {
           icon: Loader2,
           size: 'h-4 w-4',
-          colorClass: 'text-primary/40',
+          colorClass: 'text-primary/50',
           animate: true,
         },
         [MessageStatusEnum.Created]: {
           icon: Loader2,
           size: 'h-4 w-4',
-          colorClass: 'text-primary/50',
+          colorClass: 'text-primary/60',
           animate: true,
         },
         [MessageStatusEnum.Sending]: {
           icon: Loader2,
           size: 'h-4 w-4',
-          colorClass: 'text-primary/60',
+          colorClass: 'text-primary/80',
           animate: true,
         },
         [MessageStatusEnum.Sent]: {
           icon: Check,
           size: 'h-4 w-4',
-          colorClass: 'text-primary/70',
+          colorClass: 'text-primary/80',
         },
         [MessageStatusEnum.Delivered]: {
-          icon: CheckCheck,
+          icon: CheckLine,
           size: 'h-4 w-4',
           colorClass: 'text-primary/80',
         },

@@ -117,6 +117,12 @@ export interface StandardMessage {
   receiver?: MessageParticipant;
   /** 透传协议字段（from/to/ptype 等） */
   metadata?: Record<string, unknown>;
+  /** 消息来源（内部使用，用于区分服务端消息和本地失败消息） */
+  _source?: 'server' | 'local';
+  /** 离线消息 ID（用于重试/删除本地失败消息） */
+  _offlineMessageId?: string;
+  /** 错误信息（发送失败时） */
+  error?: string;
 }
 
 /**

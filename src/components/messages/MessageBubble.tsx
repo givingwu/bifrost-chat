@@ -6,8 +6,8 @@ import {
   MessageTypeEnum,
   type StandardMessage,
 } from '@/interfaces/message.interface';
-import { useTranslation } from '@/providers/I18n.provider';
 import { cn } from '@/utils/class.util';
+import { MessageActions } from './MessageActions';
 import { MessageContentRenderer } from './MessageContentRenderer';
 import { MessageTimestamp } from './MessageTimestamp';
 import { StatusIndicator } from './StatusIndicator';
@@ -15,6 +15,8 @@ import { StatusIndicator } from './StatusIndicator';
 export interface MessageBubbleProps {
   /** 标准消息 */
   message: StandardMessage;
+  /** 会话 ID */
+  conversationId?: string;
   /** 消息进入视口时触发 */
   onInViewport?: (message: StandardMessage) => void;
 }
@@ -26,9 +28,9 @@ export interface MessageBubbleProps {
  */
 export const MessageBubble = ({
   message,
+  conversationId,
   onInViewport,
 }: MessageBubbleProps) => {
-  const { t } = useTranslation();
   const isMe = message.direction === MessageDirectionEnum.Outgoing;
   const bubbleRef = useRef<HTMLDivElement>(null);
   const latestMessageRef = useRef(message);
@@ -71,14 +73,30 @@ export const MessageBubble = ({
           <MessageContentRenderer message={message} />
         </div>
         <div className="mt-1 flex items-center gap-1 px-1">
-          {isMe && <StatusIndicator status={message.status} />}
-          {message.status === MessageStatusEnum.Failed && (
-            <span className="text-xs font-medium text-error">
-              {t('message.retry')}
-            </span>
+          {isMe && (
+            <>
+              <StatusIndicator status={message.status} />
+              {message.status === MessageStatusEnum.Failed && (
+                <MessageActions
+                  message={message}
+                  conversationId={conversationId}
+                />
+              )}
+            </>
           )}
           <MessageTimestamp timestamp={message.timestamp} />
-          {!isMe && <StatusIndicator status={message.status} />}
+          {!isMe && (
+            <>
+              {message.status === MessageStatusEnum.Failed && (
+                <MessageActions
+                  className="flex-row-reverse"
+                  message={message}
+                  conversationId={conversationId}
+                />
+              )}
+              <StatusIndicator status={message.status} />
+            </>
+          )}
         </div>
       </div>
     </div>
