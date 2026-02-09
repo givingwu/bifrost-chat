@@ -1,6 +1,7 @@
 import type { QueryClient } from '@tanstack/react-query';
 import type { StandardMessage } from '@/interfaces/message.interface';
 import { queryKeys } from '@/providers/query.provider';
+import { MessageCacheHelper } from '@/services/message-cache-helper.service';
 
 /**
  * WebSocket 消息类型
@@ -105,6 +106,10 @@ function getMessageText(content: StandardMessage['content']): string {
 
 /**
  * 处理新消息
+ *
+ * @description
+ * 使用 MessageCacheHelper 处理新消息，支持无限查询数据结构。
+ * 自动去重（基于 id 和 tempId），避免重复消息。
  */
 function handleNewMessage(
   queryClient: QueryClient,
@@ -114,22 +119,19 @@ function handleNewMessage(
     return;
   }
 
-  // 更新消息列表缓存
-  queryClient.setQueryData(
-    queryKeys.messages.list(data.conversationId),
-    (old: StandardMessage[] | undefined) => {
-      if (!old) {
-        return [data.message!];
-      }
-      // 避免重复添加
-      if (old.some((msg) => msg.id === data.message!.id)) {
-        return old;
-      }
-      return [...old, data.message!];
-    },
+  // 1. 添加新消息到消息列表缓存
+  // Query Key: ['messages', 'list', conversationId]
+  // 操作的是特定会话的消息列表
+  MessageCacheHelper.addMessageToCache(
+    queryClient,
+    data.conversationId,
+    data.message,
   );
 
-  // 更新会话列表中的最后一条消息
+  // 2. 更新会话列表中的会话信息
+  // Query Key: ['conversations', 'list']
+  // 操作的是会话列表，更新最后一条消息、时间戳、未读数等
+  // 注意：这两个操作针对不同的缓存，不会有冲突
   queryClient.setQueryData(
     queryKeys.conversations.list(),
     (old: unknown[] | undefined) => {
@@ -153,6 +155,10 @@ function handleNewMessage(
 
 /**
  * 处理消息状态更新
+ *
+ * @description
+ * 使用 MessageCacheHelper 更新消息状态，支持无限查询数据结构。
+ * 同时支持通过 messageId 和 tempId 查找消息。
  */
 function handleMessageStatusUpdate(
   queryClient: QueryClient,
@@ -162,23 +168,14 @@ function handleMessageStatusUpdate(
     return;
   }
 
-  // 更新消息状态
-  queryClient.setQueryData(
-    queryKeys.messages.list(data.conversationId),
-    (old: StandardMessage[] | undefined) => {
-      if (!old) {
-        return old;
-      }
-      return old.map((msg) => {
-        if (msg.id === data.messageId) {
-          return {
-            ...msg,
-            status: data.status as any,
-          };
-        }
-        return msg;
-      });
-    },
+  // 使用 MessageCacheHelper 更新消息状态
+  // 支持通过 messageId 或 tempId 查找消息
+  MessageCacheHelper.updateMessageStatus(
+    queryClient,
+    data.conversationId,
+    data.status as any,
+    data.messageId,
+    undefined, // tempId 如果需要可以从 data 中获取
   );
 }
 

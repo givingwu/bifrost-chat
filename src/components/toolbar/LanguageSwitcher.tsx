@@ -35,7 +35,7 @@ export const LanguageSwitcher = ({
       onClick={nextLanguage}
       className={
         value === LanguageCodeEnum.EnUS
-          ? 'text-text-muted hover:border-border hover:bg-muted/60 hover:text-text'
+          ? 'text-gray-400 dark:text-gray-500 hover:border-border hover:bg-muted/60 hover:text-text'
           : 'text-primary hover:border-primary/30 hover:bg-primary/10'
       }
     >

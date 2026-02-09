@@ -3,12 +3,18 @@
  * @param timestamp
  * @returns
  */
-export const formatTimestamp = (timestamp: number) => {
+export const formatTimestamp = (
+  timestamp: number,
+  locale: string = 'zh-CN',
+) => {
   if (!timestamp) return;
 
   const date = new Date(timestamp);
 
-  return date.toLocaleTimeString('en-US', {
+  return date.toLocaleString(locale, {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
     hour: '2-digit',
     minute: '2-digit',
   });

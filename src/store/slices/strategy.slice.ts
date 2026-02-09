@@ -1,6 +1,12 @@
 import type { StateCreator } from 'zustand';
 import type { AgentStatusEnum } from '@/interfaces/agent.interface';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
+import type { MessageTypeEnum } from '@/interfaces/message.interface';
+import {
+  type ChannelMessageTypeConfig,
+  getDefaultChannelMessageTypes,
+  MessageTypeDisplayStrategy,
+} from '@/interfaces/message-type-config.interface';
 
 /**
  * Strategy Slice：渠道策略与坐席状态。
@@ -12,6 +18,16 @@ export interface StrategyState {
   activeChannel?: ChannelTypeEnum;
   /** 坐席状态（用于 in_call 互斥策略） */
   agentStatus?: AgentStatusEnum;
+  /** 允许的消息类型列表（当前激活渠道） */
+  allowedMessageTypes: MessageTypeEnum[];
+  /** 不支持消息的显示策略 */
+  messageDisplayStrategy: MessageTypeDisplayStrategy;
+  /** 自定义不支持提示文案 */
+  unsupportedMessage?: string;
+  /** 按渠道配置的消息类型支持 */
+  channelMessageTypeConfigs?: Partial<
+    Record<ChannelTypeEnum, ChannelMessageTypeConfig>
+  >;
 }
 
 export interface StrategySlice {
@@ -19,6 +35,12 @@ export interface StrategySlice {
   actions: {
     setStrategy: (payload: Partial<StrategyState>) => void;
     setActiveChannel: (channel: ChannelTypeEnum) => void;
+    setAllowedMessageTypes: (types: MessageTypeEnum[]) => void;
+    setMessageDisplayStrategy: (strategy: MessageTypeDisplayStrategy) => void;
+    updateChannelMessageTypeConfig: (
+      channel: ChannelTypeEnum,
+      config: ChannelMessageTypeConfig,
+    ) => void;
   };
 }
 
@@ -31,6 +53,8 @@ export const createStrategySlice: StateCreator<
   strategy: {
     allowedChannels: [ChannelTypeEnum.Waba],
     activeChannel: ChannelTypeEnum.Waba,
+    allowedMessageTypes: getDefaultChannelMessageTypes(ChannelTypeEnum.Waba),
+    messageDisplayStrategy: MessageTypeDisplayStrategy.ShowUnsupported,
   },
   actions: {
     setStrategy: (payload: Partial<StrategyState>) =>
@@ -40,6 +64,30 @@ export const createStrategySlice: StateCreator<
     setActiveChannel: (channel: ChannelTypeEnum) =>
       set((state) => ({
         strategy: { ...state.strategy, activeChannel: channel },
+      })),
+    setAllowedMessageTypes: (types: MessageTypeEnum[]) =>
+      set((state) => ({
+        strategy: { ...state.strategy, allowedMessageTypes: types },
+      })),
+    setMessageDisplayStrategy: (strategy: MessageTypeDisplayStrategy) =>
+      set((state) => ({
+        strategy: {
+          ...state.strategy,
+          messageDisplayStrategy: strategy,
+        },
+      })),
+    updateChannelMessageTypeConfig: (
+      channel: ChannelTypeEnum,
+      config: ChannelMessageTypeConfig,
+    ) =>
+      set((state) => ({
+        strategy: {
+          ...state.strategy,
+          channelMessageTypeConfigs: {
+            ...state.strategy.channelMessageTypeConfigs,
+            [channel]: config,
+          },
+        },
       })),
   },
 });

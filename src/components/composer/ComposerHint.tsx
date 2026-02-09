@@ -41,7 +41,7 @@ export const ComposerHint = memo<ComposerHintProps>(({ channel }) => {
       className={cn(
         'flex items-center gap-1',
         TEXT_SIZES.HINT,
-        'text-text-muted',
+        'text-gray-400 dark:text-gray-500',
       )}
       data-testid={TEST_IDS.COMPOSER_HINT}
     >

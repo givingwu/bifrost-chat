@@ -2,8 +2,11 @@ import {
   AlertCircle,
   Check,
   CheckCheck,
+  CheckLine,
+  Loader,
   Loader2,
   type LucideIcon,
+  RefreshCcw,
 } from 'lucide-react';
 import { memo, useMemo } from 'react';
 import { MessageStatusEnum } from '@/interfaces/message.interface';
@@ -16,6 +19,8 @@ export interface StatusIndicatorProps {
   className?: string;
   /** 是否显示动画（仅对发送中状态有效） */
   animate?: boolean;
+  /** 是否显示悬浮状态提示 */
+  showTooltip?: boolean;
 }
 
 /**
@@ -31,7 +36,9 @@ interface StatusConfig {
   /** 是否需要动画 */
   animate?: boolean;
   /** ARIA 标签，用于无障碍访问 */
-  ariaLabel: string;
+  label: string;
+  /** Tooltip 文案 */
+  tooltip: string;
 }
 
 /**
@@ -42,7 +49,12 @@ interface StatusConfig {
  * - 支持无障碍访问（ARIA 标签）。
  */
 export const StatusIndicator = memo(
-  ({ status, className = '', animate = true }: StatusIndicatorProps) => {
+  ({
+    status,
+    className = '',
+    animate = true,
+    showTooltip = true,
+  }: StatusIndicatorProps) => {
     const { t } = useTranslation();
 
     // 使用 useMemo 缓存配置选择结果
@@ -54,40 +66,40 @@ export const StatusIndicator = memo(
       // 根据状态生成配置（使用翻译）
       const statusConfigMap: Record<
         MessageStatusEnum,
-        Omit<StatusConfig, 'ariaLabel'>
+        Omit<StatusConfig, 'label' | 'tooltip'>
       > = {
         [MessageStatusEnum.Queued]: {
-          icon: Loader2,
-          size: 'h-3 w-3',
+          icon: RefreshCcw,
+          size: 'h-4 w-4',
           colorClass: 'text-primary/40',
           animate: true,
         },
         [MessageStatusEnum.Created]: {
-          icon: Loader2,
-          size: 'h-3 w-3',
-          colorClass: 'text-primary/50',
+          icon: Loader,
+          size: 'h-4 w-4',
+          colorClass: 'text-primary/60',
           animate: true,
         },
         [MessageStatusEnum.Sending]: {
           icon: Loader2,
-          size: 'h-3 w-3',
+          size: 'h-4 w-4',
           colorClass: 'text-primary/60',
           animate: true,
         },
         [MessageStatusEnum.Sent]: {
           icon: Check,
           size: 'h-4 w-4',
-          colorClass: 'text-primary/70',
+          colorClass: 'text-primary/60',
         },
         [MessageStatusEnum.Delivered]: {
-          icon: CheckCheck,
+          icon: CheckLine,
           size: 'h-4 w-4',
-          colorClass: 'text-primary/80',
+          colorClass: 'text-primary/60',
         },
         [MessageStatusEnum.Read]: {
           icon: CheckCheck,
           size: 'h-4 w-4',
-          colorClass: 'text-green-500/80',
+          colorClass: 'text-green-500/60',
         },
         [MessageStatusEnum.Failed]: {
           icon: AlertCircle,
@@ -102,10 +114,20 @@ export const StatusIndicator = memo(
         return null;
       }
 
-      // 添加翻译的 ariaLabel
+      const statusKey = `message.status.${status.toLowerCase()}`;
+      const translatedLabel = t(statusKey);
+      const label = translatedLabel === statusKey ? status : translatedLabel;
+
+      const tooltipKey = 'message.status.tooltip';
+      const translatedTooltip = t(tooltipKey, { status: label });
+      const tooltip =
+        translatedTooltip === tooltipKey ? label : translatedTooltip;
+
+      // 添加翻译文案
       return {
         ...baseConfig,
-        ariaLabel: t(`message.status.${status.toLowerCase()}`),
+        label,
+        tooltip,
       };
     }, [status, t]);
 
@@ -116,8 +138,9 @@ export const StatusIndicator = memo(
       size,
       colorClass,
       animate: shouldAnimate,
-      ariaLabel,
-    } = config || {};
+      label,
+      tooltip,
+    } = config;
 
     // 构建类名
     const iconClassName = `${size} ${colorClass} ${
@@ -125,11 +148,9 @@ export const StatusIndicator = memo(
     } ${className}`.trim();
 
     return (
-      <Icon
-        className={iconClassName}
-        aria-label={ariaLabel}
-        aria-live="polite"
-      />
+      <span title={showTooltip ? tooltip : undefined}>
+        <Icon className={iconClassName} aria-label={label} aria-live="polite" />
+      </span>
     );
   },
 );

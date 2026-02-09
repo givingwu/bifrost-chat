@@ -27,6 +27,7 @@ export * from '@/interfaces/conversation.interface';
 export * from '@/interfaces/error.interface';
 export * from '@/interfaces/language.interface';
 export * from '@/interfaces/message.interface';
+export * from '@/interfaces/message-type-config.interface';
 export * from '@/interfaces/network.interface';
 export * from '@/interfaces/profile.interface';
 export * from '@/interfaces/sdk.interface';
@@ -51,11 +52,13 @@ export * from '@/providers/service.provider';
 export * from '@/services/conversation.service';
 export * from '@/services/message.service';
 export * from '@/services/message-builder.service';
+export * from '@/services/message-cache-helper.service';
 export * from '@/services/template.service';
 
 // Store
 export * from '@/store';
 // Utils
 export * from '@/utils/class.util';
+export * from '@/utils/sdk-cleanup.util';
 export * from '@/utils/storage.util';
 export * from '@/utils/time.util';

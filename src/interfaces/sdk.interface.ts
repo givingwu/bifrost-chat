@@ -3,6 +3,7 @@ import type { ConnectionStateEnum } from './connection.interface';
 import type { User } from './conversation.interface';
 import type { SDKError } from './error.interface';
 import type { StandardMessage } from './message.interface';
+import type { MessageTypeConfig } from './message-type-config.interface';
 
 /**
  * SDK 配置接口
@@ -32,6 +33,8 @@ export interface SDKConfig {
   };
   /** 是否启用 DevTools */
   enableDevTools?: boolean;
+  /** 消息类型配置 */
+  messageTypeConfig?: MessageTypeConfig;
 }
 
 /**

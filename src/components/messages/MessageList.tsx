@@ -214,6 +214,7 @@ export const MessageList = ({
               <div key={messageId} data-message-id={messageId}>
                 <MessageRendererFactory
                   message={message}
+                  conversationId={conversationId}
                   onInViewport={handleMessageInViewport}
                 />
               </div>
@@ -221,7 +222,7 @@ export const MessageList = ({
           })
         ) : (
           <div className="flex h-full flex-1 items-center justify-center">
-            <span className="text-sm text-text-muted">
+            <span className="text-sm text-gray-400 dark:text-gray-500">
               {t('message.empty')}
             </span>
           </div>
@@ -239,7 +240,9 @@ export const MessageList = ({
     >
       {messages.length === 0 ? (
         <div className="flex h-full flex-1 items-center justify-center">
-          <span className="text-sm text-text-muted">{t('message.empty')}</span>
+          <span className="text-sm text-gray-400 dark:text-gray-500">
+            {t('message.empty')}
+          </span>
         </div>
       ) : (
         <div
@@ -269,6 +272,7 @@ export const MessageList = ({
               >
                 <MessageRendererFactory
                   message={message}
+                  conversationId={conversationId}
                   onInViewport={handleMessageInViewport}
                 />
               </div>

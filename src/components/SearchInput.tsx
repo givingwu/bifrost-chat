@@ -112,7 +112,7 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
               ? 'border focus:border-primary'
               : 'border border-transparent',
             // 文本样式
-            'text-text placeholder:text-text-muted/50',
+            'text-text placeholder:text-gray-500/50',
             // 禁用状态
             'disabled:cursor-not-allowed disabled:opacity-50',
             // 尺寸样式
@@ -128,7 +128,7 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
         {showIcon && (
           <div
             className={cn(
-              'absolute top-1/2 -translate-y-1/2 text-text-muted right-2',
+              'absolute top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 right-2',
             )}
           >
             {icon}
@@ -138,7 +138,7 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
           <Button
             type="button"
             onClick={handleClear}
-            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1 text-text-muted transition-colors hover:bg-gray-200/50 hover:text-text dark:hover:bg-white/10"
+            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1 text-gray-400 dark:text-gray-500 transition-colors hover:bg-gray-200/50 hover:text-text dark:hover:bg-white/10"
             aria-label="Clear"
           >
             <svg

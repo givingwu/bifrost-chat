@@ -142,12 +142,41 @@ export const ComposerToolbar = forwardRef<
   const [currentTemplateId, setCurrentTemplateId] = useState<
     string | undefined
   >();
+  const [sendError, setSendError] = useState<string | null>(null);
   const inputRef = useRef<ComposerInputRef>(null);
 
   // 同步 templateLocked prop 的变化到内部状态
   useEffect(() => {
     setIsTemplateLocked(templateLocked);
   }, [templateLocked]);
+
+  // 监听消息发送失败事件，显示错误提示
+  useEffect(() => {
+    const handleMessageSendFailed = (event: Event) => {
+      const customEvent = event as CustomEvent<{
+        conversationId: string;
+        error?: string;
+      }>;
+      const { error } = customEvent.detail;
+
+      if (error) {
+        setSendError(error);
+
+        // 3秒后自动清除错误提示
+        const timer = setTimeout(() => {
+          setSendError(null);
+        }, 3000);
+
+        return () => clearTimeout(timer);
+      }
+    };
+
+    window.addEventListener('messageSendFailed', handleMessageSendFailed);
+
+    return () => {
+      window.removeEventListener('messageSendFailed', handleMessageSendFailed);
+    };
+  }, []);
 
   // 暴露 ref 方法给父组件
   useImperativeHandle(
@@ -467,6 +496,25 @@ export const ComposerToolbar = forwardRef<
           />
         )}
 
+        {/* 错误提示 */}
+        {sendError && (
+          <div
+            className="bg-error/10 text-error text-sm px-3 py-2 rounded-lg flex items-center justify-between"
+            role="alert"
+            aria-live="polite"
+          >
+            <span>{sendError}</span>
+            <button
+              type="button"
+              onClick={() => setSendError(null)}
+              className="text-error hover:text-error/80 ml-2"
+              aria-label="关闭错误提示"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
         <div className="flex items-center gap-3">
           {composerConfig.enableAttachments && (
             <ComposerAttachments
@@ -509,7 +557,7 @@ export const ComposerToolbar = forwardRef<
         {(composerConfig.showChannelBadge ||
           composerConfig.showCharCount ||
           composerConfig.showHint) && (
-          <div className="mt-2 flex items-center justify-between text-[10px] text-text-muted">
+          <div className="mt-2 flex items-center justify-between text-[10px] text-gray-400 dark:text-gray-500">
             {composerConfig.showChannelBadge && (
               <span
                 className="rounded-full border border-border px-2.5 py-1"

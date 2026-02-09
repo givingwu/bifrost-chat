@@ -84,7 +84,8 @@ export const ComposerActions = memo<ComposerActionsProps>(
         <IconButton
           icon={<Send className={BUTTON_SIZES.ICON_MEDIUM} />}
           variant="primary"
-          size="md"
+          size="sm"
+          className="bg-blue-500 hover:bg-blue-600 text-white rounded-full shadow-lg shadow-blue-500/30 transition-all transform hover:scale-105 active:scale-95 mb-0.5"
           onClick={onSend}
           loading={loading}
           disabled={disabled}
@@ -101,7 +102,7 @@ export const ComposerActions = memo<ComposerActionsProps>(
         <IconButton
           icon={<X className={BUTTON_SIZES.ICON_MEDIUM} />}
           variant="muted"
-          size="md"
+          size="sm"
           onClick={onClear}
           disabled={disabled}
           aria-label={ARIA_LABELS.CLEAR}
@@ -117,7 +118,7 @@ export const ComposerActions = memo<ComposerActionsProps>(
         <IconButton
           icon={<Mic className={BUTTON_SIZES.ICON_MEDIUM} />}
           variant="muted"
-          size="md"
+          size="sm"
           disabled={disabled}
           onClick={onAudioInput}
           aria-label={ARIA_LABELS.VOICE_INPUT}

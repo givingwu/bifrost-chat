@@ -283,7 +283,7 @@ const EmojiCategoryTab = memo<{
       'hover:bg-muted',
       'focus:outline-none focus:ring-2 focus:ring-primary/40',
       isActive && 'bg-muted text-text',
-      !isActive && 'text-text-muted',
+      !isActive && 'text-gray-400 dark:text-gray-500',
     )}
     aria-label={`切换到${category.name}分类`}
     role="tab"
@@ -495,7 +495,9 @@ export const EmojiPicker = memo<EmojiPickerProps>(
           aria-modal="true"
           aria-label="表情选择器"
         >
-          <p className="text-sm text-text-muted text-center">暂无表情</p>
+          <p className="text-sm text-gray-400 dark:text-gray-500 text-center">
+            暂无表情
+          </p>
         </div>
       );
     }
@@ -580,7 +582,7 @@ export const EmojiPicker = memo<EmojiPickerProps>(
 
         {/* 底部提示 */}
         <div className="border-t border-border bg-muted/30 px-4 py-2">
-          <p className="text-[10px] text-text-muted text-center">
+          <p className="text-[10px] text-gray-400 dark:text-gray-500 text-center">
             {showCategories && !emojis
               ? `当前分类：${EMOJI_CATEGORIES.find((c) => c.id === activeCategory)?.name} · 共 ${emojiList.length} 个表情`
               : `共 ${emojiList.length} 个表情`}

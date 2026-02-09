@@ -1,6 +1,6 @@
 // Basic Components
 export { Avatar } from './Avatar';
-export { Button } from './Button';
+export { Button, CircularButton } from './Button';
 // Composer Components
 export { AttachmentPreview } from './composer/AttachmentPreview';
 export { ComposerActions } from './composer/ComposerActions';

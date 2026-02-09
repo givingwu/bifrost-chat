@@ -141,7 +141,7 @@ export const AudioRecorder = memo<AudioRecorderProps>(
 
         {/* 最大时长提示 */}
         {maxDuration && (
-          <span className="text-xs text-text-muted">
+          <span className="text-xs text-gray-400 dark:text-gray-500">
             / {formatDuration(maxDuration)}
           </span>
         )}

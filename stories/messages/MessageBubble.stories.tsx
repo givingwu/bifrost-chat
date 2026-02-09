@@ -227,6 +227,152 @@ export const FailedMessage = () => {
   );
 };
 
+// 发送成功的消息
+export const Sent: Story = {
+  args: {
+    message: {
+      id: 'msg-1',
+      direction: MessageDirectionEnum.Outgoing,
+      channelType: 'whatsapp' as any,
+      status: MessageStatusEnum.Sent,
+      timestamp: Date.now(),
+      type: MessageTypeEnum.Text,
+      content: { text: '这是一条已发送的消息' },
+      sender: { id: 'user-1' },
+      receiver: { id: 'user-2' },
+    },
+    conversationId: 'conv-123',
+  },
+};
+
+// 发送失败的消息（带操作按钮）
+export const Failed: Story = {
+  args: {
+    message: {
+      id: 'msg-2',
+      tempId: 'temp-2',
+      direction: MessageDirectionEnum.Outgoing,
+      channelType: 'whatsapp' as any,
+      status: MessageStatusEnum.Failed,
+      timestamp: Date.now(),
+      type: MessageTypeEnum.Text,
+      content: { text: '这是一条发送失败的消息' },
+      sender: { id: 'user-1' },
+      receiver: { id: 'user-2' },
+      _source: 'local',
+      _offlineMessageId: 'offline-2',
+      error: '网络连接失败',
+    },
+    conversationId: 'conv-123',
+  },
+};
+
+// 发送失败的消息（带详细错误信息）
+export const FailedWithError: Story = {
+  args: {
+    message: {
+      id: 'msg-3',
+      tempId: 'temp-3',
+      direction: MessageDirectionEnum.Outgoing,
+      channelType: 'whatsapp' as any,
+      status: MessageStatusEnum.Failed,
+      timestamp: Date.now(),
+      type: MessageTypeEnum.Text,
+      content: { text: '这是一条发送失败的消息' },
+      sender: { id: 'user-1' },
+      receiver: { id: 'user-2' },
+      _source: 'local',
+      _offlineMessageId: 'offline-3',
+      error: '超时：请求在 30 秒内未完成',
+    },
+    conversationId: 'conv-123',
+  },
+};
+
+// 发送失败的消息（带详细错误信息）
+export const FailedWithIncomingError: Story = {
+  args: {
+    message: {
+      id: 'msg-3',
+      tempId: 'temp-3',
+      direction: MessageDirectionEnum.Incoming,
+      channelType: 'whatsapp' as any,
+      status: MessageStatusEnum.Failed,
+      timestamp: Date.now(),
+      type: MessageTypeEnum.Text,
+      content: { text: '这是一条发送失败的消息' },
+      sender: { id: 'user-1' },
+      receiver: { id: 'user-2' },
+      _source: 'local',
+      _offlineMessageId: 'offline-3',
+      error: '超时：请求在 30 秒内未完成',
+    },
+    conversationId: 'conv-123',
+  },
+};
+
+// 接收的消息
+export const IncomingMessage: Story = {
+  args: {
+    message: {
+      id: 'msg-4',
+      direction: MessageDirectionEnum.Incoming,
+      channelType: 'whatsapp' as any,
+      status: MessageStatusEnum.Read,
+      timestamp: Date.now(),
+      type: MessageTypeEnum.Text,
+      content: { text: '这是一条接收的消息' },
+      sender: { id: 'user-2' },
+      receiver: { id: 'user-1' },
+    },
+    conversationId: 'conv-123',
+  },
+};
+
+// 发送中的消息
+export const Sending: Story = {
+  args: {
+    message: {
+      id: 'msg-5',
+      tempId: 'temp-5',
+      direction: MessageDirectionEnum.Outgoing,
+      channelType: 'whatsapp' as any,
+      status: MessageStatusEnum.Sending,
+      timestamp: Date.now(),
+      type: MessageTypeEnum.Text,
+      content: { text: '这是一条正在发送的消息' },
+      sender: { id: 'user-1' },
+      receiver: { id: 'user-2' },
+    },
+    conversationId: 'conv-123',
+  },
+};
+
+// 图片消息（发送失败）
+export const FailedImage: Story = {
+  args: {
+    message: {
+      id: 'msg-6',
+      tempId: 'temp-6',
+      direction: MessageDirectionEnum.Outgoing,
+      channelType: 'whatsapp' as any,
+      status: MessageStatusEnum.Failed,
+      timestamp: Date.now(),
+      type: MessageTypeEnum.Image,
+      content: {
+        url: 'https://picsum.photos/300/200',
+        mimeType: 'image/jpeg',
+      },
+      sender: { id: 'user-1' },
+      receiver: { id: 'user-2' },
+      _source: 'local',
+      _offlineMessageId: 'offline-6',
+      error: '图片上传失败',
+    },
+    conversationId: 'conv-123',
+  },
+};
+
 /**
  * 长消息 - 测试消息换行
  */

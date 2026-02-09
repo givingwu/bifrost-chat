@@ -18,7 +18,7 @@ export const ProfileHeader = ({ profile }: ProfileHeaderProps) => {
       <h2 className="text-lg font-semibold text-text">
         {profile?.name ?? 'Customer'}
       </h2>
-      <span className="text-sm text-text-muted">
+      <span className="text-sm text-gray-400 dark:text-gray-500">
         {profile?.role ?? 'Customer'}
       </span>
       <div className="mt-4 flex gap-2">

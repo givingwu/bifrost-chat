@@ -117,6 +117,12 @@ export interface StandardMessage {
   receiver?: MessageParticipant;
   /** 透传协议字段（from/to/ptype 等） */
   metadata?: Record<string, unknown>;
+  /** 消息来源（内部使用，用于区分服务端消息和本地失败消息） */
+  _source?: 'server' | 'local';
+  /** 离线消息 ID（用于重试/删除本地失败消息） */
+  _offlineMessageId?: string;
+  /** 错误信息（发送失败时） */
+  error?: string;
 }
 
 /**
@@ -170,6 +176,22 @@ export interface MessageRetryConfig {
 }
 
 /**
+ * 消息发送失败类型
+ */
+export enum MessageFailureTypeEnum {
+  /** 网络错误（可重试） */
+  Network = 'network',
+  /** 业务逻辑错误（不可重试） */
+  BusinessLogic = 'business_logic',
+  /** 验证错误（不可重试） */
+  Validation = 'validation',
+  /** 权限错误（不可重试） */
+  Authorization = 'authorization',
+  /** 配额错误（不可重试） */
+  Quota = 'quota',
+}
+
+/**
  * 消息发送结果
  */
 export interface MessageSendResult {
@@ -177,10 +199,19 @@ export interface MessageSendResult {
   tempId: string;
   /** 真实消息 ID（服务端返回） */
   messageId?: string;
+  /**
+   * 接口响应最外层 code：0 表示成功不回退，1 表示失败需回退消息。
+   * 若 host 传入此字段则优先据此判断是否回退，未传时沿用 status/error。
+   */
+  responseCode?: number;
   /** 发送状态 */
   status: MessageStatusEnum;
   /** 错误信息（如果失败） */
   error?: string;
+  /** 错误类型（用于区分可重试和不可重试） */
+  errorType?: MessageFailureTypeEnum;
   /** 重试次数 */
   retryCount?: number;
+  /** 是否可重试 */
+  retryable?: boolean;
 }

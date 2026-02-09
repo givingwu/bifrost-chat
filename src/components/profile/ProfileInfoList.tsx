@@ -34,9 +34,11 @@ export const ProfileInfoList = ({ profile }: ProfileInfoListProps) => {
       <ProfileSectionTitle title="Information" />
       {infoItems.map((item) => (
         <div key={item.label} className="flex items-center gap-3 text-sm">
-          <div className="text-text-muted">{item.icon}</div>
+          <div className="text-gray-400 dark:text-gray-500">{item.icon}</div>
           <div className="flex-1">
-            <p className="text-xs text-text-muted">{item.label}</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500">
+              {item.label}
+            </p>
             <p className="font-medium text-text">{item.value}</p>
           </div>
         </div>

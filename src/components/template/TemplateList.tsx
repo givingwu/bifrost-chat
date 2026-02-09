@@ -41,7 +41,7 @@ export const TemplateList = ({
   if (templates.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-8">
-        <p className="text-sm text-text-muted">暂无模板</p>
+        <p className="text-sm text-gray-400 dark:text-gray-500">暂无模板</p>
       </div>
     );
   }
@@ -95,7 +95,7 @@ export const TemplateList = ({
 
             <ChevronRight
               className={cn(
-                'h-3 w-3 shrink-0 text-text-muted',
+                'h-3 w-3 shrink-0 text-gray-400 dark:text-gray-500',
                 'transition-transform',
                 isSelected && 'text-primary',
               )}

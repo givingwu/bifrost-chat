@@ -65,7 +65,9 @@ export const WhatsAppMessage = ({ content }: WhatsAppMessageProps) => {
           <h4 className="text-sm font-semibold text-text">
             {data.title ?? 'Template'}
           </h4>
-          <p className="text-xs text-text-muted">{data.description}</p>
+          <p className="text-xs text-gray-400 dark:text-gray-500">
+            {data.description}
+          </p>
         </div>
         <div className="space-y-2">
           {data.buttons?.map(btn => (

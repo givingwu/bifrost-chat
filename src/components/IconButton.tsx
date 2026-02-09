@@ -27,7 +27,7 @@ const variantClasses = {
   primary: 'bg-primary text-primary-foreground shadow-soft hover:opacity-90',
   secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
   ghost: 'bg-transparent hover:bg-muted/50',
-  muted: 'bg-muted text-text-muted hover:text-text',
+  muted: 'bg-muted text-gray-400 dark:text-gray-500 hover:text-gray-600',
 } as const;
 
 /**

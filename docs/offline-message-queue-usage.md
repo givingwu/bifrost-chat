@@ -20,7 +20,7 @@
 - ✅ 消息优先级支持
 - ✅ 重试策略配置（指数退避/线性/固定）
 - ✅ 队列状态订阅
-- ✅ UI 指示器组件
+- ✅ `ServiceProvider` 注入 `offlineMessageQueue`
 
 ### 目标架构（To-Be）
 
@@ -28,6 +28,8 @@
 - [ ] 消息去重
 - [ ] 消息合并（批量发送）
 - [ ] 云端备份
+- [ ] `OfflineMessageProvider` 便捷注入层
+- [ ] `OfflineQueueIndicator` / `useOfflineQueueIndicator` 内建 UI 状态组件
 
 ---
 
@@ -35,11 +37,20 @@
 
 ### 1. 启用离线消息队列
 
-在应用根组件中包裹 `OfflineMessageProvider`：
+当前版本通过 `ServiceProvider` 直接注入 `offlineMessageQueue`：
 
 ```tsx
-import { OfflineMessageProvider } from '@feoe/bifrost-chat';
 import { ServiceProvider } from '@feoe/bifrost-chat';
+import { OfflineMessageQueueService } from '@/services/offline-message-queue.service';
+
+const offlineMessageQueue = new OfflineMessageQueueService({
+  maxQueueSize: 500,
+  messageExpiration: 3 * 24 * 60 * 60 * 1000, // 3 天
+  defaultMaxRetries: 3,
+  retryStrategy: 'exponential',
+});
+
+void offlineMessageQueue.initialize();
 
 function App() {
   return (
@@ -47,17 +58,9 @@ function App() {
       conversationService={myConversationService}
       messageService={myMessageService}
       templateService={myTemplateService}
+      offlineMessageQueue={offlineMessageQueue}
     >
-      <OfflineMessageProvider
-        config={{
-          maxQueueSize: 500,
-          messageExpiration: 3 * 24 * 60 * 60 * 1000, // 3 天
-          defaultMaxRetries: 3,
-          retryStrategy: 'exponential',
-        }}
-      >
-        <ChatApp />
-      </OfflineMessageProvider>
+      <ChatApp />
     </ServiceProvider>
   );
 }
@@ -65,22 +68,29 @@ function App() {
 
 ### 2. 在工具栏中显示队列状态
 
+> To-Be：当前版本没有内建 `OfflineQueueIndicator` /
+> `useOfflineQueueIndicator`。请基于 `offlineMessageQueue.subscribe`
+> 自行实现状态展示。
+
 ```tsx
-import { OfflineQueueIndicator, useOfflineQueueIndicator } from '@feoe/bifrost-chat';
+import { useEffect, useState } from 'react';
+import { useServices } from '@/providers/service.provider';
 
-function Toolbar() {
-  const { count, isSyncing } = useOfflineQueueIndicator();
+function OfflineQueueBadge() {
+  const { offlineMessageQueue } = useServices();
+  const [count, setCount] = useState(0);
 
-  return (
-    <div className="toolbar">
-      {/* 其他工具栏组件 */}
-      <OfflineQueueIndicator
-        count={count}
-        isSyncing={isSyncing}
-        onClick={() => console.log('查看离线队列')}
-      />
-    </div>
-  );
+  useEffect(() => {
+    if (!offlineMessageQueue) return;
+
+    return offlineMessageQueue.subscribe((messages) => {
+      setCount(messages.length);
+    });
+  }, [offlineMessageQueue]);
+
+  if (count === 0) return null;
+
+  return <span className="badge">{count}</span>;
 }
 ```
 
@@ -88,7 +98,7 @@ function Toolbar() {
 
 ```tsx
 import { MessageStatusEnum } from '@feoe/bifrost-chat';
-import { useRetryOfflineMessage } from '@feoe/bifrost-chat';
+import { useRetryOfflineMessage } from '@/hooks/use-offline-sync.hook';
 
 function MessageBubble({ message }) {
   const { retryMessage, isRetrying } = useRetryOfflineMessage();
@@ -192,21 +202,21 @@ function SyncButton() {
 
 ### Hooks
 
-#### `useOfflineMessage()`
+#### `useServices()`（As-Is）
 
-获取离线消息队列服务实例。
+通过依赖注入上下文获取离线队列服务实例。
 
 ```tsx
-const { queueService, isInitialized, error } = useOfflineMessage();
+import { useServices } from '@/providers/service.provider';
+
+const { offlineMessageQueue } = useServices();
 ```
 
-**返回值：**
+**返回值（离线队列相关）：**
 
 | 属性 | 类型 | 说明 |
 |------|------|------|
-| `queueService` | `OfflineMessageQueueService \| null` | 队列服务实例 |
-| `isInitialized` | `boolean` | 是否已初始化 |
-| `error` | `Error \| null` | 初始化错误 |
+| `offlineMessageQueue` | `OfflineMessageQueueService \| undefined` | 队列服务实例，未启用时为 `undefined` |
 
 #### `useOfflineSync()`
 
@@ -241,46 +251,17 @@ await retryMessage(messageId);
 | `retryMessage` | `(messageId: string) => Promise<void>` | 重试消息 |
 | `isRetrying` | `boolean` | 是否正在重试 |
 
-#### `useOfflineQueueIndicator()`
+#### `useOfflineQueueIndicator()`（To-Be）
 
-订阅离线队列状态。
-
-```tsx
-const { count, isSyncing } = useOfflineQueueIndicator();
-```
-
-**返回值：**
-
-| 属性 | 类型 | 说明 |
-|------|------|------|
-| `count` | `number` | 队列中的消息数量 |
-| `isSyncing` | `boolean` | 是否正在同步 |
+> 当前版本未提供该 Hook。
+> 推荐使用 `offlineMessageQueue.subscribe` 自行封装。
 
 ### 组件
 
-#### `<OfflineQueueIndicator />`
+#### `<OfflineQueueIndicator />`（To-Be）
 
-显示离线队列状态的指示器。
-
-```tsx
-<OfflineQueueIndicator
-  count={5}
-  isSyncing={false}
-  onClick={() => console.log('查看队列')}
-  showLabel={true}
-/>
-```
-
-**Props：**
-
-| 属性 | 类型 | 默认值 | 说明 |
-|------|------|--------|------|
-| `count` | `number` | - | 队列中的消息数量 |
-| `isSyncing` | `boolean` | `false` | 是否正在同步 |
-| `className` | `string` | `''` | 自定义类名 |
-| `onClick` | `() => void` | - | 点击回调 |
-| `showLabel` | `boolean` | `true` | 是否显示文本标签 |
-| `label` | `string` | - | 自定义文本标签 |
+> 当前版本未提供该组件。
+> 可在业务侧订阅队列长度后实现自定义徽标或状态提示。
 
 ### 服务
 
@@ -314,10 +295,10 @@ const { count, isSyncing } = useOfflineQueueIndicator();
 ### 自定义重试逻辑
 
 ```tsx
-import { useOfflineMessage } from '@feoe/bifrost-chat';
+import { useServices } from '@/providers/service.provider';
 
 function CustomRetry() {
-  const { queueService } = useOfflineMessage();
+  const { offlineMessageQueue: queueService } = useServices();
 
   const handleCustomRetry = async () => {
     if (!queueService) return;
@@ -342,11 +323,11 @@ function CustomRetry() {
 ### 监听队列变化
 
 ```tsx
-import { useOfflineMessage } from '@feoe/bifrost-chat';
 import { useEffect } from 'react';
+import { useServices } from '@/providers/service.provider';
 
 function QueueMonitor() {
-  const { queueService } = useOfflineMessage();
+  const { offlineMessageQueue: queueService } = useServices();
 
   useEffect(() => {
     if (!queueService) return;
@@ -370,10 +351,10 @@ function QueueMonitor() {
 ### 获取队列统计信息
 
 ```tsx
-import { useOfflineMessage } from '@feoe/bifrost-chat';
+import { useServices } from '@/providers/service.provider';
 
 function QueueStats() {
-  const { queueService } = useOfflineMessage();
+  const { offlineMessageQueue: queueService } = useServices();
   const [stats, setStats] = useState(null);
 
   useEffect(() => {
@@ -409,15 +390,12 @@ function QueueStats() {
 **解决方案：**
 
 ```tsx
-// 检查初始化状态
-const { isInitialized, error } = useOfflineMessage();
+import { useServices } from '@/providers/service.provider';
 
-if (!isInitialized) {
-  return <div>初始化中...</div>;
-}
+const { offlineMessageQueue: queueService } = useServices();
 
-if (error) {
-  return <div>初始化失败: {error.message}</div>;
+if (!queueService) {
+  return <div>离线队列未启用</div>;
 }
 ```
 
@@ -480,7 +458,7 @@ useEffect(() => {
 2. **选择合适的重试策略**：指数退避适合大多数场景，固定延迟适合测试
 3. **定期清理过期消息**：设置合理的 `messageExpiration`，避免消息堆积
 4. **监控队列状态**：使用 `subscribe` 监听队列变化，及时发现异常
-5. **提供用户反馈**：使用 `OfflineQueueIndicator` 显示队列状态，让用户了解待发送消息数量
+5. **提供用户反馈**：基于 `queueService.subscribe` 自定义展示队列状态
 
 ---
 

@@ -35,21 +35,50 @@ graph TB
 sequenceDiagram
   participant UI as ComposerWithSend
   participant Hook as useSendMessage
+  participant Cache as React Query Cache
   participant Svc as IMessageService
   participant Host as Host Impl
   participant API as Backend
-  participant Cache as React Query Cache
+  participant Queue as OfflineQueue
 
+  Note over UI,Queue: === 成功场景 ===
   UI->>Hook: mutate({conversationId, content})
-  Hook->>Cache: onMutate(写临时消息)
+  Hook->>Cache: onMutate(写临时消息, status=Sending)
   Hook->>Svc: send(conversationId, params)
   Svc->>Host: 调用宿主实现
   Host->>API: 请求
-  API-->>Host: 响应
-  Host-->>Svc: MessageSendResult
+  API-->>Host: 响应成功
+  Host-->>Svc: MessageSendResult(status=Sent)
   Svc-->>Hook: result
-  Hook->>Cache: onSuccess(替换状态)
+  Hook->>Cache: onSuccess(更新 status=Sent)
   Hook->>UI: 刷新
+
+  Note over UI,Queue: === 网络错误场景（离线队列） ===
+  UI->>Hook: mutate({conversationId, content})
+  Hook->>Cache: onMutate(写临时消息, status=Sending)
+  Hook->>Svc: send(conversationId, params)
+  Svc->>Host: 调用宿主实现
+  Host->>API: 请求
+  API-->>Host: ❌ 网络错误
+  Host-->>Svc: throw Error
+  Svc-->>Hook: ❌ throw Error
+  Hook->>Queue: enqueue(失败消息)
+  Hook->>Cache: onError(更新 status=Failed)
+  Note over Hook,UI: 保留消息，显示重试按钮
+  Hook->>UI: 刷新(显示 Failed 状态)
+
+  Note over UI,Cache: === 业务逻辑错误场景（完全回滚） ===
+  UI->>Hook: mutate({conversationId, content})
+  Hook->>Cache: onMutate(写临时消息, status=Sending)
+  Hook->>Svc: send(conversationId, params)
+  Svc->>Host: 调用宿主实现
+  Host->>API: 请求
+  API-->>Host: 响应(业务错误, 如配额限制)
+  Host-->>Svc: MessageSendResult(status=Failed, error="Quota exceeded")
+  Svc-->>Hook: result
+  Hook->>Cache: onSuccess(检测到 status=Failed, 回滚到 previousMessages)
+  Note over Hook,UI: 临时消息被移除，恢复到发送前状态
+  Hook->>UI: 刷新（消息消失）
 ```
 
 ## 3. 当前模板链路（As-Is）
