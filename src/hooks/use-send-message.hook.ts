@@ -186,16 +186,59 @@ export function useSendMessage<TParams = any>() {
         data.status !== MessageStatusEnum.Sent || Boolean(data.error);
 
       if (isFailed) {
-        // 非 Sent 统一撤回并回填到输入框
-        // 1. 从缓存中删除消息
-        MessageCacheHelper.removeMessageFromCache(
+        // 业务逻辑错误：保留消息并显示 retry 按钮
+        let offlineMessageId: string | undefined;
+
+        // 将失败消息保存到离线队列
+        if (offlineMessageQueue && context?.tempMessage) {
+          try {
+            const offlineMessage = offlineMessageQueue.createOfflineMessage(
+              context.tempMessage,
+              variables.conversationId,
+              {
+                content: variables.content,
+                ...variables.extra,
+              },
+              MessagePriorityEnum.Normal,
+            );
+
+            // 添加错误信息
+            offlineMessage.error = data.error ?? 'Unknown error';
+
+            await offlineMessageQueue.enqueue(offlineMessage);
+            offlineMessageId = offlineMessage.id;
+
+            console.info(
+              '[useSendMessage] 业务逻辑错误消息已保存到离线队列:',
+              offlineMessage.id,
+            );
+          } catch (queueError) {
+            console.error('[useSendMessage] 保存到离线队列失败:', queueError);
+          }
+        }
+
+        // 更新消息状态为 Failed
+        const updates: Partial<StandardMessage> = {
+          status: MessageStatusEnum.Failed,
+          error: data.error,
+        };
+
+        if (offlineMessageId) {
+          updates._source = 'local';
+          updates._offlineMessageId = offlineMessageId;
+        }
+
+        // 使用 MessageCacheHelper 更新消息状态为 Failed
+        // 支持通过 tempId 查找消息
+        MessageCacheHelper.updateMessageInCache(
           queryClient,
           variables.conversationId,
-          undefined,
-          tempId,
+          updates,
+          undefined, // messageId
+          tempId, // tempId
         );
 
-        // 2. 触发消息回填事件
+        // 触发消息回填事件
         const detail: MessageSendFailedEventDetail = {
           conversationId: variables.conversationId,
           content: variables.content,
@@ -208,7 +251,7 @@ export function useSendMessage<TParams = any>() {
         triggerMessageSendFailed(detail);
 
         console.info(
-          '[useSendMessage] 消息发送返回非 Sent，已撤回并触发回填:',
+          '[useSendMessage] 业务逻辑错误消息已保留并触发回填:',
           detail,
         );
 

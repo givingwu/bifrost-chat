@@ -85,7 +85,7 @@ describe('useSendMessage - 消息回填功能测试', () => {
   });
 
   describe('不可重试错误（业务逻辑错误）', () => {
-    it('应该撤回消息并触发回填事件', async () => {
+    it('应该保留消息并保存到离线队列，显示 retry 按钮', async () => {
       const conversationId = 'conv-1';
       const content = '测试消息';
       const errorMessage = '已达到发送次数上限';
@@ -118,8 +118,9 @@ describe('useSendMessage - 消息回填功能测试', () => {
         expect(mockMessageService.send).toHaveBeenCalled();
       });
 
-      // 验证没有保存到离线队列
-      expect(mockOfflineMessageQueue.enqueue).not.toHaveBeenCalled();
+      // 验证保存到离线队列
+      expect(mockOfflineMessageQueue.createOfflineMessage).toHaveBeenCalled();
+      expect(mockOfflineMessageQueue.enqueue).toHaveBeenCalled();
 
       // 验证触发了回填事件
       expect(eventListener).toHaveBeenCalled();
@@ -135,15 +136,16 @@ describe('useSendMessage - 消息回填功能测试', () => {
       window.removeEventListener('messageSendFailed', eventListener);
     });
 
-    it('应该从缓存中删除失败的消息', async () => {
+    it('应该保留失败消息在缓存中，状态为 Failed，并设置 _offlineMessageId', async () => {
       const conversationId = 'conv-1';
       const content = '测试消息';
+      const errorMessage = '验证失败';
 
       // Mock 后端返回不可重试错误
       mockMessageService.send.mockResolvedValue({
         tempId: 'temp-msg-1',
         status: MessageStatusEnum.Failed,
-        error: '验证失败',
+        error: errorMessage,
         errorType: MessageFailureTypeEnum.Validation,
         retryable: false,
       });
@@ -163,19 +165,29 @@ describe('useSendMessage - 消息回填功能测试', () => {
         expect(mockMessageService.send).toHaveBeenCalled();
       });
 
-      // 验证消息从缓存中删除
+      // 验证消息保留在缓存中，状态为 Failed
       const data = queryClient.getQueryData<{
-        pages: Array<{ items: Array<{ tempId: string }> }>;
+        pages: Array<{
+          items: Array<{
+            status: string;
+            _source?: string;
+            _offlineMessageId?: string;
+            error?: string;
+          }>;
+        }>;
       }>(['messages', 'list', conversationId]);
 
-      // 缓存结构应该存在，但 items 应该为空数组（消息被删除）
       expect(data).toBeDefined();
-      expect(data?.pages[0].items).toHaveLength(0);
+      expect(data?.pages[0].items).toHaveLength(1);
+      expect(data?.pages[0].items[0].status).toBe(MessageStatusEnum.Failed);
+      expect(data?.pages[0].items[0]._source).toBe('local');
+      expect(data?.pages[0].items[0]._offlineMessageId).toBe('offline-msg-1');
+      expect(data?.pages[0].items[0].error).toBe(errorMessage);
     });
   });
 
   describe('非 Sent 状态（即便标记可重试）', () => {
-    it('应该撤回消息并触发回填事件', async () => {
+    it('应该保留消息并保存到离线队列，显示 retry 按钮', async () => {
       const conversationId = 'conv-1';
       const content = '测试消息';
       const errorMessage = '网络连接失败';
@@ -208,8 +220,9 @@ describe('useSendMessage - 消息回填功能测试', () => {
         expect(mockMessageService.send).toHaveBeenCalled();
       });
 
-      // 验证非 Sent 不入离线队列
-      expect(mockOfflineMessageQueue.enqueue).not.toHaveBeenCalled();
+      // 验证保存到离线队列
+      expect(mockOfflineMessageQueue.createOfflineMessage).toHaveBeenCalled();
+      expect(mockOfflineMessageQueue.enqueue).toHaveBeenCalled();
       // 验证触发回填事件
       expect(eventListener).toHaveBeenCalled();
 
@@ -217,15 +230,16 @@ describe('useSendMessage - 消息回填功能测试', () => {
       window.removeEventListener('messageSendFailed', eventListener);
     });
 
-    it('应该从缓存中删除消息', async () => {
+    it('应该保留消息在缓存中，状态为 Failed，并设置 _offlineMessageId', async () => {
       const conversationId = 'conv-1';
       const content = '测试消息';
+      const errorMessage = '服务器错误';
 
       // Mock 后端返回可重试错误
       mockMessageService.send.mockResolvedValue({
         tempId: 'temp-msg-1',
         status: MessageStatusEnum.Failed,
-        error: '服务器错误',
+        error: errorMessage,
         errorType: MessageFailureTypeEnum.Network,
         retryable: true,
       });
@@ -245,13 +259,24 @@ describe('useSendMessage - 消息回填功能测试', () => {
         expect(mockMessageService.send).toHaveBeenCalled();
       });
 
-      // 验证消息从缓存中删除
+      // 验证消息保留在缓存中，状态为 Failed
       const data = queryClient.getQueryData<{
-        pages: Array<{ items: Array<{ tempId: string }> }>;
+        pages: Array<{
+          items: Array<{
+            status: string;
+            _source?: string;
+            _offlineMessageId?: string;
+            error?: string;
+          }>;
+        }>;
       }>(['messages', 'list', conversationId]);
 
       expect(data).toBeDefined();
-      expect(data?.pages[0].items).toHaveLength(0);
+      expect(data?.pages[0].items).toHaveLength(1);
+      expect(data?.pages[0].items[0].status).toBe(MessageStatusEnum.Failed);
+      expect(data?.pages[0].items[0]._source).toBe('local');
+      expect(data?.pages[0].items[0]._offlineMessageId).toBe('offline-msg-1');
+      expect(data?.pages[0].items[0].error).toBe(errorMessage);
     });
   });
 
