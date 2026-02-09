@@ -14,8 +14,7 @@ export const WhatsAppMessage = ({ content }: WhatsAppMessageProps) => {
   if (!content || !('text' in content) || content.text == null) {
     return <div className="p-3 text-xs">Template payload missing.</div>;
   }
-  const text =
-    typeof content.text === 'string' ? content.text.trim() : '';
+  const text = typeof content.text === 'string' ? content.text.trim() : '';
   if (!text) {
     return <div className="p-3 text-xs">Template payload missing.</div>;
   }
@@ -47,9 +46,7 @@ export const WhatsAppMessage = ({ content }: WhatsAppMessageProps) => {
 
   // 非 JSON 或非预期结构（如服务端只存了纯文本模板正文）时降级为纯文本展示
   if (!data) {
-    return (
-      <div className="p-3 text-sm leading-relaxed text-text">{text}</div>
-    );
+    return <div className="p-3 text-sm leading-relaxed text-text">{text}</div>;
   }
 
   return (
@@ -71,7 +68,7 @@ export const WhatsAppMessage = ({ content }: WhatsAppMessageProps) => {
           <p className="text-xs text-text-muted">{data.description}</p>
         </div>
         <div className="space-y-2">
-          {data.buttons?.map((btn) => (
+          {data.buttons?.map(btn => (
             <button
               key={btn}
               className="w-full rounded-md border border-border bg-card px-3 py-1.5 text-xs font-semibold text-primary transition hover:bg-muted"
