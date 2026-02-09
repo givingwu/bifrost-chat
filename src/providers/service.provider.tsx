@@ -18,8 +18,8 @@ export interface ServiceContextValue {
   /**
    * 离线消息队列服务（可选）
    * @description
-   * 如果使用 OfflineMessageProvider，此属性将自动注入
-   * 否则为 undefined，需要手动处理离线消息
+   * 由调用方通过 ServiceProvider 注入
+   * 不提供时为 undefined，需要手动处理离线消息
    */
   offlineMessageQueue?: import('@/services/offline-message-queue.service').OfflineMessageQueueService;
 }
@@ -60,7 +60,7 @@ export interface ServiceProviderProps {
    * 离线消息队列服务（可选）
    * @description
    * 如果提供，将注入到服务上下文中
-   * 通常由 OfflineMessageProvider 自动管理
+   * 由宿主应用自行管理其生命周期
    */
   offlineMessageQueue?: import('@/services/offline-message-queue.service').OfflineMessageQueueService;
 }
