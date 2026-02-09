@@ -61,9 +61,16 @@
       "delivered": "Message delivered",
       "read": "Message read",
       "failed": "Message failed to send",
-      "queued": "Message queued"
+      "queued": "Message queued",
+      "tooltip": "Status: {{status}}"
     },
     "retry": "Retry",
+    "delete": "Delete",
+    "retry_all": "Retry All",
+    "delete_all": "Delete All",
+    "failed_count": "{{count}} message(s) failed to send",
+    "not_sent": "Not Sent",
+    "error_reason": "Error: {{error}}",
     "empty": "No messages yet",
     "unsupported": "Unsupported message type"
   },
