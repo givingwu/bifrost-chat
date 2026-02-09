@@ -16,7 +16,7 @@
   "composer": {
     "placeholder": {
       "default": "Enter message",
-      "channel": "Enter {{channel}} message"
+      "channel": "Enter message please"
     },
     "send": "Send",
     "audio": {
