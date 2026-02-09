@@ -27,6 +27,7 @@ export * from '@/interfaces/conversation.interface';
 export * from '@/interfaces/error.interface';
 export * from '@/interfaces/language.interface';
 export * from '@/interfaces/message.interface';
+export * from '@/interfaces/message-type-config.interface';
 export * from '@/interfaces/network.interface';
 export * from '@/interfaces/profile.interface';
 export * from '@/interfaces/sdk.interface';
