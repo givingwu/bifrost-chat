@@ -233,7 +233,7 @@ export const ImageGallery = () => {
   return (
     <div className="flex gap-4 overflow-x-auto w-96 pb-2">
       {images.map((src, index) => (
-        <div key={index} className="flex-shrink-0 w-48 h-36">
+        <div key={index} className="shrink-0 w-48 h-36">
           <Image
             src={src}
             alt={`图片 ${index + 1}`}

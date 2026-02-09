@@ -220,16 +220,14 @@ export const TemplatePicker = memo<TemplatePickerProps>(
                       {template.title}
                     </span>
                     {template.category && (
-                      <span className="flex-shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] text-primary">
+                      <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] text-primary">
                         {template.category}
                       </span>
                     )}
                   </div>
 
                   {/* 内容预览 */}
-                  <p className="line-clamp-2 text-xs text-text-muted">
-                    {template.content}
-                  </p>
+                  <p className="text-xs text-text-muted">{template.content}</p>
 
                   {/* 标签 */}
                   {template.tags && template.tags.length > 0 && (

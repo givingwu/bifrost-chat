@@ -203,7 +203,7 @@ export const TemplatePicker = memo<TemplatePickerProps>(
                       {template.name}
                     </span>
                     {template.category && (
-                      <span className="flex-shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] text-primary">
+                      <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] text-primary">
                         {template.category}
                       </span>
                     )}

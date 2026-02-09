@@ -81,7 +81,7 @@ export const TemplateList = ({
               ) : null}
 
               {/* 内容预览 */}
-              <p className="line-clamp-1 text-xs text-gray-500 dark:text-gray-400">
+              <p className="text-xs text-gray-500 dark:text-gray-400">
                 {template.content}
               </p>
 

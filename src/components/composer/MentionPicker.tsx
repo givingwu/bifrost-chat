@@ -182,7 +182,7 @@ export const MentionPicker = memo<MentionPickerProps>(
                 {/* 头像 */}
                 <div
                   className={cn(
-                    'flex h-8 w-8 flex-shrink-0 items-center justify-center',
+                    'flex h-8 w-8 shrink-0 items-center justify-center',
                     'rounded-full bg-primary/10 text-primary',
                     'text-xs font-semibold',
                   )}
