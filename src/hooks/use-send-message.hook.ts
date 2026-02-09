@@ -1,9 +1,14 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  type MessageSendFailedEventDetail,
+  triggerMessageSendFailed,
+} from '@/hooks/use-message-rollback.hook';
 import type {
   MessageSendResult,
   StandardMessage,
 } from '@/interfaces/message.interface';
 import {
+  MessageFailureTypeEnum,
   MessagePriorityEnum,
   MessageStatusEnum,
 } from '@/interfaces/message.interface';
@@ -168,40 +173,77 @@ export function useSendMessage<TParams = any>() {
         data.status === MessageStatusEnum.Failed || Boolean(data.error);
 
       if (isFailed) {
-        MessageCacheHelper.updateMessageInCache(
-          queryClient,
-          variables.conversationId,
-          {
-            status: MessageStatusEnum.Failed,
-            error: data.error,
-          },
-          undefined,
-          tempId,
-        );
+        // 判断是否可重试
+        // 如果后端明确设置了 retryable，使用后端的值
+        // 否则，根据 errorType 判断：只有 Network 类型的错误才可重试
+        // 默认情况下（向后兼容），假设不可重试
+        const isRetryable =
+          data.retryable ?? data.errorType === MessageFailureTypeEnum.Network;
 
-        if (offlineMessageQueue && context?.tempMessage) {
-          try {
-            const offlineMessage = offlineMessageQueue.createOfflineMessage(
-              context.tempMessage,
-              variables.conversationId,
-              {
-                content: variables.content,
-                ...variables.extra,
-              },
-              MessagePriorityEnum.Normal,
-            );
+        if (isRetryable) {
+          // 可重试：保存到离线队列，显示重试按钮
+          MessageCacheHelper.updateMessageInCache(
+            queryClient,
+            variables.conversationId,
+            {
+              status: MessageStatusEnum.Failed,
+              error: data.error,
+              _source: 'local',
+            },
+            undefined,
+            tempId,
+          );
 
-            offlineMessage.error = data.error ?? 'Message send failed';
+          if (offlineMessageQueue && context?.tempMessage) {
+            try {
+              const offlineMessage = offlineMessageQueue.createOfflineMessage(
+                context.tempMessage,
+                variables.conversationId,
+                {
+                  content: variables.content,
+                  ...variables.extra,
+                },
+                MessagePriorityEnum.Normal,
+              );
 
-            await offlineMessageQueue.enqueue(offlineMessage);
+              offlineMessage.error = data.error ?? 'Message send failed';
 
-            console.info(
-              '[useSendMessage] 消息已保存到离线队列:',
-              offlineMessage.id,
-            );
-          } catch (queueError) {
-            console.error('[useSendMessage] 保存到离线队列失败:', queueError);
+              await offlineMessageQueue.enqueue(offlineMessage);
+
+              console.info(
+                '[useSendMessage] 消息已保存到离线队列:',
+                offlineMessage.id,
+              );
+            } catch (queueError) {
+              console.error('[useSendMessage] 保存到离线队列失败:', queueError);
+            }
           }
+        } else {
+          // 不可重试：撤回消息并回填到输入框
+          // 1. 从缓存中删除消息
+          MessageCacheHelper.removeMessageFromCache(
+            queryClient,
+            variables.conversationId,
+            undefined,
+            tempId,
+          );
+
+          // 2. 触发消息回填事件
+          const detail: MessageSendFailedEventDetail = {
+            conversationId: variables.conversationId,
+            content: variables.content,
+            templateId: (variables.extra as any)?.templateId as
+              | string
+              | undefined,
+            error: data.error,
+          };
+
+          triggerMessageSendFailed(detail);
+
+          console.info(
+            '[useSendMessage] 消息发送失败（不可重试），已撤回并触发回填:',
+            detail,
+          );
         }
 
         return;

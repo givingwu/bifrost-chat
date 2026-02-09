@@ -176,6 +176,22 @@ export interface MessageRetryConfig {
 }
 
 /**
+ * 消息发送失败类型
+ */
+export enum MessageFailureTypeEnum {
+  /** 网络错误（可重试） */
+  Network = 'network',
+  /** 业务逻辑错误（不可重试） */
+  BusinessLogic = 'business_logic',
+  /** 验证错误（不可重试） */
+  Validation = 'validation',
+  /** 权限错误（不可重试） */
+  Authorization = 'authorization',
+  /** 配额错误（不可重试） */
+  Quota = 'quota',
+}
+
+/**
  * 消息发送结果
  */
 export interface MessageSendResult {
@@ -187,6 +203,10 @@ export interface MessageSendResult {
   status: MessageStatusEnum;
   /** 错误信息（如果失败） */
   error?: string;
+  /** 错误类型（用于区分可重试和不可重试） */
+  errorType?: MessageFailureTypeEnum;
   /** 重试次数 */
   retryCount?: number;
+  /** 是否可重试 */
+  retryable?: boolean;
 }

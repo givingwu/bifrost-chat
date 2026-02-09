@@ -11,6 +11,7 @@ import { ChannelFilter } from '@/components/toolbar/ChannelFilter';
 import { Topbar } from '@/components/toolbar/Topbar';
 import { TopbarTools } from '@/components/toolbar/TopbarTools';
 import { useConversations } from '@/hooks/use-conversations.hook';
+import { useMessageRollback } from '@/hooks/use-message-rollback.hook';
 import { useSendMessage } from '@/hooks/use-send-message.hook';
 import type { Conversation } from '@/interfaces/conversation.interface';
 import type { Template } from '@/interfaces/template.interface';
@@ -69,6 +70,9 @@ export function DefaultChatLayout({
 
   // Composer ref，用于外部控制输入框
   const composerRef = useRef<ComposerToolbarRef>(null);
+
+  // 使用消息回填 hook，监听不可重试的发送失败事件
+  useMessageRollback(composerRef, activeConversationId);
 
   // 使用 useTransition 标记搜索过滤为过渡更新（低优先级）
   const [isPending, startTransition] = useTransition();

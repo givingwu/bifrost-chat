@@ -8,6 +8,7 @@ export { useDebounce } from './use-debounce.hook';
 export { useDeleteFailedMessage } from './use-delete-failed-message.hook';
 export { useInViewport } from './use-in-viewport.hook';
 export { useMarkAsRead } from './use-mark-as-read.hook';
+export { useMessageRollback } from './use-message-rollback.hook';
 export { useMessages } from './use-messages.hook';
 export { useOfflineSync } from './use-offline-sync.hook';
 export { useRetryMessage } from './use-retry-message.hook';
