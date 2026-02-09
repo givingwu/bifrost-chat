@@ -253,3 +253,49 @@ export const useComposerConfig = () => useChatStore((state) => state.composer);
  * actions.setActiveChannel(ChannelTypeEnum.WhatsApp);
  */
 export const useActions = () => useChatStore((state) => state.actions);
+
+/**
+ * 重置 Chat Store 到初始状态
+ *
+ * @description
+ * 用于用户切换、登出等场景，清理所有客户端状态。
+ * 会重置：
+ * - activeConversationId → null
+ * - searchQuery → ''
+ * - profile → null
+ * - composer → 保持初始配置
+ *
+ * @example
+ * ```ts
+ * import { resetChatStore } from '@feoe/bifrost-chat';
+ *
+ * function handleLogout() {
+ *   resetChatStore();
+ *   // ... 其他登出逻辑
+ * }
+ * ```
+ */
+export const resetChatStore = () => {
+  useChatStore.setState((state) => {
+    // 重置 conversation 状态
+    const conversation: ConversationState = {
+      activeConversationId: null,
+      searchQuery: '',
+    };
+
+    // 重置 profile 状态
+    const profile: ProfileState = {
+      profile: undefined,
+    };
+
+    // 重置 composer 状态（保持初始配置）
+    const composer: ComposerState = state.composer;
+
+    return {
+      ...state,
+      conversation,
+      profile,
+      composer,
+    };
+  });
+};

@@ -57,5 +57,6 @@ export * from '@/services/template.service';
 export * from '@/store';
 // Utils
 export * from '@/utils/class.util';
+export * from '@/utils/sdk-cleanup.util';
 export * from '@/utils/storage.util';
 export * from '@/utils/time.util';

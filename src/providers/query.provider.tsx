@@ -1,3 +1,4 @@
+import type { QueryClient as QueryClientType } from '@tanstack/react-query';
 import {
   QueryClient,
   QueryClientProvider as TanStackQueryClientProvider,
@@ -5,6 +6,9 @@ import {
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import type { ReactNode } from 'react';
 
+/**
+ * QueryProviderProps 接口
+ */
 export interface QueryProviderProps {
   children: ReactNode;
   /**
@@ -88,13 +92,44 @@ export const queryKeys = {
 } as const;
 
 /**
+ * 清理 Query Client 缓存
+ *
+ * @description
+ * 清理所有 React Query 缓存的会话列表、消息列表、模板列表等数据。
+ *
+ * @param queryClient - QueryClient 实例
+ *
+ * @example
+ * ```ts
+ * import { clearQueryCache } from '@feoe/bifrost-chat';
+ * import { useQueryClient } from '@tanstack/react-query';
+ *
+ * function App() {
+ *   const queryClient = useQueryClient();
+ *
+ *   const handleLogout = () => {
+ *     clearQueryCache(queryClient);
+ *   };
+ * }
+ * ```
+ */
+export function clearQueryCache(queryClient: QueryClientType) {
+  queryClient.clear();
+}
+
+/**
+ * 默认 React Query Client 对象
+ */
+export const defaultQueryClient = createQueryClient();
+
+/**
  * Query Provider 组件
  * 提供全局的 React Query 配置和缓存管理
  */
 export function QueryProvider({
   children,
   enableDevtools = process.env.NODE_ENV === 'development',
-  queryClient = createQueryClient(),
+  queryClient = defaultQueryClient,
 }: QueryProviderProps) {
   return (
     <TanStackQueryClientProvider client={queryClient}>
