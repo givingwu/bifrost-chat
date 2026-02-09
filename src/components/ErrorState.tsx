@@ -41,7 +41,11 @@ export const ErrorState = ({
       className={className || 'flex flex-col items-center justify-center py-8'}
     >
       {icon || <AlertCircle className="h-12 w-12 text-destructive/30" />}
-      {message && <p className="mt-2 text-sm text-text-muted">{message}</p>}
+      {message && (
+        <p className="mt-2 text-sm text-gray-400 dark:text-gray-500">
+          {message}
+        </p>
+      )}
       {onRetry && (
         <Button type="button" onClick={onRetry} className="mt-4">
           {retryText}

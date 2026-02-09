@@ -125,7 +125,7 @@ export const AttachmentPreview = memo<AttachmentPreviewProps>(
             >
               {/* 图标 */}
               <div className="shrink-0">
-                <Icon className="h-4 w-4 text-text-muted" />
+                <Icon className="h-4 w-4 text-gray-400 dark:text-gray-500" />
               </div>
 
               {/* 文件信息 */}
@@ -133,7 +133,7 @@ export const AttachmentPreview = memo<AttachmentPreviewProps>(
                 <span className="truncate text-xs font-medium text-text">
                   {attachment.file.name}
                 </span>
-                <span className="text-[10px] text-text-muted">
+                <span className="text-[10px] text-gray-400 dark:text-gray-500">
                   {attachment.size}
                 </span>
               </div>
@@ -149,7 +149,7 @@ export const AttachmentPreview = memo<AttachmentPreviewProps>(
                   }}
                   className={cn(
                     'shrink-0 rounded-full p-0.5',
-                    'text-text-muted transition-colors duration-150',
+                    'text-gray-400 dark:text-gray-500 transition-colors duration-150',
                     'hover:bg-destructive/10 hover:text-destructive',
                     'focus:outline-none focus:ring-2 focus:ring-destructive/40',
                   )}

@@ -267,7 +267,9 @@ export const ConversationList = memo(
       () => (
         <EmptyState
           message={t('conversation.empty')}
-          icon={<MessageCircle className="h-12 w-12 text-text-muted/30" />}
+          icon={
+            <MessageCircle className="h-12 w-12 text-gray-400 dark:text-gray-500/30" />
+          }
         />
       ),
       [t],

@@ -29,8 +29,14 @@ export const EmptyState = ({
     <div
       className={className || 'flex flex-col items-center justify-center py-8'}
     >
-      {icon || <FileText className="h-12 w-12 text-text-muted/30" />}
-      {message && <p className="mt-2 text-sm text-text-muted">{message}</p>}
+      {icon || (
+        <FileText className="h-12 w-12 text-gray-400 dark:text-gray-500/30" />
+      )}
+      {message && (
+        <p className="mt-2 text-sm text-gray-400 dark:text-gray-500">
+          {message}
+        </p>
+      )}
     </div>
   );
 };

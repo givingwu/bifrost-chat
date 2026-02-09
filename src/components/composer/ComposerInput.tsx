@@ -216,7 +216,7 @@ export const ComposerInput = forwardRef<ComposerInputRef, ComposerInputProps>(
       <span
         className={cn(
           'absolute right-14 top-1/2 -translate-y-1/2',
-          'text-[10px] text-text-muted',
+          'text-[10px] text-gray-400 dark:text-gray-500',
           'transition-opacity duration-200',
           value.length > 0 ? 'opacity-100' : 'opacity-0',
           value.length >= maxLength * 0.9
@@ -249,7 +249,7 @@ export const ComposerInput = forwardRef<ComposerInputRef, ComposerInputProps>(
             'text-text dark:text-white outline-none transition-all duration-200',
             'focus:bg-card focus:ring-2 focus:ring-primary/40',
             'disabled:cursor-not-allowed disabled:opacity-50',
-            'placeholder:text-text-muted/50 resize-none',
+            'placeholder:text-gray-500/50 resize-none',
             // 字符数接近或达到最大长度时的视觉反馈
             isNearMaxLength && !isAtMaxLength && 'focus:ring-orange-400/40',
             isAtMaxLength && 'focus:ring-red-400/40',

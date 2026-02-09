@@ -14,5 +14,7 @@ export const MessageTimestamp = ({ timestamp }: MessageTimestampProps) => {
   const { code: languageCode } = useLanguage();
   const time = formatTimestamp(timestamp, languageCode);
 
-  return <span className="text-[10px] text-text-muted">{time}</span>;
+  return (
+    <span className="text-[10px] text-gray-400 dark:text-gray-500">{time}</span>
+  );
 };

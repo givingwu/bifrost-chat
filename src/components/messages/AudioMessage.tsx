@@ -137,7 +137,7 @@ const AudioPlayerStatusText = memo(
       () =>
         status === AudioPlayerStatus.Error
           ? 'text-xs text-destructive'
-          : 'text-xs text-text-muted',
+          : 'text-xs text-gray-400 dark:text-gray-500',
       [status],
     );
 

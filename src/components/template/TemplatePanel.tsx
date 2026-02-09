@@ -192,7 +192,7 @@ export const TemplatePanel = ({
           className="backdrop-blur-md border-t border-gray-200/50 dark:border-white/10 px-4 py-2"
           aria-live="polite"
         >
-          <p className="text-[10px] text-text-muted">
+          <p className="text-[10px] text-gray-400 dark:text-gray-500">
             {t('template.panel.showingCount', {
               filtered: stats.filtered,
               total: stats.total,

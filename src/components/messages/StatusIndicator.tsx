@@ -3,8 +3,10 @@ import {
   Check,
   CheckCheck,
   CheckLine,
+  Loader,
   Loader2,
   type LucideIcon,
+  RefreshCcw,
 } from 'lucide-react';
 import { memo, useMemo } from 'react';
 import { MessageStatusEnum } from '@/interfaces/message.interface';
@@ -67,13 +69,13 @@ export const StatusIndicator = memo(
         Omit<StatusConfig, 'label' | 'tooltip'>
       > = {
         [MessageStatusEnum.Queued]: {
-          icon: Loader2,
+          icon: RefreshCcw,
           size: 'h-4 w-4',
-          colorClass: 'text-primary/50',
+          colorClass: 'text-primary/40',
           animate: true,
         },
         [MessageStatusEnum.Created]: {
-          icon: Loader2,
+          icon: Loader,
           size: 'h-4 w-4',
           colorClass: 'text-primary/60',
           animate: true,
@@ -81,23 +83,23 @@ export const StatusIndicator = memo(
         [MessageStatusEnum.Sending]: {
           icon: Loader2,
           size: 'h-4 w-4',
-          colorClass: 'text-primary/80',
+          colorClass: 'text-primary/60',
           animate: true,
         },
         [MessageStatusEnum.Sent]: {
           icon: Check,
           size: 'h-4 w-4',
-          colorClass: 'text-primary/80',
+          colorClass: 'text-primary/60',
         },
         [MessageStatusEnum.Delivered]: {
           icon: CheckLine,
           size: 'h-4 w-4',
-          colorClass: 'text-primary/80',
+          colorClass: 'text-primary/60',
         },
         [MessageStatusEnum.Read]: {
           icon: CheckCheck,
           size: 'h-4 w-4',
-          colorClass: 'text-green-500/80',
+          colorClass: 'text-green-500/60',
         },
         [MessageStatusEnum.Failed]: {
           icon: AlertCircle,

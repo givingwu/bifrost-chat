@@ -156,7 +156,9 @@ export const MentionPicker = memo<MentionPickerProps>(
             <h3 className="text-sm font-semibold text-text">提及用户</h3>
           </div>
           {query && (
-            <p className="mt-1 text-[10px] text-text-muted">搜索: {query}</p>
+            <p className="mt-1 text-[10px] text-gray-400 dark:text-gray-500">
+              搜索: {query}
+            </p>
           )}
         </div>
 
@@ -204,7 +206,7 @@ export const MentionPicker = memo<MentionPickerProps>(
                     {displayName}
                   </span>
                   {user.displayName && (
-                    <span className="truncate text-[10px] text-text-muted">
+                    <span className="truncate text-[10px] text-gray-400 dark:text-gray-500">
                       @{user.name}
                     </span>
                   )}
@@ -216,7 +218,7 @@ export const MentionPicker = memo<MentionPickerProps>(
 
         {/* 底部提示 */}
         <div className="border-t border-border bg-muted/30 px-4 py-2">
-          <p className="text-[10px] text-text-muted">
+          <p className="text-[10px] text-gray-400 dark:text-gray-500">
             使用 ↑↓ 选择，Enter 确认
           </p>
         </div>

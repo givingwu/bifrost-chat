@@ -27,7 +27,7 @@ const ACTIVE_STATE_STYLES = {
 
 const INACTIVE_STATE_STYLES = {
   container: 'hover:bg-gray-200/50 dark:hover:bg-white/5 bg-transparent',
-  title: 'text-text',
+  title: 'text-gray-600 dark:text-white',
   time: ' text-gray-500 dark:text-gray-400',
   message: ' text-gray-500 dark:text-gray-400',
 } as const;

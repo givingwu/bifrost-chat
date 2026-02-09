@@ -185,7 +185,7 @@ export const EmojiPickerButton = memo<EmojiPickerButtonProps>(
           disabled={disabled}
           className={cn(
             'inline-flex h-8 w-8 items-center justify-center rounded-full',
-            'text-text-muted transition-all duration-200',
+            'text-gray-400 dark:text-gray-500 transition-all duration-200',
             'hover:text-text hover:scale-110',
             'disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100',
             'focus:outline-none focus:ring-2 focus:ring-primary/40',

@@ -30,7 +30,11 @@ export const LoadingState = ({
       className={className || 'flex flex-col items-center justify-center py-8'}
     >
       {icon || <Loader2 className="h-8 w-8 animate-spin text-primary" />}
-      {message && <p className="mt-2 text-sm text-text-muted">{message}</p>}
+      {message && (
+        <p className="mt-2 text-sm text-gray-400 dark:text-gray-500">
+          {message}
+        </p>
+      )}
     </div>
   );
 };

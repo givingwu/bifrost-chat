@@ -34,7 +34,7 @@ export const RichMediaMessage = ({ content }: RichMediaMessageProps) => {
 
   if (!data) {
     return (
-      <div className="p-3 text-xs text-text-muted">
+      <div className="p-3 text-xs text-gray-400 dark:text-gray-500">
         Invalid rich media data.
       </div>
     );
@@ -56,7 +56,9 @@ export const RichMediaMessage = ({ content }: RichMediaMessageProps) => {
           <h4 className="text-sm font-semibold text-text">{data.title}</h4>
         )}
         {data.description && (
-          <p className="text-xs text-text-muted">{data.description}</p>
+          <p className="text-xs text-gray-400 dark:text-gray-500">
+            {data.description}
+          </p>
         )}
         {data.buttons && data.buttons.length > 0 && (
           <div className="space-y-2">

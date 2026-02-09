@@ -509,7 +509,7 @@ export const ComposerToolbar = forwardRef<
         {(composerConfig.showChannelBadge ||
           composerConfig.showCharCount ||
           composerConfig.showHint) && (
-          <div className="mt-2 flex items-center justify-between text-[10px] text-text-muted">
+          <div className="mt-2 flex items-center justify-between text-[10px] text-gray-400 dark:text-gray-500">
             {composerConfig.showChannelBadge && (
               <span
                 className="rounded-full border border-border px-2.5 py-1"

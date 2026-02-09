@@ -27,7 +27,7 @@ export const MessageRendererFactory = ({
   if (message.type === MessageTypeEnum.Other && 'text' in message.content) {
     return (
       <div className="my-4 flex justify-center">
-        <span className="rounded-full bg-muted px-3 py-1 text-[10px] font-medium uppercase tracking-wider text-text-muted">
+        <span className="rounded-full bg-muted px-3 py-1 text-[10px] font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500">
           {message.content.text}
         </span>
       </div>

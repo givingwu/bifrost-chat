@@ -154,7 +154,7 @@ export const TemplatePicker = memo<TemplatePickerProps>(
 
           {/* 搜索框 */}
           <div className="mt-2 relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-gray-500" />
             <input
               type="text"
               value={searchQuery}
@@ -163,7 +163,7 @@ export const TemplatePicker = memo<TemplatePickerProps>(
               className={cn(
                 'w-full rounded-lg border border-border bg-muted py-2 pl-10 pr-4',
                 'text-sm text-text',
-                'placeholder:text-text-muted/50',
+                'placeholder:text-gray-500/50',
                 'outline-none transition-all duration-200',
                 'focus:border-primary focus:ring-2 focus:ring-primary/40',
               )}
@@ -175,8 +175,8 @@ export const TemplatePicker = memo<TemplatePickerProps>(
         <div className="overflow-y-auto py-2">
           {filteredTemplates.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-8">
-              <FileText className="h-12 w-12 text-text-muted/30" />
-              <p className="mt-2 text-sm text-text-muted">
+              <FileText className="h-12 w-12 text-gray-500/30" />
+              <p className="mt-2 text-sm text-gray-400 dark:text-gray-500">
                 {searchQuery ? '未找到匹配的模板' : '暂无模板'}
               </p>
             </div>
@@ -210,7 +210,7 @@ export const TemplatePicker = memo<TemplatePickerProps>(
                   </div>
 
                   {/* 内容预览 */}
-                  <p className="line-clamp-2 text-xs text-text-muted">
+                  <p className="line-clamp-2 text-xs text-gray-400 dark:text-gray-500">
                     {template.content}
                   </p>
 
@@ -220,7 +220,7 @@ export const TemplatePicker = memo<TemplatePickerProps>(
                       {template.tags.slice(0, 3).map((tag) => (
                         <span
                           key={tag}
-                          className="rounded bg-muted px-1.5 py-0.5 text-[10px] text-text-muted"
+                          className="rounded bg-muted px-1.5 py-0.5 text-[10px] text-gray-400 dark:text-gray-500"
                         >
                           {tag}
                         </span>
@@ -235,7 +235,7 @@ export const TemplatePicker = memo<TemplatePickerProps>(
 
         {/* 底部提示 */}
         <div className="border-t border-border bg-muted/30 px-4 py-2">
-          <p className="text-[10px] text-text-muted">
+          <p className="text-[10px] text-gray-400 dark:text-gray-500">
             使用 ↑↓ 选择，Enter 确认，ESC 关闭
           </p>
         </div>

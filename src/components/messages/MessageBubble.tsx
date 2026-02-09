@@ -63,10 +63,10 @@ export const MessageBubble = ({
       >
         <div
           className={cn(
-            'relative px-4 py-2.5 text-sm rounded-2xl',
+            'relative px-4 py-2.5 text-sm rounded-2x shadow-sm wrap-break-words',
             isMe
               ? 'rounded-tr-sm bg-primary text-primary-foreground'
-              : 'rounded-tl-sm shadow-soft border border-border bg-card text-text',
+              : 'rounded-tl-sm border border-gray-100 dark:border-gray-700/50 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100',
             message.type === MessageTypeEnum.Template && 'overflow-hidden p-0',
           )}
         >

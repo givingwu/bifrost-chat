@@ -45,7 +45,9 @@ export const Topbar = ({ title, subtitle, avatarUrl, extra }: TopbarProps) => {
             {title ?? t('conversation.title')}
           </div>
           {subtitle && (
-            <div className="text-xs text-text-muted">{subtitle}</div>
+            <div className="text-xs text-gray-400 dark:text-gray-500">
+              {subtitle}
+            </div>
           )}
         </div>
       </div>

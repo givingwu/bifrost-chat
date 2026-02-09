@@ -30,7 +30,9 @@ export const LocationMessage = ({ content }: LocationMessageProps) => {
 
   if (!data) {
     return (
-      <div className="p-3 text-xs text-text-muted">Invalid location data.</div>
+      <div className="p-3 text-xs text-gray-400 dark:text-gray-500">
+        Invalid location data.
+      </div>
     );
   }
 
@@ -58,7 +60,9 @@ export const LocationMessage = ({ content }: LocationMessageProps) => {
             <p className="text-sm font-medium text-text">{data.name}</p>
           )}
           {data.address && (
-            <p className="text-xs text-text-muted">{data.address}</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500">
+              {data.address}
+            </p>
           )}
         </div>
       </div>
