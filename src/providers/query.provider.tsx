@@ -45,7 +45,7 @@ export function createQueryClient() {
         // 网络重连时重新获取
         refetchOnReconnect: true,
         // 全局错误处理
-        throwOnError: false,
+        throwOnError: true,
       },
       mutations: {
         // 失败重试 1 次
@@ -53,7 +53,7 @@ export function createQueryClient() {
         // 重试延迟
         retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
         // 全局错误处理
-        throwOnError: false,
+        throwOnError: true,
       },
     },
   });
