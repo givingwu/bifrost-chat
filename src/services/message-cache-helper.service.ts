@@ -54,25 +54,56 @@ export class MessageCacheHelper {
     messages: StandardMessage[],
     message: StandardMessage,
   ): boolean {
-    return messages.some((msg) => {
+    console.log('[MessageCacheHelper.messageExists] 开始检查消息是否存在', {
+      newMessageId: message.id,
+      newTempId: message.tempId,
+      totalMessages: messages.length,
+    });
+
+    const exists = messages.some((msg) => {
       // 检查 id 是否相同（都需要有 id）
       if (message.id && msg.id === message.id) {
+        console.warn('[MessageCacheHelper.messageExists] 发现相同的 id', {
+          id: message.id,
+          existingMessage: msg,
+        });
         return true;
       }
       // 检查 tempId 是否相同（都需要有 tempId）
       if (message.tempId && msg.tempId === message.tempId) {
+        console.warn('[MessageCacheHelper.messageExists] 发现相同的 tempId', {
+          tempId: message.tempId,
+          existingMessage: msg,
+        });
         return true;
       }
       // 检查 id 是否与 tempId 相同（处理临时消息被更新的情况）
       if (message.id && msg.tempId === message.id) {
+        console.warn(
+          '[MessageCacheHelper.messageExists] 发现 id 与 tempId 相同',
+          {
+            id: message.id,
+            existingTempId: msg.tempId,
+          },
+        );
         return true;
       }
       // 检查 tempId 是否与 id 相同（处理临时消息被更新的情况）
       if (message.tempId && msg.id === message.tempId) {
+        console.warn(
+          '[MessageCacheHelper.messageExists] 发现 tempId 与 id 相同',
+          {
+            tempId: message.tempId,
+            existingId: msg.id,
+          },
+        );
         return true;
       }
       return false;
     });
+
+    console.log('[MessageCacheHelper.messageExists] 检查结果:', exists);
+    return exists;
   }
 
   /**
@@ -125,10 +156,20 @@ export class MessageCacheHelper {
     conversationId: string,
     message: StandardMessage,
   ): void {
+    console.log('[MessageCacheHelper.addMessageToCache] 开始添加消息', {
+      conversationId,
+      messageId: message.id,
+      tempId: message.tempId,
+      timestamp: message.timestamp,
+    });
+
     queryClient.setQueryData<InfiniteQueryData>(
       queryKeys.messages.list(conversationId),
       (old) => {
         if (!old) {
+          console.log(
+            '[MessageCacheHelper.addMessageToCache] 没有旧数据，创建新页面',
+          );
           // 如果没有旧数据，创建新页面
           return {
             pages: [{ items: [message] }],
@@ -136,24 +177,54 @@ export class MessageCacheHelper {
           };
         }
 
+        console.log(
+          '[MessageCacheHelper.addMessageToCache] 当前页面数:',
+          old.pages.length,
+        );
+        console.log(
+          '[MessageCacheHelper.addMessageToCache] 各页面消息数:',
+          old.pages.map((p) => p.items.length),
+        );
+
         // 检查消息是否已存在
         const allMessages = old.pages.flatMap((page) => page.items);
+        console.log(
+          '[MessageCacheHelper.addMessageToCache] 总消息数:',
+          allMessages.length,
+        );
 
         if (MessageCacheHelper.messageExists(allMessages, message)) {
+          console.warn(
+            '[MessageCacheHelper.addMessageToCache] 消息已存在，跳过添加',
+            {
+              messageId: message.id,
+              tempId: message.tempId,
+            },
+          );
           // 消息已存在，返回旧数据（不触发更新）
           return old;
         }
 
         // 添加到最后一页的末尾
+        console.log(
+          '[MessageCacheHelper.addMessageToCache] 添加到最后一页的末尾',
+        );
         const newPages = old.pages.map((page, index) =>
           index === old.pages.length - 1
             ? { ...page, items: [...page.items, message] }
             : page,
         );
 
+        console.log(
+          '[MessageCacheHelper.addMessageToCache] 添加后的页面消息数:',
+          newPages.map((p) => p.items.length),
+        );
+
         return { ...old, pages: newPages };
       },
     );
+
+    console.log('[MessageCacheHelper.addMessageToCache] 缓存更新完成');
   }
 
   /**
