@@ -1,3 +1,4 @@
+import { useComposerConfig } from '@/store';
 import {
   forwardRef,
   useCallback,
@@ -6,7 +7,6 @@ import {
   useRef,
   useState,
 } from 'react';
-import { useComposerConfig } from '@/store';
 import type {
   ComposerToolbarProps,
   ComposerToolbarRef,
@@ -166,10 +166,10 @@ export const ComposerWithDraft = forwardRef<
     };
   }, [draftEnabled, draftStorageKey, value, saveDraft, draftDebounceDelay]);
 
-  // 处理发送消息
+  // 处理发送消息（透传 templateId，供 ComposerWithSend -> useSendMessage -> messageService.send 使用）
   const handleSend = useCallback(
-    async (content: string) => {
-      await onSend?.(content);
+    async (content: string, templateId?: string) => {
+      await onSend?.(content, templateId);
       // 发送成功后清空输入框
       setValue('');
       // 清除草稿（如果配置了）
