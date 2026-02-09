@@ -4,6 +4,17 @@
 
 本文档说明 Bifrost-Chat SDK 中消息同步的策略，以及如何避免重复消息问题。
 
+## 当前已实现（As-Is）
+
+- ✅ 统一通过 `MessageCacheHelper` 处理 Infinite Query 缓存写入与去重
+- ✅ 发送链路在 `onMutate/onSuccess/onError` 中使用 `tempId` 对齐消息
+- ✅ 文档中历史 WebSocket 管理器实现已下线，不再作为当前代码路径
+
+## 目标架构（To-Be）
+
+- [ ] 若恢复独立实时通道管理层，保持与 Infinite Query 数据结构统一
+- [ ] 进一步将实时消息接入策略抽象为可替换策略层
+
 ## 问题背景
 
 ### 问题描述
@@ -12,9 +23,9 @@
 
 ### 根本原因
 
-1. **WebSocket 消息处理与无限查询数据结构不匹配**
+1. **历史 WebSocket 消息处理与无限查询数据结构不匹配（已修复）**
    - `useMessages` 使用 `useInfiniteQuery`，数据结构为 `{ pages: [{ items: [] }] }`
-   - 但 `websocket-manager.service.ts` 中的 `handleNewMessage` 处理的是普通数组 `StandardMessage[]`
+   - 旧版 `websocket-manager.service.ts`（已移除）中的 `handleNewMessage` 处理的是普通数组 `StandardMessage[]`
    - 导致 WebSocket 推送的消息无法正确合并到无限查询缓存中
 
 2. **时序问题**
@@ -211,8 +222,7 @@ pnpm test message-cache-helper.service.test.ts
 ## 相关文件
 
 - `src/services/message-cache-helper.service.ts` - 消息缓存辅助工具
-- `src/services/websocket-manager.service.ts` - WebSocket 消息处理
-- `src/hooks/use-send-message.hook.ts` - 发送消息 hook
+- `src/hooks/use-send-message.hook.ts` - 发送消息链路与缓存写入
 - `src/services/message-cache-helper.service.test.ts` - 单元测试
 
 ## 迁移指南
