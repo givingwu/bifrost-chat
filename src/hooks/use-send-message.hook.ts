@@ -10,6 +10,7 @@ import {
 import { queryKeys } from '@/providers/query.provider';
 import { useServices } from '@/providers/service.provider';
 import { MessageBuilder } from '@/services/message-builder.service';
+import { MessageCacheHelper } from '@/services/message-cache-helper.service';
 
 /**
  * 使用发送消息的 Hook
@@ -102,23 +103,12 @@ export function useSendMessage<TParams = any>() {
       );
       tempMessage.status = MessageStatusEnum.Sending;
 
-      // 乐观更新：立即添加消息到列表
-      queryClient.setQueryData(
-        queryKeys.messages.list(params.conversationId),
-        (old: any) => {
-          if (!old) return old;
-          return {
-            ...old,
-            pages: old.pages.map((page: any, index: number) =>
-              index === old.pages.length - 1
-                ? {
-                    ...page,
-                    items: [...page.items, tempMessage],
-                  }
-                : page,
-            ),
-          };
-        },
+      // 使用 MessageCacheHelper 添加临时消息到缓存
+      // 自动处理无限查询数据结构和去重
+      MessageCacheHelper.addMessageToCache(
+        queryClient,
+        params.conversationId,
+        tempMessage,
       );
 
       return { previousMessages, tempMessage };
@@ -158,52 +148,77 @@ export function useSendMessage<TParams = any>() {
         }
       }
 
-      // 更新消息状态为 Failed（而不是回滚）
-      queryClient.setQueryData(
-        queryKeys.messages.list(variables.conversationId),
-        (old: any) => {
-          if (!old) return old;
-          return {
-            ...old,
-            pages: old.pages.map((page: any) => ({
-              ...page,
-              items: page.items.map((item: StandardMessage) =>
-                item.tempId === context?.tempMessage.tempId
-                  ? { ...item, status: MessageStatusEnum.Failed }
-                  : item,
-              ),
-            })),
-          };
-        },
+      // 使用 MessageCacheHelper 更新消息状态为 Failed（而不是回滚）
+      // 支持通过 tempId 查找消息
+      MessageCacheHelper.updateMessageStatus(
+        queryClient,
+        variables.conversationId,
+        MessageStatusEnum.Failed,
+        undefined, // messageId
+        context?.tempMessage.tempId, // tempId
       );
     },
 
     // 成功后，更新临时消息的状态
-    onSuccess: (data, variables, context) => {
+    onSuccess: async (data, variables, context) => {
       const tempId = context?.tempMessage.tempId;
       if (!tempId) return;
 
-      // 更新临时消息为真实消息
-      queryClient.setQueryData(
-        queryKeys.messages.list(variables.conversationId),
-        (old: any) => {
-          if (!old) return old;
-          return {
-            ...old,
-            pages: old.pages.map((page: any) => ({
-              ...page,
-              items: page.items.map((item: StandardMessage) =>
-                item.tempId === tempId
-                  ? {
-                      ...item,
-                      id: data.messageId ?? item.id,
-                      status: data.status ?? MessageStatusEnum.Sent,
-                    }
-                  : item,
-              ),
-            })),
-          };
+      const isFailed =
+        data.status === MessageStatusEnum.Failed || Boolean(data.error);
+
+      if (isFailed) {
+        MessageCacheHelper.updateMessageInCache(
+          queryClient,
+          variables.conversationId,
+          {
+            status: MessageStatusEnum.Failed,
+            error: data.error,
+          },
+          undefined,
+          tempId,
+        );
+
+        if (offlineMessageQueue && context?.tempMessage) {
+          try {
+            const offlineMessage = offlineMessageQueue.createOfflineMessage(
+              context.tempMessage,
+              variables.conversationId,
+              {
+                content: variables.content,
+                ...variables.extra,
+              },
+              MessagePriorityEnum.Normal,
+            );
+
+            offlineMessage.error = data.error ?? 'Message send failed';
+
+            await offlineMessageQueue.enqueue(offlineMessage);
+
+            console.info(
+              '[useSendMessage] 消息已保存到离线队列:',
+              offlineMessage.id,
+            );
+          } catch (queueError) {
+            console.error('[useSendMessage] 保存到离线队列失败:', queueError);
+          }
+        }
+
+        return;
+      }
+
+      // 使用 MessageCacheHelper 更新临时消息为真实消息
+      // 通过 tempId 查找消息，更新其 id 和 status
+      // 这样可以确保在 WebSocket 推送之前完成缓存更新，避免时序问题
+      MessageCacheHelper.updateMessageInCache(
+        queryClient,
+        variables.conversationId,
+        {
+          id: data.messageId ?? context?.tempMessage.id,
+          status: data.status ?? MessageStatusEnum.Sent,
         },
+        undefined, // messageId - 使用 tempId 查找
+        tempId, // tempId
       );
     },
   });

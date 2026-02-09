@@ -43,15 +43,24 @@ export const MessageActions = memo(
     const { t } = useTranslation();
     const retryMessage = useRetryMessage();
     const deleteMessage = useDeleteFailedMessage();
+    const offlineMessageId = message._offlineMessageId;
 
     // 只对本地失败的消息显示操作按钮，且需要 conversationId
     if (
       message.status !== MessageStatusEnum.Failed ||
-      !message._offlineMessageId ||
+      !offlineMessageId ||
       !conversationId
     ) {
       return null;
     }
+
+    const isRetryingCurrentMessage =
+      retryMessage.isPending &&
+      retryMessage.variables?.offlineMessageId === offlineMessageId;
+
+    const isDeletingCurrentMessage =
+      deleteMessage.isPending &&
+      deleteMessage.variables?.offlineMessageId === offlineMessageId;
 
     return (
       <div className={cn('flex items-center gap-0.5', className)}>
@@ -60,11 +69,12 @@ export const MessageActions = memo(
           className="text-xs font-medium text-red-400 hover:text-red-500 cursor-pointer"
           onClick={() =>
             retryMessage.mutate({
-              conversationId: conversationId ?? '',
-              offlineMessageId: message._offlineMessageId!,
+              conversationId,
+              offlineMessageId,
             })
           }
-          disabled={retryMessage.isPending}
+          disabled={isRetryingCurrentMessage}
+          aria-busy={isRetryingCurrentMessage}
         >
           {t('message.retry')}
         </Button>
@@ -72,11 +82,12 @@ export const MessageActions = memo(
           type="button"
           className="text-xs font-medium text-red-400 hover:text-red-500 cursor-pointer"
           aria-label={t('message.delete')}
-          disabled={deleteMessage.isPending}
+          disabled={isDeletingCurrentMessage}
+          aria-busy={isDeletingCurrentMessage}
           onClick={() =>
             deleteMessage.mutate({
-              conversationId: conversationId ?? '',
-              offlineMessageId: message._offlineMessageId!,
+              conversationId,
+              offlineMessageId,
             })
           }
         >

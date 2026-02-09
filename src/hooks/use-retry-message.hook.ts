@@ -46,6 +46,8 @@ export function useRetryMessage() {
       offlineMessageId: string;
     }
   >({
+    // 手动重试场景下，禁用 React Query 自动重试，避免按钮长时间锁定
+    retry: false,
     mutationFn: async ({ conversationId, offlineMessageId }) => {
       // 1. 从离线队列获取消息
       if (!offlineMessageQueue) {

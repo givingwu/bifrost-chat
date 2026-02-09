@@ -51,6 +51,7 @@ export * from '@/providers/service.provider';
 export * from '@/services/conversation.service';
 export * from '@/services/message.service';
 export * from '@/services/message-builder.service';
+export * from '@/services/message-cache-helper.service';
 export * from '@/services/template.service';
 
 // Store
