@@ -1,8 +1,8 @@
+import { memo } from 'react';
 import {
   MessageTypeEnum,
   type StandardMessage,
 } from '@/interfaces/message.interface';
-import { memo } from 'react';
 
 export interface UnsupportedMessageProps {
   /** 标准消息 */
