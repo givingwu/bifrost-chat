@@ -45,7 +45,7 @@ export const UnsupportedMessage = memo(
           <line x1="12" y1="8" x2="12" y2="12" />
           <line x1="12" y1="16" x2="12.01" y2="16" />
         </svg>
-        <span className="text-sm leading-relaxed !text-white">
+        <span className="text-sm leading-relaxed !text-orange-500">
           {displayMessage}
         </span>
       </div>
