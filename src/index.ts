@@ -3,6 +3,10 @@ import './styles/index.css';
 
 // Components
 export * from '@/components';
+export type {
+  DefaultChatLayoutRenderTopbar,
+  DefaultChatLayoutRenderTopbarProps,
+} from '@/components/layout/DefaultChatLayout';
 
 // Events
 export * from '@/events/client-bus.event';
