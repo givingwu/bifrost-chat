@@ -1,5 +1,7 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef } from 'react';
 import { useMessages } from '@/hooks/use-messages.hook';
+import { queryKeys } from '@/providers/query.provider';
 import { MessageList } from './MessageList';
 
 export interface InfiniteMessageListProps {
@@ -54,6 +56,7 @@ export function InfiniteMessageList({
   enableAutoMarkAsRead = true,
   markAsReadDebounceDelay = 1000,
 }: InfiniteMessageListProps) {
+  const queryClient = useQueryClient();
   const {
     data,
     isLoading,
@@ -69,6 +72,20 @@ export function InfiniteMessageList({
   const hasInitialScrolledRef = useRef(false);
   const isNearBottomRef = useRef(true);
   const lastMessageCountRef = useRef(0);
+
+  // 当 conversationId 变化时，强制刷新消息列表
+  // 这确保了切换会话时能够加载完整的消息历史，而不仅仅是 WebSocket 推送的新消息
+  useEffect(() => {
+    if (conversationId) {
+      console.log(
+        '[InfiniteMessageList] 会话切换，强制刷新消息列表:',
+        conversationId,
+      );
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.messages.list(conversationId),
+      });
+    }
+  }, [conversationId, queryClient]);
 
   // ✅ Bug 1 修复：反转页面顺序，确保更早的消息显示在上面
   // 后端返回格式：第一页 [30,29,...,1]（降序），第二页 [60,59,...,31]（降序）
