@@ -15,13 +15,9 @@ import { MessageCacheHelper } from '@/services/message-cache-helper.service';
  */
 export class MessageSyncService {
   private readonly queryClient: QueryClient;
-  private readonly messageService: IMessageService;
-  private unsubscribeMessages: (() => void) | null = null;
-  private unsubscribeStatus: (() => void) | null = null;
 
-  constructor(queryClient: QueryClient, messageService: IMessageService) {
+  constructor(queryClient: QueryClient) {
     this.queryClient = queryClient;
-    this.messageService = messageService;
   }
 
   pushNewMessage(event: MessageReceivedEvent) {
@@ -61,28 +57,5 @@ export class MessageSyncService {
       event.messageId,
       event.tempId,
     );
-  }
-
-  /**
-   * 启动订阅
-   */
-  start(): void {
-    this.stop();
-    this.unsubscribeMessages = this.messageService.subscribeToMessages(
-      this.pushNewMessage,
-    );
-    this.unsubscribeStatus = this.messageService.subscribeToMessageStatus(
-      this.updateMessageStatus,
-    );
-  }
-
-  /**
-   * 停止订阅并清理
-   */
-  stop(): void {
-    this.unsubscribeMessages?.();
-    this.unsubscribeStatus?.();
-    this.unsubscribeMessages = null;
-    this.unsubscribeStatus = null;
   }
 }
