@@ -13,6 +13,7 @@ export { useConversations } from '@/hooks/use-conversations.hook';
 export { useCreateConversation } from '@/hooks/use-create-conversation.hook';
 export { useInViewport } from '@/hooks/use-in-viewport.hook';
 export { useMarkAsRead } from '@/hooks/use-mark-as-read.hook';
+export { useMessageSync } from '@/hooks/use-message-sync.hook';
 // 消息相关 Hooks
 export { useMessages } from '@/hooks/use-messages.hook';
 export { useSendMessage } from '@/hooks/use-send-message.hook';
@@ -53,6 +54,7 @@ export * from '@/services/conversation.service';
 export * from '@/services/message.service';
 export * from '@/services/message-builder.service';
 export * from '@/services/message-cache-helper.service';
+export * from '@/services/message-sync.service';
 export * from '@/services/template.service';
 
 // Store

@@ -27,6 +27,24 @@ export interface MessageStatusUpdate {
 }
 
 /**
+ * 实时消息事件
+ */
+export interface MessageReceivedEvent {
+  /** 会话 ID */
+  conversationId: string;
+  /** 消息内容 */
+  message: StandardMessage;
+}
+
+/**
+ * 消息状态更新事件
+ */
+export interface MessageStatusUpdatedEvent extends MessageStatusUpdate {
+  /** 会话 ID */
+  conversationId: string;
+}
+
+/**
  * 消息服务接口 (泛型版本)
  * @template TListParams 列表查询参数类型
  * @template TSendParams 发送参数类型
@@ -95,7 +113,9 @@ export interface IMessageService<
    * @param callback 回调函数
    * @returns 取消订阅函数
    */
-  subscribeToMessages(callback: (message: StandardMessage) => void): () => void;
+  subscribeToMessages(
+    callback: (event: MessageReceivedEvent) => void,
+  ): () => void;
 
   /**
    * 订阅消息状态更新
@@ -103,7 +123,7 @@ export interface IMessageService<
    * @returns 取消订阅函数
    */
   subscribeToMessageStatus(
-    callback: (update: MessageStatusUpdate) => void,
+    callback: (event: MessageStatusUpdatedEvent) => void,
   ): () => void;
 
   /**
