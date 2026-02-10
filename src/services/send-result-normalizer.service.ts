@@ -1,6 +1,7 @@
 /**
- * 发送结果标准化：将后端通用 code/data 约定转为 MessageSendResult，responseCode 逻辑统一在 SDK。
- * - code === 0：一律 responseCode: 0，不回退消息；code === 1：抛错，由 useSendMessage onError 处理。
+ * 发送结果标准化：将后端通用 code/data 约定转为 MessageSendResult。
+ * - code === 1：抛错，由上层 Hook（如 useSendMessage）在 onError 中处理并决定是否回退。
+ * - code === 0：默认映射为「成功」结果，具体是否回退由业务应用根据自身规则解释。
  */
 
 import type { MessageSendResult } from '@/interfaces/message.interface';
@@ -32,12 +33,11 @@ export interface NormalizeSendResultOptions<TData extends BackendSendData> {
 
 /**
  * 创建「不回退」的发送结果（用于 code=0 但无 data 或请求抛错但解析到 code=0 等场景）。
- * responseCode: 0 保证 useSendMessage 不会回滚临时消息。
+ * 默认设置 status: Sent，仅作为业务侧「不回退」的推荐返回形态。
  */
 export function createNoRollbackResult(): MessageSendResult {
   return {
     tempId: '',
-    responseCode: 0,
     status: MessageStatusEnum.Sent,
   };
 }
@@ -57,7 +57,7 @@ export function parseResponseCodeFromError(err: unknown): number | undefined {
 /**
  * 将后端 send 接口响应标准化为 MessageSendResult。
  * - code === 1：抛出 Error，由 mutation onError 处理并回退。
- * - code === 0：始终返回 responseCode: 0（不回退），并根据 data 填充 tempId/messageId/status 等。
+ * - code === 0：根据 data 填充 tempId/messageId/status 等，是否回退由上层依据 status/error 决定。
  */
 export function normalizeSendResult<TData extends BackendSendData>(
   res: BackendSendResponse<TData>,
@@ -87,7 +87,6 @@ export function normalizeSendResult<TData extends BackendSendData>(
   return {
     tempId,
     messageId,
-    responseCode: 0,
     status,
     retryCount: 1,
     ...(data.errorMsg != null &&

@@ -199,11 +199,6 @@ export interface MessageSendResult {
   tempId: string;
   /** 真实消息 ID（服务端返回） */
   messageId?: string;
-  /**
-   * 接口响应最外层 code：0 表示成功不回退，1 表示失败需回退消息。
-   * 若 host 传入此字段则优先据此判断是否回退，未传时沿用 status/error。
-   */
-  responseCode?: number;
   /** 发送状态 */
   status: MessageStatusEnum;
   /** 错误信息（如果失败） */
