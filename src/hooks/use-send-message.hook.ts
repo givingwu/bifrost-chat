@@ -1,3 +1,4 @@
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type {
   MessageSendResult,
   StandardMessage,
@@ -11,7 +12,6 @@ import { useServices } from '@/providers/service.provider';
 import { MessageBuilder } from '@/services/message-builder.service';
 import { MessageCacheHelper } from '@/services/message-cache-helper.service';
 import { useStrategy } from '@/store';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 /**
  * 使用发送消息的 Hook
@@ -75,15 +75,15 @@ export function useSendMessage<TParams = any>() {
       tempMessage: StandardMessage;
     }
   >({
-    mutationFn: async params => {
+    mutationFn: async (params) => {
       return messageService.send(params.conversationId, {
         content: params.content,
         ...params.extra,
-      } as any);
+      });
     },
 
     // 乐观更新：在请求发送前立即在 UI 上显示消息
-    onMutate: async params => {
+    onMutate: async (params) => {
       // 取消正在进行的查询，避免覆盖我们的乐观更新
       await queryClient.cancelQueries({
         queryKey: queryKeys.messages.list(params.conversationId),
@@ -224,7 +224,7 @@ export function useSendMessage<TParams = any>() {
       }
 
       // 使用 MessageCacheHelper 更新临时消息为真实消息
-      // 通过 tempId 查找消息，更新其 id 和 status
+      // 通过 id/tempId 查找消息，更新其 id 和 status
       // 这样可以确保在 WebSocket 推送之前完成缓存更新，避免时序问题
       MessageCacheHelper.updateMessageInCache(
         queryClient,
@@ -233,7 +233,7 @@ export function useSendMessage<TParams = any>() {
           id: data.messageId ?? context?.tempMessage.id,
           status: data.status ?? MessageStatusEnum.Sent,
         },
-        undefined, // messageId - 使用 tempId 查找
+        data.messageId, // messageId - 使用 tempId 查找
         tempId, // tempId
       );
     },

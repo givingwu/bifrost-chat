@@ -205,19 +205,41 @@ export class MessageCacheHelper {
           return old;
         }
 
-        // 添加到最后一页的末尾
+        // ✅ 修复：添加到第一页的开头（索引0），而不是最后一页的末尾
+        // 原因：第一页（page 0）存储最新消息，索引0是最新的
+        // 新消息应该插入到索引0，确保在反转后显示在最下面
+        // 插入后：[newMessage,30,29,...,1] → 反转后：[60,...,31,30,...,1, newMessage] ✓
         console.log(
-          '[MessageCacheHelper.addMessageToCache] 添加到最后一页的末尾',
+          '[MessageCacheHelper.addMessageToCache] 添加到第一页（page 0）的开头',
         );
+        console.log(
+          '[MessageCacheHelper.addMessageToCache] 第一页（page 0）的前3条消息:',
+          old.pages[0].items.slice(0, 3).map((m) => ({
+            id: m.id,
+            tempId: m.tempId,
+            timestamp: m.timestamp,
+          })),
+        );
+        console.log('[MessageCacheHelper.addMessageToCache] 新消息:', {
+          id: message.id,
+          tempId: message.tempId,
+          timestamp: message.timestamp,
+        });
         const newPages = old.pages.map((page, index) =>
-          index === old.pages.length - 1
-            ? { ...page, items: [...page.items, message] }
-            : page,
+          index === 0 ? { ...page, items: [message, ...page.items] } : page,
         );
 
         console.log(
           '[MessageCacheHelper.addMessageToCache] 添加后的页面消息数:',
           newPages.map((p) => p.items.length),
+        );
+        console.log(
+          '[MessageCacheHelper.addMessageToCache] 添加后第一页的前3条消息:',
+          newPages[0].items.slice(0, 3).map((m) => ({
+            id: m.id,
+            tempId: m.tempId,
+            timestamp: m.timestamp,
+          })),
         );
 
         return { ...old, pages: newPages };
@@ -370,8 +392,8 @@ export class MessageCacheHelper {
 
         // 添加到最后一页
         const newPages = old.pages.map((page, index) =>
-          index === old.pages.length - 1
-            ? { ...page, items: [...page.items, ...newMessages] }
+          index === 0
+            ? { ...page, items: [...newMessages, ...page.items] }
             : page,
         );
 

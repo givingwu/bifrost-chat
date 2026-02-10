@@ -73,11 +73,64 @@ export function InfiniteMessageList({
   // ✅ Bug 1 修复：反转页面顺序，确保更早的消息显示在上面
   // 后端返回格式：第一页 [30,29,...,1]（降序），第二页 [60,59,...,31]（降序）
   // 期望显示顺序：[60,...,31,30,...,1]（更旧的在上，更新的在下）
-  const messages = useMemo(
-    () =>
-      [...(data?.pages || [])].reverse().flatMap((page) => page.items) || [],
-    [data],
-  );
+  const messages = useMemo(() => {
+    const pages = data?.pages || [];
+    console.log('[InfiniteMessageList] 当前页面数:', pages.length);
+    console.log(
+      '[InfiniteMessageList] 各页面消息数:',
+      pages.map((p) => p.items.length),
+    );
+
+    // 打印第一页（最新消息）的前3条和后3条
+    if (pages.length > 0) {
+      const firstPage = pages[0];
+      console.log(
+        '[InfiniteMessageList] 第一页（page 0）的前3条消息:',
+        firstPage.items.slice(0, 3).map((m) => ({
+          id: m.id,
+          tempId: m.tempId,
+          timestamp: m.timestamp,
+          status: m.status,
+        })),
+      );
+      console.log(
+        '[InfiniteMessageList] 第一页（page 0）的后3条消息:',
+        firstPage.items.slice(-3).map((m) => ({
+          id: m.id,
+          tempId: m.tempId,
+          timestamp: m.timestamp,
+          status: m.status,
+        })),
+      );
+    }
+
+    const reversedMessages =
+      [...pages].reverse().flatMap((page) => page.items) || [];
+    console.log(
+      '[InfiniteMessageList] 反转后的总消息数:',
+      reversedMessages.length,
+    );
+    console.log(
+      '[InfiniteMessageList] 反转后的前3条消息:',
+      reversedMessages.slice(0, 3).map((m) => ({
+        id: m.id,
+        tempId: m.tempId,
+        timestamp: m.timestamp,
+        status: m.status,
+      })),
+    );
+    console.log(
+      '[InfiniteMessageList] 反转后的后3条消息:',
+      reversedMessages.slice(-3).map((m) => ({
+        id: m.id,
+        tempId: m.tempId,
+        timestamp: m.timestamp,
+        status: m.status,
+      })),
+    );
+
+    return reversedMessages;
+  }, [data]);
 
   useEffect(() => {
     hasInitialScrolledRef.current = false;
