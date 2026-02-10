@@ -30,6 +30,7 @@ export const createThemeSlice: StateCreator<ThemeSlice, [], [], ThemeSlice> = (
     mode: ThemeModeEnum.System,
     systemPrefersDark: false,
     resolvedMode: ThemeModeEnum.Light,
+    enableSwitcher: true,
   },
   actions: {
     setTheme: (mode: ThemeModeEnum) =>

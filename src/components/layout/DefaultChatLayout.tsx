@@ -1,3 +1,4 @@
+import { useCallback, useEffect, useMemo, useRef, useTransition } from 'react';
 import type { ComposerToolbarRef } from '@/components/composer/ComposerToolbar';
 import { ComposerWithSend } from '@/components/composer/ComposerWithSend';
 import { ConversationHeader } from '@/components/conversation/ConversationHeader';
@@ -22,7 +23,6 @@ import {
   useStrategy,
 } from '@/store';
 import { cn } from '@/utils/class.util';
-import { useCallback, useEffect, useMemo, useRef, useTransition } from 'react';
 import { ChatLayout } from './ChatLayout';
 
 export interface DefaultChatLayoutRenderTopbarProps {
@@ -106,7 +106,7 @@ export function DefaultChatLayout({
   const activeConversation = useMemo(
     () =>
       conversations?.find(
-        conversation => conversation.id === activeConversationId,
+        (conversation) => conversation.id === activeConversationId,
       ),
     [activeConversationId, conversations],
   );

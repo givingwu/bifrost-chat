@@ -41,6 +41,7 @@ export const createLanguageSlice: StateCreator<
       code: defaultCode,
       messages: defaultMessages,
       autoDetect: true,
+      enableSwitcher: true,
     },
     actions: {
       setLanguage: (code: LanguageCodeEnum) =>

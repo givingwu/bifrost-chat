@@ -113,4 +113,6 @@ export interface ThemeState {
   systemPrefersDark: boolean;
   /** 自定义主题配置 */
   customConfig?: ThemeConfig;
+  /** 是否启用主题切换器 */
+  enableSwitcher?: boolean;
 }

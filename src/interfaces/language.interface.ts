@@ -36,6 +36,8 @@ export interface LanguageState {
   messages: I18nMessages;
   /** 是否自动检测语言 */
   autoDetect?: boolean;
+  /** 是否启用语言切换器 */
+  enableSwitcher?: boolean;
 }
 
 /**

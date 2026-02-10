@@ -70,7 +70,7 @@ export const WhatsAppMessage = ({ content }: WhatsAppMessageProps) => {
           </p>
         </div>
         <div className="space-y-2">
-          {data.buttons?.map(btn => (
+          {data.buttons?.map((btn) => (
             <button
               key={btn}
               className="w-full rounded-md border border-border bg-card px-3 py-1.5 text-xs font-semibold text-primary transition hover:bg-muted"

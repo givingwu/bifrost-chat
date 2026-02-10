@@ -126,6 +126,8 @@ export interface NetworkState {
   lastConnectedAt?: number;
   /** 重连次数 */
   reconnectCount?: number;
+  /** 是否启用网络状态指示器 */
+  enableStatusIndicator?: boolean;
 }
 
 /**
