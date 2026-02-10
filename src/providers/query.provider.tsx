@@ -48,8 +48,8 @@ export function createQueryClient() {
         throwOnError: false,
       },
       mutations: {
-        // 失败重试 1 次
-        retry: 1,
+        // 失败不重试
+        retry: false,
         // 重试延迟
         retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
         // 全局错误处理
