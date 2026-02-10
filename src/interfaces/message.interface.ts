@@ -209,4 +209,6 @@ export interface MessageSendResult {
   retryCount?: number;
   /** 是否可重试 */
   retryable?: boolean;
+  /** 是否需要回滚消息 */
+  needRollback?: boolean;
 }

@@ -204,7 +204,7 @@ export function useSendMessage<TParams = any>() {
       const isFailed =
         data.status === MessageStatusEnum.Failed || Boolean(data.error);
 
-      if (isFailed) {
+      if (data.needRollback) {
         // 业务逻辑/状态失败：完全回滚到之前的状态（移除临时消息）
         console.error(
           '[useSendMessage] 发送结果状态为失败，执行回滚:',
@@ -232,6 +232,7 @@ export function useSendMessage<TParams = any>() {
         {
           id: data.messageId ?? context?.tempMessage.id,
           status: data.status ?? MessageStatusEnum.Sent,
+          error: isFailed ? (data.error ?? 'Send Failed') : '',
         },
         data.messageId, // messageId - 使用 tempId 查找
         tempId, // tempId
