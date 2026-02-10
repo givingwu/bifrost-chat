@@ -1,4 +1,3 @@
-import { useCallback, useEffect, useMemo, useRef, useTransition } from 'react';
 import type { ComposerToolbarRef } from '@/components/composer/ComposerToolbar';
 import { ComposerWithSend } from '@/components/composer/ComposerWithSend';
 import { ConversationHeader } from '@/components/conversation/ConversationHeader';
@@ -24,12 +23,34 @@ import {
   useStrategy,
 } from '@/store';
 import { cn } from '@/utils/class.util';
+import { useCallback, useEffect, useMemo, useRef, useTransition } from 'react';
 import { ChatLayout } from './ChatLayout';
+
+export interface DefaultChatLayoutRenderTopbarProps {
+  /** 计算后的标题文案 */
+  title: string;
+  /** 计算后的副标题文案 */
+  subtitle?: string;
+  /** 默认右侧工具区（含语言/主题等），可直接复用 */
+  extra: React.ReactNode;
+  /** 默认的 Topbar 组件，方便在外部包一层再渲染 */
+  TopbarComponent: typeof Topbar;
+}
+
+export type DefaultChatLayoutRenderTopbar =
+  | React.ReactNode
+  | ((props: DefaultChatLayoutRenderTopbarProps) => React.ReactNode);
 
 export interface DefaultChatLayoutProps {
   className?: string;
   style?: React.CSSProperties;
   extraTools?: React.ReactNode;
+  /**
+   * 顶部栏自定义渲染：
+   * - 直接传入 ReactNode：完全自定义
+   * - 传入函数：在保持默认 Topbar 行为的基础上包一层（例如增加拖拽区域）
+   */
+  renderTopbar?: DefaultChatLayoutRenderTopbar;
 }
 
 /**
@@ -56,6 +77,7 @@ export interface DefaultChatLayoutProps {
  */
 export function DefaultChatLayout({
   extraTools,
+  renderTopbar,
   className,
   style,
 }: DefaultChatLayoutProps) {
@@ -92,7 +114,7 @@ export function DefaultChatLayout({
   const activeConversation = useMemo(
     () =>
       conversations?.find(
-        (conversation) => conversation.id === activeConversationId,
+        conversation => conversation.id === activeConversationId,
       ),
     [activeConversationId, conversations],
   );
@@ -182,18 +204,38 @@ export function DefaultChatLayout({
     },
     [activeConversationId, sendMessage, templateMode],
   );
+  const defaultTopbarExtra = useMemo(
+    () => <TopbarTools extra={extraTools} />,
+    [extraTools],
+  );
+
+  const topbarNode = useMemo(() => {
+    // 函数形式：外部拿到默认 Topbar 所需的参数与组件，自行决定如何包裹（例如加拖动区域）
+    if (typeof renderTopbar === 'function') {
+      return renderTopbar({
+        title,
+        subtitle,
+        extra: defaultTopbarExtra,
+        TopbarComponent: Topbar,
+      });
+    }
+
+    // 兼容老用法：直接传入 ReactNode
+    if (renderTopbar) {
+      return renderTopbar;
+    }
+
+    // 默认实现
+    return (
+      <Topbar title={title} subtitle={subtitle} extra={defaultTopbarExtra} />
+    );
+  }, [defaultTopbarExtra, renderTopbar, subtitle, title]);
 
   return (
     <ChatLayout
       className={cn('max-w-350 h-[80vh]', className)}
       style={style}
-      topbar={
-        <Topbar
-          title={title}
-          subtitle={subtitle}
-          extra={<TopbarTools extra={extraTools} />}
-        />
-      }
+      topbar={topbarNode}
       conversationPanel={
         <ConversationPanel
           header={
