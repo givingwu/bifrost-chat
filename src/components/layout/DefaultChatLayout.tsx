@@ -10,6 +10,7 @@ import { TemplatePanel } from '@/components/template/TemplatePanel';
 import { ChannelFilter } from '@/components/toolbar/ChannelFilter';
 import { Topbar } from '@/components/toolbar/Topbar';
 import { TopbarTools } from '@/components/toolbar/TopbarTools';
+import { useMessageSync } from '@/hooks';
 import { useConversations } from '@/hooks/use-conversations.hook';
 import { useSendMessage } from '@/hooks/use-send-message.hook';
 import type { Conversation } from '@/interfaces/conversation.interface';
@@ -60,11 +61,12 @@ export function DefaultChatLayout({
 }: DefaultChatLayoutProps) {
   const { t } = useTranslation();
   const actions = useActions();
-  const { activeChannel, allowedChannels } = useStrategy();
+  const sync = useMessageSync();
   const { profile } = useProfile();
   const sendMessage = useSendMessage();
   const { templateMode } = useComposerConfig();
   const { data: conversations = [] } = useConversations();
+  const { activeChannel, allowedChannels } = useStrategy();
   const { activeConversationId, searchQuery } = useConversation();
 
   // Composer ref，用于外部控制输入框
@@ -72,6 +74,11 @@ export function DefaultChatLayout({
 
   // 使用 useTransition 标记搜索过滤为过渡更新（低优先级）
   const [isPending, startTransition] = useTransition();
+
+  // 打印一下这个 sync 服务
+  useEffect(() => {
+    console.log('sync: ', sync);
+  }, [sync]);
 
   // 自动选中第一个会话
   useEffect(() => {

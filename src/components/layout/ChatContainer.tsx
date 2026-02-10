@@ -1,5 +1,4 @@
 import { type ReactNode, useEffect } from 'react';
-import { cn } from '@/index';
 import { ThemeModeEnum } from '@/interfaces/theme.interface';
 import { I18nProvider } from '@/providers/I18n.provider';
 import {
@@ -9,6 +8,7 @@ import {
   useLanguage,
   useTheme,
 } from '@/store';
+import { cn } from '@/utils/class.util';
 
 export interface ChatContainerProps {
   /** 子组件或 render props 函数 */
