@@ -1,3 +1,4 @@
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type {
   MessageSendResult,
   StandardMessage,
@@ -11,7 +12,6 @@ import { useServices } from '@/providers/service.provider';
 import { MessageBuilder } from '@/services/message-builder.service';
 import { MessageCacheHelper } from '@/services/message-cache-helper.service';
 import { useStrategy } from '@/store';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 /**
  * 使用发送消息的 Hook
@@ -75,7 +75,7 @@ export function useSendMessage<TParams = any>() {
       tempMessage: StandardMessage;
     }
   >({
-    mutationFn: async params => {
+    mutationFn: async (params) => {
       return messageService.send(params.conversationId, {
         content: params.content,
         ...params.extra,
@@ -83,7 +83,7 @@ export function useSendMessage<TParams = any>() {
     },
 
     // 乐观更新：在请求发送前立即在 UI 上显示消息
-    onMutate: async params => {
+    onMutate: async (params) => {
       // 取消正在进行的查询，避免覆盖我们的乐观更新
       await queryClient.cancelQueries({
         queryKey: queryKeys.messages.list(params.conversationId),
