@@ -1,0 +1,18 @@
+#!/bin/bash
+
+###############################################################################
+# Bifrost Chat Git Post-commit Hook
+# 功能：每次 commit 后自动同步到 fox-admin-ui
+# 安装：cp scripts/git-hooks/post-commit .git/hooks/post-commit
+# 权限：chmod +x .git/hooks/post-commit
+###############################################################################
+
+# 异步执行同步脚本，不阻塞 commit 操作
+nohup bash scripts/sync-to-fox-admin.sh > /tmp/bifrost-sync.log 2>&1 &
+
+# 显示提示信息
+echo "🔄 正在后台同步到 fox-admin-ui..."
+echo "📋 查看同步日志: tail -f /tmp/bifrost-sync.log"
+
+# 退出成功
+exit 0

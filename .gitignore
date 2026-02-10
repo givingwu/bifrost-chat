@@ -3,6 +3,10 @@
 *.local
 *.log*
 
+# Sync
+.sync-timestamp
+*.sync.log
+
 # Dist
 node_modules
 dist/
