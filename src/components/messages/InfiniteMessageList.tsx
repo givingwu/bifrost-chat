@@ -73,24 +73,11 @@ export function InfiniteMessageList({
   // ✅ Bug 1 修复：反转页面顺序，确保更早的消息显示在上面
   // 后端返回格式：第一页 [30,29,...,1]（降序），第二页 [60,59,...,31]（降序）
   // 期望显示顺序：[60,...,31,30,...,1]（更旧的在上，更新的在下）
-  const messages = useMemo(() => {
-    const result =
-      [...(data?.pages || [])].reverse().flatMap((page) => page.items) || [];
-    console.log('[InfiniteMessageList] 消息数量:', result.length);
-    console.log('[InfiniteMessageList] 页面数:', data?.pages.length || 0);
-    console.log(
-      '[InfiniteMessageList] 各页面消息数:',
-      data?.pages.map((page) => page.items.length) || [],
-    );
-    if (result.length > 0) {
-      console.log('[InfiniteMessageList] 第一条消息:', result[0]);
-      console.log(
-        '[InfiniteMessageList] 最后一条消息:',
-        result[result.length - 1],
-      );
-    }
-    return result;
-  }, [data]);
+  const messages = useMemo(
+    () =>
+      [...(data?.pages || [])].reverse().flatMap((page) => page.items) || [],
+    [data],
+  );
 
   useEffect(() => {
     hasInitialScrolledRef.current = false;
