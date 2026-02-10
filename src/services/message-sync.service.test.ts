@@ -1,3 +1,5 @@
+// cspell:disable
+// cspell:words conv cust
 import { QueryClient } from '@tanstack/react-query';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
@@ -8,11 +10,6 @@ import {
   MessageTypeEnum,
 } from '@/interfaces/message.interface';
 import { queryKeys } from '@/providers/query.provider';
-import type {
-  IMessageService,
-  MessageReceivedEvent,
-  MessageStatusUpdatedEvent,
-} from '@/services/message.service';
 import { MessageCacheHelper } from '@/services/message-cache-helper.service';
 import { MessageSyncService } from './message-sync.service';
 
@@ -42,66 +39,26 @@ describe('MessageSyncService', () => {
   }
 
   it('应在收到新消息事件时调用 addMessageToCache', () => {
-    let onMessage: (event: MessageReceivedEvent) => void = () => {};
-    let onStatus: (event: MessageStatusUpdatedEvent) => void = () => {};
-
-    const messageService: IMessageService = {
-      list: vi.fn(),
-      send: vi.fn(),
-      markAsRead: vi.fn(),
-      subscribeToMessages: vi.fn((callback) => {
-        onMessage = callback;
-        return () => {};
-      }),
-      subscribeToMessageStatus: vi.fn((callback) => {
-        onStatus = callback;
-        return () => {};
-      }),
-      sendAttachment: vi.fn(),
-      sendAudio: vi.fn(),
-    };
-
     const addMessageSpy = vi.spyOn(MessageCacheHelper, 'addMessageToCache');
 
-    const syncService = new MessageSyncService(queryClient, messageService);
-    syncService.start();
+    const syncService = new MessageSyncService(queryClient);
 
     const message = createMessage('msg-1');
 
-    onMessage({
+    syncService.pushNewMessage({
       conversationId: 'conv-1',
       message,
     });
 
     expect(addMessageSpy).toHaveBeenCalledWith(queryClient, 'conv-1', message);
-    expect(onStatus).toBeTypeOf('function');
   });
 
-  it('应在收到状态事件时更新已存在消息，并在 stop 时取消订阅', () => {
-    let onStatus: (event: MessageStatusUpdatedEvent) => void = () => {};
-    const unsubscribeMessages = vi.fn();
-    const unsubscribeStatus = vi.fn();
-
-    const messageService: IMessageService = {
-      list: vi.fn(),
-      send: vi.fn(),
-      markAsRead: vi.fn(),
-      subscribeToMessages: vi.fn(() => unsubscribeMessages),
-      subscribeToMessageStatus: vi.fn((callback) => {
-        onStatus = callback;
-        return unsubscribeStatus;
-      }),
-      sendAttachment: vi.fn(),
-      sendAudio: vi.fn(),
-    };
-
+  it('应在收到状态事件时更新已存在消息', () => {
     const updateSpy = vi.spyOn(MessageCacheHelper, 'updateMessageInCache');
 
-    const syncService = new MessageSyncService(queryClient, messageService);
+    const syncService = new MessageSyncService(queryClient);
 
-    syncService.start();
-
-    onStatus({
+    syncService.updateMessageStatus({
       conversationId: 'conv-1',
       messageId: 'msg-1',
       tempId: 'tmp-1',
@@ -120,29 +77,9 @@ describe('MessageSyncService', () => {
       'msg-1',
       'tmp-1',
     );
-
-    syncService.stop();
-
-    expect(unsubscribeMessages).toHaveBeenCalledTimes(1);
-    expect(unsubscribeStatus).toHaveBeenCalledTimes(1);
   });
 
   it('状态回调不应新增重复模板消息，只应更新现有消息', () => {
-    let onStatus: (event: MessageStatusUpdatedEvent) => void = () => {};
-
-    const messageService: IMessageService = {
-      list: vi.fn(),
-      send: vi.fn(),
-      markAsRead: vi.fn(),
-      subscribeToMessages: vi.fn(() => () => {}),
-      subscribeToMessageStatus: vi.fn((callback) => {
-        onStatus = callback;
-        return () => {};
-      }),
-      sendAttachment: vi.fn(),
-      sendAudio: vi.fn(),
-    };
-
     const templateMessage = createMessage('tpl-1', {
       type: MessageTypeEnum.Template,
       tempId: 'temp-tpl-1',
@@ -159,10 +96,9 @@ describe('MessageSyncService', () => {
       pageParams: [undefined],
     });
 
-    const syncService = new MessageSyncService(queryClient, messageService);
-    syncService.start();
+    const syncService = new MessageSyncService(queryClient);
 
-    onStatus({
+    syncService.updateMessageStatus({
       conversationId: 'conv-1',
       messageId: 'tpl-1',
       tempId: 'temp-tpl-1',
@@ -182,36 +118,26 @@ describe('MessageSyncService', () => {
   });
 
   it('当第二次推送 id 或 tempId 重复时应去重并给出告警', () => {
-    let onMessage: (event: MessageReceivedEvent) => void = () => {};
-
-    const messageService: IMessageService = {
-      list: vi.fn(),
-      send: vi.fn(),
-      markAsRead: vi.fn(),
-      subscribeToMessages: vi.fn((callback) => {
-        onMessage = callback;
-        return () => {};
-      }),
-      subscribeToMessageStatus: vi.fn(() => () => {}),
-      sendAttachment: vi.fn(),
-      sendAudio: vi.fn(),
-    };
-
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
-    const syncService = new MessageSyncService(queryClient, messageService);
-    syncService.start();
+    const syncService = new MessageSyncService(queryClient);
 
     const first = createMessage('cust-msg-1', { tempId: 'temp-c-1' });
-    onMessage({ conversationId: 'conv-1', message: first });
+    syncService.pushNewMessage({ conversationId: 'conv-1', message: first });
 
     const duplicateById = createMessage('cust-msg-1', { tempId: 'temp-c-2' });
-    onMessage({ conversationId: 'conv-1', message: duplicateById });
+    syncService.pushNewMessage({
+      conversationId: 'conv-1',
+      message: duplicateById,
+    });
 
     const duplicateByTempId = createMessage('cust-msg-2', {
       tempId: 'temp-c-1',
     });
-    onMessage({ conversationId: 'conv-1', message: duplicateByTempId });
+    syncService.pushNewMessage({
+      conversationId: 'conv-1',
+      message: duplicateByTempId,
+    });
 
     const data = queryClient.getQueryData<{
       pages: Array<{ items: StandardMessage[] }>;
@@ -227,30 +153,14 @@ describe('MessageSyncService', () => {
   });
 
   it('当第二次推送消息 id 与 tempId 都唯一时应正常显示', () => {
-    let onMessage: (event: MessageReceivedEvent) => void = () => {};
+    const syncService = new MessageSyncService(queryClient);
 
-    const messageService: IMessageService = {
-      list: vi.fn(),
-      send: vi.fn(),
-      markAsRead: vi.fn(),
-      subscribeToMessages: vi.fn((callback) => {
-        onMessage = callback;
-        return () => {};
-      }),
-      subscribeToMessageStatus: vi.fn(() => () => {}),
-      sendAttachment: vi.fn(),
-      sendAudio: vi.fn(),
-    };
-
-    const syncService = new MessageSyncService(queryClient, messageService);
-    syncService.start();
-
-    onMessage({
+    syncService.pushNewMessage({
       conversationId: 'conv-1',
       message: createMessage('cust-msg-1', { tempId: 'temp-c-1' }),
     });
 
-    onMessage({
+    syncService.pushNewMessage({
       conversationId: 'conv-1',
       message: createMessage('cust-msg-2', { tempId: 'temp-c-2' }),
     });
@@ -261,6 +171,6 @@ describe('MessageSyncService', () => {
 
     const items = data?.pages?.[0]?.items ?? [];
     expect(items).toHaveLength(2);
-    expect(items.map((item) => item.id)).toEqual(['cust-msg-2', 'cust-msg-1']);
+    expect(items.map((item) => item.id)).toEqual(['cust-msg-1', 'cust-msg-2']);
   });
 });
