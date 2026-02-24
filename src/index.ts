@@ -8,9 +8,6 @@ export type {
   DefaultChatLayoutRenderTopbarProps,
 } from '@/components/layout/DefaultChatLayout';
 
-// Events
-export * from '@/events/client-bus.event';
-
 // Hooks
 // 会话相关 Hooks
 export { useConversations } from '@/hooks/use-conversations.hook';
