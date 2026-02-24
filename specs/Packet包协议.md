@@ -9,15 +9,15 @@
     "id": "123", // 发起方生成 uuid
     "mid": "234234", // 投递服务生成消息服务端 id
     "upid" : "234234" // 上一条消息id
-    "from": { // 发送人 
-        "app": "im.customer", // 租户
-        "pin": "123323",  // 用户/UID/电话/邮箱 
+    "from": { // 发送人
+        "app": "fox_collect.waiter", // 租户
+        "pin": "123323",  // 用户/UID/电话/邮箱
         "clientType" : "pc", // 可选字段，设备类型
         "channelType": "SMS", // 渠道
     },
     "to": {  // 接收人
         "app": "im.waiter", // 租户
-        "pin": "13214", // 用户/UID/电话/邮箱 
+        "pin": "13214", // 用户/UID/电话/邮箱
         "clientType" : "pc", // 可选字段
         "channelType": "WhatsApp", // 渠道
     },
@@ -29,6 +29,7 @@
     "ver": "1.0", // 协议版本
     "timestamp": "124324242"， // 服务端生成时间戳
     "entry": "", // SDK 入口(枚举)：fox.system, fox.collect 电催详情, fox.telesales 电销
+    "chatId" : "" // 会话id
 }
 ```
 
@@ -38,7 +39,7 @@ SESSION ID: 债务 ID
 
 ```json
 {
-  "from": { // 发送人 
+  "from": { // 发送人
         "app": "fox_collect.waiter", // fox 租户
         "pin": "8dn48fd30djr42de3",  // UID：坐席 ID
         "clientType" : "pc", // 可选字段，设备类型
@@ -78,7 +79,7 @@ SESSION ID: 用户 ID （用户 ID = 客户身份证+包）
 
 ```json
 {
-  "entry": "fox.system", // SDK 入口(枚举)：fox.system, fox.collect 电催详情, fox.telesales 电销
+  "entry": "fox.system", // SDK 入口(枚举)：fox.system, fox.collect.detail 电催详情, fox.telesales.detail 电销
 }
 ```
 
@@ -93,6 +94,7 @@ ack ： ack
 客户端已读：msg_read_ack
 心跳： client_heartbeat
 状态切换：status_switch
+触达回复消息发送结果：fox_message_ack
 ```
 
 ## Tenant 租户枚举
