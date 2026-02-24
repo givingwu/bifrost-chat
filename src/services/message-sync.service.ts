@@ -1,6 +1,5 @@
 import type { QueryClient } from '@tanstack/react-query';
 import type {
-  IMessageService,
   MessageReceivedEvent,
   MessageStatusUpdatedEvent,
 } from '@/services/message.service';
@@ -20,6 +19,13 @@ export class MessageSyncService {
     this.queryClient = queryClient;
   }
 
+  /**
+   * 处理新消息事件，更新消息缓存
+   * - 检测重复消息（message.id 或 tempId 已存在），避免重复添加
+   * - 将新消息添加到对应会话的消息列表缓存中
+   * @param event
+   * @returns
+   */
   pushNewMessage(event: MessageReceivedEvent) {
     const messages = MessageCacheHelper.getAllMessagesFromCache(
       this.queryClient,
@@ -38,6 +44,7 @@ export class MessageSyncService {
       return;
     }
 
+    // 将新消息添加到缓存中
     MessageCacheHelper.addMessageToCache(
       this.queryClient,
       event.conversationId,
@@ -45,6 +52,14 @@ export class MessageSyncService {
     );
   }
 
+  /**
+   * 处理消息状态更新事件，更新消息缓存
+   * - 根据 messageId 或 tempId 定位到对应消息
+   * - 更新消息状态（status 字段）
+   * - 如果消息不存在，记录警告日志
+   * @param event
+   * @returns
+   */
   updateMessageStatus(event: MessageStatusUpdatedEvent) {
     MessageCacheHelper.updateMessageInCache(
       this.queryClient,
