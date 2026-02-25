@@ -13,6 +13,7 @@ dist/
 demo/
 plans/
 coverage/
+doc_build/
 storybook-static
 
 # IDE
