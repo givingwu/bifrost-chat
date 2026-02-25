@@ -5,6 +5,7 @@ import {
   screen,
   waitFor,
 } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import type { ComposerToolbarRef } from './ComposerToolbar';
 import { ComposerWithDraft } from './ComposerWithDraft';
@@ -269,7 +270,7 @@ describe('ComposerWithDraft - Draft 功能验证', () => {
       // 等待发送完成
       await waitFor(
         () => {
-          expect(onSend).toHaveBeenCalledWith('Message to send');
+          expect(onSend).toHaveBeenCalledWith('Message to send', undefined);
         },
         { timeout: 1000 },
       );

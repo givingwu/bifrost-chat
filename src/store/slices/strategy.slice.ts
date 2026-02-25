@@ -9,6 +9,18 @@ import {
 } from '@/interfaces/message-type-config.interface';
 
 /**
+ * 当前用户信息（坐席）
+ */
+export interface CurrentUser {
+  /** 应用标识（租户） */
+  app: string;
+  /** 用户标识（PIN/UID/电话/邮箱） */
+  pin: string;
+  /** 坐席状态（用于 in_call 互斥策略） */
+  status: AgentStatusEnum;
+}
+
+/**
  * Strategy Slice：渠道策略与坐席状态。
  */
 export interface StrategyState {
@@ -18,6 +30,8 @@ export interface StrategyState {
   activeChannel?: ChannelTypeEnum;
   /** 坐席状态（用于 in_call 互斥策略） */
   agentStatus?: AgentStatusEnum;
+  /** 当前用户信息（坐席） */
+  currentUser: CurrentUser;
   /** 允许的消息类型列表（当前激活渠道） */
   allowedMessageTypes: MessageTypeEnum[];
   /** 不支持消息的显示策略 */
@@ -35,6 +49,7 @@ export interface StrategySlice {
   actions: {
     setStrategy: (payload: Partial<StrategyState>) => void;
     setActiveChannel: (channel: ChannelTypeEnum) => void;
+    setCurrentUser: (user: CurrentUser | undefined) => void;
     setAllowedMessageTypes: (types: MessageTypeEnum[]) => void;
     setMessageDisplayStrategy: (strategy: MessageTypeDisplayStrategy) => void;
     updateChannelMessageTypeConfig: (
@@ -64,6 +79,10 @@ export const createStrategySlice: StateCreator<
     setActiveChannel: (channel: ChannelTypeEnum) =>
       set((state) => ({
         strategy: { ...state.strategy, activeChannel: channel },
+      })),
+    setCurrentUser: (user) =>
+      set((state) => ({
+        strategy: { ...state.strategy, currentUser: user },
       })),
     setAllowedMessageTypes: (types: MessageTypeEnum[]) =>
       set((state) => ({

@@ -81,14 +81,14 @@ export type MessageContent = StringMessage | MediaMessage | TemplateMessage;
  * 标准化的消息参与者，避免直接暴露协议 from/to
  */
 export interface MessageParticipant {
-  /** 用户或坐席 ID */
-  id: string;
-  /** 协议中的 app 字段（租户/角色） */
-  app?: string;
-  /** 客户端类型（pc/mobile 等） */
+  /** 协议中的 app 字段（租户） */
+  app: string;
+  /** 协议中的 pin 字段（用户/UID/电话/邮箱） */
+  pin: string;
+  /** 客户端类型（pc/mobile 等设备类型（可选）） */
   clientType?: string;
-  /** 渠道类型 */
-  channelType?: ChannelTypeEnum;
+  /** 渠道类型（支持枚举和字符串） */
+  channelType?: ChannelTypeEnum | string;
 }
 
 /**

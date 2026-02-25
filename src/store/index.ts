@@ -22,8 +22,10 @@ import { createStrategySlice } from './slices/strategy.slice';
 import type { ThemeSlice } from './slices/theme.slice';
 import { createThemeSlice } from './slices/theme.slice';
 
-// 导出状态类型，供外部使用
-export type { StrategyState, ConversationState, ProfileState, ComposerState };
+export type { ComposerState } from './slices/composer.slice';
+export type { ConversationState } from './slices/conversation.slice';
+export type { ProfileState } from './slices/profile.slice';
+export type { CurrentUser, StrategyState } from './slices/strategy.slice';
 
 /**
  * Chat Store 状态类型
