@@ -22,7 +22,10 @@ export { useTemplates } from '@/hooks/use-templates.hook';
 
 // Types
 export * from '@/interfaces/agent.interface';
+export * from '@/interfaces/attachment.interface';
+export * from '@/interfaces/audio.interface';
 export * from '@/interfaces/channel.interface';
+export * from '@/interfaces/composer.interface';
 export * from '@/interfaces/connection.interface';
 export * from '@/interfaces/conversation.interface';
 export * from '@/interfaces/error.interface';
@@ -30,6 +33,7 @@ export * from '@/interfaces/language.interface';
 export * from '@/interfaces/message.interface';
 export * from '@/interfaces/message-type-config.interface';
 export * from '@/interfaces/network.interface';
+export * from '@/interfaces/offline-message.interface';
 export * from '@/interfaces/profile.interface';
 export * from '@/interfaces/protocol.interface';
 export * from '@/interfaces/sdk.interface';
