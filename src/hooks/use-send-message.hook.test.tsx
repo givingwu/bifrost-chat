@@ -2,7 +2,9 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { AgentStatusEnum } from '@/interfaces/agent.interface';
 import {
+  type MessageSendResult,
   MessageStatusEnum,
   type StandardMessage,
 } from '@/interfaces/message.interface';
@@ -11,7 +13,23 @@ import { ServiceProvider } from '@/providers/service.provider';
 import type { IConversationService } from '@/services/conversation.service';
 import type { IMessageService } from '@/services/message.service';
 import type { ITemplateService } from '@/services/template.service';
+import type { CurrentUser } from '@/store';
 import { useSendMessage } from './use-send-message.hook';
+
+// Mock useStrategy
+const mockCurrentUser: CurrentUser = {
+  app: 'test-app',
+  pin: 'test-agent-123',
+  status: AgentStatusEnum.Online,
+};
+
+vi.mock('@/store', () => ({
+  useStrategy: () => ({
+    activeChannel: 'waba' as const,
+    allowedChannels: ['waba' as const],
+    currentUser: mockCurrentUser,
+  }),
+}));
 
 const mockConversationService: IConversationService = {
   list: vi.fn(),
@@ -88,6 +106,7 @@ describe('useSendMessage Hook', () => {
           status: MessageStatusEnum;
           error?: string;
           retryCount?: number;
+          retryable?: boolean;
         }) => void)
       | null = null;
 
@@ -167,6 +186,7 @@ describe('useSendMessage Hook', () => {
           status: MessageStatusEnum;
           error?: string;
           retryCount?: number;
+          retryable?: boolean;
         }) => void)
       | null = null;
 
@@ -200,6 +220,7 @@ describe('useSendMessage Hook', () => {
         tempId: 'server-temp-id',
         status: MessageStatusEnum.Failed,
         error: 'template limit reached',
+        retryable: true,
       });
     });
 
@@ -226,18 +247,11 @@ describe('useSendMessage Hook', () => {
       pageParams: [1],
     });
 
-    let resolveSend:
-      | ((value: {
-          tempId: string;
-          messageId?: string;
-          status: MessageStatusEnum;
-          error?: string;
-        }) => void)
-      | null = null;
+    let resolveSend: ((value: MessageSendResult) => void) | null = null;
 
     vi.mocked(mockMessageService.send).mockImplementation(
       () =>
-        new Promise((resolve) => {
+        new Promise<MessageSendResult>((resolve) => {
           resolveSend = resolve;
         }),
     );
@@ -265,6 +279,8 @@ describe('useSendMessage Hook', () => {
         tempId: 'server-temp-id',
         status: MessageStatusEnum.Sent,
         error: 'template limit reached',
+        retryable: true,
+        needRollback: false,
       });
     });
 

@@ -60,7 +60,7 @@ import { useStrategy } from '@/store';
 export function useSendMessage<TParams = any>() {
   const queryClient = useQueryClient();
   const { messageService, offlineMessageQueue } = useServices();
-  const { activeChannel, allowedChannels } = useStrategy();
+  const { activeChannel, allowedChannels, currentUser } = useStrategy();
 
   return useMutation<
     MessageSendResult,
@@ -98,8 +98,9 @@ export function useSendMessage<TParams = any>() {
       const tempMessage: StandardMessage = MessageBuilder.buildTextMessage(
         params.content,
         {
-          senderId: 'current-user',
-          receiverId: params.conversationId,
+          fromApp: currentUser.app,
+          fromPin: currentUser.pin,
+          toPin: params.conversationId,
           channelType: activeChannel ?? allowedChannels[0],
         },
       );
@@ -204,7 +205,28 @@ export function useSendMessage<TParams = any>() {
       const isFailed =
         data.status === MessageStatusEnum.Failed || Boolean(data.error);
 
-      if (data.needRollback) {
+      // 判断是否需要回滚
+      // 1. 显式设置 needRollback 为 true
+      // 2. 或者明确是不可重试的错误（retryable 为 false）
+      // 3. 或者是业务逻辑错误（errorType 为非网络错误）
+      // 4. 向后兼容：没有设置 errorType 和 retryable 时，默认回滚
+      let shouldRollback = data.needRollback;
+
+      if (isFailed && !shouldRollback) {
+        if (data.retryable === false) {
+          // 明确标记为不可重试，回滚
+          shouldRollback = true;
+        } else if (data.errorType && data.errorType !== 'network') {
+          // 业务逻辑错误（非网络错误），回滚
+          shouldRollback = true;
+        } else if (!data.errorType && data.retryable === undefined) {
+          // 向后兼容：没有设置 errorType 和 retryable 时，默认回滚
+          shouldRollback = true;
+        }
+        // 其他情况（网络错误、可重试），不回滚
+      }
+
+      if (shouldRollback) {
         // 业务逻辑/状态失败：完全回滚到之前的状态（移除临时消息）
         console.error(
           '[useSendMessage] 发送结果状态为失败，执行回滚:',
@@ -226,14 +248,22 @@ export function useSendMessage<TParams = any>() {
       // 使用 MessageCacheHelper 更新临时消息为真实消息
       // 通过 id/tempId 查找消息，更新其 id 和 status
       // 这样可以确保在 WebSocket 推送之前完成缓存更新，避免时序问题
+      const updates: Partial<StandardMessage> = {
+        id: data.messageId ?? context?.tempMessage.id,
+        status: isFailed
+          ? MessageStatusEnum.Failed
+          : (data.status ?? MessageStatusEnum.Sent),
+      };
+
+      // 只有在失败时才设置 error 字段
+      if (isFailed) {
+        updates.error = data.error ?? 'Send Failed';
+      }
+
       MessageCacheHelper.updateMessageInCache(
         queryClient,
         variables.conversationId,
-        {
-          id: data.messageId ?? context?.tempMessage.id,
-          status: data.status ?? MessageStatusEnum.Sent,
-          error: isFailed ? (data.error ?? 'Send Failed') : '',
-        },
+        updates,
         data.messageId, // messageId - 使用 tempId 查找
         tempId, // tempId
       );

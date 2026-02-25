@@ -7,6 +7,8 @@ import {
   MessageFailureTypeEnum,
   MessageStatusEnum,
 } from '@/interfaces/message.interface';
+import type { CurrentUser } from '@/store';
+import { AgentStatusEnum } from '@/interfaces/agent.interface';
 
 // Mock services
 const mockOfflineMessageQueue = {
@@ -27,6 +29,21 @@ vi.mock('@/providers/service.provider', () => ({
   }),
 }));
 
+// Mock useStrategy
+const mockCurrentUser: CurrentUser = {
+  app: 'test-app',
+  pin: 'test-agent-123',
+  status: AgentStatusEnum.Online,
+};
+
+vi.mock('@/store', () => ({
+  useStrategy: () => ({
+    activeChannel: 'waba' as const,
+    allowedChannels: ['waba' as const],
+    currentUser: mockCurrentUser,
+  }),
+}));
+
 // Mock MessageBuilder
 vi.mock('@/services/message-builder.service', () => ({
   MessageBuilder: {
@@ -39,8 +56,14 @@ vi.mock('@/services/message-builder.service', () => ({
       status: MessageStatusEnum.Created,
       timestamp: Date.now(),
       type: 'text' as const,
-      sender: { id: options.senderId },
-      receiver: { id: options.receiverId },
+      sender: {
+        app: options.fromApp ?? 'bifrost-chat-sdk',
+        pin: options.fromPin,
+      },
+      receiver: {
+        app: options.toApp ?? '',
+        pin: options.toPin,
+      },
     })),
     generateUniqueId: vi.fn(() => 'offline-msg-1'),
   },
@@ -264,7 +287,7 @@ describe('useSendMessage - 消息回滚与离线队列功能测试', () => {
         tempId: 'temp-msg-1',
         status: MessageStatusEnum.Failed,
         error: errorMessage,
-        errorType: MessageFailureTypeEnum.Network,
+        errorType: MessageFailureTypeEnum.Quota,
         retryable: true,
       });
 
