@@ -180,7 +180,7 @@ build_target() {
 
     # 执行构建
     log_info "执行: pnpm build:css"
-    pnpm build 2>&1 | tee -a "$LOG_FILE"
+    pnpm build:css 2>&1 | tee -a "$LOG_FILE"
 
     # 检查构建是否成功
     if [ ${PIPESTATUS[0]} -eq 0 ]; then
