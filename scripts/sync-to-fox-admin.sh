@@ -49,6 +49,30 @@ log_error() {
 # 检查函数
 ###############################################################################
 
+check_pnpm() {
+    log_info "检查 pnpm..."
+
+    if ! command -v pnpm &> /dev/null; then
+        log_error "pnpm 未安装，请先安装 pnpm"
+        exit 1
+    fi
+
+    log_success "pnpm 已安装: $(pnpm --version)"
+}
+
+check_rsync() {
+    log_info "检查 rsync..."
+
+    if ! command -v rsync &> /dev/null; then
+        log_error "rsync 未安装，请先安装 rsync"
+        log_info "macOS: rsync 通常已预装"
+        log_info "Linux: sudo apt-get install rsync 或 sudo yum install rsync"
+        exit 1
+    fi
+
+    log_success "rsync 已安装: $(rsync --version | head -n 1)"
+}
+
 check_directories() {
     log_info "检查目录..."
 
@@ -70,31 +94,6 @@ check_directories() {
     log_success "目录检查完成"
 }
 
-check_rsync() {
-    log_info "检查 rsync..."
-
-    if ! command -v rsync &> /dev/null; then
-        log_error "rsync 未安装，请先安装 rsync"
-        log_info "macOS: rsync 通常已预装"
-        log_info "Linux: sudo apt-get install rsync 或 sudo yum install rsync"
-        exit 1
-    fi
-
-    log_success "rsync 已安装: $(rsync --version | head -n 1)"
-}
-
-check_pnpm() {
-    log_info "检查 pnpm..."
-
-    if ! command -v pnpm &> /dev/null; then
-        log_warning "pnpm 未安装，将跳过构建步骤"
-        return 1
-    fi
-
-    log_success "pnpm 已安装: $(pnpm --version)"
-    return 0
-}
-
 ###############################################################################
 # 同步函数
 ###############################################################################
@@ -107,26 +106,19 @@ sync_files() {
     # 记录开始时间
     START_TIME=$(date +%s)
 
-    # rsync 同步参数说明：
+    # 先确保 dist 目录存在
+    if [ ! -d "$SOURCE_DIR/dist" ]; then
+        log_error "dist 目录不存在，请先执行 pnpm build"
+        exit 1
+    fi
+
+    # rsync 只同步 dist/ 目录（构建产物）
     # -a: 归档模式，保留文件属性
     # -v: 详细输出
-    # --delete: 删除目标目录中源目录没有的文件
-    # --exclude: 排除不需要同步的文件和目录
+    # --delete: 删除目标目录中旧的 dist 文件
+    log_info "同步 dist/ 目录..."
     rsync -av --delete \
-        --exclude 'node_modules/' \
-        --exclude '.git/' \
-        --exclude 'dist/' \
-        --exclude '.next/' \
-        --exclude 'coverage/' \
-        --exclude '*.log' \
-        --exclude '.DS_Store' \
-        --exclude '.sync-timestamp' \
-        --exclude 'plans/' \
-        --exclude '.vscode/' \
-        --exclude 'stories/' \
-        --exclude '.turbo/' \
-        --exclude '.cache/' \
-        "$SOURCE_DIR/" "$TARGET_DIR/" \
+        "$SOURCE_DIR/dist/" "$TARGET_DIR/dist/" \
         2>&1 | tee -a "$LOG_FILE"
 
     # 检查 rsync 是否成功
@@ -232,8 +224,9 @@ main() {
     # 同步文件
     sync_files
 
-    # 构建目标
-    build_target
+    # 注意：目标位置是一个 npm package，只有构建产物（dist/）和 package.json
+    # 不需要再次构建，因为没有源码
+    log_info "目标位置为 npm package，不需要构建"
 
     # 完成
     log_success "========================================"
