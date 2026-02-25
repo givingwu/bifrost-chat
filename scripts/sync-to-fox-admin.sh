@@ -163,31 +163,6 @@ build_target() {
         log_warning "pnpm 不可用，跳过构建"
         return
     fi
-
-    log_info "开始在目标位置执行构建..."
-
-    # 切换到目标目录
-    cd "$TARGET_DIR" || {
-        log_error "无法切换到目标目录: $TARGET_DIR"
-        exit 1
-    }
-
-    # 检查是否有构建脚本
-    if ! grep -q '"build"' package.json; then
-        log_warning "package.json 中没有 build 脚本，跳过构建"
-        return
-    fi
-
-    # 执行构建
-    log_info "执行: pnpm build"
-    pnpm build 2>&1 | tee -a "$LOG_FILE"
-
-    # 检查构建是否成功
-    if [ ${PIPESTATUS[0]} -eq 0 ]; then
-        log_success "构建完成"
-    else
-        log_warning "构建失败，但文件已同步"
-    fi
 }
 
 ###############################################################################

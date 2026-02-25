@@ -2,7 +2,7 @@
 
 ###############################################################################
 # Bifrost Chat Git Pre-push Hook
-# 功能：推送到 master 分支前强制执行测试，失败则阻止推送
+# 功能：推送到 main 分支前强制执行测试，失败则阻止推送
 # 安装：cp scripts/git-hooks/pre-push .git/hooks/pre-push
 # 权限：chmod +x .git/hooks/pre-push
 ###############################################################################
@@ -14,7 +14,7 @@ should_run_test=false
 # pre-push 从 stdin 读取将要推送的 ref 变更：
 # <local ref> <local sha1> <remote ref> <remote sha1>
 while read -r local_ref local_sha remote_ref remote_sha; do
-  if [ "$remote_ref" = "refs/heads/master" ]; then
+  if [ "$remote_ref" = "refs/heads/main" ]; then
     should_run_test=true
     break
   fi
@@ -24,11 +24,11 @@ if [ "$should_run_test" != "true" ]; then
   exit 0
 fi
 
-echo "🧪 检测到推送目标包含 master，开始执行 pnpm test..."
+echo "🧪 检测到推送目标包含 main，开始执行 pnpm test..."
 
 if pnpm test; then
-  echo "✅ pnpm test 全部通过，继续推送 master"
+  echo "✅ pnpm test 全部通过，继续推送 main"
 else
-  echo "❌ pnpm test 未通过，已阻止推送 master"
+  echo "❌ pnpm test 未通过，已阻止推送 main"
   exit 1
 fi
