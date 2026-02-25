@@ -4,8 +4,13 @@ import type {
   RawPacket,
   ReadAckParams,
 } from '@/interfaces/protocol.interface';
+import {
+  AckTypeEnum,
+  PacketMessageTypeEnum,
+} from '@/interfaces/protocol.interface';
 import { AckHandler, PacketConverter } from '@/services/protocol';
 import { HeartbeatManager } from '@/services/protocol/heartbeat.manager';
+import { MessageBuilder } from './message-builder.service';
 
 /**
  * WebSocket 消息类型
@@ -69,6 +74,12 @@ export enum WebSocketEventTypeEnum {
   Heartbeat = 'heartbeat',
   /** 错误 */
   Error = 'error',
+  /** 登录失败 */
+  AuthFail = 'auth_fail',
+  /** 状态切换 */
+  StatusSwitch = 'status_switch',
+  /** 触达回复消息发送结果 */
+  FoxMessageAck = 'fox_message_ack',
 }
 
 /**
@@ -155,12 +166,18 @@ export type WebSocketStatusListener = (status: WebSocketStatusEnum) => void;
  * manager.disconnect();
  * ```
  */
+/**
+ * 登录失败回调
+ */
+export type AuthFailListener = (error: unknown) => void;
+
 export class WebSocketManager {
   private ws: WebSocket | null = null;
   private config: Required<WebSocketConfig>;
   private status: WebSocketStatusEnum = WebSocketStatusEnum.Disconnected;
   private messageListeners: Set<WebSocketEventListener> = new Set();
   private statusListeners: Set<WebSocketStatusListener> = new Set();
+  private authFailListeners: Set<AuthFailListener> = new Set();
   private heartbeatTimer: ReturnType<typeof setInterval> | null = null;
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private reconnectAttempts = 0;
@@ -224,6 +241,19 @@ export class WebSocketManager {
   }
 
   /**
+   * 监听登录失败事件
+   * @param listener 监听器函数
+   * @returns 取消监听函数
+   */
+  onAuthFail(listener: AuthFailListener): () => void {
+    this.authFailListeners.add(listener);
+
+    return () => {
+      this.authFailListeners.delete(listener);
+    };
+  }
+
+  /**
    * 连接 WebSocket
    */
   connect(): Promise<void> {
@@ -254,7 +284,10 @@ export class WebSocketManager {
           this.clearConnectionTimer();
           this.setStatus(WebSocketStatusEnum.Connected);
           this.reconnectAttempts = 0;
+          // 连接成功后自动发送鉴权消息
+          this.sendAuth();
           this.startHeartbeat();
+
           resolve();
         };
 
@@ -361,6 +394,40 @@ export class WebSocketManager {
   }
 
   /**
+   * 发送登录鉴权消息
+   *
+   * @description
+   * 连接成功后需先发送 auth 消息进行登录鉴权
+   */
+  sendAuth(): void {
+    const { fromApp, fromPin, token } = this.config;
+
+    if (!fromApp || !fromPin || !token) {
+      throw new Error('fromApp/fromPin/token is required for authentication');
+    }
+
+    const authPacket: RawPacket = {
+      id: MessageBuilder.generateUniqueId(),
+      from: {
+        app: fromApp,
+        pin: fromPin,
+      },
+      to: {
+        app: fromApp,
+        pin: fromPin,
+      },
+      ptype: PacketMessageTypeEnum.Auth,
+      body: {
+        token,
+      },
+      ver: '1.0',
+      timestamp: Date.now(),
+    };
+
+    this.send(authPacket);
+  }
+
+  /**
    * 设置连接状态
    */
   private setStatus(status: WebSocketStatusEnum): void {
@@ -428,6 +495,20 @@ export class WebSocketManager {
     }
   }
 
+  /**
+   * 转换协议事件
+   *
+   * @description
+   * 消息处理顺序（按优先级）：
+   * 1. auth_fail - 登录失败，触发失败回调并重置状态
+   * 2. chat_message - 聊天消息
+   * 3. ack - ACK
+   * 4. msg_receive_ack - 客户端已收
+   * 5. msg_read_ack - 客户端已读
+   * 6. client_heartbeat - 心跳
+   * 7. status_switch - 状态切换
+   * 8. fox_message_ack - 触达回复消息发送结果
+   */
   private convertProtocolEvent(data: unknown): WebSocketEventData | null {
     if (!this.isRecord(data)) {
       return null;
@@ -435,26 +516,7 @@ export class WebSocketManager {
 
     const normalized = this.normalizeAckPacket(data);
 
-    if (HeartbeatManager.isHeartbeatResponse(normalized)) {
-      return null;
-    }
-
-    const ackData = AckHandler.parseDownstream(normalized);
-
-    if (ackData) {
-      return {
-        type: WebSocketEventTypeEnum.MessageStatus,
-        data: {
-          conversationId:
-            typeof normalized.chatId === 'string' ? normalized.chatId : '',
-          messageId: ackData.id,
-          status: AckHandler.ackTypeToMessageStatus(ackData.body.type),
-          timestamp: ackData.timestamp ?? Date.now(),
-        },
-        timestamp: Date.now(),
-      };
-    }
-
+    // 获取消息类型
     const packetType =
       typeof normalized.ptype === 'string'
         ? normalized.ptype
@@ -462,25 +524,151 @@ export class WebSocketManager {
           ? normalized.type
           : '';
 
-    if (packetType !== 'chat_message' && packetType !== 'CHAT_MESSAGE') {
+    // 1. 处理登录失败 (auth_fail)
+    if (
+      packetType === PacketMessageTypeEnum.AuthFail ||
+      packetType === 'auth_fail'
+    ) {
+      // 触发登录失败回调
+      this.authFailListeners.forEach((listener) => {
+        try {
+          listener(normalized.body);
+        } catch (error) {
+          console.error('Error in auth fail listener:', error);
+        }
+      });
+      return {
+        type: WebSocketEventTypeEnum.AuthFail,
+        data: normalized.body,
+        timestamp: Date.now(),
+      };
+    }
+
+    // 处理心跳响应（忽略，不分发）
+    if (HeartbeatManager.isHeartbeatResponse(normalized)) {
       return null;
     }
 
-    const packet = this.normalizeToRawPacket(normalized);
-    const message = PacketConverter.toStandardMessage(
-      packet,
-      undefined,
-      this.config.currentPin || undefined,
-    );
+    // 2. 处理聊天消息 (chat_message)
+    if (
+      packetType === PacketMessageTypeEnum.ChatMessage ||
+      packetType === 'chat_message'
+    ) {
+      const packet = this.normalizeToRawPacket(normalized);
+      const message = PacketConverter.toStandardMessage(
+        packet,
+        undefined,
+        this.config.currentPin || undefined,
+      );
 
-    return {
-      type: WebSocketEventTypeEnum.Message,
-      data: {
-        conversationId: packet.chatId ?? message.receiver?.pin ?? '',
-        message,
-      },
-      timestamp: Date.now(),
-    };
+      return {
+        type: WebSocketEventTypeEnum.Message,
+        data: {
+          conversationId: packet.chatId ?? message.receiver?.pin ?? '',
+          message,
+        },
+        timestamp: Date.now(),
+      };
+    }
+
+    // 解析 ACK 数据
+    const ackData = AckHandler.parseDownstream(normalized);
+
+    if (ackData) {
+      const ackType = ackData.body.type;
+
+      // 3. 处理普通 ACK
+      if (ackType === AckTypeEnum.MsgSendFailed) {
+        // 发送失败也通过 MessageStatus 传递
+        return {
+          type: WebSocketEventTypeEnum.MessageStatus,
+          data: {
+            conversationId:
+              typeof normalized.chatId === 'string' ? normalized.chatId : '',
+            messageId: ackData.id,
+            status: AckHandler.ackTypeToMessageStatus(ackType),
+            timestamp: ackData.timestamp ?? Date.now(),
+          },
+          timestamp: Date.now(),
+        };
+      }
+
+      // 4. 处理客户端已收 (msg_receive_ack)
+      if (ackType === AckTypeEnum.MsgReceiveAck) {
+        return {
+          type: WebSocketEventTypeEnum.MessageStatus,
+          data: {
+            conversationId:
+              typeof normalized.chatId === 'string' ? normalized.chatId : '',
+            messageId: ackData.id,
+            status: AckHandler.ackTypeToMessageStatus(ackType),
+            timestamp: ackData.timestamp ?? Date.now(),
+          },
+          timestamp: Date.now(),
+        };
+      }
+
+      // 5. 处理客户端已读 (msg_read_ack)
+      if (ackType === AckTypeEnum.MsgReadAck) {
+        return {
+          type: WebSocketEventTypeEnum.MessageStatus,
+          data: {
+            conversationId:
+              typeof normalized.chatId === 'string' ? normalized.chatId : '',
+            messageId: ackData.id,
+            status: AckHandler.ackTypeToMessageStatus(ackType),
+            timestamp: ackData.timestamp ?? Date.now(),
+          },
+          timestamp: Date.now(),
+        };
+      }
+
+      // 6. 处理心跳 ACK (client_heartbeat)
+      if (ackType === AckTypeEnum.ClientHeartbeat) {
+        // 心跳 ACK 不需要分发到上层，静默处理
+        return null;
+      }
+
+      // 其他 ACK 类型统一处理
+      return {
+        type: WebSocketEventTypeEnum.MessageStatus,
+        data: {
+          conversationId:
+            typeof normalized.chatId === 'string' ? normalized.chatId : '',
+          messageId: ackData.id,
+          status: AckHandler.ackTypeToMessageStatus(ackType),
+          timestamp: ackData.timestamp ?? Date.now(),
+        },
+        timestamp: Date.now(),
+      };
+    }
+
+    // 7. 处理状态切换 (status_switch)
+    if (
+      packetType === PacketMessageTypeEnum.StatusSwitch ||
+      packetType === 'status_switch'
+    ) {
+      return {
+        type: WebSocketEventTypeEnum.StatusSwitch,
+        data: normalized.body,
+        timestamp: Date.now(),
+      };
+    }
+
+    // 8. 处理触达回复消息发送结果 (fox_message_ack)
+    if (
+      packetType === PacketMessageTypeEnum.FoxMessageAck ||
+      packetType === 'fox_message_ack'
+    ) {
+      return {
+        type: WebSocketEventTypeEnum.FoxMessageAck,
+        data: normalized.body,
+        timestamp: Date.now(),
+      };
+    }
+
+    // 未匹配的消息类型，返回 null 让上层处理
+    return null;
   }
 
   private normalizeToRawPacket(data: Record<string, unknown>): RawPacket {
@@ -656,5 +844,6 @@ export class WebSocketManager {
     this.disconnect();
     this.messageListeners.clear();
     this.statusListeners.clear();
+    this.authFailListeners.clear();
   }
 }
