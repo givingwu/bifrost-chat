@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from 'storybook-react-rsbuild';
 import { ComposerHint } from '@/components/composer/ComposerHint';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import '@/styles/theme.css';

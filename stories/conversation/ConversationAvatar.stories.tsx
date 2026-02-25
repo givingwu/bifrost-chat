@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from 'storybook-react-rsbuild';
 import { ConversationAvatar } from '@/components/conversation/ConversationAvatar';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import '@/styles/theme.css';

@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from 'storybook-react-rsbuild';
 import { ProfileInfoList } from '@/components/profile/ProfileInfoList';
 import '@/styles/theme.css';
 

@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from 'storybook-react-rsbuild';
 import { VideoMessage } from '@/components/messages/VideoMessage';
 import '@/styles/theme.css';
 

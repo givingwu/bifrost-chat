@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from 'storybook-react-rsbuild';
 import { WhatsAppMessage } from '@/components/messages/WhatsAppMessage';
 import '@/styles/theme.css';
 

@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from 'storybook-react-rsbuild';
 import { Search } from 'lucide-react';
 import { SearchInput } from '@/components/SearchInput';
 import '@/styles/theme.css';

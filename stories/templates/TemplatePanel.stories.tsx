@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from 'storybook-react-rsbuild';
 import { TemplatePanel } from '@/components/template/TemplatePanel';
 import type { Template } from '@/interfaces/template.interface';
 import '@/styles/theme.css';

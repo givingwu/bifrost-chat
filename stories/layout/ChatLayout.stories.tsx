@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from 'storybook-react-rsbuild';
 import { ComposerToolbar } from '@/components/composer/ComposerToolbar';
 import { ConversationList } from '@/components/conversation/ConversationList';
 import { ChatContainer } from '@/components/layout/ChatContainer';
@@ -140,9 +140,14 @@ const mockMessages = [
     timestamp: Date.now() - 1000 * 60 * 5,
     type: MessageTypeEnum.Text,
     content: { text: '你好！有什么可以帮助你的吗？' },
-    receiver: {
+    sender: {
       app: 'bifrost-chat-sdk',
       pin: 'user1',
+      channelType: ChannelTypeEnum.Waba,
+    },
+    receiver: {
+      app: 'bifrost-chat-sdk',
+      pin: 'agent1',
       channelType: ChannelTypeEnum.Waba,
     },
   },
@@ -155,6 +160,11 @@ const mockMessages = [
     timestamp: Date.now() - 1000 * 60 * 4,
     type: MessageTypeEnum.Text,
     content: { text: '我想查询一下订单状态' },
+    sender: {
+      app: 'bifrost-chat-sdk',
+      pin: 'agent1',
+      channelType: ChannelTypeEnum.Waba,
+    },
     receiver: {
       app: 'bifrost-chat-sdk',
       pin: 'user1',

@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from 'storybook-react-rsbuild';
 import { ConversationHeader } from '@/components/conversation/ConversationHeader';
 import '@/styles/theme.css';
 

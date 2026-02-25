@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from 'storybook-react-rsbuild';
 import { useState } from 'react';
 import { ConversationItem } from '@/components/conversation/ConversationItem';
 import { AgentStatusEnum } from '@/interfaces/agent.interface';

@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from 'storybook-react-rsbuild';
 import { ImageIcon } from 'lucide-react';
 import { Image } from '@/components/Image';
 import '@/styles/theme.css';

@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from 'storybook-react-rsbuild';
 import { DefaultChatLayout } from '@/components';
 import { QueryProvider } from '@/providers/query.provider';
 import { ServiceProvider } from '@/providers/service.provider';

@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from 'storybook-react-rsbuild';
 import { useMemo, useState } from 'react';
 import { ChatContainer } from '@/components/layout/ChatContainer';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';

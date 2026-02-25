@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from 'storybook-react-rsbuild';
 import { MessageList } from '@/components/messages/MessageList';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import {

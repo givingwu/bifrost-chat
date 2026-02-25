@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from 'storybook-react-rsbuild';
 import { useState } from 'react';
 import { LanguageSwitcher } from '@/components/toolbar/LanguageSwitcher';
 import { LanguageCodeEnum } from '@/interfaces/language.interface';

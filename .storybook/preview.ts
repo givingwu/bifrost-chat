@@ -1,4 +1,4 @@
-import type { Preview } from '@storybook/react';
+import type { Preview } from 'storybook-react-rsbuild';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
 import '@/styles/index.css';

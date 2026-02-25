@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from 'storybook-react-rsbuild';
 import { Plus, Send, Trash2 } from 'lucide-react';
 import { Button, CircularButton } from '@/components/Button';
 import '@/styles/theme.css';

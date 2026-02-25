@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from 'storybook-react-rsbuild';
 import { MentionPicker } from '@/components/composer/MentionPicker';
 import '@/styles/theme.css';
 

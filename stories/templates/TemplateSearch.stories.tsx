@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from 'storybook-react-rsbuild';
 import { TemplateSearch } from '@/components/template/TemplateSearch';
 import '@/styles/theme.css';
 
