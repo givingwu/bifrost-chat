@@ -1,5 +1,5 @@
-import type { Meta, StoryObj } from 'storybook-react-rsbuild';
 import { User } from 'lucide-react';
+import type { Meta, StoryObj } from 'storybook-react-rsbuild';
 import { Avatar } from '@/components/Avatar';
 import '@/styles/theme.css';
 

@@ -1,5 +1,5 @@
-import type { Meta, StoryObj } from 'storybook-react-rsbuild';
 import { useState } from 'react';
+import type { Meta, StoryObj } from 'storybook-react-rsbuild';
 import { ConversationItem } from '@/components/conversation/ConversationItem';
 import { AgentStatusEnum } from '@/interfaces/agent.interface';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';

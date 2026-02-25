@@ -1,4 +1,3 @@
-import type { Meta, StoryObj } from 'storybook-react-rsbuild';
 import {
   Check,
   Edit,
@@ -10,6 +9,7 @@ import {
   X,
 } from 'lucide-react';
 import { useState } from 'react';
+import type { Meta, StoryObj } from 'storybook-react-rsbuild';
 import { IconButton } from '@/components/IconButton';
 import '@/styles/theme.css';
 

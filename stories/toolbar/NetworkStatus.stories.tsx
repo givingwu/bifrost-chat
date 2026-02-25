@@ -1,5 +1,5 @@
-import type { Meta, StoryObj } from 'storybook-react-rsbuild';
 import { useState } from 'react';
+import type { Meta, StoryObj } from 'storybook-react-rsbuild';
 import { NetworkStatus } from '@/components/toolbar/NetworkStatus';
 import { NetworkStatusEnum } from '@/interfaces/network.interface';
 import '@/styles/theme.css';

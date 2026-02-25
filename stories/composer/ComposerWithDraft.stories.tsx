@@ -1,6 +1,6 @@
-import type { Meta, StoryObj } from 'storybook-react-rsbuild';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState } from 'react';
+import type { Meta, StoryObj } from 'storybook-react-rsbuild';
 import { ComposerWithDraft } from '@/components/composer/ComposerWithDraft';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import { ConfigProvider } from '@/providers/config.provider';
