@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { createRef } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import type { ComposerToolbarRef } from './ComposerToolbar';
@@ -31,7 +31,7 @@ vi.mock('@/store', () => ({
 }));
 
 describe('ComposerToolbar - Template ID 功能验证', () => {
-  it('应该通过 setValue 传递 templateId', () => {
+  it('应该通过 setValue 传递 templateId', async () => {
     const ref = createRef<ComposerToolbarRef>();
     const onSend = vi.fn().mockResolvedValue(undefined);
 
@@ -42,9 +42,11 @@ describe('ComposerToolbar - Template ID 功能验证', () => {
       ref.current.setValue('Hello from template', 'template-123');
     }
 
-    // 验证输入框的值已更新
-    const input = screen.getByTestId('composer-input');
-    expect(input).toHaveValue('Hello from template');
+    // 等待 DOM 更新
+    await waitFor(() => {
+      const input = screen.getByTestId('composer-input');
+      expect(input).toHaveValue('Hello from template');
+    });
   });
 
   it('应该在发送时携带 templateId', async () => {
@@ -69,7 +71,7 @@ describe('ComposerToolbar - Template ID 功能验证', () => {
     expect(onSend).toHaveBeenCalledWith('Hello from template', 'template-123');
   });
 
-  it('应该支持通过 setTemplateId 单独设置 templateId', () => {
+  it('应该支持通过 setTemplateId 单独设置 templateId', async () => {
     const ref = createRef<ComposerToolbarRef>();
     const onSend = vi.fn().mockResolvedValue(undefined);
 
@@ -80,12 +82,18 @@ describe('ComposerToolbar - Template ID 功能验证', () => {
       ref.current.setValue('Hello');
     }
 
+    // 等待 DOM 更新
+    await waitFor(() => {
+      const input = screen.getByTestId('composer-input');
+      expect(input).toHaveValue('Hello');
+    });
+
     // 然后单独设置 templateId
     if (ref.current) {
       ref.current.setTemplateId('template-456');
     }
 
-    // 验证输入框的值
+    // 验证输入框的值仍然存在
     const input = screen.getByTestId('composer-input');
     expect(input).toHaveValue('Hello');
   });
