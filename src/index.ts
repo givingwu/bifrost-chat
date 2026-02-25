@@ -59,6 +59,7 @@ export * from '@/services/message-sync.service';
 // Protocol Layer
 export * from '@/services/protocol';
 export * from '@/services/template.service';
+export * from '@/services/websocket-manager.service';
 
 // Store
 export * from '@/store';
