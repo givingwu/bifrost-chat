@@ -1,5 +1,5 @@
 import type { StateCreator } from 'zustand';
-import type { AgentStatusEnum } from '@/interfaces/agent.interface';
+import { AgentStatusEnum } from '@/interfaces/agent.interface';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import type { MessageTypeEnum } from '@/interfaces/message.interface';
 import {
@@ -49,7 +49,7 @@ export interface StrategySlice {
   actions: {
     setStrategy: (payload: Partial<StrategyState>) => void;
     setActiveChannel: (channel: ChannelTypeEnum) => void;
-    setCurrentUser: (user: CurrentUser | undefined) => void;
+    setCurrentUser: (user: CurrentUser) => void;
     setAllowedMessageTypes: (types: MessageTypeEnum[]) => void;
     setMessageDisplayStrategy: (strategy: MessageTypeDisplayStrategy) => void;
     updateChannelMessageTypeConfig: (
@@ -68,6 +68,11 @@ export const createStrategySlice: StateCreator<
   strategy: {
     allowedChannels: [ChannelTypeEnum.Waba],
     activeChannel: ChannelTypeEnum.Waba,
+    currentUser: {
+      app: 'Bifrost Chat',
+      pin: 'Pin is required',
+      status: AgentStatusEnum.Offline,
+    },
     allowedMessageTypes: getDefaultChannelMessageTypes(ChannelTypeEnum.Waba),
     messageDisplayStrategy: MessageTypeDisplayStrategy.ShowUnsupported,
   },

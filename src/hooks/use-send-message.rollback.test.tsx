@@ -3,12 +3,12 @@ import { act, renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useSendMessage } from '@/hooks/use-send-message.hook';
+import { AgentStatusEnum } from '@/interfaces/agent.interface';
 import {
   MessageFailureTypeEnum,
   MessageStatusEnum,
 } from '@/interfaces/message.interface';
 import type { CurrentUser } from '@/store';
-import { AgentStatusEnum } from '@/interfaces/agent.interface';
 
 // Mock services
 const mockOfflineMessageQueue = {

@@ -31,6 +31,7 @@ export * from '@/interfaces/message.interface';
 export * from '@/interfaces/message-type-config.interface';
 export * from '@/interfaces/network.interface';
 export * from '@/interfaces/profile.interface';
+export * from '@/interfaces/protocol.interface';
 export * from '@/interfaces/sdk.interface';
 export * from '@/interfaces/template.interface';
 export * from '@/interfaces/theme.interface';
@@ -55,6 +56,8 @@ export * from '@/services/message.service';
 export * from '@/services/message-builder.service';
 export * from '@/services/message-cache-helper.service';
 export * from '@/services/message-sync.service';
+// Protocol Layer
+export * from '@/services/protocol';
 export * from '@/services/template.service';
 
 // Store
