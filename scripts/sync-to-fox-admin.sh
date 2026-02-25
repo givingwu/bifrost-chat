@@ -2,28 +2,22 @@
 
 ###############################################################################
 # Bifrost Chat 自动同步脚本
-# 功能：将当前代码库同步到 fox-admin-ui/packages/bifrost-chat
-# 作者：Kilo Code
-# 日期：2025-02-10
+# 功能：在本端构建后同步 dist 目录到 fox-admin-ui/packages/bifrost-chat
 ###############################################################################
 
-set -e  # 遇到错误立即退出
+set -e
 
 # 颜色定义
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
 # 配置
 SOURCE_DIR="/Users/cheng/Development/WorkSpace/feoe/bifrost-chat"
 TARGET_DIR="/Users/cheng/Development/WorkSpace/fox/fox-admin-ui/packages/bifrost-chat"
 LOG_FILE="/tmp/bifrost-sync.log"
-TIMESTAMP_FILE=".sync-timestamp"
-
-# 获取脚本所在目录
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 ###############################################################################
 # 日志函数
@@ -37,172 +31,8 @@ log_success() {
     echo -e "${GREEN}[SUCCESS]${NC} $1" | tee -a "$LOG_FILE"
 }
 
-log_warning() {
-    echo -e "${YELLOW}[WARNING]${NC} $1" | tee -a "$LOG_FILE"
-}
-
 log_error() {
     echo -e "${RED}[ERROR]${NC} $1" | tee -a "$LOG_FILE"
-}
-
-###############################################################################
-# 检查函数
-###############################################################################
-
-check_pnpm() {
-    log_info "检查 pnpm..."
-
-    if ! command -v pnpm &> /dev/null; then
-        log_error "pnpm 未安装，请先安装 pnpm"
-        exit 1
-    fi
-
-    log_success "pnpm 已安装: $(pnpm --version)"
-}
-
-check_rsync() {
-    log_info "检查 rsync..."
-
-    if ! command -v rsync &> /dev/null; then
-        log_error "rsync 未安装，请先安装 rsync"
-        log_info "macOS: rsync 通常已预装"
-        log_info "Linux: sudo apt-get install rsync 或 sudo yum install rsync"
-        exit 1
-    fi
-
-    log_success "rsync 已安装: $(rsync --version | head -n 1)"
-}
-
-check_directories() {
-    log_info "检查目录..."
-
-    # 检查源目录
-    if [ ! -d "$SOURCE_DIR" ]; then
-        log_error "源目录不存在: $SOURCE_DIR"
-        exit 1
-    fi
-
-    # 检查目标目录，如果不存在则创建
-    if [ ! -d "$TARGET_DIR" ]; then
-        log_warning "目标目录不存在，正在创建: $TARGET_DIR"
-        mkdir -p "$TARGET_DIR" || {
-            log_error "无法创建目标目录"
-            exit 1
-        }
-    fi
-
-    log_success "目录检查完成"
-}
-
-###############################################################################
-# 同步函数
-###############################################################################
-
-sync_files() {
-    log_info "开始同步文件..."
-    log_info "源目录: $SOURCE_DIR"
-    log_info "目标目录: $TARGET_DIR"
-
-    # 记录开始时间
-    START_TIME=$(date +%s)
-
-    # 先确保 dist 目录存在
-    if [ ! -d "$SOURCE_DIR/dist" ]; then
-        log_error "dist 目录不存在，请先执行 pnpm build"
-        exit 1
-    fi
-
-    # rsync 只同步 dist/ 目录（构建产物）
-    # -a: 归档模式，保留文件属性
-    # -v: 详细输出
-    # --delete: 删除目标目录中旧的 dist 文件
-    log_info "同步 dist/ 目录..."
-    rsync -av --delete \
-        "$SOURCE_DIR/dist/" "$TARGET_DIR/dist/" \
-        2>&1 | tee -a "$LOG_FILE"
-
-    # 检查 rsync 是否成功
-    if [ ${PIPESTATUS[0]} -eq 0 ]; then
-        # 计算耗时
-        END_TIME=$(date +%s)
-        DURATION=$((END_TIME - START_TIME))
-
-        log_success "文件同步完成 (耗时: ${DURATION}秒)"
-
-        # 记录同步时间戳
-        date +"%Y-%m-%d %H:%M:%S" > "$SOURCE_DIR/$TIMESTAMP_FILE"
-    else
-        log_error "文件同步失败"
-        exit 1
-    fi
-}
-
-###############################################################################
-# 构建函数
-###############################################################################
-
-build_target() {
-    log_info "检查是否需要构建..."
-
-    # 检查目标位置是否有 package.json
-    if [ ! -f "$TARGET_DIR/package.json" ]; then
-        log_warning "目标位置没有 package.json，跳过构建"
-        return
-    fi
-
-    # 检查 pnpm 是否可用
-    if ! check_pnpm; then
-        log_warning "pnpm 不可用，跳过构建"
-        return
-    fi
-
-    log_info "开始在目标位置执行构建..."
-
-    # 切换到目标目录
-    cd "$TARGET_DIR" || {
-        log_error "无法切换到目标目录: $TARGET_DIR"
-        exit 1
-    }
-
-    # 检查是否有构建脚本
-    if ! grep -q '"build"' package.json; then
-        log_warning "package.json 中没有 build 脚本，跳过构建"
-        return
-    fi
-
-    # 执行构建
-    log_info "执行: pnpm build:css"
-    pnpm build:css 2>&1 | tee -a "$LOG_FILE"
-
-    # 检查构建是否成功
-    if [ ${PIPESTATUS[0]} -eq 0 ]; then
-        log_success "构建完成"
-    else
-        log_warning "构建失败，但文件已同步"
-    fi
-}
-
-###############################################################################
-# 通知函数
-###############################################################################
-
-send_notification() {
-    local status=$1
-    local message=$2
-
-    # macOS 通知
-    if [[ "$OSTYPE" == "darwin"* ]]; then
-        if command -v osascript &> /dev/null; then
-            osascript -e "display notification \"$message\" with title \"Bifrost Chat 同步\" sound name \"Glass\""
-        fi
-    fi
-
-    # Linux 通知（需要 libnotify-bin）
-    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-        if command -v notify-send &> /dev/null; then
-            notify-send "Bifrost Chat 同步" "$message"
-        fi
-    fi
 }
 
 ###############################################################################
@@ -210,40 +40,50 @@ send_notification() {
 ###############################################################################
 
 main() {
-    # 初始化日志
     echo "========================================" > "$LOG_FILE"
     echo "同步开始时间: $(date '+%Y-%m-%d %H:%M:%S')" >> "$LOG_FILE"
     echo "========================================" >> "$LOG_FILE"
 
     log_info "Bifrost Chat 自动同步脚本启动"
 
-    # 检查环境
-    check_directories
-    check_rsync
+    # 检查目标目录
+    if [ ! -d "$TARGET_DIR" ]; then
+        log_error "目标目录不存在: $TARGET_DIR"
+        exit 1
+    fi
 
-    # 同步文件
-    sync_files
+    # 在本端构建
+    log_info "开始构建..."
+    cd "$SOURCE_DIR" || exit 1
+    pnpm build >> "$LOG_FILE" 2>&1
 
-    # 注意：目标位置是一个 npm package，只有构建产物（dist/）和 package.json
-    # 不需要再次构建，因为没有源码
-    log_info "目标位置为 npm package，不需要构建"
+    if [ $? -ne 0 ]; then
+        log_error "构建失败"
+        exit 1
+    fi
 
-    # 完成
+    log_success "构建完成"
+
+    # 清理目标目录（删除旧的 dist 和 node_modules）
+    log_info "清理目标目录..."
+    rm -rf "$TARGET_DIR/dist" "$TARGET_DIR/node_modules" 2>/dev/null || true
+
+    # 同步 dist 目录（强制复制，不跳过已有文件）
+    # -I: 忽略修改时间和大小，强制复制所有文件
+    log_info "同步 dist/ 目录到目标位置..."
+    rsync -avI \
+        "$SOURCE_DIR/dist/" "$TARGET_DIR/dist/" \
+        2>&1 | tee -a "$LOG_FILE"
+
+    # 复制 package.json（npm package 需要）
+    log_info "同步 package.json..."
+    cp "$SOURCE_DIR/package.json" "$TARGET_DIR/package.json"
+
     log_success "========================================"
     log_success "同步完成时间: $(date '+%Y-%m-%d %H:%M:%S')"
     log_success "========================================"
 
-    # 发送通知
-    send_notification "success" "同步完成！"
-
-    # 显示日志位置
-    echo ""
     log_info "日志文件: $LOG_FILE"
-    log_info "查看日志: tail -f $LOG_FILE"
 }
-
-###############################################################################
-# 执行主函数
-###############################################################################
 
 main "$@"
