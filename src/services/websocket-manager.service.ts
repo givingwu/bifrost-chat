@@ -1,7 +1,11 @@
-import type { QueryClient } from '@tanstack/react-query';
 import type { StandardMessage } from '@/interfaces/message.interface';
-import { queryKeys } from '@/providers/query.provider';
-import { MessageCacheHelper } from '@/services/message-cache-helper.service';
+import type {
+  HeartbeatParams,
+  RawPacket,
+  ReadAckParams,
+} from '@/interfaces/protocol.interface';
+import { AckHandler, PacketConverter } from '@/services/protocol';
+import { HeartbeatManager } from '@/services/protocol/heartbeat.manager';
 
 /**
  * WebSocket 消息类型
@@ -33,229 +37,6 @@ export interface WebSocketMessageData {
   messageId?: string;
   /** 消息状态 */
   status?: string;
-}
-
-/**
- * 集成 WebSocket 到 React Query Cache
- *
- * @description
- * 提供 WebSocket 消息到 React Query Cache 的集成逻辑。
- * 当收到 WebSocket 消息时，自动更新 React Query 缓存。
- *
- * @example
- * ```tsx
- * import { useWebSocket } from '@/hooks/use-websocket.hook';
- * import { integrateWebSocketWithQueryClient } from '@/react-query/websocket-integration';
- * import { useQueryClient } from '@tanstack/react-query';
- *
- * function ChatApp() {
- *   const queryClient = useQueryClient();
- *
- *   useWebSocket({
- *     url: 'wss://api.example.com/ws',
- *     token: 'your-token',
- *     autoConnect: true,
- *     onMessage: (data) => {
- *       integrateWebSocketWithQueryClient(queryClient, data);
- *     },
- *   });
- *
- *   return <ChatContainer />;
- * }
- * ```
- */
-export function integrateWebSocketWithQueryClient(
-  queryClient: QueryClient,
-  data: WebSocketMessageData,
-): void {
-  switch (data.type) {
-    case WebSocketMessageType.NewMessage:
-      handleNewMessage(queryClient, data);
-      break;
-
-    case WebSocketMessageType.MessageStatus:
-      handleMessageStatusUpdate(queryClient, data);
-      break;
-
-    case WebSocketMessageType.ConversationUpdate:
-      handleConversationUpdate(queryClient, data);
-      break;
-
-    case WebSocketMessageType.ConversationListUpdate:
-      handleConversationListUpdate(queryClient);
-      break;
-
-    case WebSocketMessageType.NewConversation:
-      handleNewConversation(queryClient, data);
-      break;
-
-    default:
-      console.warn('Unknown WebSocket message type:', data.type);
-  }
-}
-
-/**
- * 获取消息内容文本
- */
-function getMessageText(content: StandardMessage['content']): string {
-  if ('text' in content) {
-    return content.text;
-  }
-  return 'Media';
-}
-
-/**
- * 处理新消息
- *
- * @description
- * 使用 MessageCacheHelper 处理新消息，支持无限查询数据结构。
- * 自动去重（基于 id 和 tempId），避免重复消息。
- */
-function handleNewMessage(
-  queryClient: QueryClient,
-  data: WebSocketMessageData,
-): void {
-  if (!data.conversationId || !data.message) {
-    return;
-  }
-
-  // 1. 添加新消息到消息列表缓存
-  // Query Key: ['messages', 'list', conversationId]
-  // 操作的是特定会话的消息列表
-  MessageCacheHelper.addMessageToCache(
-    queryClient,
-    data.conversationId,
-    data.message,
-  );
-
-  // 2. 更新会话列表中的会话信息
-  // Query Key: ['conversations', 'list']
-  // 操作的是会话列表，更新最后一条消息、时间戳、未读数等
-  // 注意：这两个操作针对不同的缓存，不会有冲突
-  queryClient.setQueryData(
-    queryKeys.conversations.list(),
-    (old: unknown[] | undefined) => {
-      if (!old) {
-        return old;
-      }
-      return old.map((conv: any) => {
-        if (conv.id === data.conversationId) {
-          return {
-            ...conv,
-            lastMessage: getMessageText(data.message!.content),
-            lastMessageTime: new Date(data.message!.timestamp).toISOString(),
-            unreadCount: (conv.unreadCount || 0) + 1,
-          };
-        }
-        return conv;
-      });
-    },
-  );
-}
-
-/**
- * 处理消息状态更新
- *
- * @description
- * 使用 MessageCacheHelper 更新消息状态，支持无限查询数据结构。
- * 同时支持通过 messageId 和 tempId 查找消息。
- */
-function handleMessageStatusUpdate(
-  queryClient: QueryClient,
-  data: WebSocketMessageData,
-): void {
-  if (!data.messageId || !data.conversationId || !data.status) {
-    return;
-  }
-
-  // 使用 MessageCacheHelper 更新消息状态
-  // 支持通过 messageId 或 tempId 查找消息
-  MessageCacheHelper.updateMessageStatus(
-    queryClient,
-    data.conversationId,
-    data.status as any,
-    data.messageId,
-    undefined, // tempId 如果需要可以从 data 中获取
-  );
-}
-
-/**
- * 处理会话更新
- */
-function handleConversationUpdate(
-  queryClient: QueryClient,
-  data: WebSocketMessageData,
-): void {
-  if (!data.conversationId) {
-    return;
-  }
-
-  // 使会话详情缓存失效，触发重新获取
-  queryClient.invalidateQueries({
-    queryKey: queryKeys.conversations.detail(data.conversationId),
-  });
-
-  // 使会话列表缓存失效，触发重新获取
-  queryClient.invalidateQueries({
-    queryKey: queryKeys.conversations.list(),
-  });
-}
-
-/**
- * 处理会话列表更新
- */
-function handleConversationListUpdate(queryClient: QueryClient): void {
-  // 使会话列表缓存失效，触发重新获取
-  queryClient.invalidateQueries({
-    queryKey: queryKeys.conversations.list(),
-  });
-}
-
-/**
- * 处理新会话
- */
-function handleNewConversation(
-  queryClient: QueryClient,
-  data: WebSocketMessageData,
-): void {
-  if (!data.conversationId) {
-    return;
-  }
-
-  // 使会话列表缓存失效，触发重新获取
-  queryClient.invalidateQueries({
-    queryKey: queryKeys.conversations.list(),
-  });
-
-  // 预取会话详情
-  queryClient.prefetchQuery({
-    queryKey: queryKeys.conversations.detail(data.conversationId),
-  });
-}
-
-/**
- * 创建 WebSocket 消息处理器
- *
- * @description
- * 返回一个函数，用于处理 WebSocket 消息并更新 React Query Cache。
- *
- * @example
- * ```tsx
- * const queryClient = useQueryClient();
- * const handleWebSocketMessage = createWebSocketMessageHandler(queryClient);
- *
- * useWebSocket({
- *   url: 'wss://api.example.com/ws',
- *   onMessage: handleWebSocketMessage,
- * });
- * ```
- */
-export function createWebSocketMessageHandler(
-  queryClient: QueryClient,
-): (data: WebSocketMessageData) => void {
-  return (data: WebSocketMessageData) => {
-    integrateWebSocketWithQueryClient(queryClient, data);
-  };
 }
 
 /**
@@ -320,6 +101,14 @@ export interface WebSocketConfig {
   autoReconnect?: boolean;
   /** 认证 Token */
   token?: string;
+  /** 是否启用协议转换 */
+  enableProtocolConversion?: boolean;
+  /** 当前用户 pin（用于方向判断） */
+  currentPin?: string;
+  /** 默认发送方 app（协议发送辅助） */
+  fromApp?: string;
+  /** 默认发送方 pin（协议发送辅助） */
+  fromPin?: string;
 }
 
 /**
@@ -387,6 +176,10 @@ export class WebSocketManager {
       connectionTimeout: config.connectionTimeout ?? 10000,
       autoReconnect: config.autoReconnect ?? true,
       token: config.token ?? '',
+      enableProtocolConversion: config.enableProtocolConversion ?? true,
+      currentPin: config.currentPin ?? '',
+      fromApp: config.fromApp ?? '',
+      fromPin: config.fromPin ?? '',
     };
   }
 
@@ -411,6 +204,7 @@ export class WebSocketManager {
    */
   onMessage(listener: WebSocketEventListener): () => void {
     this.messageListeners.add(listener);
+
     return () => {
       this.messageListeners.delete(listener);
     };
@@ -423,6 +217,7 @@ export class WebSocketManager {
    */
   onStatusChange(listener: WebSocketStatusListener): () => void {
     this.statusListeners.add(listener);
+
     return () => {
       this.statusListeners.delete(listener);
     };
@@ -469,7 +264,7 @@ export class WebSocketManager {
         };
 
         // 连接关闭
-        this.ws.onclose = (event) => {
+        this.ws.onclose = (_event) => {
           this.clearConnectionTimer();
           this.stopHeartbeat();
           this.setStatus(WebSocketStatusEnum.Disconnected);
@@ -527,6 +322,45 @@ export class WebSocketManager {
   }
 
   /**
+   * 发送标准消息（内部自动转换为 RawPacket）
+   */
+  sendStandardMessage(
+    message: StandardMessage,
+    extraFields?: Partial<RawPacket>,
+  ): void {
+    const fromApp = this.config.fromApp;
+    const fromPin = this.config.fromPin;
+
+    if (!fromApp || !fromPin) {
+      throw new Error(
+        'fromApp/fromPin is required for protocol message sending',
+      );
+    }
+
+    const packet = PacketConverter.toRawPacket(message, fromApp, fromPin);
+    this.send({
+      ...packet,
+      ...(extraFields ?? {}),
+    });
+  }
+
+  /**
+   * 发送已读 ACK
+   */
+  sendReadAck(params: ReadAckParams): void {
+    const packet = AckHandler.createReadAck(params);
+    this.send(packet);
+  }
+
+  /**
+   * 发送心跳包（业务协议）
+   */
+  sendProtocolHeartbeat(params: HeartbeatParams): void {
+    const packet = HeartbeatManager.createHeartbeat(params);
+    this.send(packet);
+  }
+
+  /**
    * 设置连接状态
    */
   private setStatus(status: WebSocketStatusEnum): void {
@@ -547,17 +381,38 @@ export class WebSocketManager {
    */
   private handleMessage(event: MessageEvent): void {
     try {
-      const data = JSON.parse(event.data);
+      const data: unknown = JSON.parse(event.data);
+
+      if (this.config.enableProtocolConversion) {
+        const protocolEvent = this.convertProtocolEvent(data);
+
+        if (protocolEvent) {
+          this.messageListeners.forEach((listener) => {
+            try {
+              listener(protocolEvent);
+            } catch (error) {
+              console.error('Error in message listener:', error);
+            }
+          });
+          return;
+        }
+      }
 
       // 处理心跳响应
-      if (data.type === WebSocketEventTypeEnum.Heartbeat) {
+      if (
+        this.isRecord(data) &&
+        data.type === WebSocketEventTypeEnum.Heartbeat
+      ) {
         return;
       }
 
       // 分发消息事件
       const eventData: WebSocketEventData = {
-        type: data.type || WebSocketEventTypeEnum.Message,
-        data: data.data || data,
+        type:
+          this.isRecord(data) && typeof data.type === 'string'
+            ? (data.type as WebSocketEventTypeEnum)
+            : WebSocketEventTypeEnum.Message,
+        data: this.isRecord(data) && 'data' in data ? data.data : data,
         timestamp: Date.now(),
       };
 
@@ -571,6 +426,117 @@ export class WebSocketManager {
     } catch (error) {
       console.error('Failed to parse WebSocket message:', error);
     }
+  }
+
+  private convertProtocolEvent(data: unknown): WebSocketEventData | null {
+    if (!this.isRecord(data)) {
+      return null;
+    }
+
+    const normalized = this.normalizeAckPacket(data);
+
+    if (HeartbeatManager.isHeartbeatResponse(normalized)) {
+      return null;
+    }
+
+    const ackData = AckHandler.parseDownstream(normalized);
+
+    if (ackData) {
+      return {
+        type: WebSocketEventTypeEnum.MessageStatus,
+        data: {
+          conversationId:
+            typeof normalized.chatId === 'string' ? normalized.chatId : '',
+          messageId: ackData.id,
+          status: AckHandler.ackTypeToMessageStatus(ackData.body.type),
+          timestamp: ackData.timestamp ?? Date.now(),
+        },
+        timestamp: Date.now(),
+      };
+    }
+
+    const packetType =
+      typeof normalized.ptype === 'string'
+        ? normalized.ptype
+        : typeof normalized.type === 'string'
+          ? normalized.type
+          : '';
+
+    if (packetType !== 'chat_message' && packetType !== 'CHAT_MESSAGE') {
+      return null;
+    }
+
+    const packet = this.normalizeToRawPacket(normalized);
+    const message = PacketConverter.toStandardMessage(
+      packet,
+      undefined,
+      this.config.currentPin || undefined,
+    );
+
+    return {
+      type: WebSocketEventTypeEnum.Message,
+      data: {
+        conversationId: packet.chatId ?? message.receiver?.pin ?? '',
+        message,
+      },
+      timestamp: Date.now(),
+    };
+  }
+
+  private normalizeToRawPacket(data: Record<string, unknown>): RawPacket {
+    const from = this.isRecord(data.from) ? data.from : {};
+    const to = this.isRecord(data.to) ? data.to : {};
+
+    return {
+      id: typeof data.id === 'string' ? data.id : '',
+      mid: typeof data.mid === 'string' ? data.mid : undefined,
+      from: {
+        app: typeof from.app === 'string' ? from.app : '',
+        pin: typeof from.pin === 'string' ? from.pin : '',
+        clientType: typeof from.clientType === 'string' ? from.clientType : '',
+        channelType:
+          typeof from.channelType === 'string' ? from.channelType : '',
+      },
+      to: {
+        app: typeof to.app === 'string' ? to.app : '',
+        pin: typeof to.pin === 'string' ? to.pin : '',
+        clientType: typeof to.clientType === 'string' ? to.clientType : '',
+        channelType: typeof to.channelType === 'string' ? to.channelType : '',
+      },
+      ptype:
+        typeof data.ptype === 'string'
+          ? data.ptype
+          : typeof data.type === 'string'
+            ? data.type
+            : 'chat_message',
+      body: this.isRecord(data.body) ? data.body : {},
+      ver: typeof data.ver === 'string' ? data.ver : '1.0',
+      timestamp:
+        typeof data.timestamp === 'number' ? data.timestamp : Date.now(),
+      chatId: typeof data.chatId === 'string' ? data.chatId : undefined,
+      entry: typeof data.entry === 'string' ? data.entry : undefined,
+    };
+  }
+
+  private normalizeAckPacket(
+    data: Record<string, unknown>,
+  ): Record<string, unknown> {
+    if (data.type === 'ack') {
+      return data;
+    }
+
+    if (data.ptype === 'ack') {
+      return {
+        ...data,
+        type: 'ack',
+      };
+    }
+
+    return data;
+  }
+
+  private isRecord(value: unknown): value is Record<string, unknown> {
+    return value !== null && typeof value === 'object';
   }
 
   /**
