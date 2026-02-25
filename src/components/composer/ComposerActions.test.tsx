@@ -124,7 +124,7 @@ describe('ComposerActions', () => {
 
   describe('音频按钮', () => {
     it('当 canSend 为 false 且启用音频输入时应显示音频按钮', () => {
-      render(<ComposerActions canSend={false} onAudioInput={vi.fn()} />);
+      render(<ComposerActions canSend={false} enableAudioInput={true} onAudioInput={vi.fn()} />);
       const voiceButton = screen.getByTestId('composer-voice');
       expect(voiceButton).toBeDefined();
       expect(voiceButton.getAttribute('aria-label')).toBe('Voice input');
@@ -138,7 +138,7 @@ describe('ComposerActions', () => {
 
     it('点击音频按钮应触发 onAudioInput 回调', () => {
       const onAudioInput = vi.fn();
-      render(<ComposerActions canSend={false} onAudioInput={onAudioInput} />);
+      render(<ComposerActions canSend={false} enableAudioInput={true} onAudioInput={onAudioInput} />);
       const voiceButton = screen.getByTestId('composer-voice');
       fireEvent.click(voiceButton);
       expect(onAudioInput).toHaveBeenCalledTimes(1);

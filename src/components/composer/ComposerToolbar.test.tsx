@@ -15,6 +15,29 @@ vi.mock('@/providers/I18n.provider', () => ({
   }),
 }));
 
+// Mock the composer config to enable all features for testing
+vi.mock('@/store', () => ({
+  useComposerConfig: () => ({
+    enableAttachments: true,
+    enableAudioInput: true,
+    enableDraft: true,
+    draftDebounceDelay: 500,
+    clearDraftOnSend: true,
+    keepDraftOnSwitch: true,
+    maxAttachments: 10,
+    maxAttachmentSize: 10 * 1024 * 1024,
+    allowedFileTypes: undefined,
+    maxAudioDuration: 300,
+    audioOutputFormat: 'raw',
+    showChannelBadge: true,
+    showCharCount: true,
+    showHint: true,
+    showEmojiButton: true,
+    templateMode: 'edit',
+    allowTemplateEdit: false,
+  }),
+}));
+
 describe('ComposerToolbar', () => {
   beforeEach(() => {
     cleanup();
