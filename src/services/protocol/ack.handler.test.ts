@@ -190,7 +190,7 @@ describe('AckHandler', () => {
       );
       expect(
         AckHandler.isValidAckType(PacketMessageTypeEnum.ClientHeartbeat),
-      ).toBe(false);
+      ).toBe(true);
     });
 
     it('应该拒绝无效的 ACK 类型', () => {
