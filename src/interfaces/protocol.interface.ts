@@ -26,16 +26,22 @@ export enum PacketMessageTypeEnum {
   ChatMessage = 'chat_message',
   /** ACK */
   Ack = 'ack',
-  /** 客户端已收 */
-  MsgReceiveAck = 'msg_receive_ack',
-  /** 客户端已读 */
-  MsgReadAck = 'msg_read_ack',
   /** 心跳 */
   ClientHeartbeat = 'client_heartbeat',
   /** 状态切换 */
   StatusSwitch = 'status_switch',
   /** 触达回复消息发送结果 */
   FoxMessageAck = 'fox_message_ack',
+}
+
+/**
+ * Ack 协议枚举
+ */
+export enum AckMessageStatusEnum {
+  /** 客户端已收 */
+  MsgReceiveAck = 'msg_receive_ack',
+  /** 客户端已读 */
+  MsgReadAck = 'msg_read_ack',
 }
 
 /**
