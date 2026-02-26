@@ -268,8 +268,7 @@ export class WebSocketManager {
 
       try {
         // 构建 WebSocket URL（支持 Token 认证）
-        const wsUrl = this.buildWebSocketUrl();
-        this.ws = new WebSocket(wsUrl);
+        this.ws = new WebSocket(this.config.url);
 
         // 连接超时处理
         this.connectionTimer = setTimeout(() => {
@@ -820,21 +819,6 @@ export class WebSocketManager {
       clearTimeout(this.connectionTimer);
       this.connectionTimer = null;
     }
-  }
-
-  /**
-   * 构建 WebSocket URL
-   */
-  private buildWebSocketUrl(): string {
-    let url = this.config.url;
-
-    // 添加 Token（如果提供）
-    if (this.config.token) {
-      const separator = url.includes('?') ? '&' : '?';
-      url = `${url}${separator}token=${encodeURIComponent(this.config.token)}`;
-    }
-
-    return url;
   }
 
   /**
