@@ -1,7 +1,10 @@
 import type { StateCreator } from 'zustand';
 import { AgentStatusEnum } from '@/interfaces/agent.interface';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
-import type { MessageTypeEnum } from '@/interfaces/message.interface';
+import {
+  ClientTypeEnum,
+  type MessageTypeEnum,
+} from '@/interfaces/message.interface';
 import {
   type ChannelMessageTypeConfig,
   getDefaultChannelMessageTypes,
@@ -18,6 +21,8 @@ export interface CurrentUser {
   pin: string;
   /** 坐席状态（用于 in_call 互斥策略） */
   status: AgentStatusEnum;
+  /** 客户端类型（用于消息协议中的 clientType 字段） */
+  clientType?: ClientTypeEnum;
 }
 
 /**
@@ -72,6 +77,7 @@ export const createStrategySlice: StateCreator<
       app: 'Bifrost Chat',
       pin: 'Pin is required',
       status: AgentStatusEnum.Offline,
+      clientType: ClientTypeEnum.Web,
     },
     allowedMessageTypes: getDefaultChannelMessageTypes(ChannelTypeEnum.Waba),
     messageDisplayStrategy: MessageTypeDisplayStrategy.ShowUnsupported,

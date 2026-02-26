@@ -2,6 +2,7 @@ import type { SendAttachmentResult } from '@/interfaces/attachment.interface';
 import type { SendAudioResult } from '@/interfaces/audio.interface';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import {
+  type ClientTypeEnum,
   MessageDirectionEnum,
   type MessageSendResult,
   MessageStatusEnum,
@@ -271,14 +272,22 @@ export class FoxCollectMessageService
         from: {
           app: String(toRecord(data.from).app ?? ''),
           pin: String(toRecord(data.from).pin ?? ''),
-          clientType: String(toRecord(data.from).clientType ?? ''),
-          channelType: String(toRecord(data.from).channelType ?? ''),
+          clientType: String(
+            toRecord(data.from).clientType ?? '',
+          ) as ClientTypeEnum,
+          channelType: String(
+            toRecord(data.from).channelType ?? '',
+          ) as ChannelTypeEnum,
         },
         to: {
           app: String(toRecord(data.to).app ?? ''),
           pin: String(toRecord(data.to).pin ?? ''),
-          clientType: String(toRecord(data.to).clientType ?? ''),
-          channelType: String(toRecord(data.to).channelType ?? ''),
+          clientType: String(
+            toRecord(data.to).clientType ?? '',
+          ) as ClientTypeEnum,
+          channelType: String(
+            toRecord(data.to).channelType ?? '',
+          ) as ChannelTypeEnum,
         },
         ptype: String(data.ptype ?? data.type ?? 'chat_message'),
         body: toRecord(data.body),
@@ -351,13 +360,13 @@ export class FoxCollectMessageService
       sender: {
         app: this.config.app,
         pin: this.config.agentPin,
-        clientType: params.clientType ?? 'pc',
+        clientType: (params.clientType ?? 'pc') as ClientTypeEnum,
         channelType,
       },
       receiver: {
         app: 'im.waiter',
         pin: params.receiverPin ?? '',
-        clientType: params.receiverClientType ?? '',
+        clientType: (params.receiverClientType ?? '') as ClientTypeEnum,
         channelType,
       },
     };

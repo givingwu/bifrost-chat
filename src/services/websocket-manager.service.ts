@@ -1,4 +1,8 @@
-import type { StandardMessage } from '@/interfaces/message.interface';
+import type { ChannelTypeEnum } from '@/interfaces/channel.interface';
+import {
+  ClientTypeEnum,
+  type StandardMessage,
+} from '@/interfaces/message.interface';
 import type {
   HeartbeatParams,
   RawPacket,
@@ -410,6 +414,7 @@ export class WebSocketManager {
       from: {
         app: fromApp,
         pin: fromPin,
+        clientType: ClientTypeEnum.Web,
       },
       to: {
         app: fromApp,
@@ -680,15 +685,26 @@ export class WebSocketManager {
       from: {
         app: typeof from.app === 'string' ? from.app : '',
         pin: typeof from.pin === 'string' ? from.pin : '',
-        clientType: typeof from.clientType === 'string' ? from.clientType : '',
+        clientType:
+          typeof from.clientType === 'string'
+            ? (from.clientType as ClientTypeEnum)
+            : undefined,
         channelType:
-          typeof from.channelType === 'string' ? from.channelType : '',
+          typeof from.channelType === 'string'
+            ? (from.channelType as ChannelTypeEnum)
+            : undefined,
       },
       to: {
         app: typeof to.app === 'string' ? to.app : '',
         pin: typeof to.pin === 'string' ? to.pin : '',
-        clientType: typeof to.clientType === 'string' ? to.clientType : '',
-        channelType: typeof to.channelType === 'string' ? to.channelType : '',
+        clientType:
+          typeof to.clientType === 'string'
+            ? (to.clientType as ClientTypeEnum)
+            : undefined,
+        channelType:
+          typeof to.channelType === 'string'
+            ? (to.channelType as ChannelTypeEnum)
+            : undefined,
       },
       ptype:
         typeof data.ptype === 'string'

@@ -89,12 +89,12 @@ describe('PacketConverter', () => {
         from: {
           app: 'im.waiter',
           pin: 'customer-456',
-          channelType: 'whatsapp',
+          channelType: ChannelTypeEnum.WhatsApp,
         },
         to: {
           app: 'fox_collect.waiter',
           pin: 'agent-123',
-          channelType: 'whatsapp',
+          channelType: ChannelTypeEnum.WhatsApp,
         },
         ptype: 'chat_message',
         body: {
@@ -131,12 +131,12 @@ describe('PacketConverter', () => {
         from: {
           app: 'fox_collect.waiter',
           pin: 'agent-123',
-          channelType: 'whatsapp',
+          channelType: ChannelTypeEnum.WhatsApp,
         },
         to: {
           app: 'im.waiter',
           pin: 'customer-456',
-          channelType: 'whatsapp',
+          channelType: ChannelTypeEnum.WhatsApp,
         },
         ptype: 'chat_message',
         body: {
@@ -222,7 +222,7 @@ describe('PacketConverter', () => {
         from: {
           app: 'im.waiter',
           pin: 'customer-456',
-          channelType: 'unknown_channel',
+          channelType: 'unknown_channel' as ChannelTypeEnum,
         },
         to: {
           app: 'fox_collect.waiter',

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import {
+  ClientTypeEnum,
   MessageDirectionEnum,
   MessageStatusEnum,
   MessageTypeEnum,
@@ -45,7 +46,7 @@ describe('MessageBuilder', () => {
     const customSender = {
       app: 'custom-app',
       pin: 'custom-agent',
-      clientType: 'mobile',
+      clientType: ClientTypeEnum.Android,
       channelType: ChannelTypeEnum.WhatsApp,
     };
     const customReceiver = {

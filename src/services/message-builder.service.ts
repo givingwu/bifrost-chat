@@ -1,5 +1,6 @@
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import {
+  type ClientTypeEnum,
   type MessageContent,
   MessageDirectionEnum,
   MessageStatusEnum,
@@ -27,6 +28,7 @@ export class MessageBuilder {
       toApp?: string;
       toPin: string;
       channelType: ChannelTypeEnum;
+      clientType?: ClientTypeEnum;
     },
   ): StandardMessage {
     // 验证必需字段
@@ -46,6 +48,7 @@ export class MessageBuilder {
       sender: options.sender ?? {
         app: options.fromApp as string,
         pin: options.fromPin,
+        clientType: options.clientType,
         channelType: options.channelType,
       },
       receiver: options.receiver ?? {
@@ -265,7 +268,7 @@ export class MessageBuilder {
   /**
    * 将 ChannelTypeEnum 转换为字符串
    */
-  static channelTypeToString(channelType: ChannelTypeEnum): string {
+  static channelTypeToString(channelType: ChannelTypeEnum): ChannelTypeEnum {
     return channelType;
   }
 }

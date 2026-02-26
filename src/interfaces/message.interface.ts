@@ -61,21 +61,52 @@ export interface StringMessage {
 
 /** 多媒体消息 */
 export interface MediaMessage {
+  /** 多媒体资源 URL */
   url: string;
+  /** 多媒体类型 */
   mimeType: string;
+  /** 资源大小 */
   size?: number;
 }
 
 /** 模板消息 */
 export interface TemplateMessage extends StringMessage {
+  /** 模版 ID */
   templateId: string | number;
+  /** 模版参数 */
   params: Record<string, string>;
+  /** 扩展字段 */
+  ext?: unknown;
+}
+
+/** 鉴权消息 */
+export interface AuthMessage {
+  /** 用户 Token */
+  token: string;
+  /** 过期时间（可选） */
+  expiresIn?: number;
 }
 
 /**
  * 标准化消息内容结构（Anti-Corruption Layer）
  */
-export type MessageContent = StringMessage | MediaMessage | TemplateMessage;
+export type MessageContent =
+  | StringMessage
+  | MediaMessage
+  | TemplateMessage
+  | AuthMessage;
+
+/**
+ * 客户端类型
+ */
+export enum ClientTypeEnum {
+  /** - ios("ios", "ios"), */
+  IOS = 'ios',
+  /** - android("android", "Android"), */
+  Android = 'android',
+  /** - web("web", "web"), */
+  Web = 'web',
+}
 
 /**
  * 标准化的消息参与者，避免直接暴露协议 from/to
@@ -85,10 +116,10 @@ export interface MessageParticipant {
   app: string;
   /** 协议中的 pin 字段（用户/UID/电话/邮箱） */
   pin: string;
-  /** 客户端类型（pc/mobile 等设备类型（可选）） */
-  clientType?: string;
+  /** 客户端类型 */
+  clientType?: ClientTypeEnum;
   /** 渠道类型（支持枚举和字符串） */
-  channelType?: ChannelTypeEnum | string;
+  channelType?: ChannelTypeEnum;
 }
 
 /**

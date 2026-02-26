@@ -102,6 +102,7 @@ export function useSendMessage<TParams = any>() {
           fromPin: currentUser.pin,
           toPin: params.conversationId,
           channelType: activeChannel ?? allowedChannels[0],
+          clientType: currentUser.clientType,
         },
       );
       tempMessage.status = MessageStatusEnum.Sending;

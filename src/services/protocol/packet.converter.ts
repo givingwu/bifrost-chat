@@ -1,5 +1,6 @@
 import type { StandardMessage } from '@/interfaces/message.interface';
 import {
+  ClientTypeEnum,
   MessageDirectionEnum,
   MessageStatusEnum,
 } from '@/interfaces/message.interface';
@@ -56,6 +57,7 @@ export class PacketConverter {
         app: fromApp,
         pin: fromPin,
         channelType: MessageBuilder.channelTypeToString(message.channelType),
+        clientType: message.sender?.clientType ?? ClientTypeEnum.Web,
       },
       to: {
         app: message.receiver.app,
