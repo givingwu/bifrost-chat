@@ -1,15 +1,24 @@
 # status_switch协议
 
-
 当前坐席人员的状态变更消息
 
 ```json
 {
-  "type": "* msg_read_ack",
+  "ptype": "status_switch",
+  "id": "status-123",
+  "from": {
+    "app": "fox_collect.waiter",
+    "pin": "agent-456"
+  },
+  "to": {
+    "app": "fox.collect"
+  },
   "body": {
-    "status" : "ready",
-    "ext" : "扩展字段",
-  }
+    "status": "ready",
+    "ext": "扩展字段"
+  },
+  "ver": "1.0",
+  "timestamp": 1769063279192
 }
 ```
 

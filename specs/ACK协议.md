@@ -6,8 +6,9 @@
 
 ```json
 {
-  "type": "* msg_read_ack",
+    "ptype": "ack",
     "body": {
+        "type": "msg_read_ack",
         "sender" : "12424",
         "app" : "fox_collect.waiter",
         "mid" ： "* 服务端消息id",
@@ -19,10 +20,15 @@
 
 ## 下行协议
 ```json
-"id": "bced3b54-1d08-cd89-c596-c85c517fb65f" // 和上行协议ID一致
-"body": {
-        "type": "msg_read_ack" // chat_message/client_heatbeat/auth
-    }
+{
+  "id": "bced3b54-1d08-cd89-c596-c85c517fb65f", // 和上行协议ID一致
+  "ptype": "ack",
+  "body": {
+    "type": "msg_read_ack" // 对应上行请求的 ACK 类型（msg_read_ack/msg_receive_ack/msg_send_failed）
+  },
+  "ver": "1.0",
+  "timestamp": 1769063279192
+}
 ```
 
 # ACK Type
@@ -36,37 +42,35 @@
 ## 上行协议 demo
 ```json
 {
-    "body": 
-        {
-            "sender": "xjjsx888",
-            "app": "im.waiter",
-            "mid": 380406782,
-            "sessionId": "大头鹅712:im.customer:14695971",
-            "id": "",
-            "datetime": 1769063160893
-        }
+    "body": {
+        "sender": "xjjsx888",
+        "app": "im.waiter",
+        "mid": 380406782,
+        "sessionId": "大头鹅712:im.customer:14695971",
+        "id": "",
+        "datetime": 1769063160893
+    }
 }
 ```
 
 ## 下行协议 demo
 ```json
 {
-    "body": {
-        "type": "msg_read_ack"
-    },
-    "datetime": "2026-01-22 14:27:59",
+    "id": "bced3b54-1d08-cd89-c596-c85c517fb65f",
     "from": {
         "app": "fox_collect.customer",
-        "pin": "@im.kn.com"   // 官方账号
+        "pin": "@im.kn.com"
     },
-    "id": "bced3b54-1d08-cd89-c596-c85c517fb65f",
-    "timestamp": 1769063279192,
     "to": {
         "app": "fox_collect.customer",
         "clientType": "",
         "pin": "1234"
     },
-    "type": "ack",
-    "ver": "1.0"
+    "ptype": "ack",
+    "body": {
+        "type": "msg_read_ack"
+    },
+    "ver": "1.0",
+    "timestamp": 1769063279192
 }
 ```

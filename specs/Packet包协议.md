@@ -21,10 +21,11 @@
         "clientType" : "pc", // 可选字段
         "channelType": "WhatsApp", // 渠道
     },
-    "ptype" : "CHAT_MESSAGE", // 消息类型
+    "ptype" : "chat_message", // 【必填】协议消息类型（packet type），用于标识协议层面的消息类型
     "body": {
        // 消息内容， 约定的消息格式，自定义消息，
        // 消息内容，提供固定几个模版， ack/ 撤回 这些是固定消息格式
+       // 注意：body.type 是消息内容类型（如 text/image/video），与 ptype 不同
     },
     "ver": "1.0", // 协议版本
     "timestamp": "124324242"， // 服务端生成时间戳
@@ -32,6 +33,11 @@
     "chatId" : "" // 会话id
 }
 ```
+
+> **重要说明：**
+> - **ptype**（协议类型）：必填字段，用于标识协议层面的消息类型（如 `chat_message`、`ack`、`client_heartbeat` 等）
+> - **body.type**（内容类型）：可选字段，用于标识消息内容的类型（如 `text`、`image`、`video` 等）
+> - 所有 socket 通信协议必须包含 `ptype` 字段
 
 ## 催收场景
 
@@ -60,7 +66,7 @@ SESSION ID: 用户 ID （用户 ID = 客户身份证+包）
 
 ```json
 {
-  "from": { // 发送人 
+  "from": { // 发送人
         "app": "fox_argus.customer", // 客户端用户
         "pin": "8dn48fd30djr42de3",  // UID：用户 ID = 客户身份证+包
         "clientType" : "h5", // 可选字段，设备类型

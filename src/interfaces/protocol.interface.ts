@@ -91,7 +91,32 @@ export interface RawPacket {
   from: MessageParticipant;
   /** 接收人信息 */
   to: MessageParticipant;
-  /** 消息类型 */
+  /**
+   * 【必填】协议消息类型（packet type）
+   *
+   * @description
+   * 用于标识协议层面的消息类型，所有 socket 通信协议必须包含此字段。
+   *
+   * 可选值：
+   * - `auth` - 登录鉴权
+   * - `auth_fail` - 登录失败
+   * - `chat_message` - 聊天消息
+   * - `ack` - ACK 确认
+   * - `msg_receive_ack` - 客户端已收
+   * - `msg_read_ack` - 客户端已读
+   * - `client_heartbeat` - 心跳
+   * - `status_switch` - 状态切换
+   * - `fox_message_ack` - 触达回复消息发送结果
+   *
+   * @example
+   * ```typescript
+   * ptype: 'chat_message' // 聊天消息
+   * ptype: 'ack' // ACK 确认
+   * ptype: 'client_heartbeat' // 心跳
+   * ```
+   *
+   * @see PacketMessageTypeEnum
+   */
   ptype: string;
   /** 消息内容 */
   body: PacketBody;
