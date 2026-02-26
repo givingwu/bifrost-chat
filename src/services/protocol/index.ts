@@ -14,3 +14,6 @@ export { HeartbeatManager } from './heartbeat.manager';
 
 // PacketConverter - 协议转换器
 export { PacketConverter } from './packet.converter';
+
+// PacketValidator - 数据包验证器
+export { PacketValidator } from './packet.validator';

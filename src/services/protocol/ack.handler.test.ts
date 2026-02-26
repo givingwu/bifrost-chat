@@ -23,7 +23,7 @@ describe('AckHandler', () => {
       const ackPacket = AckHandler.createReadAck(params);
 
       expect(ackPacket).toBeDefined();
-      expect(ackPacket.ptype).toBe(AckTypeEnum.MsgReadAck);
+      expect(ackPacket.ptype).toBe(PacketMessageTypeEnum.Ack);
       expect(ackPacket.from.app).toBe('fox_collect.waiter');
       expect(ackPacket.from.pin).toBe('agent-123');
       expect(ackPacket.to.app).toBe('im.waiter');
@@ -61,7 +61,7 @@ describe('AckHandler', () => {
     it('应该正确解析有效的 ACK 消息', () => {
       const data = {
         id: 'ack-123',
-        type: PacketMessageTypeEnum.Ack,
+        ptype: PacketMessageTypeEnum.Ack,
         body: {
           type: AckTypeEnum.MsgReadAck,
         },
@@ -79,7 +79,7 @@ describe('AckHandler', () => {
     it('应该拒绝非 ACK 类型的消息', () => {
       const data = {
         id: 'msg-123',
-        type: PacketMessageTypeEnum.ChatMessage,
+        ptype: PacketMessageTypeEnum.ChatMessage,
         body: {
           type: 'text',
           content: { text: 'Hello' },
@@ -102,7 +102,7 @@ describe('AckHandler', () => {
       // 缺少 id
       expect(
         AckHandler.parseDownstream({
-          type: PacketMessageTypeEnum.Ack,
+          ptype: PacketMessageTypeEnum.Ack,
           body: { type: AckTypeEnum.MsgReadAck },
         }),
       ).toBeNull();
@@ -111,7 +111,7 @@ describe('AckHandler', () => {
       expect(
         AckHandler.parseDownstream({
           id: 'ack-123',
-          type: PacketMessageTypeEnum.Ack,
+          ptype: PacketMessageTypeEnum.Ack,
         }),
       ).toBeNull();
 
@@ -167,7 +167,7 @@ describe('AckHandler', () => {
     it('应该识别心跳 ACK', () => {
       const data = {
         id: 'ack-123',
-        type: PacketMessageTypeEnum.Ack,
+        ptype: PacketMessageTypeEnum.Ack,
         body: {
           type: AckTypeEnum.ClientHeartbeat,
         },
@@ -193,7 +193,7 @@ describe('AckHandler', () => {
     it('应该识别发送失败 ACK', () => {
       const data = {
         id: 'ack-123',
-        type: PacketMessageTypeEnum.Ack,
+        ptype: PacketMessageTypeEnum.Ack,
         body: {
           type: AckTypeEnum.MsgSendFailed,
         },
@@ -207,7 +207,7 @@ describe('AckHandler', () => {
     it('应该识别已读 ACK', () => {
       const data = {
         id: 'ack-123',
-        type: PacketMessageTypeEnum.Ack,
+        ptype: PacketMessageTypeEnum.Ack,
         body: {
           type: AckTypeEnum.MsgReadAck,
         },
@@ -221,7 +221,7 @@ describe('AckHandler', () => {
     it('应该识别已接收 ACK', () => {
       const data = {
         id: 'ack-123',
-        type: PacketMessageTypeEnum.Ack,
+        ptype: PacketMessageTypeEnum.Ack,
         body: {
           type: AckTypeEnum.MsgReceiveAck,
         },

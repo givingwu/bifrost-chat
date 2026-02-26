@@ -15,6 +15,8 @@ export { AckTypeEnum } from '@/interfaces/protocol.interface';
 export interface AckData {
   /** 消息 ID */
   id: string;
+  /** 协议消息类型枚举 */
+  ptype: PacketMessageTypeEnum;
   /** Body */
   body: {
     type: string;
@@ -75,7 +77,7 @@ export class AckHandler {
         app: params.toApp,
         pin: params.toPin,
       },
-      ptype: PacketMessageTypeEnum.MsgReadAck,
+      ptype: PacketMessageTypeEnum.Ack,
       body: bodyContent,
       ver: '1.0',
       timestamp: params.datetime,
@@ -98,7 +100,7 @@ export class AckHandler {
     const packet = data as Record<string, unknown>;
 
     // 检查是否为 ACK 类型
-    if (packet.type !== PacketMessageTypeEnum.Ack) {
+    if (packet.ptype !== PacketMessageTypeEnum.Ack) {
       return null;
     }
 
@@ -119,6 +121,7 @@ export class AckHandler {
 
     return {
       id: packet.id as string,
+      ptype: packet.ptype as PacketMessageTypeEnum,
       body: {
         type: body.type as string,
       },

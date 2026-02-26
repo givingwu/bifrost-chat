@@ -344,13 +344,12 @@ interface RawPacket {
   upid?: string;                 // 上一条消息 id
   from: MessageParticipant;      // 发送人信息（包含 app 和 pin）
   to: MessageParticipant;        // 接收人信息（包含 app 和 pin）
-  ptype: string;                 // 消息类型
+  ptype: string;                 // 【必填】协议消息类型（packet type）
   body: Record<string, unknown>; // 消息内容
   ver: string;                   // 协议版本
   timestamp: number;             // 服务端生成时间戳
   entry?: string;                // SDK 入口
   chatId?: string;               // 会话 ID
-  type?: string;                 // 消息类型
 }
 
 // MessageParticipant 结构
@@ -361,6 +360,12 @@ interface MessageParticipant {
   channelType?: ChannelTypeEnum | string; // 渠道类型（可选）
 }
 ```
+
+> **重要说明：**
+> - **ptype**（协议类型）：必填字段，用于标识协议层面的消息类型
+> - **body.type**（内容类型）：可选字段，用于标识消息内容的类型（如 `text`、`image`、`video` 等）
+> - 所有 socket 通信协议必须包含 `ptype` 字段
+> - 有效值包括：`auth`、`auth_fail`、`chat_message`、`ack`、`msg_receive_ack`、`msg_read_ack`、`client_heartbeat`、`status_switch`、`fox_message_ack`
 
 ### AckTypeEnum
 

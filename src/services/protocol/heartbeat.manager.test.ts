@@ -74,7 +74,7 @@ describe('HeartbeatManager', () => {
     it('应该拒绝非心跳响应', () => {
       const data = {
         id: 'ack-123',
-        type: PacketMessageTypeEnum.Ack,
+        ptype: PacketMessageTypeEnum.Ack,
         body: {
           type: 'msg_read_ack',
         },
