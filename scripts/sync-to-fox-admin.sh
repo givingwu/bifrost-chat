@@ -79,6 +79,18 @@ main() {
     log_info "同步 package.json..."
     cp "$SOURCE_DIR/package.json" "$TARGET_DIR/package.json"
 
+    # 在目标位置安装依赖
+    log_info "在目标位置安装依赖..."
+    cd "$TARGET_DIR" || exit 1
+    pnpm install >> "$LOG_FILE" 2>&1
+
+    if [ $? -ne 0 ]; then
+        log_error "依赖安装失败"
+        exit 1
+    fi
+
+    log_success "依赖安装完成"
+
     log_success "========================================"
     log_success "同步完成时间: $(date '+%Y-%m-%d %H:%M:%S')"
     log_success "========================================"
