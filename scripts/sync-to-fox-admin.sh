@@ -79,10 +79,10 @@ main() {
     log_info "同步 package.json..."
     cp "$SOURCE_DIR/package.json" "$TARGET_DIR/package.json"
 
-    # 在目标位置安装依赖
+    # 在目标位置安装依赖（使用 filter 只安装 bifrost-chat）
     log_info "在目标位置安装依赖..."
-    cd "$TARGET_DIR" || exit 1
-    pnpm install >> "$LOG_FILE" 2>&1
+    cd "$TARGET_DIR/.." || exit 1
+    pnpm i --filter @feoe/bifrost-chat >> "$LOG_FILE" 2>&1
 
     if [ $? -ne 0 ]; then
         log_error "依赖安装失败"
