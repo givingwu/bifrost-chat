@@ -1,13 +1,16 @@
-import { MessageStatusEnum } from '@/interfaces/message.interface';
+import {
+  ClientTypeEnum,
+  MessageStatusEnum,
+} from '@/interfaces/message.interface';
 import type { RawPacket, ReadAckParams } from '@/interfaces/protocol.interface';
 import {
-  AckTypeEnum,
+  AckMessageTypeEnum,
   PacketMessageTypeEnum,
 } from '@/interfaces/protocol.interface';
 import { MessageBuilder } from '@/services/message-builder.service';
 
-// Re-export AckTypeEnum for external use
-export { AckTypeEnum } from '@/interfaces/protocol.interface';
+// Re-export AckMessageTypeEnum for external use
+export { AckMessageTypeEnum } from '@/interfaces/protocol.interface';
 
 /**
  * ACK 数据结构（下行）
@@ -31,16 +34,38 @@ export interface AckData {
  * @description
  * 负责 ACK 消息的创建和解析
  *
+ * 上行 ACK（客户端 → 服务端）：
+ * - createReadAck() - 创建已读 ACK，ptype 为 `msg_read_ack`
+ * - createReceiveAck() - 创建收到消息 ACK，ptype 为 `msg_receive_ack`
+ *
+ * 下行 ACK（服务端 → 客户端）：
+ * - parseDownstream() - 解析下行 ACK，ptype 为 `ack`，body.type 为具体类型
+ *
  * @example
  * ```typescript
- * // 创建已读 ACK
+ * // 创建上行已读 ACK
  * const ackMessage = AckHandler.createReadAck({
  *   sender: 'agent-123',
  *   app: 'fox_collect.waiter',
  *   messageId: 'msg-456',
  *   sessionId: 'conv-123',
  *   datetime: Date.now(),
+ *   toApp: 'im.waiter',
+ *   toPin: 'customer-456',
  * });
+ * // ptype 为 'msg_read_ack'
+ *
+ * // 创建上行收到消息 ACK
+ * const receiveAck = AckHandler.createReceiveAck({
+ *   sender: 'agent-123',
+ *   app: 'fox_collect.waiter',
+ *   messageId: 'msg-456',
+ *   sessionId: 'conv-123',
+ *   datetime: Date.now(),
+ *   toApp: 'im.waiter',
+ *   toPin: 'customer-456',
+ * });
+ * // ptype 为 'msg_receive_ack'
  *
  * // 解析下行 ACK
  * const ackData = AckHandler.parseDownstream(data);
@@ -55,18 +80,50 @@ export class AckHandler {
   /**
    * 创建已读 ACK 消息
    *
+   * @description
+   * 创建上行已读 ACK 消息，ptype 为 `msg_read_ack`
+   *
    * @param params 已读 ACK 参数
    * @returns RawPacket
    */
   static createReadAck(params: ReadAckParams): RawPacket {
-    const bodyContent = {
-      sender: params.sender,
-      app: params.app,
-      mid: params.messageId,
-      sessionId: params.sessionId,
-      datetime: params.datetime,
+    const ackPacket: RawPacket = {
+      id: MessageBuilder.generateUniqueId(),
+      from: {
+        app: params.app,
+        pin: params.sender,
+        clientType: ClientTypeEnum.Web,
+      },
+      to: {
+        app: params.toApp,
+        pin: params.toPin,
+      },
+      // ✅ 使用 msg_read_ack 作为 ptype（上行协议）
+      ptype: AckMessageTypeEnum.MsgReadAck,
+      body: {
+        sender: params.sender,
+        app: params.app,
+        mid: params.messageId,
+        sessionId: params.sessionId,
+        datetime: params.datetime,
+      },
+      ver: '1.0',
+      timestamp: params.datetime,
     };
 
+    return ackPacket;
+  }
+
+  /**
+   * 创建收到消息 ACK 消息
+   *
+   * @description
+   * 创建上行收到消息 ACK 消息，ptype 为 `msg_receive_ack`
+   *
+   * @param params 收到 ACK 参数
+   * @returns RawPacket
+   */
+  static createReceiveAck(params: ReadAckParams): RawPacket {
     const ackPacket: RawPacket = {
       id: MessageBuilder.generateUniqueId(),
       from: {
@@ -77,8 +134,15 @@ export class AckHandler {
         app: params.toApp,
         pin: params.toPin,
       },
-      ptype: PacketMessageTypeEnum.Ack,
-      body: bodyContent,
+      // ✅ 使用 msg_receive_ack 作为 ptype（上行协议）
+      ptype: AckMessageTypeEnum.MsgReceiveAck,
+      body: {
+        sender: params.sender,
+        app: params.app,
+        mid: params.messageId,
+        sessionId: params.sessionId,
+        datetime: params.datetime,
+      },
       ver: '1.0',
       timestamp: params.datetime,
     };
@@ -136,7 +200,10 @@ export class AckHandler {
    * @returns 是否有效
    */
   static isValidAckType(type: string): boolean {
-    return Object.values(AckTypeEnum).includes(type as AckTypeEnum);
+    return (
+      Object.values(AckMessageTypeEnum).includes(type as AckMessageTypeEnum) ||
+      type === PacketMessageTypeEnum.Ack
+    );
   }
 
   /**
@@ -147,13 +214,13 @@ export class AckHandler {
    */
   static ackTypeToMessageStatus(type: string): MessageStatusEnum {
     switch (type) {
-      case AckTypeEnum.MsgReceiveAck:
+      case AckMessageTypeEnum.MsgReceiveAck:
         return MessageStatusEnum.Delivered;
-      case AckTypeEnum.MsgReadAck:
+      case AckMessageTypeEnum.MsgReadAck:
         return MessageStatusEnum.Read;
-      case AckTypeEnum.MsgSendFailed:
+      case AckMessageTypeEnum.MsgSendFailed:
         return MessageStatusEnum.Failed;
-      case AckTypeEnum.ClientHeartbeat:
+      case PacketMessageTypeEnum.ClientHeartbeat:
         // 心跳 ACK 不对应消息状态
         return MessageStatusEnum.Sent;
       default:
@@ -174,7 +241,7 @@ export class AckHandler {
       return false;
     }
 
-    return ackData.body.type === AckTypeEnum.ClientHeartbeat;
+    return ackData.body.type === PacketMessageTypeEnum.ClientHeartbeat;
   }
 
   /**
@@ -190,7 +257,7 @@ export class AckHandler {
       return false;
     }
 
-    return ackData.body.type === AckTypeEnum.MsgSendFailed;
+    return ackData.body.type === AckMessageTypeEnum.MsgSendFailed;
   }
 
   /**
@@ -206,7 +273,7 @@ export class AckHandler {
       return false;
     }
 
-    return ackData.body.type === AckTypeEnum.MsgReadAck;
+    return ackData.body.type === AckMessageTypeEnum.MsgReadAck;
   }
 
   /**
@@ -222,6 +289,6 @@ export class AckHandler {
       return false;
     }
 
-    return ackData.body.type === AckTypeEnum.MsgReceiveAck;
+    return ackData.body.type === AckMessageTypeEnum.MsgReceiveAck;
   }
 }

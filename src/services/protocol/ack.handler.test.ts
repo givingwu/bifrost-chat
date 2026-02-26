@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { MessageStatusEnum } from '@/interfaces/message.interface';
 import {
-  AckTypeEnum,
+  AckMessageTypeEnum,
   PacketMessageTypeEnum,
   type ReadAckParams,
 } from '@/interfaces/protocol.interface';
@@ -23,7 +23,8 @@ describe('AckHandler', () => {
       const ackPacket = AckHandler.createReadAck(params);
 
       expect(ackPacket).toBeDefined();
-      expect(ackPacket.ptype).toBe(PacketMessageTypeEnum.Ack);
+      // ✅ 修改：应该使用 msg_read_ack 而不是 ack
+      expect(ackPacket.ptype).toBe(AckMessageTypeEnum.MsgReadAck);
       expect(ackPacket.from.app).toBe('fox_collect.waiter');
       expect(ackPacket.from.pin).toBe('agent-123');
       expect(ackPacket.to.app).toBe('im.waiter');
@@ -57,13 +58,63 @@ describe('AckHandler', () => {
     });
   });
 
+  describe('createReceiveAck', () => {
+    it('应该创建正确的收到消息 ACK', () => {
+      const params: ReadAckParams = {
+        sender: 'agent-123',
+        app: 'fox_collect.waiter',
+        messageId: 'msg-456',
+        sessionId: 'conv-789',
+        datetime: 1234567890,
+        toApp: 'im.waiter',
+        toPin: 'customer-456',
+      };
+
+      const ackPacket = AckHandler.createReceiveAck(params);
+
+      expect(ackPacket).toBeDefined();
+      // ✅ 应该使用 msg_receive_ack
+      expect(ackPacket.ptype).toBe(AckMessageTypeEnum.MsgReceiveAck);
+      expect(ackPacket.from.app).toBe('fox_collect.waiter');
+      expect(ackPacket.from.pin).toBe('agent-123');
+      expect(ackPacket.to.app).toBe('im.waiter');
+      expect(ackPacket.to.pin).toBe('customer-456');
+      expect(ackPacket.body.sender).toBe('agent-123');
+      expect(ackPacket.body.app).toBe('fox_collect.waiter');
+      expect(ackPacket.body.mid).toBe('msg-456');
+      expect(ackPacket.body.sessionId).toBe('conv-789');
+      expect(ackPacket.body.datetime).toBe(1234567890);
+      expect(ackPacket.ver).toBe('1.0');
+      expect(ackPacket.id).toMatch(
+        /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i,
+      );
+    });
+
+    it('应该生成唯一的收到 ACK ID', () => {
+      const params: ReadAckParams = {
+        sender: 'agent-123',
+        app: 'fox_collect.waiter',
+        messageId: 'msg-456',
+        sessionId: 'conv-789',
+        datetime: Date.now(),
+        toApp: 'im.waiter',
+        toPin: 'customer-456',
+      };
+
+      const ack1 = AckHandler.createReceiveAck(params);
+      const ack2 = AckHandler.createReceiveAck(params);
+
+      expect(ack1.id).not.toBe(ack2.id);
+    });
+  });
+
   describe('parseDownstream', () => {
     it('应该正确解析有效的 ACK 消息', () => {
       const data = {
         id: 'ack-123',
         ptype: PacketMessageTypeEnum.Ack,
         body: {
-          type: AckTypeEnum.MsgReadAck,
+          type: AckMessageTypeEnum.MsgReadAck,
         },
         timestamp: 1234567890,
       };
@@ -72,7 +123,7 @@ describe('AckHandler', () => {
 
       expect(ackData).toBeDefined();
       expect(ackData?.id).toBe('ack-123');
-      expect(ackData?.body.type).toBe(AckTypeEnum.MsgReadAck);
+      expect(ackData?.body.type).toBe(AckMessageTypeEnum.MsgReadAck);
       expect(ackData?.timestamp).toBe(1234567890);
     });
 
@@ -103,7 +154,7 @@ describe('AckHandler', () => {
       expect(
         AckHandler.parseDownstream({
           ptype: PacketMessageTypeEnum.Ack,
-          body: { type: AckTypeEnum.MsgReadAck },
+          body: { type: AckMessageTypeEnum.MsgReadAck },
         }),
       ).toBeNull();
 
@@ -128,10 +179,18 @@ describe('AckHandler', () => {
 
   describe('isValidAckType', () => {
     it('应该识别有效的 ACK 类型', () => {
-      expect(AckHandler.isValidAckType(AckTypeEnum.MsgReceiveAck)).toBe(true);
-      expect(AckHandler.isValidAckType(AckTypeEnum.MsgReadAck)).toBe(true);
-      expect(AckHandler.isValidAckType(AckTypeEnum.MsgSendFailed)).toBe(true);
-      expect(AckHandler.isValidAckType(AckTypeEnum.ClientHeartbeat)).toBe(true);
+      expect(AckHandler.isValidAckType(AckMessageTypeEnum.MsgReceiveAck)).toBe(
+        true,
+      );
+      expect(AckHandler.isValidAckType(AckMessageTypeEnum.MsgReadAck)).toBe(
+        true,
+      );
+      expect(AckHandler.isValidAckType(AckMessageTypeEnum.MsgSendFailed)).toBe(
+        true,
+      );
+      expect(
+        AckHandler.isValidAckType(PacketMessageTypeEnum.ClientHeartbeat),
+      ).toBe(false);
     });
 
     it('应该拒绝无效的 ACK 类型', () => {
@@ -142,17 +201,19 @@ describe('AckHandler', () => {
 
   describe('ackTypeToMessageStatus', () => {
     it('应该正确映射 ACK 类型到消息状态', () => {
-      expect(AckHandler.ackTypeToMessageStatus(AckTypeEnum.MsgReceiveAck)).toBe(
-        MessageStatusEnum.Delivered,
-      );
-      expect(AckHandler.ackTypeToMessageStatus(AckTypeEnum.MsgReadAck)).toBe(
-        MessageStatusEnum.Read,
-      );
-      expect(AckHandler.ackTypeToMessageStatus(AckTypeEnum.MsgSendFailed)).toBe(
-        MessageStatusEnum.Failed,
-      );
       expect(
-        AckHandler.ackTypeToMessageStatus(AckTypeEnum.ClientHeartbeat),
+        AckHandler.ackTypeToMessageStatus(AckMessageTypeEnum.MsgReceiveAck),
+      ).toBe(MessageStatusEnum.Delivered);
+      expect(
+        AckHandler.ackTypeToMessageStatus(AckMessageTypeEnum.MsgReadAck),
+      ).toBe(MessageStatusEnum.Read);
+      expect(
+        AckHandler.ackTypeToMessageStatus(AckMessageTypeEnum.MsgSendFailed),
+      ).toBe(MessageStatusEnum.Failed);
+      expect(
+        AckHandler.ackTypeToMessageStatus(
+          PacketMessageTypeEnum.ClientHeartbeat,
+        ),
       ).toBe(MessageStatusEnum.Sent);
     });
 
@@ -169,7 +230,7 @@ describe('AckHandler', () => {
         id: 'ack-123',
         ptype: PacketMessageTypeEnum.Ack,
         body: {
-          type: AckTypeEnum.ClientHeartbeat,
+          type: PacketMessageTypeEnum.ClientHeartbeat,
         },
       };
 
@@ -181,7 +242,7 @@ describe('AckHandler', () => {
         id: 'ack-123',
         type: PacketMessageTypeEnum.Ack,
         body: {
-          type: AckTypeEnum.MsgReadAck,
+          type: AckMessageTypeEnum.MsgReadAck,
         },
       };
 
@@ -195,7 +256,7 @@ describe('AckHandler', () => {
         id: 'ack-123',
         ptype: PacketMessageTypeEnum.Ack,
         body: {
-          type: AckTypeEnum.MsgSendFailed,
+          type: AckMessageTypeEnum.MsgSendFailed,
         },
       };
 
@@ -209,7 +270,7 @@ describe('AckHandler', () => {
         id: 'ack-123',
         ptype: PacketMessageTypeEnum.Ack,
         body: {
-          type: AckTypeEnum.MsgReadAck,
+          type: AckMessageTypeEnum.MsgReadAck,
         },
       };
 
@@ -223,7 +284,7 @@ describe('AckHandler', () => {
         id: 'ack-123',
         ptype: PacketMessageTypeEnum.Ack,
         body: {
-          type: AckTypeEnum.MsgReceiveAck,
+          type: AckMessageTypeEnum.MsgReceiveAck,
         },
       };
 

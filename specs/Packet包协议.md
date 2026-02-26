@@ -2,7 +2,7 @@
 
 实时文档见 https://kylith.atlassian.net/wiki/spaces/m78rqGL1Q4UV/pages/387679131/Packet
 
-## Standard Message Body 标准消息体
+## 标准消息体
 
 ```ts
 {

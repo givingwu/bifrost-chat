@@ -1,20 +1,32 @@
 import type { RawPacket } from '@/interfaces/protocol.interface';
-import { PacketMessageTypeEnum } from '@/interfaces/protocol.interface';
+import {
+  AckMessageTypeEnum,
+  PacketMessageTypeEnum,
+} from '@/interfaces/protocol.interface';
 
 /**
  * 数据包验证工具
  *
  * @description
  * 提供协议数据包的验证功能，确保所有 socket 通信协议都包含必填的 `ptype` 字段。
+ *
+ * @note
+ * 有效的 ptype 值包括：
+ * - PacketMessageTypeEnum 中的所有值（auth, auth_fail, chat_message, ack, client_heartbeat, status_switch, fox_message_ack）
+ * - AckMessageTypeEnum 中的上行 ACK 值（msg_read_ack, msg_receive_ack）
  */
 // biome-ignore lint/complexity/noStaticOnlyClass: <this is a right static class>
 export class PacketValidator {
   /**
    * 有效的 ptype 值列表
+   *
+   * @description
+   * 包括 PacketMessageTypeEnum 和 AckMessageTypeEnum 中的所有值
    */
-  private static readonly VALID_PTYPE_VALUES = Object.values(
-    PacketMessageTypeEnum,
-  );
+  private static readonly VALID_PTYPE_VALUES = [
+    ...Object.values(PacketMessageTypeEnum),
+    ...Object.values(AckMessageTypeEnum),
+  ];
 
   /**
    * 验证数据包是否包含有效的 ptype 字段

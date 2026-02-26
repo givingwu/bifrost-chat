@@ -1,6 +1,7 @@
 import type { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import {
   ClientTypeEnum,
+  MessageStatusEnum,
   type StandardMessage,
 } from '@/interfaces/message.interface';
 import type {
@@ -8,11 +9,12 @@ import type {
   RawPacket,
   ReadAckParams,
 } from '@/interfaces/protocol.interface';
+import { PacketMessageTypeEnum } from '@/interfaces/protocol.interface';
 import {
-  AckTypeEnum,
-  PacketMessageTypeEnum,
-} from '@/interfaces/protocol.interface';
-import { AckHandler, PacketConverter } from '@/services/protocol';
+  AckHandler,
+  PacketConverter,
+  PacketValidator,
+} from '@/services/protocol';
 import { HeartbeatManager } from '@/services/protocol/heartbeat.manager';
 import { MessageBuilder } from './message-builder.service';
 
@@ -333,7 +335,8 @@ export class WebSocketManager {
     this.clearConnectionTimer();
 
     if (this.ws) {
-      this.ws.close();
+      // fix: 兼容 test 场景的 close
+      this.ws.close?.();
       this.ws = null;
     }
 
@@ -347,6 +350,16 @@ export class WebSocketManager {
   send(data: unknown): void {
     if (!this.isConnected() || !this.ws) {
       throw new Error('WebSocket is not connected');
+    }
+
+    // 验证发送数据包格式（如果启用了协议转换）
+    if (this.config.enableProtocolConversion) {
+      try {
+        PacketValidator.ensurePType(data);
+      } catch (error) {
+        console.error('Invalid packet format:', error);
+        throw error;
+      }
     }
 
     try {
@@ -382,9 +395,27 @@ export class WebSocketManager {
 
   /**
    * 发送已读 ACK
+   *
+   * @description
+   * 发送上行已读 ACK 消息，ptype 为 `msg_read_ack`
+   *
+   * @param params 已读 ACK 参数
    */
   sendReadAck(params: ReadAckParams): void {
     const packet = AckHandler.createReadAck(params);
+    this.send(packet);
+  }
+
+  /**
+   * 发送收到消息 ACK
+   *
+   * @description
+   * 发送上行收到消息 ACK 消息，ptype 为 `msg_receive_ack`
+   *
+   * @param params 收到 ACK 参数
+   */
+  sendReceiveAck(params: ReadAckParams): void {
+    const packet = AckHandler.createReceiveAck(params);
     this.send(packet);
   }
 
@@ -454,7 +485,20 @@ export class WebSocketManager {
     try {
       const data: unknown = JSON.parse(event.data);
 
+      // 验证数据包格式（如果启用了协议转换）
       if (this.config.enableProtocolConversion) {
+        if (!PacketValidator.hasValidPtype(data)) {
+          const error = {
+            type: 'ValidationError',
+            message: 'Invalid packet: missing or invalid ptype field',
+            data,
+          };
+
+          console.error(error.message, data);
+          this.notifyError(error);
+          return;
+        }
+
         const protocolEvent = this.convertProtocolEvent(data);
 
         if (protocolEvent) {
@@ -496,6 +540,11 @@ export class WebSocketManager {
       });
     } catch (error) {
       console.error('Failed to parse WebSocket message:', error);
+      this.notifyError({
+        type: 'ParseError',
+        message: 'Failed to parse message',
+        error,
+      });
     }
   }
 
@@ -520,19 +569,16 @@ export class WebSocketManager {
 
     const normalized = this.normalizeAckPacket(data);
 
-    // 获取消息类型
-    const packetType =
-      typeof normalized.ptype === 'string'
-        ? normalized.ptype
-        : typeof normalized.type === 'string'
-          ? normalized.type
-          : '';
+    // 使用 PacketValidator.getPType 获取消息类型
+    const packetType = PacketValidator.getPType(normalized);
+
+    if (!packetType) {
+      console.error('Invalid packet: missing ptype field', data);
+      return null;
+    }
 
     // 1. 处理登录失败 (auth_fail)
-    if (
-      packetType === PacketMessageTypeEnum.AuthFail ||
-      packetType === 'auth_fail'
-    ) {
+    if (packetType === PacketMessageTypeEnum.AuthFail) {
       // 触发登录失败回调
       this.authFailListeners.forEach((listener) => {
         try {
@@ -549,7 +595,12 @@ export class WebSocketManager {
     }
 
     // 处理心跳响应（忽略，不分发）
-    if (HeartbeatManager.isHeartbeatResponse(normalized)) {
+    // 使用 AckHandler.isHeartbeatAck 作为额外的检查
+    const isHeartbeat =
+      HeartbeatManager.isHeartbeatResponse(normalized) ||
+      AckHandler.isHeartbeatAck(normalized);
+
+    if (isHeartbeat) {
       return null;
     }
 
@@ -579,18 +630,22 @@ export class WebSocketManager {
     const ackData = AckHandler.parseDownstream(normalized);
 
     if (ackData) {
-      const ackType = ackData.body.type;
+      // 验证 ACK 类型
+      if (!AckHandler.isValidAckType(ackData.body.type)) {
+        console.error('Invalid ACK type:', ackData.body.type);
+        return null;
+      }
 
-      // 3. 处理普通 ACK
-      if (ackType === AckTypeEnum.MsgSendFailed) {
-        // 发送失败也通过 MessageStatus 传递
+      // 使用 AckHandler 的类型判断方法简化逻辑
+      // 3. 处理发送失败 ACK
+      if (AckHandler.isSendFailedAck(normalized)) {
         return {
           type: WebSocketEventTypeEnum.MessageStatus,
           data: {
             conversationId:
               typeof normalized.chatId === 'string' ? normalized.chatId : '',
             messageId: ackData.id,
-            status: AckHandler.ackTypeToMessageStatus(ackType),
+            status: MessageStatusEnum.Failed,
             timestamp: ackData.timestamp ?? Date.now(),
           },
           timestamp: Date.now(),
@@ -598,14 +653,14 @@ export class WebSocketManager {
       }
 
       // 4. 处理客户端已收 (msg_receive_ack)
-      if (ackType === AckTypeEnum.MsgReceiveAck) {
+      if (AckHandler.isReceiveAck(normalized)) {
         return {
           type: WebSocketEventTypeEnum.MessageStatus,
           data: {
             conversationId:
               typeof normalized.chatId === 'string' ? normalized.chatId : '',
             messageId: ackData.id,
-            status: AckHandler.ackTypeToMessageStatus(ackType),
+            status: MessageStatusEnum.Delivered,
             timestamp: ackData.timestamp ?? Date.now(),
           },
           timestamp: Date.now(),
@@ -613,14 +668,14 @@ export class WebSocketManager {
       }
 
       // 5. 处理客户端已读 (msg_read_ack)
-      if (ackType === AckTypeEnum.MsgReadAck) {
+      if (AckHandler.isReadAck(normalized)) {
         return {
           type: WebSocketEventTypeEnum.MessageStatus,
           data: {
             conversationId:
               typeof normalized.chatId === 'string' ? normalized.chatId : '',
             messageId: ackData.id,
-            status: AckHandler.ackTypeToMessageStatus(ackType),
+            status: MessageStatusEnum.Read,
             timestamp: ackData.timestamp ?? Date.now(),
           },
           timestamp: Date.now(),
@@ -628,7 +683,7 @@ export class WebSocketManager {
       }
 
       // 6. 处理心跳 ACK (client_heartbeat)
-      if (ackType === AckTypeEnum.ClientHeartbeat) {
+      if (AckHandler.isHeartbeatAck(normalized)) {
         // 心跳 ACK 不需要分发到上层，静默处理
         return null;
       }
@@ -640,7 +695,7 @@ export class WebSocketManager {
           conversationId:
             typeof normalized.chatId === 'string' ? normalized.chatId : '',
           messageId: ackData.id,
-          status: AckHandler.ackTypeToMessageStatus(ackType),
+          status: AckHandler.ackTypeToMessageStatus(ackData.body.type),
           timestamp: ackData.timestamp ?? Date.now(),
         },
         timestamp: Date.now(),
@@ -706,12 +761,7 @@ export class WebSocketManager {
             ? (to.channelType as ChannelTypeEnum)
             : undefined,
       },
-      ptype:
-        typeof data.ptype === 'string'
-          ? data.ptype
-          : typeof data.type === 'string'
-            ? data.type
-            : 'chat_message',
+      ptype: typeof data.ptype === 'string' ? data.ptype : 'chat_message',
       body: this.isRecord(data.body) ? data.body : {},
       ver: typeof data.ver === 'string' ? data.ver : '1.0',
       timestamp:
@@ -724,17 +774,7 @@ export class WebSocketManager {
   private normalizeAckPacket(
     data: Record<string, unknown>,
   ): Record<string, unknown> {
-    if (data.type === 'ack') {
-      return data;
-    }
-
-    if (data.ptype === 'ack') {
-      return {
-        ...data,
-        type: 'ack',
-      };
-    }
-
+    // 不再需要兼容 type 字段，直接返回原数据
     return data;
   }
 
@@ -764,23 +804,73 @@ export class WebSocketManager {
   }
 
   /**
+   * 通知错误事件
+   * @param error 错误信息
+   */
+  private notifyError(error: {
+    type: string;
+    message: string;
+    data?: unknown;
+    error?: unknown;
+  }): void {
+    this.messageListeners.forEach((listener) => {
+      try {
+        listener({
+          type: WebSocketEventTypeEnum.Error,
+          data: error,
+          timestamp: Date.now(),
+        });
+      } catch (err) {
+        console.error('Error in error listener:', err);
+      }
+    });
+  }
+
+  /**
    * 开始心跳
    */
   private startHeartbeat(): void {
     this.stopHeartbeat();
 
+    // 使用 HeartbeatManager.getHeartbeatInterval 统一管理心跳间隔
+    const interval = HeartbeatManager.getHeartbeatInterval(
+      this.config.heartbeatInterval,
+    );
+
     this.heartbeatTimer = setInterval(() => {
       if (this.isConnected()) {
-        try {
-          this.send({
-            type: WebSocketEventTypeEnum.Heartbeat,
-            timestamp: Date.now(),
-          });
-        } catch (error) {
-          console.error('Failed to send heartbeat:', error);
-        }
+        this.sendHeartbeat();
       }
-    }, this.config.heartbeatInterval);
+    }, interval);
+  }
+
+  /**
+   * 发送心跳消息
+   */
+  private sendHeartbeat(): void {
+    if (!this.config.fromApp || !this.config.fromPin) {
+      console.error('Cannot send heartbeat: missing fromApp/fromPin');
+      return;
+    }
+
+    const heartbeat = HeartbeatManager.createHeartbeat({
+      fromApp: this.config.fromApp,
+      fromPin: this.config.fromPin,
+      toApp: this.config.fromApp,
+      toPin: this.config.fromPin,
+    });
+
+    // 验证心跳消息格式
+    if (!HeartbeatManager.isValidHeartbeat(heartbeat)) {
+      console.error('Invalid heartbeat message', heartbeat);
+      return;
+    }
+
+    try {
+      this.send(heartbeat);
+    } catch (error) {
+      console.error('Failed to send heartbeat:', error);
+    }
   }
 
   /**

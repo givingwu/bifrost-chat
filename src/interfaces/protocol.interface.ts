@@ -2,20 +2,47 @@ import type { MessageParticipant } from './message.interface';
 
 /**
  * ACK 类型枚举
+ *
+ * @description
+ * 用于上行 ACK 消息的 ptype 和下行 ACK 消息的 body.type
+ *
+ * 上行 ACK（客户端 → 服务端）：
+ * - msg_receive_ack - 收到消息 ACK
+ * - msg_read_ack - 已读消息 ACK
+ *
+ * 下行 ACK（服务端 → 客户端）：
+ * - msg_receive_ack - 收到消息 ACK 确认
+ * - msg_read_ack - 已读消息 ACK 确认
+ * - msg_send_failed - 消息发送失败 ACK
  */
-export enum AckTypeEnum {
+export enum AckMessageTypeEnum {
   /** 收到消息 ACK */
   MsgReceiveAck = 'msg_receive_ack',
   /** 已读消息 ACK */
   MsgReadAck = 'msg_read_ack',
-  /** 消息发送失败 ACK */
+  /** 消息发送失败 ACK（仅下行） */
   MsgSendFailed = 'msg_send_failed',
-  /** 心跳 ACK */
-  ClientHeartbeat = 'client_heartbeat',
 }
 
 /**
  * Packet 协议消息类型枚举
+ *
+ * @description
+ * 用于标识协议层面的消息类型，所有 socket 通信协议必须包含此字段。
+ *
+ * 可选值：
+ * - `auth` - 登录鉴权
+ * - `auth_fail` - 登录失败
+ * - `chat_message` - 聊天消息
+ * - `ack` - ACK 确认（下行协议）
+ * - `client_heartbeat` - 心跳
+ * - `status_switch` - 状态切换
+ * - `fox_message_ack` - 触达回复消息发送结果
+ *
+ * @note
+ * 上行 ACK 消息使用 `AckMessageTypeEnum` 中的值作为 ptype：
+ * - `msg_receive_ack` - 收到消息 ACK
+ * - `msg_read_ack` - 已读消息 ACK
  */
 export enum PacketMessageTypeEnum {
   /** 登录 */
@@ -24,7 +51,7 @@ export enum PacketMessageTypeEnum {
   AuthFail = 'auth_fail',
   /** 聊天消息 */
   ChatMessage = 'chat_message',
-  /** ACK */
+  /** ACK 确认（下行协议） */
   Ack = 'ack',
   /** 心跳 */
   ClientHeartbeat = 'client_heartbeat',
@@ -107,21 +134,28 @@ export interface RawPacket {
    * - `auth` - 登录鉴权
    * - `auth_fail` - 登录失败
    * - `chat_message` - 聊天消息
-   * - `ack` - ACK 确认
-   * - `msg_receive_ack` - 客户端已收
-   * - `msg_read_ack` - 客户端已读
+   * - `ack` - ACK 确认（下行协议）
+   * - `msg_receive_ack` - 收到消息 ACK（上行协议）
+   * - `msg_read_ack` - 已读消息 ACK（上行协议）
    * - `client_heartbeat` - 心跳
    * - `status_switch` - 状态切换
-   * - `fox_message_ack` - 触达回复消息发送结果
    *
    * @example
    * ```typescript
-   * ptype: 'chat_message' // 聊天消息
+   * // 上行 ACK 消息
+   * ptype: 'msg_read_ack' // 已读消息 ACK
+   * ptype: 'msg_receive_ack' // 收到消息 ACK
+   *
+   * // 下行 ACK 消息
    * ptype: 'ack' // ACK 确认
+   *
+   * // 其他消息类型
+   * ptype: 'chat_message' // 聊天消息
    * ptype: 'client_heartbeat' // 心跳
    * ```
    *
    * @see PacketMessageTypeEnum
+   * @see AckMessageTypeEnum
    */
   ptype: string;
   /** 消息内容 */

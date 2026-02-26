@@ -324,7 +324,7 @@ class FoxCollectMessageService implements IMessageService {
 ### ACK 协议
 
 - **文档**: [specs/ACK协议.md](../../../specs/ACK协议.md)
-- **类型**: `AckTypeEnum`
+- **类型**: `AckMessageTypeEnum`
 - **用途**: 消息确认（已收/已读/失败）
 
 ### 心跳协议
@@ -367,10 +367,10 @@ interface MessageParticipant {
 > - 所有 socket 通信协议必须包含 `ptype` 字段
 > - 有效值包括：`auth`、`auth_fail`、`chat_message`、`ack`、`msg_receive_ack`、`msg_read_ack`、`client_heartbeat`、`status_switch`、`fox_message_ack`
 
-### AckTypeEnum
+### AckMessageTypeEnum
 
 ```typescript
-enum AckTypeEnum {
+enum AckMessageTypeEnum {
   MsgReceiveAck = 'msg_receive_ack',   // 收到消息 ACK
   MsgReadAck = 'msg_read_ack',          // 已读消息 ACK
   MsgSendFailed = 'msg_send_failed',    // 消息发送失败 ACK
