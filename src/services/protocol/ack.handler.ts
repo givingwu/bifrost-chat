@@ -202,7 +202,9 @@ export class AckHandler {
   static isValidAckType(type: string): boolean {
     return (
       Object.values(AckMessageTypeEnum).includes(type as AckMessageTypeEnum) ||
-      type === PacketMessageTypeEnum.Ack
+      Object.values(PacketMessageTypeEnum).includes(
+        type as PacketMessageTypeEnum,
+      )
     );
   }
 
