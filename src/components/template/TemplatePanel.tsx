@@ -47,12 +47,29 @@ export const TemplatePanel = ({
 
   // 仅在未提供自定义模板时才调用 useTemplates
   const shouldFetchFromServer = !customTemplates;
+
+  // 调试日志：检查数据获取决策
+  console.log('🔍 [TemplatePanel] 数据获取决策:', {
+    hasCustomTemplates: !!customTemplates,
+    customTemplatesCount: customTemplates?.length,
+    shouldFetchFromServer,
+  });
+
   const {
     data: serverTemplates,
     isLoading,
     error,
     refetch,
   } = useTemplates(shouldFetchFromServer ? undefined : ({} as never));
+
+  // 调试日志：检查 useTemplates 返回状态
+  console.log('📊 [TemplatePanel] useTemplates 返回状态:', {
+    isLoading,
+    error: error?.message,
+    serverTemplatesCount: serverTemplates?.length,
+    hasServerData: !!serverTemplates,
+  });
+
   const templates = customTemplates ?? serverTemplates ?? [];
 
   const [searchQuery, setSearchQuery] = useState('');
