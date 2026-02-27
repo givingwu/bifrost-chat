@@ -1,6 +1,6 @@
-import type { Preview } from 'storybook-react-rsbuild';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
+import type { Preview } from 'storybook-react-rsbuild';
 import '@/styles/index.css';
 import { LanguageCodeEnum } from '@/interfaces/language.interface';
 import zhCNMessages from '@/locales/zh-CN.json';
