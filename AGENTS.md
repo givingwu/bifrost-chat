@@ -278,6 +278,34 @@ export class MapperError extends SDKError {}
 - 重点覆盖：Store、Hooks、关键渲染交互
 - 新增功能需补测试或说明缺口
 
+## 代码修改流程（强制）
+
+**所有代码修改必须完成以下完整流程，任何一步失败都必须修复后才能继续：**
+
+### 1. 测试（test）
+```bash
+pnpm run test
+```
+- 所有测试用例必须通过
+- 新增功能必须补充测试用例
+- 测试覆盖率不得降低
+
+### 2. 构建（build）
+```bash
+pnpm run build
+```
+- 构建必须成功完成
+- 无类型错误
+- 无构建警告
+
+### 3. 验收标准
+- ✅ `pnpm run test` 通过
+- ✅ `pnpm run build` 通过
+- ✅ 代码符合 Biome 格式规范（`pnpm run check`）
+- ❌ 任何一步失败都必须修复后重新执行完整流程
+
+**注意：** 只有当 test 和 build 都成功通过后，代码修改才算完成。跳过任何步骤或在不完整的状态下提交代码是严格禁止的。
+
 ## 提交与合并请求规范
 
 - 提交前缀：`feat:` / `fix:` / `chore:` / `hotfix:` / `style:` / `refactor:` 等参照 commitlint 规范

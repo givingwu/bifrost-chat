@@ -807,11 +807,5 @@ export class WebSocketManager {
     if (!config.url) {
       throw new ConfigurationError('WebSocket URL is required');
     }
-
-    try {
-      new URL(config.url);
-    } catch {
-      throw new ConfigurationError(`Invalid WebSocket URL: ${config.url}`);
-    }
   }
 }
