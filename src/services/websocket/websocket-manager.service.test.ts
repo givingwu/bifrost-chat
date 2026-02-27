@@ -589,10 +589,14 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
       const statusListener = vi.fn();
       manager.onStatusChange(statusListener);
 
+      // ✅ 先转换为 Connecting（合法）
       (manager as any).setStatus(WebSocketStatusEnum.Connecting);
 
+      // ✅ 再转换为 Connected（合法）
+      (manager as any).setStatus(WebSocketStatusEnum.Connected);
+
       expect(statusListener).toHaveBeenCalledWith(
-        WebSocketStatusEnum.Connecting,
+        WebSocketStatusEnum.Connected,
       );
     });
 
