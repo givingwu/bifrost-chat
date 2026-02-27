@@ -1,4 +1,5 @@
 import type { QueryClient } from '@tanstack/react-query';
+import { defaultQueryClient } from '@/providers/query.provider';
 import { resetChatStore } from '@/store';
 
 export interface CleanupOptions {
@@ -41,7 +42,7 @@ export interface CleanupOptions {
  * ```
  */
 export function clearSDK(options: CleanupOptions = {}) {
-  const { queryClient, clearStorage = false } = options;
+  const { queryClient = defaultQueryClient, clearStorage = false } = options;
 
   // 1. 重置 Zustand Store
   resetChatStore();
