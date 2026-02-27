@@ -356,7 +356,7 @@ export interface FoxCollectMessageService {
     sender: string;
     app: string;
     messageId: string;
-    sessionId: string;
+    chatId: string;
     datetime: number;
   }): Promise<void>;
   
@@ -411,7 +411,7 @@ export interface ArgusMessageService {
     sender: string;
     app: string;
     messageId: string;
-    sessionId: string;
+    chatId: string;
     datetime: number;
   }): Promise<void>;
   

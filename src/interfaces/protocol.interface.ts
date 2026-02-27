@@ -179,6 +179,9 @@ export interface RawPacket {
  *
  * @description
  * 创建已读 ACK 消息所需的参数
+ *
+ * @note
+ * 根据 ACK 协议规范，使用 chatId 而不是 sessionId
  */
 export interface ReadAckParams {
   /** 发送者 PIN（通常是当前用户） */
@@ -187,8 +190,8 @@ export interface ReadAckParams {
   app: string;
   /** 消息 ID（要确认已读的消息 ID） */
   messageId: string;
-  /** 会话 ID */
-  sessionId: string;
+  /** 会话 ID（对应协议中的 chatId） */
+  chatId: string;
   /** 消息时间戳 */
   datetime: number;
   /** 接收方应用 ID */

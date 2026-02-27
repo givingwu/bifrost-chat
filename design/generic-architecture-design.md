@@ -140,7 +140,7 @@ export class AckHandler {
     sender: string;
     app: string;
     messageId: string;
-    sessionId: string;
+    chatId: string;
     datetime: number;
   }): RawPacket;
   

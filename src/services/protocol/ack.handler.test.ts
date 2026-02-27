@@ -14,7 +14,7 @@ describe('AckHandler', () => {
         sender: 'agent-123',
         app: 'fox_collect.waiter',
         messageId: 'msg-456',
-        sessionId: 'conv-789',
+        chatId: 'conv-789',
         datetime: 1234567890,
         toApp: 'im.waiter',
         toPin: 'customer-456',
@@ -32,7 +32,7 @@ describe('AckHandler', () => {
       expect(ackPacket.body.sender).toBe('agent-123');
       expect(ackPacket.body.app).toBe('fox_collect.waiter');
       expect(ackPacket.body.mid).toBe('msg-456');
-      expect(ackPacket.body.sessionId).toBe('conv-789');
+      expect(ackPacket.body.chatId).toBe('conv-789');
       expect(ackPacket.body.datetime).toBe(1234567890);
       expect(ackPacket.ver).toBe('1.0');
       expect(ackPacket.id).toMatch(
@@ -45,7 +45,7 @@ describe('AckHandler', () => {
         sender: 'agent-123',
         app: 'fox_collect.waiter',
         messageId: 'msg-456',
-        sessionId: 'conv-789',
+        chatId: 'conv-789',
         datetime: Date.now(),
         toApp: 'im.waiter',
         toPin: 'customer-456',
@@ -64,7 +64,7 @@ describe('AckHandler', () => {
         sender: 'agent-123',
         app: 'fox_collect.waiter',
         messageId: 'msg-456',
-        sessionId: 'conv-789',
+        chatId: 'conv-789',
         datetime: 1234567890,
         toApp: 'im.waiter',
         toPin: 'customer-456',
@@ -82,7 +82,7 @@ describe('AckHandler', () => {
       expect(ackPacket.body.sender).toBe('agent-123');
       expect(ackPacket.body.app).toBe('fox_collect.waiter');
       expect(ackPacket.body.mid).toBe('msg-456');
-      expect(ackPacket.body.sessionId).toBe('conv-789');
+      expect(ackPacket.body.chatId).toBe('conv-789');
       expect(ackPacket.body.datetime).toBe(1234567890);
       expect(ackPacket.ver).toBe('1.0');
       expect(ackPacket.id).toMatch(
@@ -95,7 +95,7 @@ describe('AckHandler', () => {
         sender: 'agent-123',
         app: 'fox_collect.waiter',
         messageId: 'msg-456',
-        sessionId: 'conv-789',
+        chatId: 'conv-789',
         datetime: Date.now(),
         toApp: 'im.waiter',
         toPin: 'customer-456',
