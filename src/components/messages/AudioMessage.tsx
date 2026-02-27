@@ -2,7 +2,7 @@ import { Pause, Play } from 'lucide-react';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/Button';
 import type {
-  MediaMessage,
+  IMediaMessage,
   MessageContent,
 } from '@/interfaces/message.interface';
 import { useTranslation } from '@/providers/I18n.provider';
@@ -328,7 +328,7 @@ const useAudioPlayer = () => {
 /**
  * 类型守卫：检查消息内容是否为 MediaMessage
  */
-const isMediaMessage = (content: MessageContent): content is MediaMessage => {
+const isMediaMessage = (content: MessageContent): content is IMediaMessage => {
   return 'url' in content && typeof content.url === 'string';
 };
 

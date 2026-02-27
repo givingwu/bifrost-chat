@@ -1,4 +1,13 @@
-import type { MessageParticipant } from './message.interface';
+import type {
+  IAuthMessage,
+  ILocationMessage,
+  IMediaMessage,
+  IRichMediaMessage,
+  IStringMessage,
+  ITemplateMessage,
+  MessageParticipant,
+  MessageTypeEnum,
+} from './message.interface';
 
 /**
  * ACK 类型枚举
@@ -72,7 +81,7 @@ export enum AckMessageStatusEnum {
 }
 
 /**
- * Packet 协议消息体（body）结构
+ * Packet 协议消息体（body）结构，用于类型安全的 Packet body 转换
  *
  * @description
  * body 字段包含消息的具体内容，格式如下：
@@ -89,10 +98,70 @@ export enum AckMessageStatusEnum {
  * 模板消息：
  * { type: 'template', content: { templateId: 'tpl_001', params: { name: '张三' } } }
  */
-export type PacketBody = Record<string, unknown>;
+export type PacketBody =
+  | TextPacketBody
+  | MediaPacketBody
+  | TemplatePacketBody
+  | LocationPacketBody
+  | RichMediaPacketBody
+  | AuthPacketBody
+  | PacketBodyBase;
 
 /**
- * Packet 协议原始消息格式
+ * ACK 消息体
+ * 用于 ACK 协议的专用消息体
+ */
+export interface AckPacketBody {
+  /** 发送者 PIN */
+  sender: string;
+  /** 应用 ID */
+  app: string;
+  /** 消息 ID */
+  mid: string;
+  /** 会话 ID */
+  chatId?: string;
+  /** 消息时间戳 */
+  datetime: number;
+}
+
+export interface AuthPacketBody extends IAuthMessage {}
+
+export interface PacketBodyBase {
+  type: MessageTypeEnum | PacketMessageTypeEnum | AckMessageTypeEnum;
+  content?: unknown;
+}
+
+export interface TextPacketBody extends PacketBodyBase {
+  type: MessageTypeEnum.Text;
+  content: IStringMessage;
+}
+
+export interface MediaPacketBody extends PacketBodyBase {
+  type:
+    | MessageTypeEnum.Image
+    | MessageTypeEnum.Audio
+    | MessageTypeEnum.Video
+    | MessageTypeEnum.File;
+  content: IMediaMessage;
+}
+
+export interface TemplatePacketBody extends PacketBodyBase {
+  type: MessageTypeEnum.Template;
+  content: ITemplateMessage;
+}
+
+export interface LocationPacketBody extends PacketBodyBase {
+  type: MessageTypeEnum.Location;
+  content: ILocationMessage;
+}
+
+export interface RichMediaPacketBody extends PacketBodyBase {
+  type: MessageTypeEnum.RichMedia;
+  content: IRichMediaMessage;
+}
+
+/**
+ * Packet 协议原始消息格式，基础 Packet 接口（不包含 body）
  *
  * @description
  * 对应 specs/Packet包协议.md 中的 Packet 包协议定义
@@ -113,7 +182,7 @@ export type PacketBody = Record<string, unknown>;
  * };
  * ```
  */
-export interface RawPacket {
+export interface BaseRawPacket {
   /** 消息 ID（发起方生成 uuid） */
   id: string;
   /** 消息服务端 id（投递服务生成） */
@@ -157,9 +226,7 @@ export interface RawPacket {
    * @see PacketMessageTypeEnum
    * @see AckMessageTypeEnum
    */
-  ptype: string;
-  /** 消息内容 */
-  body: PacketBody;
+  ptype: PacketMessageTypeEnum | AckMessageTypeEnum;
   /** 协议版本 */
   ver: string;
   /** 服务端生成时间戳 */
@@ -172,6 +239,24 @@ export interface RawPacket {
   entry?: string;
   /** 会话 ID */
   chatId?: string;
+}
+
+/**
+ * 普通 Packet（聊天消息、心跳等）
+ */
+export interface RawPacket extends BaseRawPacket {
+  /** 消息内容 */
+  body: PacketBody;
+}
+
+/**
+ * ACK Packet（ACK 确认消息）
+ */
+export interface AckRawPacket extends BaseRawPacket {
+  /** ACK 消息类型 */
+  ptype: PacketMessageTypeEnum.Ack | AckMessageTypeEnum;
+  /** ACK 消息内容 */
+  body: AckPacketBody;
 }
 
 /**
@@ -215,4 +300,30 @@ export interface HeartbeatParams {
   toApp: string;
   /** 接收方 PIN */
   toPin: string;
+}
+
+/**
+ * 类型守卫：判断是否为 ACK RawPacket
+ */
+export function isAckRawPacket(packet: BaseRawPacket): packet is AckRawPacket {
+  return (
+    packet.ptype === PacketMessageTypeEnum.Ack ||
+    packet.ptype === AckMessageTypeEnum.MsgReceiveAck ||
+    packet.ptype === AckMessageTypeEnum.MsgReadAck ||
+    packet.ptype === AckMessageTypeEnum.MsgSendFailed
+  );
+}
+
+/**
+ * 类型守卫：判断 Packet body 是否为 AckPacketBody
+ */
+export function isAckPacketBody(body: unknown): body is AckPacketBody {
+  return (
+    typeof body === 'object' &&
+    body !== null &&
+    'sender' in body &&
+    'app' in body &&
+    'mid' in body &&
+    'datetime' in body
+  );
 }

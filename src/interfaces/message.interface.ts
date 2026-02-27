@@ -55,12 +55,12 @@ export enum MessageTypeEnum {
 }
 
 /** 字符串消息 */
-export interface StringMessage {
+export interface IStringMessage {
   text: string;
 }
 
 /** 多媒体消息 */
-export interface MediaMessage {
+export interface IMediaMessage {
   /** 多媒体资源 URL */
   url: string;
   /** 多媒体类型 */
@@ -70,17 +70,30 @@ export interface MediaMessage {
 }
 
 /** 模板消息 */
-export interface TemplateMessage extends StringMessage {
+export interface ITemplateMessage<Extension = Record<string, unknown>>
+  extends Omit<IStringMessage, 'type'> {
   /** 模版 ID */
   templateId: string | number;
   /** 模版参数 */
   params: Record<string, string>;
   /** 扩展字段 */
-  ext?: unknown;
+  ext?: Extension;
+}
+
+/** 位置消息 */
+export interface ILocationMessage {
+  /** 地址文本 */
+  address: string;
+}
+
+/** 富媒体消息 */
+export interface IRichMediaMessage {
+  /** 描述文本 */
+  desc: string;
 }
 
 /** 鉴权消息 */
-export interface AuthMessage {
+export interface IAuthMessage {
   /** 用户 Token */
   token: string;
   /** 过期时间（可选） */
@@ -91,10 +104,12 @@ export interface AuthMessage {
  * 标准化消息内容结构（Anti-Corruption Layer）
  */
 export type MessageContent =
-  | StringMessage
-  | MediaMessage
-  | TemplateMessage
-  | AuthMessage;
+  | IStringMessage
+  | IMediaMessage
+  | ITemplateMessage
+  | ILocationMessage
+  | IRichMediaMessage
+  | IAuthMessage;
 
 /**
  * 客户端类型
