@@ -269,7 +269,11 @@ export function DefaultChatLayout({
       profilePanel={
         <aside className="flex flex-col w-75 shrink-0 border-l border-gray-200/50 dark:border-white/10 bg-gray-50/50 dark:bg-black/20">
           {profile && <Profile profile={profile} />}
-          <TemplatePanel onTemplateSelect={handleTemplateSelect} />
+          <TemplatePanel
+            onTemplateSelect={handleTemplateSelect}
+            conversationId={activeConversationId ?? undefined}
+            currentChannel={activeChannel}
+          />
         </aside>
       }
     >

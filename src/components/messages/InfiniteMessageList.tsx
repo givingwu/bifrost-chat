@@ -64,7 +64,9 @@ export function InfiniteMessageList({
     hasNextPage,
     fetchNextPage,
     isFetchingNextPage,
-  } = useMessages(conversationId);
+  } = useMessages({
+    conversationId,
+  });
 
   const scrollRef = useRef<HTMLDivElement | null>(
     null,

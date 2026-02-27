@@ -1,3 +1,4 @@
+import type { UseMessagesParams } from '@/hooks/use-messages.hook';
 import type {
   SendAttachmentParams,
   SendAttachmentResult,
@@ -80,11 +81,11 @@ export interface MessageStatusUpdatedEvent extends MessageStatusUpdate {
  * ```
  */
 export interface IMessageService<
-  TListParams = any,
-  TSendParams = any,
-  TReadParams = any,
-  TAttachmentParams = any,
-  TAudioParams = any,
+  TListParams extends UseMessagesParams,
+  TSendParams = SendMessageOptions,
+  TReadParams = MessageStatusUpdatedEvent,
+  TAttachmentParams = SendAttachmentParams,
+  TAudioParams = SendAudioParams,
 > {
   /**
    * 获取消息列表

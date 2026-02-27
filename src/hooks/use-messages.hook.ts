@@ -33,13 +33,13 @@ export interface MessagesPage {
  * - 向上滚动：滚动到顶部时加载更早的消息
  * - 新消息：仅在用户靠近底部时自动滚动
  *
- * @param conversationId 会话 ID
- * @param params 查询参数（可选，类型由服务实现决定）
+ * @param params 查询参数
+ * @param params.conversationId 会话 ID
  * @returns Infinite Query 结果
  *
  * @example
  * ```tsx
- * function MessageList({ conversationId }) {
+ * function MessageList() {
  *   const {
  *     data,
  *     isLoading,
@@ -47,7 +47,9 @@ export interface MessagesPage {
  *     hasNextPage,
  *     fetchNextPage,
  *     isFetchingNextPage,
- *   } = useMessages(conversationId);
+ *   } = useMessages({
+ *     conversationId: 'conv-123',
+ *   });
  *
  *   if (isLoading) return <Spinner />;
  *   if (error) return <Error message={error.message} />;
@@ -73,11 +75,16 @@ export interface MessagesPage {
  * }
  * ```
  */
-export function useMessages<TParams = any>(
-  conversationId: string,
-  params?: TParams,
+export interface UseMessagesParams {
+  /** 会话 ID */
+  conversationId: string;
+}
+
+export function useMessages<TParams extends UseMessagesParams>(
+  params: TParams,
 ) {
   const services = useServices();
+  const { conversationId } = params;
 
   // 获取离线队列中的失败消息
   const { data: offlineMessages = [] } = useQuery({
