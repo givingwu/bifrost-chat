@@ -1,7 +1,7 @@
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { pluginNodePolyfill } from '@rsbuild/plugin-node-polyfill';
+import { dirname, join } from 'path';
 import { defineConfig } from 'rspress/config';
+import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -50,7 +50,7 @@ export default defineConfig({
     defaultDarkMode: false,
 
     // 导航栏配置
-    nav: ({ locale }: { locale: string }) => {
+    nav: ({ locale }) => {
       if (locale === 'en-US') {
         return [
           {
@@ -501,59 +501,18 @@ export default defineConfig({
     socialLinks: [
       {
         icon: 'github',
-        link: 'https://git.kuainiujinke.com/feoe/bifrost-chat',
+        mode: 'link',
+        content: 'GitHub',
       },
     ],
-
-    // 编辑链接
-    editLink: {
-      pattern:
-        'https://git.kuainiujinke.com/feoe/bifrost-chat/edit/main/docs-site/docs/:path',
-      text: '在 GitLab 上编辑此页',
-    },
 
     // 最后更新时间
     lastUpdated: true,
 
-    // 外部脚本
-    head: [
-      // 自定义 meta 标签
-      [
-        'meta',
-        {
-          name: 'keywords',
-          content: 'Bifrost Chat, JS SDK, React, 全渠道聊天',
-        },
-      ],
-    ],
-  },
-
-  // Markdown 配置
-  markdown: {
-    // 代码块主题
-    codeHighlighter: 'shiki',
-    shiki: {
-      theme: {
-        light: 'github-light',
-        dark: 'github-dark',
-      },
+    // 编辑链接
+    editLink: {
+      pattern: 'https://github.com/your-org/bifrost-chat/edit/main/docs/:path',
+      text: '在 GitHub 上编辑此页',
     },
-    // 支持数学公式
-    math: true,
-    // 支持 Mermaid 图表
-    mermaid: true,
   },
-
-  // 构建配置
-  build: {
-    // 输出目录
-    out: 'dist-docs',
-    // 基础路径
-    base: '/bifrost-chat/',
-    // 资源公共路径
-    assetsPath: 'assets',
-  },
-
-  // 插件配置
-  plugins: [],
 });
