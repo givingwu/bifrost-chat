@@ -52,19 +52,18 @@ export class ChatMessageHandler extends BasePacketHandler {
     const { packet, currentPin } = context;
 
     // 确保 packet 是 RawPacket
-    const rawPacket = this.normalizeToRawPacket(packet);
     const message = PacketConverter.toStandardMessage(
-      rawPacket,
+      packet as RawPacket,
       undefined,
       currentPin,
     );
 
     // 自动发送 msg_receive_ack
-    this.sendReceiveAck(rawPacket, currentPin);
+    this.sendReceiveAck(packet as RawPacket, currentPin);
 
     return {
       eventData: this.createEventData(WebSocketEventTypeEnum.Message, {
-        conversationId: rawPacket.chatId ?? message.receiver?.pin ?? '',
+        conversationId: packet.chatId ?? message.receiver?.pin ?? '',
         message,
       }),
       shouldContinue: true,
@@ -116,61 +115,5 @@ export class ChatMessageHandler extends BasePacketHandler {
       // ACK 发送失败不应影响消息处理流程
       console.error('[ChatMessageHandler] Failed to send receive ACK:', error);
     }
-  }
-
-  /**
-   * 将数据包标准化为 RawPacket 格式
-   */
-  private normalizeToRawPacket(data: RawPacket | AckRawPacket): RawPacket {
-    const from = this.isRecord(data.from) ? data.from : undefined;
-    const to = this.isRecord(data.to) ? data.to : undefined;
-
-    return {
-      id: typeof data.id === 'string' ? data.id : '',
-      mid: typeof data.mid === 'string' ? data.mid : undefined,
-      from: {
-        app: from && typeof from.app === 'string' ? from.app : '',
-        pin: from && typeof from.pin === 'string' ? from.pin : '',
-        clientType:
-          from && typeof from.clientType === 'string'
-            ? (from.clientType as ClientTypeEnum)
-            : undefined,
-        channelType:
-          from && typeof from.channelType === 'string'
-            ? (from.channelType as ChannelTypeEnum)
-            : undefined,
-      },
-      to: {
-        app: to && typeof to.app === 'string' ? to.app : '',
-        pin: to && typeof to.pin === 'string' ? to.pin : '',
-        clientType:
-          to && typeof to.clientType === 'string'
-            ? (to.clientType as ClientTypeEnum)
-            : undefined,
-        channelType:
-          to && typeof to.channelType === 'string'
-            ? (to.channelType as ChannelTypeEnum)
-            : undefined,
-      },
-      ptype:
-        typeof data.ptype === 'string'
-          ? (data.ptype as PacketMessageTypeEnum)
-          : PacketMessageTypeEnum.Ack,
-      body: (this.isRecord(data.body)
-        ? data.body
-        : {}) as unknown as RawPacket['body'],
-      ver: typeof data.ver === 'string' ? data.ver : '1.0',
-      timestamp:
-        typeof data.timestamp === 'number' ? data.timestamp : Date.now(),
-      chatId: typeof data.chatId === 'string' ? data.chatId : undefined,
-      entry: typeof data.entry === 'string' ? data.entry : undefined,
-    };
-  }
-
-  /**
-   * 类型守卫：判断是否为 Record 类型
-   */
-  private isRecord(value: unknown): value is Record<string, unknown> {
-    return value !== null && typeof value === 'object';
   }
 }
