@@ -1,4 +1,4 @@
-import type { RawPacket } from '@/interfaces/protocol.interface';
+import type { AckRawPacket, RawPacket } from '@/interfaces/protocol.interface';
 import {
   AckMessageTypeEnum,
   PacketMessageTypeEnum,
@@ -49,12 +49,10 @@ export class PacketValidator {
    * // false
    * ```
    */
-  static hasValidPtype(data: unknown): boolean {
-    if (!data || typeof data !== 'object') {
+  static hasValidPtype(packet: RawPacket | AckRawPacket): boolean {
+    if (!packet || typeof packet !== 'object') {
       return false;
     }
-
-    const packet = data as Record<string, unknown>;
 
     // 检查 ptype 字段是否存在
     if (typeof packet.ptype !== 'string') {

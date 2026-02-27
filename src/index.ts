@@ -39,6 +39,7 @@ export * from '@/interfaces/protocol.interface';
 export * from '@/interfaces/sdk.interface';
 export * from '@/interfaces/template.interface';
 export * from '@/interfaces/theme.interface';
+export * from '@/interfaces/websocket.interface';
 
 // Locales
 export { default as enUSMessages } from '@/locales/en-US.json';
@@ -63,7 +64,7 @@ export * from '@/services/message-sync.service';
 // Protocol Layer
 export * from '@/services/protocol';
 export * from '@/services/template.service';
-export * from '@/services/websocket-manager.service';
+export * from '@/services/websocket';
 
 // Store
 export * from '@/store';

@@ -155,24 +155,4 @@ export class HeartbeatManager {
 
     return true;
   }
-
-  /**
-   * 获取心跳间隔时间（毫秒）
-   *
-   * @param customInterval 自定义间隔
-   * @returns 心跳间隔（默认 30 秒）
-   */
-  static getHeartbeatInterval(customInterval?: number): number {
-    return customInterval || 30000;
-  }
-
-  /**
-   * 计算下次心跳时间
-   *
-   * @param interval 心跳间隔
-   * @returns 下次心跳时间戳
-   */
-  static getNextHeartbeatTime(interval?: number): number {
-    return Date.now() + HeartbeatManager.getHeartbeatInterval(interval);
-  }
 }

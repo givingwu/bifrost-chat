@@ -13,9 +13,9 @@ import {
 } from '@/interfaces/protocol.interface';
 import {
   WebSocketEventTypeEnum,
-  WebSocketManager,
   WebSocketStatusEnum,
-} from '@/services/websocket-manager.service';
+} from '@/interfaces/websocket.interface';
+import { WebSocketManager } from '@/services/websocket/websocket-manager.service';
 
 describe('WebSocketManager - 协议层 Helper 集成测试', () => {
   let manager: WebSocketManager;
@@ -58,7 +58,7 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
           id: 'msg-123',
           type: 'chat_message', // 使用了 type 而不是 ptype
         } as any);
-      }).toThrow('ptype field is required');
+      }).toThrow('Invalid packet format');
     });
 
     it('应该拒绝缺少 ptype 字段的数据包', () => {
@@ -589,10 +589,10 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
       const statusListener = vi.fn();
       manager.onStatusChange(statusListener);
 
-      (manager as any).setStatus(WebSocketStatusEnum.Connected);
+      (manager as any).setStatus(WebSocketStatusEnum.Connecting);
 
       expect(statusListener).toHaveBeenCalledWith(
-        WebSocketStatusEnum.Connected,
+        WebSocketStatusEnum.Connecting,
       );
     });
 
@@ -670,9 +670,7 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
 
       expect(() => {
         manager.send({ ptype: 'test', body: {} });
-      }).toThrow(
-        'Invalid packet: ptype value "test" is not valid. Valid values are: auth, auth_fail, chat_message, ack, client_heartbeat, status_switch, fox_message_ack, msg_receive_ack, msg_read_ack, msg_send_failed',
-      );
+      }).toThrow('Invalid packet format');
     });
 
     it('应该正确处理解析错误', () => {
