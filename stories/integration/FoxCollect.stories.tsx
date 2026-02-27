@@ -51,8 +51,8 @@ const meta: Meta<typeof DefaultChatLayout> = {
         <QueryProvider>
           <ServiceProvider
             conversationService={conversationService}
-            messageService={messageService}
-            templateService={templateService}
+            messageService={messageService as never}
+            templateService={templateService as never}
           >
             <Story />
           </ServiceProvider>

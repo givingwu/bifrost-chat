@@ -106,7 +106,7 @@ export class ChatMessageHandler extends BasePacketHandler {
       MessageAckHelper.sendReceiveAck(this.wsManager, {
         sender: currentPin || rawPacket.to.pin || '',
         app: rawPacket.to.app,
-        messageId: rawPacket.mid,
+        mid: rawPacket.mid,
         chatId: rawPacket.chatId || '',
         datetime: rawPacket.timestamp,
         toApp: rawPacket.from.app,

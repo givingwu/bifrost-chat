@@ -162,7 +162,7 @@ export class FoxCollectMessageService
       this.wsManager.sendReadAck({
         sender: this.config.agentPin,
         app: this.config.app,
-        messageId: params.messageId,
+        mid: params.messageId,
         chatId: params.sessionId ?? params.chatId ?? '',
         datetime: Date.now(),
         toApp: 'im.waiter',

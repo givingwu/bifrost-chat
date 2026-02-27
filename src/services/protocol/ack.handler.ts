@@ -50,7 +50,7 @@ export interface AckData {
  * const ackMessage = AckHandler.createReadAck({
  *   sender: 'agent-123',
  *   app: 'fox_collect.waiter',
- *   messageId: 'msg-456',
+ *   mid: 'msg-456',
  *   chatId: 'conv-123',
  *   datetime: Date.now(),
  *   toApp: 'im.waiter',
@@ -62,7 +62,7 @@ export interface AckData {
  * const receiveAck = AckHandler.createReceiveAck({
  *   sender: 'agent-123',
  *   app: 'fox_collect.waiter',
- *   messageId: 'msg-456',
+ *   mid: 'msg-456',
  *   chatId: 'conv-123',
  *   datetime: Date.now(),
  *   toApp: 'im.waiter',
@@ -106,7 +106,7 @@ export class AckHandler {
       body: {
         sender: params.sender,
         app: params.app,
-        mid: params.messageId,
+        mid: params.mid,
         chatId: params.chatId,
         datetime: params.datetime,
       },
@@ -142,7 +142,7 @@ export class AckHandler {
       body: {
         sender: params.sender,
         app: params.app,
-        mid: params.messageId,
+        mid: params.mid,
         chatId: params.chatId,
         datetime: params.datetime,
       },

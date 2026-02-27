@@ -13,7 +13,7 @@ describe('AckHandler', () => {
       const params: ReadAckParams = {
         sender: 'agent-123',
         app: 'fox_collect.waiter',
-        messageId: 'msg-456',
+        mid: 'msg-456',
         chatId: 'conv-789',
         datetime: 1234567890,
         toApp: 'im.waiter',
@@ -44,7 +44,7 @@ describe('AckHandler', () => {
       const params: ReadAckParams = {
         sender: 'agent-123',
         app: 'fox_collect.waiter',
-        messageId: 'msg-456',
+        mid: 'msg-456',
         chatId: 'conv-789',
         datetime: Date.now(),
         toApp: 'im.waiter',
@@ -63,7 +63,7 @@ describe('AckHandler', () => {
       const params: ReadAckParams = {
         sender: 'agent-123',
         app: 'fox_collect.waiter',
-        messageId: 'msg-456',
+        mid: 'msg-456',
         chatId: 'conv-789',
         datetime: 1234567890,
         toApp: 'im.waiter',
@@ -94,7 +94,7 @@ describe('AckHandler', () => {
       const params: ReadAckParams = {
         sender: 'agent-123',
         app: 'fox_collect.waiter',
-        messageId: 'msg-456',
+        mid: 'msg-456',
         chatId: 'conv-789',
         datetime: Date.now(),
         toApp: 'im.waiter',

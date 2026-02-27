@@ -34,7 +34,7 @@ describe('MessageAckHelper', () => {
       const params: ReadAckParams = {
         sender: 'agent-123',
         app: 'fox_collect.waiter',
-        messageId: 'msg-456',
+        mid: 'msg-456',
         chatId: 'conv-123',
         datetime: 1234567890000,
         toApp: 'im.waiter',
@@ -53,7 +53,7 @@ describe('MessageAckHelper', () => {
       const params: ReadAckParams = {
         sender: 'agent-123',
         app: 'fox_collect.waiter',
-        messageId: 'msg-456',
+        mid: 'msg-456',
         chatId: 'conv-123',
         datetime: 1234567890000,
         toApp: 'im.waiter',
@@ -73,7 +73,7 @@ describe('MessageAckHelper', () => {
       const params: ReadAckParams = {
         sender: 'agent-123',
         app: 'fox_collect.waiter',
-        messageId: 'msg-456',
+        mid: 'msg-456',
         chatId: 'conv-123',
         datetime: 1234567890000,
         toApp: 'im.waiter',
@@ -93,7 +93,7 @@ describe('MessageAckHelper', () => {
         {
           sender: 'agent-123',
           app: 'fox_collect.waiter',
-          messageId: 'msg-1',
+          mid: 'msg-1',
           chatId: 'conv-123',
           datetime: 1234567890000,
           toApp: 'im.waiter',
@@ -102,7 +102,7 @@ describe('MessageAckHelper', () => {
         {
           sender: 'agent-123',
           app: 'fox_collect.waiter',
-          messageId: 'msg-2',
+          mid: 'msg-2',
           chatId: 'conv-123',
           datetime: 1234567890000,
           toApp: 'im.waiter',
@@ -124,7 +124,7 @@ describe('MessageAckHelper', () => {
         {
           sender: 'agent-123',
           app: 'fox_collect.waiter',
-          messageId: 'msg-1',
+          mid: 'msg-1',
           chatId: 'conv-123',
           datetime: 1234567890000,
           toApp: 'im.waiter',
@@ -150,7 +150,7 @@ describe('MessageAckHelper', () => {
         {
           sender: 'agent-123',
           app: 'fox_collect.waiter',
-          messageId: 'msg-1',
+          mid: 'msg-1',
           chatId: 'conv-123',
           datetime: 1234567890000,
           toApp: 'im.waiter',
@@ -159,7 +159,7 @@ describe('MessageAckHelper', () => {
         {
           sender: 'agent-123',
           app: 'fox_collect.waiter',
-          messageId: 'msg-2',
+          mid: 'msg-2',
           chatId: 'conv-123',
           datetime: 1234567890000,
           toApp: 'im.waiter',
@@ -182,7 +182,7 @@ describe('MessageAckHelper', () => {
       const params: ReadAckParams = {
         sender: 'agent-123',
         app: 'fox_collect.waiter',
-        messageId: 'msg-456',
+        mid: 'msg-456',
         chatId: 'conv-123',
         datetime: 1234567890000,
         toApp: 'im.waiter',
@@ -201,7 +201,7 @@ describe('MessageAckHelper', () => {
       const params: ReadAckParams = {
         sender: 'agent-123',
         app: 'fox_collect.waiter',
-        messageId: 'msg-456',
+        mid: 'msg-456',
         chatId: 'conv-123',
         datetime: 1234567890000,
         toApp: 'im.waiter',
@@ -221,7 +221,7 @@ describe('MessageAckHelper', () => {
       const params: ReadAckParams = {
         sender: 'agent-123',
         app: 'fox_collect.waiter',
-        messageId: 'msg-456',
+        mid: 'msg-456',
         chatId: 'conv-123',
         datetime: 1234567890000,
         toApp: 'im.waiter',

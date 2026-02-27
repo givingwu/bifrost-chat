@@ -20,7 +20,7 @@
  *       MessageAckHelper.sendReadAck(this.wsManager, {
  *         sender: this.currentPin,
  *         app: this.currentApp,
- *         messageId,
+ *         mid: messageId,
  *         chatId: params.conversationId,
  *         datetime: Date.now(),
  *         toApp: 'im.waiter',
@@ -58,7 +58,7 @@ export class MessageAckHelper {
    * MessageAckHelper.sendReadAck(wsManager, {
    *   sender: 'agent-123',
    *   app: 'fox_collect.waiter',
-   *   messageId: 'msg-456',
+   *   mid: 'msg-456',
    *   chatId: 'conv-123',
    *   datetime: Date.now(),
    *   toApp: 'im.waiter',
@@ -96,7 +96,7 @@ export class MessageAckHelper {
    * const ackParams = messageIds.map(messageId => ({
    *   sender: 'agent-123',
    *   app: 'fox_collect.waiter',
-   *   messageId,
+   *   mid: messageId,
    *   chatId: 'conv-123',
    *   datetime: Date.now(),
    *   toApp: 'im.waiter',
@@ -123,7 +123,7 @@ export class MessageAckHelper {
       } catch (error) {
         console.error(
           '[MessageAckHelper] Failed to send read ACK for message:',
-          params.messageId,
+          params.mid,
           error,
         );
         // 继续发送其他 ACK，不中断批量操作
@@ -145,7 +145,7 @@ export class MessageAckHelper {
    * MessageAckHelper.sendReceiveAck(wsManager, {
    *   sender: 'agent-123',
    *   app: 'fox_collect.waiter',
-   *   messageId: 'msg-456',
+   *   mid: 'msg-456',
    *   chatId: 'conv-123',
    *   datetime: Date.now(),
    *   toApp: 'im.waiter',

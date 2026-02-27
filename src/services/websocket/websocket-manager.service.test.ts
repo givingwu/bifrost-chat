@@ -252,7 +252,7 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
       manager.sendReadAck({
         sender: 'test-pin',
         app: 'test-app',
-        messageId: 'msg-123',
+        mid: 'msg-123',
         chatId: 'conv-456',
         datetime: Date.now(),
         toApp: 'receiver-app',
@@ -276,7 +276,7 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
       manager.sendReceiveAck({
         sender: 'test-pin',
         app: 'test-app',
-        messageId: 'msg-123',
+        mid: 'msg-123',
         chatId: 'conv-456',
         datetime: Date.now(),
         toApp: 'receiver-app',

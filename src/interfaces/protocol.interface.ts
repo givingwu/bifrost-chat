@@ -274,7 +274,7 @@ export interface ReadAckParams {
   /** 应用 ID */
   app: string;
   /** 消息 ID（要确认已读的消息 ID） */
-  messageId: string;
+  mid: string;
   /** 会话 ID（对应协议中的 chatId） */
   chatId: string;
   /** 消息时间戳 */

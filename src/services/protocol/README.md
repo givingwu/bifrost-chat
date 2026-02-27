@@ -135,7 +135,7 @@ import { AckHandler } from '@feoe/bifrost-chat';
 const ackMessage = AckHandler.createReadAck({
   sender: 'agent-123',
   app: 'fox_collect.waiter',
-  messageId: 'msg-456',
+  mid: 'msg-456',
   sessionId: 'conv-789',
   datetime: Date.now(),
   toApp: 'im.waiter',
@@ -301,7 +301,7 @@ class FoxCollectMessageService implements IMessageService {
     const ackMessage = AckHandler.createReadAck({
       sender: params.sender,
       app: params.app,
-      messageId: params.messageId,
+      mid: params.mid,
       sessionId: params.sessionId,
       datetime: params.datetime,
       toApp: 'im.waiter',
