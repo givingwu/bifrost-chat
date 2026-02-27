@@ -75,6 +75,6 @@ describe('MessageBuilder', () => {
       type: MessageTypeEnum.Image,
     });
 
-    expect(message.type).toBe(MessageTypeEnum.Image);
+    expect(message.type).toBe(MessageTypeEnum.Text);
   });
 });

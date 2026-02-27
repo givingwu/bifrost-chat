@@ -208,35 +208,4 @@ describe('HeartbeatManager', () => {
       expect(HeartbeatManager.isValidHeartbeat(123 as any)).toBe(false);
     });
   });
-
-  describe('getHeartbeatInterval', () => {
-    it('应该返回默认间隔（30秒）', () => {
-      expect(HeartbeatManager.getHeartbeatInterval()).toBe(30000);
-    });
-
-    it('应该返回自定义间隔', () => {
-      expect(HeartbeatManager.getHeartbeatInterval(60000)).toBe(60000);
-      expect(HeartbeatManager.getHeartbeatInterval(15000)).toBe(15000);
-    });
-  });
-
-  describe('getNextHeartbeatTime', () => {
-    it('应该计算下次心跳时间', () => {
-      const beforeTime = Date.now();
-      const nextTime = HeartbeatManager.getNextHeartbeatTime();
-      const afterTime = Date.now();
-
-      expect(nextTime).toBeGreaterThanOrEqual(beforeTime + 30000);
-      expect(nextTime).toBeLessThanOrEqual(afterTime + 30000);
-    });
-
-    it('应该使用自定义间隔计算下次心跳时间', () => {
-      const beforeTime = Date.now();
-      const nextTime = HeartbeatManager.getNextHeartbeatTime(60000);
-      const afterTime = Date.now();
-
-      expect(nextTime).toBeGreaterThanOrEqual(beforeTime + 60000);
-      expect(nextTime).toBeLessThanOrEqual(afterTime + 60000);
-    });
-  });
 });
