@@ -81,7 +81,7 @@ export interface MessageStatusUpdatedEvent extends MessageStatusUpdate {
  * ```
  */
 export interface IMessageService<
-  TListParams extends UseMessagesParams,
+  TListParams = UseMessagesParams,
   TSendParams = SendMessageOptions,
   TReadParams = MessageStatusUpdatedEvent,
   TAttachmentParams = SendAttachmentParams,

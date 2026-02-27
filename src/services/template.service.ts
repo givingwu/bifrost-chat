@@ -26,8 +26,8 @@ import type { Template } from '../interfaces/template.interface';
  * ```
  */
 export interface ITemplateService<
-  TListParams extends UseTemplatesParams,
-  TSendParams extends UseTemplatesParams,
+  TListParams = UseTemplatesParams,
+  TSendParams = UseTemplatesParams,
 > {
   /**
    * 获取可用模板列表
