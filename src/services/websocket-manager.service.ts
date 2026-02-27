@@ -5,7 +5,9 @@ import {
   type StandardMessage,
 } from '@/interfaces/message.interface';
 import type {
+  AckRawPacket,
   HeartbeatParams,
+  PacketBody,
   RawPacket,
   ReadAckParams,
 } from '@/interfaces/protocol.interface';
@@ -298,6 +300,7 @@ export class WebSocketManager {
 
         // 接收消息
         this.ws.onmessage = (event) => {
+          console.log('event: ', event);
           this.handleMessage(event);
         };
 
@@ -481,9 +484,10 @@ export class WebSocketManager {
   /**
    * 处理接收到的消息
    */
-  private handleMessage(event: MessageEvent): void {
+  private handleMessage(event: MessageEvent<RawPacket | AckRawPacket>): void {
+    console.log('event: ', event);
     try {
-      const data: unknown = JSON.parse(event.data);
+      const data: RawPacket | AckRawPacket = event.data;
 
       // 验证数据包格式（如果启用了协议转换）
       if (this.config.enableProtocolConversion) {
@@ -605,10 +609,7 @@ export class WebSocketManager {
     }
 
     // 2. 处理聊天消息 (chat_message)
-    if (
-      packetType === PacketMessageTypeEnum.ChatMessage ||
-      packetType === 'chat_message'
-    ) {
+    if (packetType === PacketMessageTypeEnum.ChatMessage) {
       const packet = this.normalizeToRawPacket(normalized);
       const message = PacketConverter.toStandardMessage(
         packet,
@@ -761,8 +762,13 @@ export class WebSocketManager {
             ? (to.channelType as ChannelTypeEnum)
             : undefined,
       },
-      ptype: typeof data.ptype === 'string' ? data.ptype : 'chat_message',
-      body: this.isRecord(data.body) ? data.body : {},
+      ptype:
+        typeof data.ptype === 'string'
+          ? (data.ptype as PacketMessageTypeEnum)
+          : PacketMessageTypeEnum.Ack,
+      body: (this.isRecord(data.body)
+        ? data.body
+        : {}) as unknown as PacketBody,
       ver: typeof data.ver === 'string' ? data.ver : '1.0',
       timestamp:
         typeof data.timestamp === 'number' ? data.timestamp : Date.now(),
