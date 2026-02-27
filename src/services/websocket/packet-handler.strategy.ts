@@ -40,7 +40,7 @@ import type { WebSocketManager } from './websocket-manager.service';
 export class PacketHandlerStrategy {
   private handlers: BasePacketHandler[];
 
-  constructor(wsManager?: WebSocketManager) {
+  constructor(wsManager: WebSocketManager) {
     // 按优先级顺序初始化处理器
     this.handlers = [
       new AuthFailHandler(),

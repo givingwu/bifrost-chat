@@ -5,7 +5,10 @@ import {
   MessageStatusEnum,
   MessageTypeEnum,
 } from '@/interfaces/message.interface';
-import type { RawPacket } from '@/interfaces/protocol.interface';
+import {
+  PacketMessageTypeEnum,
+  type RawPacket,
+} from '@/interfaces/protocol.interface';
 import { PacketConverter } from '@/services/protocol/packet.converter';
 
 describe('PacketConverter', () => {
@@ -76,8 +79,12 @@ describe('PacketConverter', () => {
         'agent-123',
       );
 
-      expect(rawPacket.body.type).toBe('text');
-      expect(rawPacket.body.content).toEqual({ text: 'Test message' });
+      expect((rawPacket.body as { type: string }).type).toBe(
+        MessageTypeEnum.Text,
+      );
+      expect((rawPacket.body as { content: unknown }).content).toEqual({
+        text: 'Test message',
+      });
     });
   });
 
@@ -96,9 +103,9 @@ describe('PacketConverter', () => {
           pin: 'agent-123',
           channelType: ChannelTypeEnum.WhatsApp,
         },
-        ptype: 'chat_message',
+        ptype: PacketMessageTypeEnum.ChatMessage,
         body: {
-          type: 'text',
+          type: MessageTypeEnum.Text,
           content: { text: 'Hello from customer' },
         },
         ver: '1.0',
@@ -138,9 +145,9 @@ describe('PacketConverter', () => {
           pin: 'customer-456',
           channelType: ChannelTypeEnum.WhatsApp,
         },
-        ptype: 'chat_message',
+        ptype: PacketMessageTypeEnum.ChatMessage,
         body: {
-          type: 'text',
+          type: MessageTypeEnum.Text,
           content: { text: 'Test' },
         },
         ver: '1.0',
@@ -167,9 +174,9 @@ describe('PacketConverter', () => {
           app: 'fox_collect.waiter',
           pin: 'agent-123',
         },
-        ptype: 'CHAT_MESSAGE',
+        ptype: PacketMessageTypeEnum.ChatMessage,
         body: {
-          type: 'text',
+          type: MessageTypeEnum.Text,
           content: { text: 'Hello' },
         },
         ver: '1.0',
@@ -193,9 +200,9 @@ describe('PacketConverter', () => {
           app: 'fox_collect.waiter',
           pin: 'agent-123',
         },
-        ptype: 'CHAT_MESSAGE',
+        ptype: PacketMessageTypeEnum.ChatMessage,
         body: {
-          type: 'image',
+          type: MessageTypeEnum.Image,
           content: {
             url: 'https://example.com/image.jpg',
             mimeType: 'image/jpeg',
@@ -228,9 +235,9 @@ describe('PacketConverter', () => {
           app: 'fox_collect.waiter',
           pin: 'agent-123',
         },
-        ptype: 'CHAT_MESSAGE',
+        ptype: PacketMessageTypeEnum.ChatMessage,
         body: {
-          type: 'text',
+          type: MessageTypeEnum.Text,
           content: { text: 'Test' },
         },
         ver: '1.0',

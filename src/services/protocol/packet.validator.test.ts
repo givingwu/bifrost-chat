@@ -16,7 +16,7 @@ describe('PacketValidator', () => {
       ];
 
       validPackets.forEach((packet) => {
-        expect(PacketValidator.hasValidPtype(packet)).toBe(true);
+        expect(PacketValidator.hasValidPtype(packet as never)).toBe(true);
       });
     });
 
@@ -29,7 +29,7 @@ describe('PacketValidator', () => {
       ];
 
       invalidPackets.forEach((packet) => {
-        expect(PacketValidator.hasValidPtype(packet)).toBe(false);
+        expect(PacketValidator.hasValidPtype(packet as never)).toBe(false);
       });
     });
 
@@ -41,16 +41,16 @@ describe('PacketValidator', () => {
       ];
 
       packets.forEach((packet) => {
-        expect(PacketValidator.hasValidPtype(packet)).toBe(false);
+        expect(PacketValidator.hasValidPtype(packet as never)).toBe(false);
       });
     });
 
     it('应该拒绝非对象类型的数据', () => {
-      expect(PacketValidator.hasValidPtype(null)).toBe(false);
-      expect(PacketValidator.hasValidPtype(undefined)).toBe(false);
-      expect(PacketValidator.hasValidPtype('string')).toBe(false);
-      expect(PacketValidator.hasValidPtype(123)).toBe(false);
-      expect(PacketValidator.hasValidPtype(true)).toBe(false);
+      expect(PacketValidator.hasValidPtype(null as never)).toBe(false);
+      expect(PacketValidator.hasValidPtype(undefined as never)).toBe(false);
+      expect(PacketValidator.hasValidPtype('string' as never)).toBe(false);
+      expect(PacketValidator.hasValidPtype(123 as never)).toBe(false);
+      expect(PacketValidator.hasValidPtype(true as never)).toBe(false);
     });
 
     it('应该处理 ptype 为非字符串的情况', () => {
@@ -62,7 +62,7 @@ describe('PacketValidator', () => {
       ];
 
       packets.forEach((packet) => {
-        expect(PacketValidator.hasValidPtype(packet)).toBe(false);
+        expect(PacketValidator.hasValidPtype(packet as never)).toBe(false);
       });
     });
   });
@@ -403,7 +403,7 @@ describe('PacketValidator', () => {
       };
 
       // hasValidPtype 只检查顶层对象的 ptype
-      expect(PacketValidator.hasValidPtype(nestedPacket)).toBe(false);
+      expect(PacketValidator.hasValidPtype(nestedPacket as never)).toBe(false);
     });
   });
 });

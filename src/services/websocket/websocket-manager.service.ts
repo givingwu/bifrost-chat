@@ -17,6 +17,15 @@
  *
  * @version 2.0.0
  */
+
+import {
+  ConfigurationError,
+  ConnectionTimeoutError,
+  ErrorHandler,
+  ParseError,
+  SendFailedError,
+  ValidationError,
+} from '@/interfaces/error.interface';
 import {
   ClientTypeEnum,
   type StandardMessage,
@@ -50,14 +59,6 @@ import {
   WEBSOCKET_DEFAULT_CONFIG,
   type WebSocketStatus,
 } from './websocket.constants';
-import {
-  ConfigurationError,
-  ConnectionTimeoutError,
-  ErrorHandler,
-  ParseError,
-  SendFailedError,
-  ValidationError,
-} from './websocket.errors';
 
 /**
  * WebSocketManager：WebSocket 连接管理器（改进版）
@@ -680,18 +681,13 @@ export class WebSocketManager {
   private startHeartbeat(): void {
     this.stopHeartbeat();
 
-    // 使用 HeartbeatManager.getHeartbeatInterval 统一管理心跳间隔
-    const interval = HeartbeatManager.getHeartbeatInterval(
-      this.config.heartbeatInterval,
-    );
-
     this.heartbeatTimer = setInterval(() => {
       if (this.isConnected()) {
         this.sendHeartbeat().catch((error) => {
           console.error('Failed to send heartbeat:', error);
         });
       }
-    }, interval);
+    }, this.config.heartbeatInterval);
   }
 
   /**

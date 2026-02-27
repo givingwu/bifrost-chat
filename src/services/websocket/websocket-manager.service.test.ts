@@ -377,7 +377,7 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
         from: { app: 'sender-app', pin: 'sender-pin' },
         to: { app: 'test-app', pin: 'test-pin' },
         ptype: PacketMessageTypeEnum.ChatMessage,
-        body: { type: 'text', content: { text: 'Hello' } },
+        body: { type: MessageTypeEnum.Text, content: { text: 'Hello' } },
         ver: '1.0',
         timestamp: Date.now(),
       };
@@ -448,7 +448,7 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
         },
         ptype: PacketMessageTypeEnum.ChatMessage,
         body: {
-          type: 'text',
+          type: MessageTypeEnum.Text,
           content: { text: 'Hello from sender' },
         },
         ver: '1.0',
@@ -489,7 +489,7 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
         },
         ptype: PacketMessageTypeEnum.ChatMessage,
         body: {
-          type: 'text',
+          type: MessageTypeEnum.Text,
           content: { text: 'Test' },
         },
         ver: '1.0',
@@ -549,7 +549,7 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
         from: { app: 'sender-app', pin: 'sender-pin' },
         to: { app: 'test-app', pin: 'test-pin' },
         ptype: PacketMessageTypeEnum.ChatMessage,
-        body: { type: 'text', content: { text: 'Hello' } },
+        body: { type: MessageTypeEnum.Text, content: { text: 'Hello' } },
         ver: '1.0',
         timestamp: Date.now(),
       };
@@ -573,7 +573,7 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
         from: { app: 'sender-app', pin: 'sender-pin' },
         to: { app: 'test-app', pin: 'test-pin' },
         ptype: PacketMessageTypeEnum.ChatMessage,
-        body: { type: 'text', content: { text: 'Hello' } },
+        body: { type: MessageTypeEnum.Text, content: { text: 'Hello' } },
         ver: '1.0',
         timestamp: Date.now(),
       };
@@ -619,7 +619,7 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
         from: { app: 'server', pin: 'system' },
         to: { app: 'test-app', pin: 'test-pin' },
         ptype: PacketMessageTypeEnum.AuthFail,
-        body: { reason: 'Invalid token' },
+        body: { type: PacketMessageTypeEnum.AuthFail },
         ver: '1.0',
         timestamp: Date.now(),
       };
@@ -629,7 +629,7 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
       );
 
       expect(authFailListener).toHaveBeenCalledWith({
-        reason: 'Invalid token',
+        type: PacketMessageTypeEnum.AuthFail,
       });
     });
 
@@ -647,7 +647,7 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
         from: { app: 'sender-app', pin: 'sender-pin' },
         to: { app: 'test-app', pin: 'test-pin' },
         ptype: PacketMessageTypeEnum.ChatMessage,
-        body: { type: 'text', content: { text: 'Hello' } },
+        body: { type: MessageTypeEnum.Text, content: { text: 'Hello' } },
         ver: '1.0',
         timestamp: Date.now(),
       };
@@ -716,7 +716,7 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
         from: { app: 'sender-app', pin: 'sender-pin' },
         to: { app: 'test-app', pin: 'test-pin' },
         ptype: PacketMessageTypeEnum.ChatMessage,
-        body: { type: 'text', content: { text: 'Hello\n\t\r' } },
+        body: { type: MessageTypeEnum.Text, content: { text: 'Hello\n\t\r' } },
         ver: '1.0',
         timestamp: Date.now(),
       };

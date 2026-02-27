@@ -118,7 +118,9 @@ describe('HeartbeatManager', () => {
       expect(ack).toBeDefined();
       expect(ack.id).toBe(originalHeartbeat.id);
       expect(ack.ptype).toBe(PacketMessageTypeEnum.Ack);
-      expect(ack.body.type).toBe(PacketMessageTypeEnum.ClientHeartbeat);
+      expect((ack.body as { type: string }).type).toBe(
+        PacketMessageTypeEnum.ClientHeartbeat,
+      );
       expect(ack.from.app).toBe(originalHeartbeat.to.app);
       expect(ack.from.pin).toBe(originalHeartbeat.to.pin);
       expect(ack.to.app).toBe(originalHeartbeat.from.app);
