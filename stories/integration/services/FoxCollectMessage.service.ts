@@ -1,3 +1,4 @@
+import { type RawPacket, WebSocketEventTypeEnum } from '@/index';
 import type { SendAttachmentResult } from '@/interfaces/attachment.interface';
 import type { SendAudioResult } from '@/interfaces/audio.interface';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
@@ -15,10 +16,7 @@ import type {
   MessageStatusUpdatedEvent,
 } from '@/services/message.service';
 import { PacketConverter } from '@/services/protocol';
-import {
-  WebSocketEventTypeEnum,
-  WebSocketManager,
-} from '@/services/websocket-manager.service';
+import { WebSocketManager } from '@/services/websocket/websocket-manager.service';
 import { toRecord } from '../utils/converter.util';
 import type { FoxCollectConfig } from './FoxCollectConversation.service';
 
@@ -165,7 +163,7 @@ export class FoxCollectMessageService
         sender: this.config.agentPin,
         app: this.config.app,
         messageId: params.messageId,
-        sessionId: params.sessionId ?? params.chatId ?? '',
+        chatId: params.sessionId ?? params.chatId ?? '',
         datetime: Date.now(),
         toApp: 'im.waiter',
         toPin: params.receiverPin ?? '',
@@ -263,40 +261,9 @@ export class FoxCollectMessageService
     }
   }
 
-  private convertPacketToStandardMessage(packet: unknown): StandardMessage {
-    const data = toRecord(packet);
+  private convertPacketToStandardMessage(packet: RawPacket): StandardMessage {
     return PacketConverter.toStandardMessage(
-      {
-        id: String(data.id ?? ''),
-        mid: typeof data.mid === 'string' ? data.mid : undefined,
-        from: {
-          app: String(toRecord(data.from).app ?? ''),
-          pin: String(toRecord(data.from).pin ?? ''),
-          clientType: String(
-            toRecord(data.from).clientType ?? '',
-          ) as ClientTypeEnum,
-          channelType: String(
-            toRecord(data.from).channelType ?? '',
-          ) as ChannelTypeEnum,
-        },
-        to: {
-          app: String(toRecord(data.to).app ?? ''),
-          pin: String(toRecord(data.to).pin ?? ''),
-          clientType: String(
-            toRecord(data.to).clientType ?? '',
-          ) as ClientTypeEnum,
-          channelType: String(
-            toRecord(data.to).channelType ?? '',
-          ) as ChannelTypeEnum,
-        },
-        ptype: String(data.ptype ?? data.type ?? 'chat_message'),
-        body: toRecord(data.body),
-        ver: String(data.ver ?? '1.0'),
-        timestamp:
-          typeof data.timestamp === 'number' ? data.timestamp : Date.now(),
-        chatId: typeof data.chatId === 'string' ? data.chatId : undefined,
-        entry: typeof data.entry === 'string' ? data.entry : undefined,
-      },
+      packet,
       undefined,
       this.config.agentPin,
     );
