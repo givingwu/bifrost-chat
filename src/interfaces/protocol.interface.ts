@@ -127,7 +127,7 @@ export interface AckPacketBody {
 export interface AuthPacketBody extends IAuthMessage {}
 
 export interface PacketBodyBase {
-  type: MessageTypeEnum | PacketMessageTypeEnum | AckMessageTypeEnum;
+  type?: MessageTypeEnum | PacketMessageTypeEnum | AckMessageTypeEnum;
   content?: unknown;
 }
 

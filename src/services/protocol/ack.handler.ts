@@ -2,7 +2,10 @@ import {
   ClientTypeEnum,
   MessageStatusEnum,
 } from '@/interfaces/message.interface';
-import type { RawPacket, ReadAckParams } from '@/interfaces/protocol.interface';
+import type {
+  AckRawPacket,
+  ReadAckParams,
+} from '@/interfaces/protocol.interface';
 import {
   AckMessageTypeEnum,
   PacketMessageTypeEnum,
@@ -86,8 +89,8 @@ export class AckHandler {
    * @param params 已读 ACK 参数
    * @returns RawPacket
    */
-  static createReadAck(params: ReadAckParams): RawPacket {
-    const ackPacket: RawPacket = {
+  static createReadAck(params: ReadAckParams): AckRawPacket {
+    const ackPacket: AckRawPacket = {
       id: MessageBuilder.generateUniqueId(),
       from: {
         app: params.app,
@@ -123,8 +126,8 @@ export class AckHandler {
    * @param params 收到 ACK 参数
    * @returns RawPacket
    */
-  static createReceiveAck(params: ReadAckParams): RawPacket {
-    const ackPacket: RawPacket = {
+  static createReceiveAck(params: ReadAckParams): AckRawPacket {
+    const ackPacket: AckRawPacket = {
       id: MessageBuilder.generateUniqueId(),
       from: {
         app: params.app,

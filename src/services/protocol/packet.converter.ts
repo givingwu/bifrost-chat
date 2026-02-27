@@ -123,15 +123,13 @@ export class PacketConverter {
         pin: packet.from.pin,
         app: packet.from.app,
         clientType: packet.from.clientType,
-        channelType: MessageBuilder.stringToChannelType(
-          packet.from.channelType,
-        ),
+        channelType,
       },
       receiver: {
         pin: packet.to.pin,
         app: packet.to.app,
         clientType: packet.to.clientType,
-        channelType,
+        channelType: packet.to.channelType,
       },
     };
 

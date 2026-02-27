@@ -79,10 +79,11 @@ export class HeartbeatManager {
       return false;
     }
 
-    const body = packet.body as Record<string, unknown>;
-
     // 检查是否为心跳 ACK
-    return body.type === PacketMessageTypeEnum.ClientHeartbeat;
+    return (
+      'type' in packet.body &&
+      packet.body.type === PacketMessageTypeEnum.ClientHeartbeat
+    );
   }
 
   /**
@@ -99,7 +100,7 @@ export class HeartbeatManager {
       ptype: PacketMessageTypeEnum.Ack,
       body: {
         type: PacketMessageTypeEnum.ClientHeartbeat,
-      } as Record<string, unknown>,
+      },
       ver: '1.0',
       timestamp: Date.now(),
     };

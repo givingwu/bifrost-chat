@@ -1,15 +1,153 @@
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
+import type {
+  ILocationMessage,
+  IMediaMessage,
+  IRichMediaMessage,
+  IStringMessage,
+  ITemplateMessage,
+  MessageContent,
+} from '@/interfaces/message.interface';
 import {
   type ClientTypeEnum,
-  type MessageContent,
   MessageDirectionEnum,
   MessageStatusEnum,
   MessageTypeEnum,
   type SendMessageOptions,
   type StandardMessage,
-  type StringMessage,
 } from '@/interfaces/message.interface';
-import { PacketMessageTypeEnum } from '@/interfaces/protocol.interface';
+import {
+  type LocationPacketBody,
+  type MediaPacketBody,
+  type PacketBody,
+  PacketMessageTypeEnum,
+  type RichMediaPacketBody,
+  type TemplatePacketBody,
+  type TextPacketBody,
+} from '@/interfaces/protocol.interface';
+
+/**
+ * 类型守卫函数
+ * 用于在运行时安全地判断 Packet body 的具体类型
+ */
+
+/**
+ * 判断是否为文本 Packet body
+ */
+function isTextPacketBody(body: PacketBody): body is TextPacketBody {
+  return 'type' in body && body.type === MessageTypeEnum.Text;
+}
+
+/**
+ * 判断是否为多媒体 Packet body
+ */
+function isMediaPacketBody(body: PacketBody): body is MediaPacketBody {
+  return (
+    'type' in body &&
+    [
+      MessageTypeEnum.Image,
+      MessageTypeEnum.Audio,
+      MessageTypeEnum.Video,
+      MessageTypeEnum.File,
+    ].includes(body.type as MessageTypeEnum)
+  );
+}
+
+/**
+ * 判断是否为模板 Packet body
+ */
+function isTemplatePacketBody(body: PacketBody): body is TemplatePacketBody {
+  return 'type' in body && body.type === MessageTypeEnum.Template;
+}
+
+/**
+ * 判断是否为位置 Packet body
+ */
+function isLocationPacketBody(body: PacketBody): body is LocationPacketBody {
+  return 'type' in body && body.type === MessageTypeEnum.Location;
+}
+
+/**
+ * 判断是否为富媒体 Packet body
+ */
+function isRichMediaPacketBody(body: PacketBody): body is RichMediaPacketBody {
+  return 'type' in body && body.type === MessageTypeEnum.RichMedia;
+}
+
+/**
+ * 转换函数：每种消息类型独立实现
+ * 确保返回的 MessageContent 符合类型定义
+ */
+
+/**
+ * 将文本 Packet body 转换为 IStringMessage
+ */
+function convertTextPacketBody(content: IStringMessage): IStringMessage {
+  return {
+    text: content.text ?? '',
+  };
+}
+
+/**
+ * 将多媒体 Packet body 转换为 IMediaMessage
+ */
+function convertMediaPacketBody(
+  packetType: MediaPacketBody['type'],
+  content: IMediaMessage,
+): IMediaMessage {
+  return {
+    url: content.url,
+    mimeType: content.mimeType ?? getDefaultMimeType(packetType),
+    size: content.size,
+  };
+}
+
+/**
+ * 将模板 Packet body 转换为 ITemplateMessage
+ */
+function convertTemplatePacketBody(
+  content: ITemplateMessage,
+): ITemplateMessage {
+  return {
+    text: content.text ?? '',
+    templateId: content.templateId ?? '',
+    params: content.params ?? {},
+  };
+}
+
+/**
+ * 将位置 Packet body 转换为 ILocationMessage
+ */
+function convertLocationPacketBody(
+  content: ILocationMessage,
+): ILocationMessage {
+  return {
+    address: content.address ?? '',
+  };
+}
+
+/**
+ * 将富媒体 Packet body 转换为 IRichMediaMessage
+ */
+function convertRichMediaPacketBody(
+  content: IRichMediaMessage,
+): IRichMediaMessage {
+  return {
+    desc: content.desc ?? '',
+  };
+}
+
+/**
+ * 获取默认 MIME 类型
+ */
+function getDefaultMimeType(type: string): string {
+  const defaults: Record<string, string> = {
+    image: 'image/jpeg',
+    audio: 'audio/webm',
+    video: 'video/mp4',
+    file: 'application/octet-stream',
+  };
+  return defaults[type] || 'application/octet-stream';
+}
 
 /**
  * MessageBuilder：消息构建器
@@ -43,8 +181,10 @@ export class MessageBuilder {
       channelType: options.channelType,
       status: MessageStatusEnum.Created,
       timestamp: Date.now(),
-      type: options.type ?? MessageTypeEnum.Text,
-      content: { text } as StringMessage,
+      type: MessageTypeEnum.Text,
+      content: {
+        text,
+      },
       sender: options.sender ?? {
         app: options.fromApp as string,
         pin: options.fromPin,
@@ -87,7 +227,7 @@ export class MessageBuilder {
   /**
    * 将 MessageTypeEnum 转换为 Packet Type 字符串
    */
-  static messageTypeToPacketType(type: MessageTypeEnum): string {
+  static messageTypeToPacketType(type: MessageTypeEnum): PacketMessageTypeEnum {
     const typeMap: Record<MessageTypeEnum, PacketMessageTypeEnum> = {
       [MessageTypeEnum.Text]: PacketMessageTypeEnum.ChatMessage,
       [MessageTypeEnum.Image]: PacketMessageTypeEnum.ChatMessage,
@@ -106,12 +246,13 @@ export class MessageBuilder {
   /**
    * 从 Packet body 解析 MessageTypeEnum
    */
-  static packetBodyToMessageType(
-    body: Record<string, unknown>,
-  ): MessageTypeEnum {
-    const type = (body.type as string) || 'text';
+  static packetBodyToMessageType(body: PacketBody): MessageTypeEnum {
+    // AckDataBody 没有 type 属性，返回 Other
+    if (!('type' in body)) {
+      return MessageTypeEnum.Other;
+    }
 
-    switch (type) {
+    switch (body.type) {
       case 'text':
         return MessageTypeEnum.Text;
       case 'image':
@@ -139,7 +280,7 @@ export class MessageBuilder {
   static messageContentToPacketBody(
     type: MessageTypeEnum,
     content: MessageContent,
-  ): Record<string, unknown> {
+  ): PacketBody {
     return {
       type: MessageBuilder.messageTypeToString(type),
       content,
@@ -148,65 +289,40 @@ export class MessageBuilder {
 
   /**
    * 将 Packet body 转换为 MessageContent
+   * 使用类型守卫和独立转换函数确保类型安全
    */
-  static packetBodyToMessageContent(
-    body: Record<string, unknown>,
-  ): MessageContent {
-    const type = (body.type as string) || 'text';
-    const content = body.content as Record<string, unknown>;
-
-    switch (type) {
-      case 'text':
-        return { text: (content?.text as string) || '' };
-
-      case 'image':
-        return {
-          url: (content?.url as string) || '',
-          mimeType: (content?.mimeType as string) || 'image/jpeg',
-          size: content?.size as number,
-        };
-
-      case 'audio':
-        return {
-          url: (content?.url as string) || '',
-          mimeType: (content?.mimeType as string) || 'audio/webm',
-          size: content?.size as number,
-        };
-
-      case 'video':
-        return {
-          url: (content?.url as string) || '',
-          mimeType: (content?.mimeType as string) || 'video/mp4',
-          size: content?.size as number,
-        };
-
-      case 'file':
-        return {
-          url: (content?.url as string) || '',
-          mimeType: (content?.mimeType as string) || 'application/octet-stream',
-          size: content?.size as number,
-        };
-
-      case 'template':
-        return {
-          text: (content?.text as string) || '',
-          templateId: (content?.templateId as string | number) || '',
-          params: (content?.params as Record<string, string>) || {},
-        };
-
-      case 'location':
-        return {
-          text: (content?.address as string) || '',
-        };
-
-      case 'rich_media':
-        return {
-          text: (content?.description as string) || '',
-        };
-
-      default:
-        return { text: '' };
+  static packetBodyToMessageContent(body: PacketBody): MessageContent {
+    if (isTextPacketBody(body)) {
+      return convertTextPacketBody(body.content);
     }
+
+    if (isMediaPacketBody(body)) {
+      return convertMediaPacketBody(body.type, body.content);
+    }
+
+    if (isTemplatePacketBody(body)) {
+      return convertTemplatePacketBody(body.content);
+    }
+
+    if (isLocationPacketBody(body)) {
+      return convertLocationPacketBody(body.content);
+    }
+
+    if (isRichMediaPacketBody(body)) {
+      return convertRichMediaPacketBody(body.content);
+    }
+
+    // 降级处理：未知类型返回空文本消息
+    // AckDataBody 或其他没有 type 属性的类型
+    if (!('type' in body)) {
+      return {
+        text: 'Unsupported message type',
+      };
+    }
+
+    return {
+      text: `Unsupported type ${body.type}`,
+    };
   }
 
   /**
