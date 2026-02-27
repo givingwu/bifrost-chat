@@ -79,7 +79,7 @@ export function useSendMessage<TParams = any>() {
       return messageService.send(params.conversationId, {
         content: params.content,
         ...params.extra,
-      });
+      } as never);
     },
 
     // 乐观更新：在请求发送前立即在 UI 上显示消息

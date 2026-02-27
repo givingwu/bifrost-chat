@@ -78,7 +78,7 @@ export function useMarkAsRead<TParams = unknown>() {
   const { messageService } = useServices();
 
   return useMutation<void, unknown, TParams, MarkAsReadContext | undefined>({
-    mutationFn: (params: TParams) => messageService.markAsRead(params),
+    mutationFn: (params: TParams) => messageService.markAsRead(params as never),
     onMutate: async (params) => {
       if (!isMarkAsReadParams(params)) {
         return undefined;

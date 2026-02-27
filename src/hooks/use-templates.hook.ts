@@ -70,7 +70,7 @@ export function useTemplates(params?: UseTemplatesParams) {
       });
 
       // 在这里打断点可以确认 templateService.list() 被调用
-      const result = services.templateService.list(params);
+      const result = services.templateService.list(params ?? ({} as never));
       console.log('📦 [useTemplates] templateService.list 返回 Promise');
 
       return result;
