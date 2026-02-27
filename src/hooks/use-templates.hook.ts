@@ -9,13 +9,18 @@ import { useServices } from '@/providers/service.provider';
  * 使用 React Query 管理模板列表的获取和缓存。
  * 数据会在 5 分钟内视为新鲜，不会重复请求。
  *
- * @param params 查询参数（可选，类型由服务实现决定）
+ * @param params 查询参数
+ * @param params.conversationId 会话 ID（可选）
+ * @param params.currentChannel 当前渠道（可选）
  * @returns Query 结果
  *
  * @example
  * ```tsx
  * function TemplatePanel() {
- *   const { data: templates, isLoading, error } = useTemplates();
+ *   const { data: templates, isLoading, error } = useTemplates({
+ *     conversationId: 'conv-123',
+ *     currentChannel: 'whatsapp'
+ *   });
  *
  *   if (isLoading) return <Spinner />;
  *   if (error) return <Error message={error.message} />;
@@ -30,7 +35,14 @@ import { useServices } from '@/providers/service.provider';
  * }
  * ```
  */
-export function useTemplates<TParams>(params?: TParams) {
+export interface UseTemplatesParams {
+  /** 会话 ID（可选） */
+  conversationId?: string;
+  /** 当前渠道（可选） */
+  currentChannel?: string;
+}
+
+export function useTemplates(params?: UseTemplatesParams) {
   const services = useServices();
 
   // 调试日志：检查服务注入状态

@@ -3,6 +3,7 @@ import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { LoadingState } from '@/components/LoadingState';
 import { useTemplates } from '@/hooks/use-templates.hook';
+import type { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import type { Template } from '@/interfaces/template.interface';
 import { useTranslation } from '@/providers/I18n.provider';
 import { TemplateHeader } from './TemplateHeader';
@@ -19,6 +20,10 @@ export interface TemplatePanelProps {
   showUsageCount?: boolean;
   /** 自定义模板列表（如果提供，则不使用 useTemplates） */
   templates?: Template[];
+  /** 会话 ID（用于获取特定会话的模板） */
+  conversationId?: string;
+  /** 当前渠道（用于获取特定渠道的模板） */
+  currentChannel?: ChannelTypeEnum;
 }
 
 /**
@@ -42,6 +47,8 @@ export const TemplatePanel = ({
   showCategory = true,
   showUsageCount = false,
   templates: customTemplates,
+  conversationId,
+  currentChannel,
 }: TemplatePanelProps) => {
   const { t } = useTranslation();
 
@@ -53,6 +60,8 @@ export const TemplatePanel = ({
     hasCustomTemplates: !!customTemplates,
     customTemplatesCount: customTemplates?.length,
     shouldFetchFromServer,
+    conversationId,
+    currentChannel,
   });
 
   const {
@@ -60,7 +69,14 @@ export const TemplatePanel = ({
     isLoading,
     error,
     refetch,
-  } = useTemplates(shouldFetchFromServer ? undefined : ({} as never));
+  } = useTemplates(
+    shouldFetchFromServer
+      ? {
+          conversationId,
+          currentChannel,
+        }
+      : ({} as never),
+  );
 
   // 调试日志：检查 useTemplates 返回状态
   console.log('📊 [TemplatePanel] useTemplates 返回状态:', {

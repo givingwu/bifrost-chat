@@ -1,3 +1,4 @@
+import type { UseTemplatesParams } from '@/hooks/use-templates.hook';
 import type { MessageSendResult } from '../interfaces/message.interface';
 import type { Template } from '../interfaces/template.interface';
 
@@ -24,7 +25,10 @@ import type { Template } from '../interfaces/template.interface';
  * }
  * ```
  */
-export interface ITemplateService<TListParams = any, TSendParams = any> {
+export interface ITemplateService<
+  TListParams extends UseTemplatesParams,
+  TSendParams extends UseTemplatesParams,
+> {
   /**
    * 获取可用模板列表
    * @param params 查询参数
