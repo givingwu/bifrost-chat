@@ -50,6 +50,11 @@ function createMessage(
     timestamp: Date.now(),
     type: MessageTypeEnum.Text,
     content: { text: `message-${id}` },
+    // 添加 sender 信息（消息发送者，即对方）
+    sender: {
+      app: 'fox_collect.customer',
+      pin: `customer-${id}`,
+    },
   };
 }
 
@@ -141,10 +146,18 @@ describe('useMarkAsRead Hook', () => {
     });
 
     await waitFor(() => {
-      expect(mockMessageService.markAsRead).toHaveBeenCalledWith({
-        conversationId,
-        messageIds: ['msg-1'],
-      });
+      // 验证调用了 markAsRead，参数格式为 ReadAckParams
+      expect(mockMessageService.markAsRead).toHaveBeenCalledWith(
+        expect.objectContaining({
+          sender: 'Pin is required',
+          app: 'Bifrost Chat',
+          mid: 'msg-1',
+          chatId: conversationId,
+          toApp: 'fox_collect.customer',
+          toPin: 'customer-msg-1',
+          datetime: expect.any(Number),
+        }),
+      );
     });
   });
 
