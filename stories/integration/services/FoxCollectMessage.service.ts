@@ -165,8 +165,6 @@ export class FoxCollectMessageService
         mid: params.messageId,
         chatId: params.sessionId ?? params.chatId ?? '',
         datetime: Date.now(),
-        toApp: 'im.waiter',
-        toPin: params.receiverPin ?? '',
       });
     }
   }

@@ -106,8 +106,6 @@ export class ChatMessageHandler extends BasePacketHandler {
         mid: rawPacket.mid,
         chatId: rawPacket.chatId || '',
         datetime: rawPacket.timestamp,
-        toApp: rawPacket.from.app,
-        toPin: rawPacket.from.pin,
       });
     } catch (error) {
       // ACK 发送失败不应影响消息处理流程

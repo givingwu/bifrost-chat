@@ -6,7 +6,7 @@ import {
 import type { ReadAckParams } from '@/interfaces/protocol.interface';
 import { queryKeys } from '@/providers/query.provider';
 import { useServices } from '@/providers/service.provider';
-import { type CurrentUser, useStrategy } from '@/store';
+import { useStrategy } from '@/store';
 
 export interface MarkAsReadParams {
   conversationId: string;
@@ -52,25 +52,22 @@ function isMessagesQueryData(data: unknown): data is MessagesQueryData {
 function buildReadAckParams(
   message: StandardMessage,
   conversationId: string,
-  currentUser: CurrentUser,
 ): ReadAckParams | null {
-  // Incoming 消息的 sender 是对方（toApp/toPin）
-  const toApp = message.sender?.app;
-  const toPin = message.sender?.pin;
+  // Incoming 消息的 sender 是对方
+  const senderApp = message.sender.app;
+  const senderPin = message.sender.pin;
 
-  if (!toApp || !toPin) {
+  if (!senderApp || !senderPin) {
     console.warn('[markAsRead] Message missing sender info:', message.id);
     return null;
   }
 
   return {
-    sender: message.sender?.pin ?? currentUser.pin,
-    app: message.sender?.app ?? currentUser.app,
+    sender: message.sender.pin,
+    app: message.sender.app,
     mid: message.id,
     chatId: conversationId,
     datetime: Date.now(),
-    toApp,
-    toPin,
   };
 }
 
@@ -136,11 +133,7 @@ export function useMarkAsRead() {
 
       for (const message of messagesToMark) {
         try {
-          const readAckParams = buildReadAckParams(
-            message,
-            conversationId,
-            currentUser,
-          );
+          const readAckParams = buildReadAckParams(message, conversationId);
 
           if (readAckParams) {
             await messageService.markAsRead(readAckParams);

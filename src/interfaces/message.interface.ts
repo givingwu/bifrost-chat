@@ -158,9 +158,9 @@ export interface StandardMessage {
   /** 消息内容 */
   content: MessageContent;
   /** 标准化发送者 */
-  sender?: MessageParticipant;
+  sender: MessageParticipant;
   /** 标准化接收者 */
-  receiver?: MessageParticipant;
+  receiver: MessageParticipant;
   /** 透传协议字段（from/to/ptype 等） */
   metadata?: Record<string, unknown>;
   /** 消息来源（内部使用，用于区分服务端消息和本地失败消息） */

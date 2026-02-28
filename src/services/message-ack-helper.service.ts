@@ -23,8 +23,6 @@
  *         mid: messageId,
  *         chatId: params.conversationId,
  *         datetime: Date.now(),
- *         toApp: 'im.waiter',
- *         toPin: 'customer-pin',
  *       });
  *     }
  *   }
@@ -61,8 +59,6 @@ export class MessageAckHelper {
    *   mid: 'msg-456',
    *   chatId: 'conv-123',
    *   datetime: Date.now(),
-   *   toApp: 'im.waiter',
-   *   toPin: 'customer-456',
    * });
    * ```
    */
@@ -99,8 +95,6 @@ export class MessageAckHelper {
    *   mid: messageId,
    *   chatId: 'conv-123',
    *   datetime: Date.now(),
-   *   toApp: 'im.waiter',
-   *   toPin: 'customer-456',
    * }));
    *
    * MessageAckHelper.sendReadAckBatch(wsManager, ackParams);
@@ -148,8 +142,6 @@ export class MessageAckHelper {
    *   mid: 'msg-456',
    *   chatId: 'conv-123',
    *   datetime: Date.now(),
-   *   toApp: 'im.waiter',
-   *   toPin: 'customer-456',
    * });
    * ```
    */

@@ -279,10 +279,6 @@ export interface ReadAckParams {
   chatId: string;
   /** 消息时间戳 */
   datetime: number;
-  /** 接收方应用 ID */
-  toApp: string;
-  /** 接收方 PIN */
-  toPin: string;
 }
 
 /**

@@ -53,8 +53,6 @@ export interface AckData {
  *   mid: 'msg-456',
  *   chatId: 'conv-123',
  *   datetime: Date.now(),
- *   toApp: 'im.waiter',
- *   toPin: 'customer-456',
  * });
  * // ptype 为 'msg_read_ack'
  *
@@ -65,8 +63,6 @@ export interface AckData {
  *   mid: 'msg-456',
  *   chatId: 'conv-123',
  *   datetime: Date.now(),
- *   toApp: 'im.waiter',
- *   toPin: 'customer-456',
  * });
  * // ptype 为 'msg_receive_ack'
  *
@@ -98,8 +94,8 @@ export class AckHandler {
         clientType: ClientTypeEnum.Web,
       },
       to: {
-        app: params.toApp,
-        pin: params.toPin,
+        app: '',
+        pin: '',
       },
       // ✅ 使用 msg_read_ack 作为 ptype（上行协议）
       ptype: AckMessageTypeEnum.MsgReadAck,
@@ -134,8 +130,8 @@ export class AckHandler {
         pin: params.sender,
       },
       to: {
-        app: params.toApp,
-        pin: params.toPin,
+        app: '',
+        pin: '',
       },
       // ✅ 使用 msg_receive_ack 作为 ptype（上行协议）
       ptype: AckMessageTypeEnum.MsgReceiveAck,
