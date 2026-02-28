@@ -111,6 +111,10 @@ export class PacketConverter {
       packet.from.channelType,
     );
 
+    // 安全提取 ext 字段（仅 PacketBodyBase 子类型有此字段）
+    const extMetadata =
+      'ext' in packet.body && packet.body.ext ? packet.body.ext : {};
+
     const standardMessage: StandardMessage = {
       id: packet.mid || packet.id,
       tempId: packet.id,
@@ -133,6 +137,7 @@ export class PacketConverter {
         clientType: packet.to.clientType,
         channelType: packet.to.channelType,
       },
+      metadata: extMetadata,
     };
 
     return standardMessage;

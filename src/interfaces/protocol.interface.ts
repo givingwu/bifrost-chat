@@ -129,6 +129,7 @@ export interface AuthPacketBody extends IAuthMessage {}
 export interface PacketBodyBase {
   type?: MessageTypeEnum | PacketMessageTypeEnum | AckMessageTypeEnum;
   content?: unknown;
+  ext?: Record<string, unknown>;
 }
 
 export interface TextPacketBody extends PacketBodyBase {
