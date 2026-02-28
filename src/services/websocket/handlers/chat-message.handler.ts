@@ -15,7 +15,6 @@ import {
   type PacketHandlerResult,
   WebSocketEventTypeEnum,
 } from '@/interfaces/websocket.interface';
-import { MessageAckHelper } from '@/services/message-ack-helper.service';
 import { PacketConverter } from '@/services/protocol';
 import type { WebSocketManager } from '../websocket-manager.service';
 
@@ -57,11 +56,12 @@ export class ChatMessageHandler extends BasePacketHandler {
     );
 
     // 自动发送 msg_receive_ack
-    this.sendReceiveAck(packet as RawPacket, currentPin);
+    this.sendReceiveAck(packet as RawPacket);
 
     return {
       eventData: this.createEventData(WebSocketEventTypeEnum.Message, {
-        conversationId: packet.chatId ?? message.receiver?.pin ?? '',
+        // chatId 对于 chat_message 类型一定存在（服务端保证）
+        conversationId: packet.chatId,
         message,
       }),
       shouldContinue: true,
@@ -77,7 +77,7 @@ export class ChatMessageHandler extends BasePacketHandler {
    * @param rawPacket 原始数据包
    * @param currentPin 当前用户 PIN
    */
-  private sendReceiveAck(rawPacket: RawPacket, currentPin?: string): void {
+  private sendReceiveAck(rawPacket: RawPacket): void {
     // 如果没有 WebSocketManager，跳过 ACK 发送
     if (!this.wsManager) {
       console.warn('[ChatMessageHandler] WebSocketManager not available');
@@ -92,19 +92,13 @@ export class ChatMessageHandler extends BasePacketHandler {
       return;
     }
 
-    // 如果没有会话 ID（chatId），记录警告但继续发送
-    if (!rawPacket.chatId) {
-      console.warn(
-        '[ChatMessageHandler] Missing chatId in packet, receive ACK may be incomplete',
-      );
-    }
-
     try {
-      MessageAckHelper.sendReceiveAck(this.wsManager, {
-        sender: currentPin || rawPacket.to.pin || '',
-        app: rawPacket.to.app,
+      this.wsManager.sendReceiveAck({
+        sender: rawPacket.from.pin,
+        app: rawPacket.from.app,
         mid: rawPacket.mid,
-        chatId: rawPacket.chatId || '',
+        // chatId 对于 chat_message 类型一定存在（服务端保证）
+        chatId: rawPacket.chatId,
         datetime: rawPacket.timestamp,
       });
     } catch (error) {
