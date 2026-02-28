@@ -30,7 +30,7 @@ export enum AckMessageTypeEnum {
         "app" : "fox_collect.waiter",
         "mid" ： "* 服务端消息id",
         "chatId" "会话组装规则",
-        "datetime": 1769063160893
+        "timestamp": 1769063160893
     }
 }
 ```
@@ -69,7 +69,7 @@ export enum AckMessageTypeEnum {
         "mid": 380406782,
         "chatId": "大头鹅712:im.customer:14695971",
         "id": "",
-        "datetime": 1769063160893
+        "timestamp": 1769063160893
     }
 }
 ```
