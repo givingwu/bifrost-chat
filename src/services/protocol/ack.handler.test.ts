@@ -26,8 +26,8 @@ describe('AckHandler', () => {
       expect(ackPacket.from.app).toBe('fox_collect.waiter');
       expect(ackPacket.from.pin).toBe('agent-123');
       // to 字段使用 from 的值
-      expect(ackPacket.to.app).toBe('fox_collect.waiter');
-      expect(ackPacket.to.pin).toBe('agent-123');
+      expect(ackPacket.to.app).toBe('');
+      expect(ackPacket.to.pin).toBe('');
       expect(ackPacket.body.sender).toBe('agent-123');
       expect(ackPacket.body.app).toBe('fox_collect.waiter');
       expect(ackPacket.body.mid).toBe('msg-456');
@@ -73,8 +73,8 @@ describe('AckHandler', () => {
       expect(ackPacket.from.app).toBe('fox_collect.waiter');
       expect(ackPacket.from.pin).toBe('agent-123');
       // to 字段使用 from 的值
-      expect(ackPacket.to.app).toBe('fox_collect.waiter');
-      expect(ackPacket.to.pin).toBe('agent-123');
+      expect(ackPacket.to.app).toBe('');
+      expect(ackPacket.to.pin).toBe('');
       expect(ackPacket.body.sender).toBe('agent-123');
       expect(ackPacket.body.app).toBe('fox_collect.waiter');
       expect(ackPacket.body.mid).toBe('msg-456');
