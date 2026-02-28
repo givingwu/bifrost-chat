@@ -119,7 +119,7 @@ export interface AckPacketBody {
   /** 消息 ID */
   mid: string;
   /** 会话 ID */
-  chatId?: string;
+  chatId: string;
   /** 消息时间戳 */
   datetime: number;
 }
@@ -185,9 +185,13 @@ export interface RichMediaPacketBody extends PacketBodyBase {
 export interface BaseRawPacket {
   /** 消息 ID（发起方生成 uuid） */
   id: string;
-  /** 消息服务端 id（投递服务生成） */
+  /**
+   * 消息服务端 id（投递服务生成）
+   *  - 客户端发送是没有的
+   *  - 服务端返回时一定有
+   */
   mid?: string;
-  /** 上一条消息 id */
+  /** 上一条消息 id，不一定有，视业务逻辑情况而定 */
   upid?: string;
   /** 发送人信息 */
   from: MessageParticipant;
@@ -227,18 +231,18 @@ export interface BaseRawPacket {
    * @see AckMessageTypeEnum
    */
   ptype: PacketMessageTypeEnum | AckMessageTypeEnum;
-  /** 协议版本 */
+  /** 协议版本，目前默认是 1.0.0 */
   ver: string;
   /** 服务端生成时间戳 */
   timestamp: number;
   /**
-   * SDK 入口(枚举)：
+   * 该字段暂未使用，SDK 入口(枚举)：
    *  - fox.system, fox.collect 电催详情
    *  - fox.telesales 电销
    */
   entry?: string;
-  /** 会话 ID */
-  chatId?: string;
+  /** 会话 ID（chat_message 类型必填） */
+  chatId: string;
 }
 
 /**

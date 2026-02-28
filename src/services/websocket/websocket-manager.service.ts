@@ -410,6 +410,7 @@ export class WebSocketManager {
     }
 
     const packet = PacketConverter.toRawPacket(message, fromApp, fromPin);
+
     this.send({
       ...packet,
       ...(extraFields ?? {}),
@@ -481,6 +482,7 @@ export class WebSocketManager {
       body: {
         token,
       },
+      chatId: '', // 登录消息不需要 chatId，但协议要求必须有，暂时填空字符串
       ver: '1.0',
       timestamp: Date.now(),
     };

@@ -167,6 +167,7 @@ export class MessageBuilder {
       toPin: string;
       channelType: ChannelTypeEnum;
       clientType?: ClientTypeEnum;
+      conversationId: string;
     },
   ): StandardMessage {
     // 验证必需字段
@@ -174,9 +175,14 @@ export class MessageBuilder {
       throw new Error('fromPin and toPin are required');
     }
 
+    if (!options.conversationId) {
+      throw new Error('conversationId is required');
+    }
+
     return {
       id: MessageBuilder.generateId(),
       tempId: MessageBuilder.generateTempId(),
+      conversationId: options.conversationId,
       direction: MessageDirectionEnum.Outgoing,
       channelType: options.channelType,
       status: MessageStatusEnum.Created,

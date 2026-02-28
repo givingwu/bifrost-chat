@@ -39,6 +39,7 @@ export class HeartbeatManager {
   static createHeartbeat(params: HeartbeatParams): RawPacket {
     const heartbeatPacket: RawPacket = {
       id: MessageBuilder.generateUniqueId(),
+      chatId: '', // 心跳消息不关联会话
       from: {
         app: params.fromApp,
         pin: params.fromPin,
@@ -95,6 +96,7 @@ export class HeartbeatManager {
   static createHeartbeatAck(originalHeartbeat: RawPacket): RawPacket {
     const ackPacket: RawPacket = {
       id: originalHeartbeat.id,
+      chatId: '', // 心跳 ACK 不关联会话
       from: originalHeartbeat.to,
       to: originalHeartbeat.from,
       ptype: PacketMessageTypeEnum.Ack,

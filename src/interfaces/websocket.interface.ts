@@ -191,10 +191,10 @@ export abstract class BasePacketHandler {
    * 提取会话 ID
    *
    * @param packet 数据包
-   * @returns 会话 ID
+   * @returns 会话 ID（如果不存在则返回空字符串）
    */
   protected extractChatId(packet: RawPacket | AckRawPacket): string {
-    return typeof packet.chatId === 'string' ? packet.chatId : '';
+    return packet.chatId;
   }
 
   /**

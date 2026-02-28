@@ -88,6 +88,7 @@ export class AckHandler {
   static createReadAck(params: ReadAckParams): AckRawPacket {
     const ackPacket: AckRawPacket = {
       id: MessageBuilder.generateUniqueId(),
+      chatId: params.chatId,
       from: {
         app: params.app,
         pin: params.sender,
@@ -125,6 +126,7 @@ export class AckHandler {
   static createReceiveAck(params: ReadAckParams): AckRawPacket {
     const ackPacket: AckRawPacket = {
       id: MessageBuilder.generateUniqueId(),
+      chatId: params.chatId,
       from: {
         app: params.app,
         pin: params.sender,

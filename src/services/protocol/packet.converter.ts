@@ -53,6 +53,7 @@ export class PacketConverter {
 
     const rawPacket: RawPacket = {
       id: message.id,
+      chatId: message.conversationId,
       from: {
         app: fromApp,
         pin: fromPin,
@@ -113,6 +114,7 @@ export class PacketConverter {
     const standardMessage: StandardMessage = {
       id: packet.mid || packet.id,
       tempId: packet.id,
+      conversationId: packet.chatId,
       direction: messageDirection || MessageDirectionEnum.Incoming,
       channelType,
       status: MessageStatusEnum.Sent,

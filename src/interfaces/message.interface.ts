@@ -145,6 +145,8 @@ export interface StandardMessage {
   id: string;
   /** 临时消息 ID（客户端生成） */
   tempId?: string;
+  /** 会话 ID */
+  conversationId: string;
   /** 消息方向 */
   direction: MessageDirectionEnum;
   /** 渠道类型 */
@@ -168,7 +170,7 @@ export interface StandardMessage {
   /** 离线消息 ID（用于重试/删除本地失败消息） */
   _offlineMessageId?: string;
   /** 错误信息（发送失败时） */
-  error?: string;
+  error?: string | Error;
 }
 
 /**
