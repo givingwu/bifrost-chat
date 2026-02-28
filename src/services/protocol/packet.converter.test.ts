@@ -17,6 +17,7 @@ describe('PacketConverter', () => {
       const standardMessage = {
         id: 'msg-123',
         tempId: 'temp-456',
+        conversationId: 'chat-789',
         direction: MessageDirectionEnum.Outgoing,
         channelType: ChannelTypeEnum.WhatsApp,
         status: MessageStatusEnum.Sent,
@@ -42,6 +43,7 @@ describe('PacketConverter', () => {
 
       expect(rawPacket).toBeDefined();
       expect(rawPacket.id).toBe('msg-123');
+      expect(rawPacket.chatId).toBe('chat-789');
       expect(rawPacket.mid).toBe('temp-456');
       expect(rawPacket.from.app).toBe('fox_collect.waiter');
       expect(rawPacket.from.pin).toBe('agent-123');
@@ -56,6 +58,7 @@ describe('PacketConverter', () => {
     it('应该正确转换文本消息', () => {
       const message = {
         id: 'msg-123',
+        conversationId: 'chat-789',
         direction: MessageDirectionEnum.Outgoing,
         channelType: ChannelTypeEnum.SMS,
         status: MessageStatusEnum.Sent,
@@ -92,6 +95,7 @@ describe('PacketConverter', () => {
     it('应该将 RawPacket 正确转换为 StandardMessage', () => {
       const rawPacket: RawPacket = {
         id: 'packet-123',
+        chatId: 'chat-789',
         mid: 'msg-456',
         from: {
           app: 'im.waiter',
@@ -121,6 +125,7 @@ describe('PacketConverter', () => {
       expect(standardMessage).toBeDefined();
       expect(standardMessage.id).toBe('msg-456');
       expect(standardMessage.tempId).toBe('packet-123');
+      expect(standardMessage.conversationId).toBe('chat-789');
       expect(standardMessage.direction).toBe(MessageDirectionEnum.Incoming);
       expect(standardMessage.channelType).toBe(ChannelTypeEnum.WhatsApp);
       expect(standardMessage.status).toBe(MessageStatusEnum.Sent);
@@ -135,6 +140,7 @@ describe('PacketConverter', () => {
     it('应该自动判断消息方向', () => {
       const rawPacket: RawPacket = {
         id: 'packet-123',
+        chatId: 'chat-789',
         from: {
           app: 'fox_collect.waiter',
           pin: 'agent-123',
@@ -166,6 +172,7 @@ describe('PacketConverter', () => {
     it('应该正确解析文本消息', () => {
       const rawPacket: RawPacket = {
         id: 'packet-123',
+        chatId: 'chat-789',
         from: {
           app: 'im.waiter',
           pin: 'customer-456',
@@ -192,6 +199,7 @@ describe('PacketConverter', () => {
     it('应该正确解析图片消息', () => {
       const rawPacket: RawPacket = {
         id: 'packet-123',
+        chatId: 'chat-789',
         from: {
           app: 'im.waiter',
           pin: 'customer-456',
@@ -226,6 +234,7 @@ describe('PacketConverter', () => {
     it('应该正确处理未知渠道类型', () => {
       const rawPacket: RawPacket = {
         id: 'packet-123',
+        chatId: 'chat-789',
         from: {
           app: 'im.waiter',
           pin: 'customer-456',
@@ -256,6 +265,7 @@ describe('PacketConverter', () => {
       const originalMessage = {
         id: 'msg-123',
         tempId: 'temp-456',
+        conversationId: 'chat-789',
         direction: MessageDirectionEnum.Outgoing,
         channelType: ChannelTypeEnum.WhatsApp,
         status: MessageStatusEnum.Sent,
@@ -293,6 +303,9 @@ describe('PacketConverter', () => {
       // 转换回 StandardMessage 时，id 使用 mid（服务端 ID），tempId 使用 id（临时 ID）
       expect(convertedMessage.id).toBe(originalMessage.tempId);
       expect(convertedMessage.tempId).toBe(originalMessage.id);
+      expect(convertedMessage.conversationId).toBe(
+        originalMessage.conversationId,
+      );
       expect(convertedMessage.direction).toBe(originalMessage.direction);
       expect(convertedMessage.channelType).toBe(originalMessage.channelType);
       expect(convertedMessage.type).toBe(originalMessage.type);

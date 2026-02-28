@@ -44,6 +44,7 @@ function createMessage(
 ): StandardMessage {
   return {
     id,
+    conversationId: 'conv-mark-read',
     direction: MessageDirectionEnum.Incoming,
     channelType: ChannelTypeEnum.WhatsApp,
     status,

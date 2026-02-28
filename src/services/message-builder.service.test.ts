@@ -14,6 +14,7 @@ describe('MessageBuilder', () => {
       fromPin: 'agent-1',
       toPin: 'user-1',
       channelType: ChannelTypeEnum.SMS,
+      conversationId: 'conv-1',
     });
 
     expect(message.content).toEqual({ text: 'Hello' });
@@ -31,11 +32,13 @@ describe('MessageBuilder', () => {
       fromPin: 'agent-1',
       toPin: 'user-1',
       channelType: ChannelTypeEnum.SMS,
+      conversationId: 'conv-1',
     });
     const message2 = MessageBuilder.buildTextMessage('World', {
       fromPin: 'agent-1',
       toPin: 'user-1',
       channelType: ChannelTypeEnum.SMS,
+      conversationId: 'conv-1',
     });
 
     expect(message1.id).not.toBe(message2.id);
@@ -61,6 +64,7 @@ describe('MessageBuilder', () => {
       channelType: ChannelTypeEnum.WhatsApp,
       sender: customSender,
       receiver: customReceiver,
+      conversationId: 'conv-1',
     });
 
     expect(message.sender).toEqual(customSender);
@@ -73,6 +77,7 @@ describe('MessageBuilder', () => {
       toPin: 'user-1',
       channelType: ChannelTypeEnum.SMS,
       type: MessageTypeEnum.Image,
+      conversationId: 'conv-1',
     });
 
     expect(message.type).toBe(MessageTypeEnum.Text);

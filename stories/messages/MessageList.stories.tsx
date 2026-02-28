@@ -40,6 +40,7 @@ const createMessage = (
   timestamp?: number,
 ): StandardMessage => ({
   id: `msg-${Math.random()}`,
+  conversationId: 'conv-story-default',
   direction,
   channelType: ChannelTypeEnum.WhatsApp,
   status,

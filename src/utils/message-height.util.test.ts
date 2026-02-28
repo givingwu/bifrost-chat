@@ -19,6 +19,7 @@ function createMockMessage(
 ): StandardMessage {
   return {
     id: overrides.id ?? 'msg-default',
+    conversationId: overrides.conversationId ?? 'chat-default',
     direction: overrides.direction ?? MessageDirectionEnum.Incoming,
     channelType: overrides.channelType ?? ChannelTypeEnum.WhatsApp,
     status: overrides.status ?? MessageStatusEnum.Sent,

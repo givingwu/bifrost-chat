@@ -90,6 +90,7 @@ function createMessage(
 ): StandardMessage {
   return {
     id,
+    conversationId: 'conv-mark-read',
     direction,
     channelType: ChannelTypeEnum.WhatsApp,
     status,

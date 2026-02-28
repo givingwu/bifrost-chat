@@ -109,6 +109,7 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
 
       const ackPacket: RawPacket = {
         id: 'ack-123',
+        chatId: '',
         from: { app: 'test-app', pin: 'test-pin' },
         to: { app: 'receiver-app', pin: 'receiver-pin' },
         ptype: PacketMessageTypeEnum.Ack,
@@ -132,6 +133,7 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
 
       const ackPacket: RawPacket = {
         id: 'ack-123',
+        chatId: '',
         from: { app: 'test-app', pin: 'test-pin' },
         to: { app: 'receiver-app', pin: 'receiver-pin' },
         ptype: PacketMessageTypeEnum.Ack,
@@ -155,6 +157,7 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
 
       const ackPacket: RawPacket = {
         id: 'ack-123',
+        chatId: '',
         from: { app: 'test-app', pin: 'test-pin' },
         to: { app: 'receiver-app', pin: 'receiver-pin' },
         ptype: PacketMessageTypeEnum.Ack,
@@ -178,6 +181,7 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
 
       const ackPacket: RawPacket = {
         id: 'ack-123',
+        chatId: '',
         from: { app: 'test-app', pin: 'test-pin' },
         to: { app: 'receiver-app', pin: 'receiver-pin' },
         ptype: PacketMessageTypeEnum.Ack,
@@ -201,6 +205,7 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
 
       const ackPacket: RawPacket = {
         id: 'ack-123',
+        chatId: '',
         from: { app: 'test-app', pin: 'test-pin' },
         to: { app: 'receiver-app', pin: 'receiver-pin' },
         ptype: PacketMessageTypeEnum.Ack,
@@ -224,6 +229,7 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
 
       const heartbeatAck: RawPacket = {
         id: 'heartbeat-123',
+        chatId: '',
         from: { app: 'test-app', pin: 'test-pin' },
         to: { app: 'receiver-app', pin: 'receiver-pin' },
         ptype: PacketMessageTypeEnum.Ack,
@@ -313,6 +319,7 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
 
       const heartbeatAck: RawPacket = {
         id: 'heartbeat-123',
+        chatId: '',
         from: { app: 'test-app', pin: 'test-pin' },
         to: { app: 'receiver-app', pin: 'receiver-pin' },
         ptype: PacketMessageTypeEnum.Ack,
@@ -342,6 +349,7 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
 
       const message: StandardMessage = {
         id: 'msg-123',
+        conversationId: 'chat-789',
         direction: MessageDirectionEnum.Outgoing,
         channelType: ChannelTypeEnum.WhatsApp,
         status: MessageStatusEnum.Sent,
@@ -369,6 +377,7 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
 
       const packet: RawPacket = {
         id: 'packet-123',
+        chatId: 'chat-789',
         mid: 'msg-456',
         from: { app: 'sender-app', pin: 'sender-pin' },
         to: { app: 'test-app', pin: 'test-pin' },
@@ -401,6 +410,7 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
       const originalMessage: StandardMessage = {
         id: 'msg-123',
         tempId: 'temp-456',
+        conversationId: 'chat-789',
         direction: MessageDirectionEnum.Outgoing,
         channelType: ChannelTypeEnum.WhatsApp,
         status: MessageStatusEnum.Sent,
@@ -431,6 +441,7 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
 
       const packet: RawPacket = {
         id: 'packet-123',
+        chatId: 'conv-789',
         mid: 'msg-456',
         from: {
           app: 'sender-app',
@@ -449,7 +460,6 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
         },
         ver: '1.0',
         timestamp: Date.now(),
-        chatId: 'conv-789',
       };
 
       (manager as any).handleMessage(
@@ -473,6 +483,7 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
 
       const packet: RawPacket = {
         id: 'packet-123',
+        chatId: 'chat-789',
         from: {
           app: 'test-app',
           pin: 'test-pin', // 与 currentPin 相同，应该是 Outgoing
@@ -518,6 +529,7 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
 
       const unknownPacket: RawPacket = {
         id: 'unknown-123',
+        chatId: '',
         from: { app: 'test-app', pin: 'test-pin' },
         to: { app: 'receiver-app', pin: 'receiver-pin' },
         ptype: 'unknown_type' as PacketMessageTypeEnum,
@@ -542,6 +554,7 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
 
       const packet: RawPacket = {
         id: 'msg-123',
+        chatId: 'chat-789',
         from: { app: 'sender-app', pin: 'sender-pin' },
         to: { app: 'test-app', pin: 'test-pin' },
         ptype: PacketMessageTypeEnum.ChatMessage,
@@ -566,6 +579,7 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
 
       const packet: RawPacket = {
         id: 'msg-123',
+        chatId: 'chat-789',
         from: { app: 'sender-app', pin: 'sender-pin' },
         to: { app: 'test-app', pin: 'test-pin' },
         ptype: PacketMessageTypeEnum.ChatMessage,
@@ -612,6 +626,7 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
 
       const authFailPacket: RawPacket = {
         id: 'auth-fail-123',
+        chatId: '',
         from: { app: 'server', pin: 'system' },
         to: { app: 'test-app', pin: 'test-pin' },
         ptype: PacketMessageTypeEnum.AuthFail,
@@ -640,6 +655,7 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
 
       const packet: RawPacket = {
         id: 'msg-123',
+        chatId: 'chat-789',
         from: { app: 'sender-app', pin: 'sender-pin' },
         to: { app: 'test-app', pin: 'test-pin' },
         ptype: PacketMessageTypeEnum.ChatMessage,
@@ -709,6 +725,7 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
 
       const packet: RawPacket = {
         id: 'msg-123',
+        chatId: 'chat-789',
         from: { app: 'sender-app', pin: 'sender-pin' },
         to: { app: 'test-app', pin: 'test-pin' },
         ptype: PacketMessageTypeEnum.ChatMessage,

@@ -260,6 +260,7 @@ class MockMessageService implements IMessageService {
 
         return {
           id: `msg-${id}`,
+          conversationId,
           direction,
           channelType: channels[i % channels.length],
           status: statuses[i % statuses.length],

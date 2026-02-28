@@ -32,6 +32,7 @@ export default meta;
 type Story = StoryObj<typeof MessageRendererFactory>;
 
 const baseMessage = {
+  conversationId: 'conv-story-default',
   direction: MessageDirectionEnum.Incoming,
   channelType: ChannelTypeEnum.WhatsApp,
   status: MessageStatusEnum.Read,

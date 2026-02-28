@@ -89,6 +89,7 @@ type Story = StoryObj<typeof ChatLayout>;
 // Mock 数据
 const mockConversations = [
   {
+    conversationId: 'conv-1',
     id: '1',
     user: {
       id: 'user1',
@@ -103,6 +104,7 @@ const mockConversations = [
     isActive: true,
   },
   {
+    conversationId: 'conv-1',
     id: '2',
     user: {
       id: 'user2',
@@ -132,6 +134,7 @@ const mockConversations = [
 
 const mockMessages = [
   {
+    conversationId: 'conv-1',
     id: '1',
     tempId: 'temp1',
     direction: MessageDirectionEnum.Incoming,
@@ -152,6 +155,7 @@ const mockMessages = [
     },
   },
   {
+    conversationId: 'conv-1',
     id: '2',
     tempId: 'temp2',
     direction: MessageDirectionEnum.Outgoing,

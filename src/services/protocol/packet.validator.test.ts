@@ -72,6 +72,7 @@ describe('PacketValidator', () => {
       const validPackets = [
         {
           id: 'msg-123',
+          chatId: 'chat-789',
           from: { app: 'test', pin: '123' },
           to: { app: 'test', pin: '456' },
           ptype: PacketMessageTypeEnum.ChatMessage,
@@ -81,6 +82,7 @@ describe('PacketValidator', () => {
         },
         {
           id: 'ack-123',
+          chatId: '',
           from: { app: 'test', pin: '123' },
           to: { app: 'test', pin: '456' },
           ptype: PacketMessageTypeEnum.Ack,
@@ -151,6 +153,7 @@ describe('PacketValidator', () => {
     it('应该识别有效的 RawPacket', () => {
       const validPacket = {
         id: 'msg-123',
+        chatId: 'chat-789',
         from: { app: 'test', pin: '123' },
         to: { app: 'test', pin: '456' },
         ptype: PacketMessageTypeEnum.ChatMessage,
@@ -168,6 +171,7 @@ describe('PacketValidator', () => {
         { id: 'msg-123' }, // 只有 id
         {
           id: 'msg-123',
+          chatId: 'chat-789',
           from: { app: 'test', pin: '123' },
           to: { app: 'test', pin: '456' },
           // 缺少 ptype
@@ -177,6 +181,7 @@ describe('PacketValidator', () => {
         },
         {
           id: 'msg-123',
+          chatId: 'chat-789',
           from: { app: 'test', pin: '123' },
           to: { app: 'test', pin: '456' },
           ptype: PacketMessageTypeEnum.ChatMessage,
@@ -194,6 +199,7 @@ describe('PacketValidator', () => {
     it('应该拒绝无效的 ptype 值', () => {
       const invalidPacket = {
         id: 'msg-123',
+        chatId: 'chat-789',
         from: { app: 'test', pin: '123' },
         to: { app: 'test', pin: '456' },
         ptype: 'invalid_type',
@@ -209,6 +215,7 @@ describe('PacketValidator', () => {
       const invalidPackets = [
         {
           id: 123, // 应该是字符串
+          chatId: 'chat-789',
           from: { app: 'test', pin: '123' },
           to: { app: 'test', pin: '456' },
           ptype: PacketMessageTypeEnum.ChatMessage,
@@ -218,6 +225,7 @@ describe('PacketValidator', () => {
         },
         {
           id: 'msg-123',
+          chatId: 'chat-789',
           from: 'test', // 应该是对象
           to: { app: 'test', pin: '456' },
           ptype: PacketMessageTypeEnum.ChatMessage,
@@ -227,6 +235,7 @@ describe('PacketValidator', () => {
         },
         {
           id: 'msg-123',
+          chatId: 'chat-789',
           from: { app: 'test', pin: '123' },
           to: { app: 'test', pin: '456' },
           ptype: PacketMessageTypeEnum.ChatMessage,
@@ -236,6 +245,7 @@ describe('PacketValidator', () => {
         },
         {
           id: 'msg-123',
+          chatId: 'chat-789',
           from: { app: 'test', pin: '123' },
           to: { app: 'test', pin: '456' },
           ptype: PacketMessageTypeEnum.ChatMessage,
@@ -245,6 +255,7 @@ describe('PacketValidator', () => {
         },
         {
           id: 'msg-123',
+          chatId: 'chat-789',
           from: { app: 'test', pin: '123' },
           to: { app: 'test', pin: '456' },
           ptype: PacketMessageTypeEnum.ChatMessage,
@@ -312,6 +323,7 @@ describe('PacketValidator', () => {
     it('ensurePType 应该作为类型守卫', () => {
       const data: unknown = {
         id: 'msg-123',
+        chatId: 'chat-789',
         from: { app: 'test', pin: '123' },
         to: { app: 'test', pin: '456' },
         ptype: PacketMessageTypeEnum.ChatMessage,
@@ -325,6 +337,7 @@ describe('PacketValidator', () => {
       // 在这里 TypeScript 应该知道 data 是 RawPacket 类型
       expect(data).toHaveProperty('ptype');
       expect(data).toHaveProperty('id');
+      expect(data).toHaveProperty('chatId');
       expect(data).toHaveProperty('from');
       expect(data).toHaveProperty('to');
       expect(data).toHaveProperty('body');
@@ -335,6 +348,7 @@ describe('PacketValidator', () => {
     it('isValidRawPacket 应该作为类型守卫', () => {
       const data: unknown = {
         id: 'msg-123',
+        chatId: 'chat-789',
         from: { app: 'test', pin: '123' },
         to: { app: 'test', pin: '456' },
         ptype: PacketMessageTypeEnum.ChatMessage,
@@ -347,6 +361,7 @@ describe('PacketValidator', () => {
         // 在这里 TypeScript 应该知道 data 是 RawPacket 类型
         expect(data.ptype).toBe(PacketMessageTypeEnum.ChatMessage);
         expect(data.id).toBe('msg-123');
+        expect(data.chatId).toBe('chat-789');
       } else {
         expect(true).toBe(false); // 不应该到达这里
       }
@@ -357,6 +372,7 @@ describe('PacketValidator', () => {
     it('应该处理包含额外字段的数据包', () => {
       const packetWithExtraFields = {
         id: 'msg-123',
+        chatId: 'chat-789',
         from: { app: 'test', pin: '123' },
         to: { app: 'test', pin: '456' },
         ptype: PacketMessageTypeEnum.ChatMessage,
@@ -376,6 +392,7 @@ describe('PacketValidator', () => {
     it('应该处理包含可选字段的数据包', () => {
       const packetWithOptionalFields = {
         id: 'msg-123',
+        chatId: 'chat-789',
         mid: 'msg-456',
         upid: 'msg-789',
         from: { app: 'test', pin: '123' },
@@ -384,7 +401,6 @@ describe('PacketValidator', () => {
         body: {},
         ver: '1.0',
         timestamp: Date.now(),
-        chatId: 'chat-123',
         entry: 'web',
       };
 

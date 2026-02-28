@@ -27,6 +27,7 @@ describe('MessageSyncService', () => {
   ): StandardMessage {
     return {
       id,
+      conversationId: 'conv-1',
       tempId: options?.tempId,
       direction: MessageDirectionEnum.Incoming,
       channelType: ChannelTypeEnum.WhatsApp,

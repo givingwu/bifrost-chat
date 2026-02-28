@@ -122,6 +122,7 @@ const mockMessages = [
   {
     id: '1',
     tempId: 'temp1',
+    conversationId: 'conv-1',
     direction: MessageDirectionEnum.Incoming,
     channelType: ChannelTypeEnum.Waba,
     status: MessageStatusEnum.Sent,
@@ -142,6 +143,7 @@ const mockMessages = [
   {
     id: '2',
     tempId: 'temp2',
+    conversationId: 'conv-1',
     direction: MessageDirectionEnum.Outgoing,
     channelType: ChannelTypeEnum.Waba,
     status: MessageStatusEnum.Sent,

@@ -33,6 +33,7 @@ type Story = StoryObj<typeof MessageActions>;
 export const Default: Story = {
   args: {
     message: {
+      conversationId: 'conv-123',
       id: 'msg-1',
       tempId: 'temp-1',
       direction: MessageDirectionEnum.Outgoing,
@@ -55,6 +56,7 @@ export const Default: Story = {
 export const WithError: Story = {
   args: {
     message: {
+      conversationId: 'conv-123',
       id: 'msg-2',
       tempId: 'temp-2',
       direction: MessageDirectionEnum.Outgoing,
@@ -77,6 +79,7 @@ export const WithError: Story = {
 export const WithoutError: Story = {
   args: {
     message: {
+      conversationId: 'conv-123',
       id: 'msg-3',
       tempId: 'temp-3',
       direction: MessageDirectionEnum.Outgoing,
@@ -98,6 +101,7 @@ export const WithoutError: Story = {
 export const NotLocalFailed: Story = {
   args: {
     message: {
+      conversationId: 'conv-123',
       id: 'msg-4',
       tempId: 'temp-4',
       direction: MessageDirectionEnum.Outgoing,
@@ -119,6 +123,7 @@ export const NotLocalFailed: Story = {
 export const WithoutConversationId: Story = {
   args: {
     message: {
+      conversationId: 'conv-123',
       id: 'msg-5',
       tempId: 'temp-5',
       direction: MessageDirectionEnum.Outgoing,
@@ -141,6 +146,7 @@ export const WithoutConversationId: Story = {
 export const NotFailedStatus: Story = {
   args: {
     message: {
+      conversationId: 'conv-123',
       id: 'msg-6',
       tempId: 'temp-6',
       direction: MessageDirectionEnum.Outgoing,

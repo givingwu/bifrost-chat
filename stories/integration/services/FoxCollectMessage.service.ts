@@ -137,7 +137,11 @@ export class FoxCollectMessageService
       };
     }
 
-    const standardMessage = this.buildStandardMessage(params, tempId);
+    const standardMessage = this.buildStandardMessage(
+      params,
+      tempId,
+      conversationId,
+    );
 
     if (this.wsManager.isConnected()) {
       this.wsManager.sendStandardMessage(standardMessage, {
@@ -297,6 +301,7 @@ export class FoxCollectMessageService
   private buildStandardMessage(
     params: FoxCollectSendParams,
     messageId: string,
+    chatId: string,
   ): StandardMessage {
     const channelType = params.channelType ?? ChannelTypeEnum.WhatsApp;
     const payloadType = params.type ?? 'custom';
@@ -304,6 +309,7 @@ export class FoxCollectMessageService
     return {
       id: messageId,
       tempId: messageId,
+      conversationId: chatId,
       direction: MessageDirectionEnum.Outgoing,
       channelType,
       status: MessageStatusEnum.Sending,

@@ -43,6 +43,7 @@ function createFailedMessage(offlineMessageId: string): StandardMessage {
   return {
     id: `msg-${offlineMessageId}`,
     tempId: `temp-${offlineMessageId}`,
+    conversationId: 'chat-test-123',
     direction: MessageDirectionEnum.Outgoing,
     channelType: ChannelTypeEnum.WhatsApp,
     status: MessageStatusEnum.Failed,

@@ -97,7 +97,9 @@ export const MessageActions = memo(
         {/* 错误提示 */}
         {message.error && (
           <span className="text-xs text-error/80" role="alert">
-            {message.error}
+            {message.error instanceof Error
+              ? message.error.message
+              : message.error}
           </span>
         )}
       </div>

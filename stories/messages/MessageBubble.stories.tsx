@@ -40,6 +40,7 @@ const createMessage = (
   content: StandardMessage['content'],
 ): StandardMessage => ({
   id: 'msg-1',
+  conversationId: 'conv-123',
   direction,
   channelType: ChannelTypeEnum.WhatsApp,
   status,
@@ -233,6 +234,7 @@ export const FailedMessage = () => {
 export const Sent: Story = {
   args: {
     message: {
+      conversationId: 'conv-123',
       id: 'msg-1',
       direction: MessageDirectionEnum.Outgoing,
       channelType: 'whatsapp' as any,
@@ -251,6 +253,7 @@ export const Sent: Story = {
 export const Failed: Story = {
   args: {
     message: {
+      conversationId: 'conv-123',
       id: 'msg-2',
       tempId: 'temp-2',
       direction: MessageDirectionEnum.Outgoing,
@@ -273,6 +276,7 @@ export const Failed: Story = {
 export const FailedWithError: Story = {
   args: {
     message: {
+      conversationId: 'conv-123',
       id: 'msg-3',
       tempId: 'temp-3',
       direction: MessageDirectionEnum.Outgoing,
@@ -295,6 +299,7 @@ export const FailedWithError: Story = {
 export const FailedWithIncomingError: Story = {
   args: {
     message: {
+      conversationId: 'conv-123',
       id: 'msg-3',
       tempId: 'temp-3',
       direction: MessageDirectionEnum.Incoming,
@@ -317,6 +322,7 @@ export const FailedWithIncomingError: Story = {
 export const IncomingMessage: Story = {
   args: {
     message: {
+      conversationId: 'conv-123',
       id: 'msg-4',
       direction: MessageDirectionEnum.Incoming,
       channelType: 'whatsapp' as any,
@@ -335,6 +341,7 @@ export const IncomingMessage: Story = {
 export const Sending: Story = {
   args: {
     message: {
+      conversationId: 'conv-123',
       id: 'msg-5',
       tempId: 'temp-5',
       direction: MessageDirectionEnum.Outgoing,
@@ -354,6 +361,7 @@ export const Sending: Story = {
 export const FailedImage: Story = {
   args: {
     message: {
+      conversationId: 'conv-123',
       id: 'msg-6',
       tempId: 'temp-6',
       direction: MessageDirectionEnum.Outgoing,
