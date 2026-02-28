@@ -2,9 +2,17 @@ import type { User } from './conversation.interface';
 
 /**
  * Agent 状态枚举
+ * 对应文档: specs/bifrost-client-integration-guide.md 3.4.5
+ *
+ * 服务端状态映射:
+ * - offline → Offline
+ * - ready → Online
+ * - rest → Away
+ * - busy → Busy
+ * - hang_up → HangUp
  */
 export enum AgentStatusEnum {
-  /** 在线 */
+  /** 在线（对应服务端 ready） */
   Online = 'online',
   /** 离线 */
   Offline = 'offline',
@@ -12,10 +20,12 @@ export enum AgentStatusEnum {
   InCall = 'in_call',
   /** 忙碌 */
   Busy = 'busy',
-  /** 离开 */
+  /** 离开（对应服务端 rest） */
   Away = 'away',
   /** 请勿打扰 */
   DoNotDisturb = 'do_not_disturb',
+  /** 挂起 */
+  HangUp = 'hang_up',
 }
 
 /**
@@ -68,4 +78,48 @@ export interface AgentStats {
   avgResponseTime: number;
   /** 满意度评分 */
   satisfactionScore?: number;
+}
+
+/**
+ * 服务端 AgentStatus 类型
+ */
+export type ServerAgentStatus =
+  | 'offline'
+  | 'ready'
+  | 'rest'
+  | 'busy'
+  | 'hang_up';
+
+/**
+ * 服务端 AgentStatus → SDK AgentStatusEnum 映射
+ */
+export function mapServerAgentStatusToLocal(
+  serverStatus: ServerAgentStatus,
+): AgentStatusEnum {
+  const mapping: Record<ServerAgentStatus, AgentStatusEnum> = {
+    offline: AgentStatusEnum.Offline,
+    ready: AgentStatusEnum.Online,
+    rest: AgentStatusEnum.Away,
+    busy: AgentStatusEnum.Busy,
+    hang_up: AgentStatusEnum.HangUp,
+  };
+  return mapping[serverStatus] ?? AgentStatusEnum.Offline;
+}
+
+/**
+ * SDK AgentStatusEnum → 服务端 AgentStatus 映射
+ */
+export function mapLocalAgentStatusToServer(
+  localStatus: AgentStatusEnum,
+): ServerAgentStatus {
+  const mapping: Record<AgentStatusEnum, ServerAgentStatus> = {
+    [AgentStatusEnum.Online]: 'ready',
+    [AgentStatusEnum.Offline]: 'offline',
+    [AgentStatusEnum.Away]: 'rest',
+    [AgentStatusEnum.Busy]: 'busy',
+    [AgentStatusEnum.HangUp]: 'hang_up',
+    [AgentStatusEnum.InCall]: 'busy',
+    [AgentStatusEnum.DoNotDisturb]: 'busy',
+  };
+  return mapping[localStatus] ?? 'offline';
 }

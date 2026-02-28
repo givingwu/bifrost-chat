@@ -99,7 +99,7 @@ export class ChatMessageHandler extends BasePacketHandler {
         mid: rawPacket.mid,
         // chatId 对于 chat_message 类型一定存在（服务端保证）
         chatId: rawPacket.chatId,
-        datetime: rawPacket.timestamp,
+        timestamp: rawPacket.timestamp,
       });
     } catch (error) {
       // ACK 发送失败不应影响消息处理流程

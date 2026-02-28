@@ -40,9 +40,8 @@ export interface MessageTypeConfig {
 /**
  * 各渠道的默认消息类型支持列表
  */
-export const DEFAULT_CHANNEL_MESSAGE_TYPES: Record<
-  ChannelTypeEnum,
-  MessageTypeEnum[]
+export const DEFAULT_CHANNEL_MESSAGE_TYPES: Partial<
+  Record<ChannelTypeEnum, MessageTypeEnum[]>
 > = {
   // SMS: 仅支持文本消息
   [ChannelTypeEnum.SMS]: [MessageTypeEnum.Text],
@@ -76,6 +75,20 @@ export const DEFAULT_CHANNEL_MESSAGE_TYPES: Record<
     MessageTypeEnum.Template,
     MessageTypeEnum.RichMedia,
   ],
+
+  // Viber: 支持多种消息类型
+  [ChannelTypeEnum.Viber]: [
+    MessageTypeEnum.Text,
+    MessageTypeEnum.Image,
+    MessageTypeEnum.Video,
+    MessageTypeEnum.Audio,
+    MessageTypeEnum.File,
+    MessageTypeEnum.Location,
+    MessageTypeEnum.Template,
+  ],
+
+  // IVR: 仅支持语音
+  [ChannelTypeEnum.IVR]: [MessageTypeEnum.Audio],
 };
 
 /**

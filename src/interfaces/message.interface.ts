@@ -12,6 +12,7 @@ export enum MessageDirectionEnum {
 
 /**
  * 消息状态枚举，对应 ACK 协议中的 msg_receive_ack/msg_read_ack
+ * 服务端状态映射: UN_SEND→Sending, SEND_FAIL→Failed, UN_READ→Delivered, READ→Read, REVOKE→Revoked, DELETE→Deleted
  */
 export enum MessageStatusEnum {
   /** 消息创建（客户端生成临时消息） */
@@ -28,6 +29,10 @@ export enum MessageStatusEnum {
   Failed = 'failed',
   /** 消息在离线队列中等待发送 */
   Queued = 'queued',
+  /** 消息已撤回 */
+  Revoked = 'revoked',
+  /** 消息已删除 */
+  Deleted = 'deleted',
 }
 
 /**
@@ -113,14 +118,19 @@ export type MessageContent =
 
 /**
  * 客户端类型
+ * 对应文档: specs/bifrost-client-integration-guide.md 3.4.1
  */
 export enum ClientTypeEnum {
-  /** - ios("ios", "ios"), */
+  /** iOS 客户端 */
   IOS = 'ios',
-  /** - android("android", "Android"), */
+  /** Android 客户端 */
   Android = 'android',
-  /** - web("web", "web"), */
+  /** Web 浏览器客户端 */
   Web = 'web',
+  /** PC 桌面客户端 */
+  PC = 'pc',
+  /** 网关/系统内部调用 */
+  GW = 'gw',
 }
 
 /**

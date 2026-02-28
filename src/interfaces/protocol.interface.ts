@@ -1,12 +1,13 @@
-import type {
-  IAuthMessage,
-  ILocationMessage,
-  IMediaMessage,
-  IRichMediaMessage,
-  IStringMessage,
-  ITemplateMessage,
-  MessageParticipant,
-  MessageTypeEnum,
+import {
+  type IAuthMessage,
+  type ILocationMessage,
+  type IMediaMessage,
+  type IRichMediaMessage,
+  type IStringMessage,
+  type ITemplateMessage,
+  type MessageParticipant,
+  MessageStatusEnum,
+  type MessageTypeEnum,
 } from './message.interface';
 
 /**
@@ -68,6 +69,8 @@ export enum PacketMessageTypeEnum {
   StatusSwitch = 'status_switch',
   /** 触达回复消息发送结果 */
   FoxMessageAck = 'fox_message_ack',
+  /** 删除会话指令 */
+  DeleteChat = 'delete_chat',
 }
 
 /**
@@ -105,24 +108,9 @@ export type PacketBody =
   | LocationPacketBody
   | RichMediaPacketBody
   | AuthPacketBody
+  | StatusSwitchBody
+  | DeleteChatBody
   | PacketBodyBase;
-
-/**
- * ACK 消息体
- * 用于 ACK 协议的专用消息体
- */
-export interface AckPacketBody {
-  /** 发送者 PIN */
-  sender: string;
-  /** 应用 ID */
-  app: string;
-  /** 消息 ID */
-  mid: string;
-  /** 会话 ID */
-  chatId: string;
-  /** 消息时间戳 */
-  datetime: number;
-}
 
 export interface AuthPacketBody extends IAuthMessage {}
 
@@ -213,6 +201,7 @@ export interface BaseRawPacket {
    * - `msg_read_ack` - 已读消息 ACK（上行协议）
    * - `client_heartbeat` - 心跳
    * - `status_switch` - 状态切换
+   * - `delete_chat` - 删除会话指令
    *
    * @example
    * ```typescript
@@ -244,6 +233,8 @@ export interface BaseRawPacket {
   entry?: string;
   /** 会话 ID（chat_message 类型必填） */
   chatId: string;
+  /** 消息状态（见 MessageStatus） */
+  status?: ServerMessageStatus;
 }
 
 /**
@@ -265,25 +256,20 @@ export interface AckRawPacket extends BaseRawPacket {
 }
 
 /**
- * ACK 协议参数
- *
- * @description
- * 创建已读 ACK 消息所需的参数
- *
- * @note
- * 根据 ACK 协议规范，使用 chatId 而不是 sessionId
+ * ACK 消息体
+ * 用于 ACK 协议的专用消息体
  */
-export interface ReadAckParams {
-  /** 发送者 PIN（通常是当前用户） */
+export interface AckPacketBody {
+  /** 发送者 PIN */
   sender: string;
   /** 应用 ID */
   app: string;
-  /** 消息 ID（要确认已读的消息 ID） */
+  /** 消息 ID */
   mid: string;
-  /** 会话 ID（对应协议中的 chatId） */
+  /** 会话 ID */
   chatId: string;
   /** 消息时间戳 */
-  datetime: number;
+  timestamp: number;
 }
 
 /**
@@ -301,6 +287,26 @@ export interface HeartbeatParams {
   toApp: string;
   /** 接收方 PIN */
   toPin: string;
+}
+
+/**
+ * 坐席状态切换 Body 结构
+ * 对应文档: specs/bifrost-client-integration-guide.md 3.5.8
+ */
+export interface StatusSwitchBody {
+  /** 目标状态: offline/ready/rest/busy/hang_up */
+  status: string;
+  /** 扩展信息（JSON 字符串） */
+  ext?: string;
+}
+
+/**
+ * 删除会话 Body 结构
+ * 对应文档: specs/bifrost-client-integration-guide.md 4.12
+ */
+export interface DeleteChatBody {
+  /** 会话 ID */
+  chatId: string;
 }
 
 /**
@@ -325,6 +331,57 @@ export function isAckPacketBody(body: unknown): body is AckPacketBody {
     'sender' in body &&
     'app' in body &&
     'mid' in body &&
-    'datetime' in body
+    'timestamp' in body
   );
+}
+
+/**
+ * 服务端 MessageStatus 类型
+ * 对应文档: specs/bifrost-client-integration-guide.md 3.4.4
+ */
+export type ServerMessageStatus =
+  | 'UN_SEND'
+  | 'SEND_FAIL'
+  | 'UN_READ'
+  | 'READ'
+  | 'REVOKE'
+  | 'DELETE';
+
+/**
+ * 服务端 MessageStatus → SDK MessageStatusEnum 映射
+ */
+export function mapServerMessageStatusToLocal(
+  serverStatus: ServerMessageStatus,
+): MessageStatusEnum {
+  const mapping: Record<ServerMessageStatus, MessageStatusEnum> = {
+    UN_SEND: MessageStatusEnum.Sending,
+    SEND_FAIL: MessageStatusEnum.Failed,
+    UN_READ: MessageStatusEnum.Delivered,
+    READ: MessageStatusEnum.Read,
+    REVOKE: MessageStatusEnum.Revoked,
+    DELETE: MessageStatusEnum.Deleted,
+  };
+
+  return mapping[serverStatus] ?? MessageStatusEnum.Sending;
+}
+
+/**
+ * SDK MessageStatusEnum → 服务端 MessageStatus 映射
+ */
+export function mapLocalMessageStatusToServer(
+  localStatus: MessageStatusEnum,
+): ServerMessageStatus | null {
+  const mapping: Record<MessageStatusEnum, ServerMessageStatus | null> = {
+    [MessageStatusEnum.Created]: 'UN_SEND',
+    [MessageStatusEnum.Sending]: 'UN_SEND',
+    [MessageStatusEnum.Sent]: 'UN_SEND',
+    [MessageStatusEnum.Delivered]: 'UN_READ',
+    [MessageStatusEnum.Read]: 'READ',
+    [MessageStatusEnum.Failed]: 'SEND_FAIL',
+    [MessageStatusEnum.Queued]: 'UN_SEND',
+    [MessageStatusEnum.Revoked]: 'REVOKE',
+    [MessageStatusEnum.Deleted]: 'DELETE',
+  };
+
+  return mapping[localStatus] ?? null;
 }

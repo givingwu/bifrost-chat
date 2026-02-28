@@ -1,18 +1,21 @@
 /**
  * SDK 允许的渠道类型
  * - 对应 docs 中 AdapterFactory 的选择依据
+ * - 对应文档: specs/bifrost-client-integration-guide.md 3.4.2
  */
 export enum ChannelTypeEnum {
-  /** SMS Channel */
+  /** SMS 短信渠道 */
   SMS = 'sms',
-  /** WhatsApp Channel */
+  /** WhatsApp 渠道 */
   WhatsApp = 'whatsapp',
-  /** Email Channel */
+  /** Email 邮件渠道 */
   Email = 'email',
-  /** WABA (WhatsApp Business API) 是 WhatsApp 的官方企业级 API  */
+  /** WABA (WhatsApp Business API) 是 WhatsApp 的官方企业级 API */
   Waba = 'waba',
-  /** VoIP Channel */
-  // VoIP = 'voip',
+  /** Viber 渠道 */
+  Viber = 'viber',
+  /** IVR 语音渠道 */
+  IVR = 'ivr',
 }
 
 /**
@@ -23,6 +26,8 @@ export const AvailableChannelTypes = [
   ChannelTypeEnum.WhatsApp,
   ChannelTypeEnum.Email,
   ChannelTypeEnum.Waba,
+  ChannelTypeEnum.Viber,
+  ChannelTypeEnum.IVR,
 ] as const;
 
 /**

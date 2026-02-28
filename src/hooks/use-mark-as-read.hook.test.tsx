@@ -151,14 +151,14 @@ describe('useMarkAsRead Hook', () => {
     });
 
     await waitFor(() => {
-      // 验证调用了 markAsRead，参数格式为 ReadAckParams
+      // 验证调用了 markAsRead，参数格式为 AckPacketBody
       expect(mockMessageService.markAsRead).toHaveBeenCalledWith(
         expect.objectContaining({
           sender: 'customer-msg-1',
           app: 'fox_collect.customer',
           mid: 'msg-1',
           chatId: conversationId,
-          datetime: expect.any(Number),
+          timestamp: expect.any(Number),
         }),
       );
     });

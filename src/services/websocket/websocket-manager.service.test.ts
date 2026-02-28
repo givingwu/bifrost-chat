@@ -260,7 +260,7 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
         app: 'test-app',
         mid: 'msg-123',
         chatId: 'conv-456',
-        datetime: Date.now(),
+        timestamp: Date.now(),
       });
 
       expect(mockWs.send).toHaveBeenCalled();
@@ -282,7 +282,7 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
         app: 'test-app',
         mid: 'msg-123',
         chatId: 'conv-456',
-        datetime: Date.now(),
+        timestamp: Date.now(),
       });
 
       expect(mockWs.send).toHaveBeenCalled();

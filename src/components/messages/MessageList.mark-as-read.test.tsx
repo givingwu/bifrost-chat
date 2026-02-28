@@ -199,14 +199,14 @@ describe('MessageList markAsRead', () => {
     });
     expect(mockMessageService.markAsRead).toHaveBeenCalledTimes(1);
 
-    // 验证调用了 markAsRead，参数格式为 ReadAckParams
+    // 验证调用了 markAsRead，参数格式为 AckPacketBody
     expect(mockMessageService.markAsRead).toHaveBeenCalledWith(
       expect.objectContaining({
         sender: 'customer-msg-visible',
         app: 'fox_collect.customer',
         mid: 'msg-visible',
         chatId: 'conv-mark-read',
-        datetime: expect.any(Number),
+        timestamp: expect.any(Number),
       }),
     );
   });

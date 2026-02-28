@@ -168,7 +168,7 @@ export class FoxCollectMessageService
         app: this.config.app,
         mid: params.messageId,
         chatId: params.sessionId ?? params.chatId ?? '',
-        datetime: Date.now(),
+        timestamp: Date.now(),
       });
     }
   }
