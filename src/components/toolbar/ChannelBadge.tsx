@@ -1,7 +1,8 @@
-import { Mail, MessageSquare, Smartphone } from 'lucide-react';
+import { Mail, MessageSquare, Phone, Smartphone } from 'lucide-react';
+import type { ReactNode } from 'react';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 
-const channelComponents = {
+const channelComponents: Record<ChannelTypeEnum, () => ReactNode> = {
   [ChannelTypeEnum.WhatsApp]: () => (
     <div className="rounded-full bg-success p-0.5">
       <MessageSquare className="h-3 w-3 text-white" />
@@ -20,6 +21,16 @@ const channelComponents = {
   [ChannelTypeEnum.Waba]: () => (
     <div className="rounded-full bg-success p-0.5">
       <MessageSquare className="h-3 w-3 text-white" />
+    </div>
+  ),
+  [ChannelTypeEnum.Viber]: () => (
+    <div className="rounded-full bg-purple-500 p-0.5">
+      <MessageSquare className="h-3 w-3 text-white" />
+    </div>
+  ),
+  [ChannelTypeEnum.IVR]: () => (
+    <div className="rounded-full bg-orange-500 p-0.5">
+      <Phone className="h-3 w-3 text-white" />
     </div>
   ),
 };

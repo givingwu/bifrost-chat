@@ -82,6 +82,8 @@ export const MAX_LENGTH_MAP: Record<ChannelTypeEnum, number> = {
   [ChannelTypeEnum.Email]: INPUT_LIMITS.DEFAULT_MAX_LENGTH,
   [ChannelTypeEnum.WhatsApp]: INPUT_LIMITS.WHATSAPP_MAX_LENGTH,
   [ChannelTypeEnum.Waba]: INPUT_LIMITS.WABA_MAX_LENGTH,
+  [ChannelTypeEnum.Viber]: INPUT_LIMITS.WHATSAPP_MAX_LENGTH,
+  [ChannelTypeEnum.IVR]: INPUT_LIMITS.DEFAULT_MAX_LENGTH,
 };
 
 /**

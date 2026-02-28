@@ -48,13 +48,15 @@ export const ARIA_LABELS = {
 } as const;
 
 /** 渠道提示信息映射 */
-export const CHANNEL_HINTS = {
+export const CHANNEL_HINTS: Record<string, string> = {
   sms: 'SMS · 1 segment',
   whatsapp: 'Secure Connection',
   email: 'Rich text enabled',
   waba: 'WhatsApp Business API',
-  default: '',
-} as const;
+  viber: 'Viber Message',
+  ivr: 'Voice Call',
+  default: 'Default Channel',
+};
 
 /** 测试 ID 常量 */
 export const TEST_IDS = {

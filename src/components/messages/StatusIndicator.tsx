@@ -106,6 +106,16 @@ export const StatusIndicator = memo(
           size: 'h-4 w-4',
           colorClass: 'text-error',
         },
+        [MessageStatusEnum.Revoked]: {
+          icon: AlertCircle,
+          size: 'h-4 w-4',
+          colorClass: 'text-gray-400',
+        },
+        [MessageStatusEnum.Deleted]: {
+          icon: AlertCircle,
+          size: 'h-4 w-4',
+          colorClass: 'text-gray-400',
+        },
       } as const;
 
       const baseConfig = statusConfigMap[status];
