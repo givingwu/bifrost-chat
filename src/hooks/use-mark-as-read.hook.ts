@@ -64,11 +64,11 @@ function buildReadAckParams(
   }
 
   return {
-    sender: currentUser.pin,
-    app: currentUser.app,
+    sender: message.sender?.pin ?? currentUser.pin,
+    app: message.sender?.app ?? currentUser.app,
     mid: message.id,
     chatId: conversationId,
-    datetime: message.timestamp,
+    datetime: Date.now(),
     toApp,
     toPin,
   };
