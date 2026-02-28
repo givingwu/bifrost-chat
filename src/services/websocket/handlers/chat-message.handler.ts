@@ -7,9 +7,7 @@
  * @module services/websocket/handlers
  */
 
-import type { ChannelTypeEnum } from '@/interfaces/channel.interface';
-import type { ClientTypeEnum } from '@/interfaces/message.interface';
-import type { AckRawPacket, RawPacket } from '@/interfaces/protocol.interface';
+import type { RawPacket } from '@/interfaces/protocol.interface';
 import { PacketMessageTypeEnum } from '@/interfaces/protocol.interface';
 import {
   BasePacketHandler,

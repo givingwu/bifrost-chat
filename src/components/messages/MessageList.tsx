@@ -68,10 +68,7 @@ export const MessageList = ({
   const { t } = useTranslation();
   const internalScrollRef = useRef<HTMLDivElement>(null);
   const scrollRef = externalScrollRef || internalScrollRef;
-  const { mutate: markAsReadMutate } = useMarkAsRead<{
-    conversationId: string;
-    messageIds: string[];
-  }>();
+  const { mutate: markAsReadMutate } = useMarkAsRead();
   const readMessageIdsRef = useRef<Set<string>>(new Set());
   const markAsReadTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 

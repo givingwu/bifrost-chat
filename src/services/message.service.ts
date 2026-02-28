@@ -12,6 +12,7 @@ import type {
   SendMessageOptions,
   StandardMessage,
 } from '@/interfaces/message.interface';
+import type { ReadAckParams } from '@/interfaces/protocol.interface';
 
 /**
  * 消息状态更新
@@ -83,7 +84,7 @@ export interface MessageStatusUpdatedEvent extends MessageStatusUpdate {
 export interface IMessageService<
   TListParams = UseMessagesParams,
   TSendParams = SendMessageOptions,
-  TReadParams = MessageStatusUpdatedEvent,
+  TReadParams = ReadAckParams,
   TAttachmentParams = SendAttachmentParams,
   TAudioParams = SendAudioParams,
 > {

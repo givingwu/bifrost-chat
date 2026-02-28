@@ -12,6 +12,7 @@ import {
 } from '@/interfaces/message.interface';
 import enUSMessages from '@/locales/en-US.json';
 import { I18nProvider } from '@/providers/I18n.provider';
+import { queryKeys } from '@/providers/query.provider';
 import { ServiceProvider } from '@/providers/service.provider';
 import type { IConversationService } from '@/services/conversation.service';
 import type { IMessageService } from '@/services/message.service';
@@ -95,6 +96,11 @@ function createMessage(
     timestamp: Date.now(),
     type: MessageTypeEnum.Text,
     content: { text: `message-${id}` },
+    // 添加 sender 信息（消息发送者，即对方）
+    sender: {
+      app: 'fox_collect.customer',
+      pin: `customer-${id}`,
+    },
   };
 }
 
@@ -142,6 +148,16 @@ describe('MessageList markAsRead', () => {
       MessageStatusEnum.Delivered,
     );
 
+    // 设置 QueryCache 中的消息数据，供 mutationFn 使用
+    queryClient.setQueryData(queryKeys.messages.list('conv-mark-read'), {
+      pages: [
+        {
+          items: [message],
+        },
+      ],
+      pageParams: [1],
+    });
+
     render(
       <MessageList
         messages={[message]}
@@ -178,10 +194,18 @@ describe('MessageList markAsRead', () => {
     });
     expect(mockMessageService.markAsRead).toHaveBeenCalledTimes(1);
 
-    expect(mockMessageService.markAsRead).toHaveBeenCalledWith({
-      conversationId: 'conv-mark-read',
-      messageIds: ['msg-visible'],
-    });
+    // 验证调用了 markAsRead，参数格式为 ReadAckParams
+    expect(mockMessageService.markAsRead).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sender: 'Pin is required',
+        app: 'Bifrost Chat',
+        mid: 'msg-visible',
+        chatId: 'conv-mark-read',
+        toApp: 'fox_collect.customer',
+        toPin: 'customer-msg-visible',
+        datetime: expect.any(Number),
+      }),
+    );
   });
 
   it('只应上报 incoming 且未读消息', async () => {
