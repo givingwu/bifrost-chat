@@ -46,40 +46,10 @@ export const TemplateList = ({
     );
   }
 
-  // 调试日志：检查模板数据类型
-  console.log(
-    '📋 [TemplateList] 模板数据:',
-    templates.map((t) => ({
-      id: t.id,
-      name: t.name,
-      nameType: typeof t.name,
-      content: t.content,
-      contentType: typeof t.content,
-      category: t.category,
-      categoryType: typeof t.category,
-    })),
-  );
-
   return (
     <div className="space-y-2" role="listbox" aria-label="模板列表">
       {templates.map((template) => {
         const isSelected = template.id === selectedId;
-
-        // 安全渲染：确保内容是字符串
-        // content 可能是字符串或 { text: "内容" } 对象
-        const safeContent =
-          typeof template.content === 'string'
-            ? template.content
-            : ((template.content as { text?: string })?.text ??
-              JSON.stringify(template.content));
-        const safeName =
-          typeof template.name === 'string'
-            ? template.name
-            : String(template.name);
-        const safeCategory =
-          typeof template.category === 'string'
-            ? template.category
-            : String(template.category);
 
         return (
           <button
@@ -100,11 +70,11 @@ export const TemplateList = ({
               {template.name || (showCategory && template.category) ? (
                 <div className="flex items-center gap-2">
                   {template.name && (
-                    <span className="font-medium">{safeName}</span>
+                    <span className="font-medium">{template.name}</span>
                   )}
                   {showCategory && template.category && (
                     <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] text-primary">
-                      {safeCategory}
+                      {template.category}
                     </span>
                   )}
                 </div>
@@ -112,7 +82,7 @@ export const TemplateList = ({
 
               {/* 内容预览 */}
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                {safeContent}
+                {template.content}
               </p>
 
               {/* 使用次数 */}
