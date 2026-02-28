@@ -4,6 +4,18 @@ import { cn } from '@/utils/class.util';
 import { TEST_IDS } from './composer.constants';
 
 /**
+ * 辅助函数：安全获取内容字符串
+ * content 可能是字符串或 { text: "内容" } 对象
+ */
+const getContentString = (content: unknown): string => {
+  if (typeof content === 'string') return content;
+  if (content && typeof content === 'object' && 'text' in content) {
+    return (content as { text: string }).text;
+  }
+  return '';
+};
+
+/**
  * 消息模板
  */
 export interface MessageTemplate {
@@ -12,7 +24,7 @@ export interface MessageTemplate {
   /** 模板标题 */
   title: string;
   /** 模板内容 */
-  content: string;
+  content: string | { text: string };
   /** 模板分类（可选） */
   category?: string;
   /** 模板标签（可选） */
@@ -60,7 +72,7 @@ export const TemplatePicker = memo<TemplatePickerProps>(
         templates.filter((template) => {
           const query = searchQuery.toLowerCase();
           const title = template.title.toLowerCase();
-          const content = template.content.toLowerCase();
+          const content = getContentString(template.content).toLowerCase();
           const category = template.category?.toLowerCase() ?? '';
           const tags = template.tags?.join(' ').toLowerCase() ?? '';
 
@@ -228,7 +240,7 @@ export const TemplatePicker = memo<TemplatePickerProps>(
 
                   {/* 内容预览 */}
                   <p className="text-xs text-gray-400 dark:text-gray-500">
-                    {template.content}
+                    {getContentString(template.content)}
                   </p>
 
                   {/* 标签 */}
@@ -262,60 +274,3 @@ export const TemplatePicker = memo<TemplatePickerProps>(
 );
 
 TemplatePicker.displayName = 'TemplatePicker';
-
-/**
- * 插入模板到文本中
- */
-export function insertTemplate(
-  currentValue: string,
-  template: MessageTemplate,
-): string {
-  // 如果当前输入框为空，直接使用模板内容
-  if (!currentValue.trim()) {
-    return template.content;
-  }
-
-  // 如果有内容，在模板内容前添加换行
-  return `${currentValue}\n${template.content}`;
-}
-
-/**
- * 预定义的消息模板
- */
-export const DEFAULT_TEMPLATES: MessageTemplate[] = [
-  {
-    id: 'greeting',
-    title: '问候',
-    category: '常用',
-    content: '您好，有什么可以帮助您的吗？',
-    tags: ['问候', '开场'],
-  },
-  {
-    id: 'thanks',
-    title: '感谢',
-    category: '常用',
-    content: '非常感谢您的支持！',
-    tags: ['感谢', '礼貌'],
-  },
-  {
-    id: 'follow-up',
-    title: '跟进',
-    category: '销售',
-    content: '您好，我想跟进一下我们之前的沟通，请问您还有什么疑问吗？',
-    tags: ['跟进', '销售'],
-  },
-  {
-    id: 'appointment',
-    title: '预约',
-    category: '业务',
-    content: '您好，请问您方便安排一个时间进行详细沟通吗？',
-    tags: ['预约', '沟通'],
-  },
-  {
-    id: 'closing',
-    title: '结束语',
-    category: '常用',
-    content: '祝您生活愉快！',
-    tags: ['结束语', '礼貌'],
-  },
-];

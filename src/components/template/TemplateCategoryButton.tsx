@@ -32,6 +32,14 @@ export const TemplateCategoryButton = ({
   label,
   className,
 }: TemplateCategoryButtonProps) => {
+  // 安全渲染：确保 label 是字符串
+  const safeLabel =
+    typeof label === 'string'
+      ? label
+      : label && typeof label === 'object' && 'text' in label
+        ? String((label as { text: string }).text)
+        : String(label);
+
   return (
     <Button
       type="button"
@@ -44,9 +52,9 @@ export const TemplateCategoryButton = ({
         className,
       )}
       aria-pressed={isSelected}
-      aria-label={`${label} ${isSelected ? '(Selected)' : ''}`}
+      aria-label={`${safeLabel} ${isSelected ? '(Selected)' : ''}`}
     >
-      {label}
+      {safeLabel}
     </Button>
   );
 };
