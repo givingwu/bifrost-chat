@@ -2,20 +2,20 @@ import { describe, expect, it } from 'vitest';
 import { MessageStatusEnum } from '@/interfaces/message.interface';
 import {
   AckMessageTypeEnum,
+  type AckPacketBody,
   PacketMessageTypeEnum,
-  type ReadAckParams,
 } from '@/interfaces/protocol.interface';
 import { AckHandler } from '@/services/protocol/ack.handler';
 
 describe('AckHandler', () => {
   describe('createReadAck', () => {
     it('应该创建正确的已读 ACK 消息', () => {
-      const params: ReadAckParams = {
+      const params: AckPacketBody = {
         sender: 'agent-123',
         app: 'fox_collect.waiter',
         mid: 'msg-456',
         chatId: 'conv-789',
-        datetime: 1234567890,
+        timestamp: 1234567890,
       };
 
       const ackPacket = AckHandler.createReadAck(params);
@@ -32,7 +32,7 @@ describe('AckHandler', () => {
       expect(ackPacket.body.app).toBe('fox_collect.waiter');
       expect(ackPacket.body.mid).toBe('msg-456');
       expect(ackPacket.body.chatId).toBe('conv-789');
-      expect(ackPacket.body.datetime).toBe(1234567890);
+      expect(ackPacket.body.timestamp).toBe(1234567890);
       expect(ackPacket.ver).toBe('1.0');
       expect(ackPacket.id).toMatch(
         /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i,
@@ -40,12 +40,12 @@ describe('AckHandler', () => {
     });
 
     it('应该生成唯一的 ACK ID', () => {
-      const params: ReadAckParams = {
+      const params: AckPacketBody = {
         sender: 'agent-123',
         app: 'fox_collect.waiter',
         mid: 'msg-456',
         chatId: 'conv-789',
-        datetime: Date.now(),
+        timestamp: Date.now(),
       };
 
       const ack1 = AckHandler.createReadAck(params);
@@ -57,12 +57,12 @@ describe('AckHandler', () => {
 
   describe('createReceiveAck', () => {
     it('应该创建正确的收到消息 ACK', () => {
-      const params: ReadAckParams = {
+      const params: AckPacketBody = {
         sender: 'agent-123',
         app: 'fox_collect.waiter',
         mid: 'msg-456',
         chatId: 'conv-789',
-        datetime: 1234567890,
+        timestamp: 1234567890,
       };
 
       const ackPacket = AckHandler.createReceiveAck(params);
@@ -79,7 +79,7 @@ describe('AckHandler', () => {
       expect(ackPacket.body.app).toBe('fox_collect.waiter');
       expect(ackPacket.body.mid).toBe('msg-456');
       expect(ackPacket.body.chatId).toBe('conv-789');
-      expect(ackPacket.body.datetime).toBe(1234567890);
+      expect(ackPacket.body.timestamp).toBe(1234567890);
       expect(ackPacket.ver).toBe('1.0');
       expect(ackPacket.id).toMatch(
         /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i,
@@ -87,12 +87,12 @@ describe('AckHandler', () => {
     });
 
     it('应该生成唯一的收到 ACK ID', () => {
-      const params: ReadAckParams = {
+      const params: AckPacketBody = {
         sender: 'agent-123',
         app: 'fox_collect.waiter',
         mid: 'msg-456',
         chatId: 'conv-789',
-        datetime: Date.now(),
+        timestamp: Date.now(),
       };
 
       const ack1 = AckHandler.createReceiveAck(params);

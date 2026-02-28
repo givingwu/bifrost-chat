@@ -3,8 +3,8 @@ import {
   MessageStatusEnum,
 } from '@/interfaces/message.interface';
 import type {
+  AckPacketBody,
   AckRawPacket,
-  ReadAckParams,
 } from '@/interfaces/protocol.interface';
 import {
   AckMessageTypeEnum,
@@ -52,7 +52,7 @@ export interface AckData {
  *   app: 'fox_collect.waiter',
  *   mid: 'msg-456',
  *   chatId: 'conv-123',
- *   datetime: Date.now(),
+ *   timestamp: Date.now(),
  * });
  * // ptype 为 'msg_read_ack'
  *
@@ -62,7 +62,7 @@ export interface AckData {
  *   app: 'fox_collect.waiter',
  *   mid: 'msg-456',
  *   chatId: 'conv-123',
- *   datetime: Date.now(),
+ *   timestamp: Date.now(),
  * });
  * // ptype 为 'msg_receive_ack'
  *
@@ -85,7 +85,7 @@ export class AckHandler {
    * @param params 已读 ACK 参数
    * @returns RawPacket
    */
-  static createReadAck(params: ReadAckParams): AckRawPacket {
+  static createReadAck(params: AckPacketBody): AckRawPacket {
     const ackPacket: AckRawPacket = {
       id: MessageBuilder.generateUniqueId(),
       chatId: params.chatId,
@@ -100,15 +100,9 @@ export class AckHandler {
       },
       // ✅ 使用 msg_read_ack 作为 ptype（上行协议）
       ptype: AckMessageTypeEnum.MsgReadAck,
-      body: {
-        sender: params.sender,
-        app: params.app,
-        mid: params.mid,
-        chatId: params.chatId,
-        datetime: params.datetime,
-      },
+      body: params,
       ver: '1.0',
-      timestamp: params.datetime,
+      timestamp: Date.now(),
     };
 
     return ackPacket;
@@ -123,13 +117,14 @@ export class AckHandler {
    * @param params 收到 ACK 参数
    * @returns RawPacket
    */
-  static createReceiveAck(params: ReadAckParams): AckRawPacket {
+  static createReceiveAck(params: AckPacketBody): AckRawPacket {
     const ackPacket: AckRawPacket = {
       id: MessageBuilder.generateUniqueId(),
       chatId: params.chatId,
       from: {
         app: params.app,
         pin: params.sender,
+        clientType: ClientTypeEnum.Web,
       },
       to: {
         app: '',
@@ -137,15 +132,9 @@ export class AckHandler {
       },
       // ✅ 使用 msg_receive_ack 作为 ptype（上行协议）
       ptype: AckMessageTypeEnum.MsgReceiveAck,
-      body: {
-        sender: params.sender,
-        app: params.app,
-        mid: params.mid,
-        chatId: params.chatId,
-        datetime: params.datetime,
-      },
+      body: params,
       ver: '1.0',
-      timestamp: params.datetime,
+      timestamp: Date.now(),
     };
 
     return ackPacket;

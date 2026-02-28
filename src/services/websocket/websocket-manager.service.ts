@@ -31,11 +31,11 @@ import {
   type StandardMessage,
 } from '@/interfaces/message.interface';
 import {
+  type AckPacketBody,
   type AckRawPacket,
   type HeartbeatParams,
   PacketMessageTypeEnum,
   type RawPacket,
-  type ReadAckParams,
 } from '@/interfaces/protocol.interface';
 import {
   type AuthFailListener,
@@ -426,7 +426,7 @@ export class WebSocketManager {
    * @param params 已读 ACK 参数
    * @throws {SendFailedError} 发送失败
    */
-  sendReadAck(params: ReadAckParams): void {
+  sendReadAck(params: AckPacketBody): void {
     const packet = AckHandler.createReadAck(params);
     this.send(packet);
   }
@@ -440,7 +440,7 @@ export class WebSocketManager {
    * @param params 收到 ACK 参数
    * @throws {SendFailedError} 发送失败
    */
-  sendReceiveAck(params: ReadAckParams): void {
+  sendReceiveAck(params: AckPacketBody): void {
     const packet = AckHandler.createReceiveAck(params);
     this.send(packet);
   }

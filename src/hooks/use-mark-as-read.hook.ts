@@ -3,10 +3,9 @@ import {
   MessageStatusEnum,
   type StandardMessage,
 } from '@/interfaces/message.interface';
-import type { ReadAckParams } from '@/interfaces/protocol.interface';
+import type { AckPacketBody } from '@/interfaces/protocol.interface';
 import { queryKeys } from '@/providers/query.provider';
 import { useServices } from '@/providers/service.provider';
-import { useStrategy } from '@/store';
 
 export interface MarkAsReadParams {
   conversationId: string;
@@ -39,20 +38,19 @@ function isMessagesQueryData(data: unknown): data is MessagesQueryData {
 }
 
 /**
- * 从消息对象构建 ReadAckParams
+ * 从消息对象构建 AckPacketBody
  *
  * @description
- * 用于将批量标记已读参数转换为协议层需要的单个消息 ACK 参数。
+ * 用于将批量标记已读参数转换为协议层需要的 ACK 参数。
  *
  * @param message - 消息对象
  * @param conversationId - 会话 ID
- * @param currentUser - 当前用户信息
- * @returns ReadAckParams 或 null（如果消息缺少必要信息）
+ * @returns AckPacketBody 或 null（如果消息缺少必要信息）
  */
-function buildReadAckParams(
+function buildAckPacketBody(
   message: StandardMessage,
   conversationId: string,
-): ReadAckParams | null {
+): AckPacketBody | null {
   // Incoming 消息的 sender 是对方
   const senderApp = message.sender.app;
   const senderPin = message.sender.pin;
@@ -67,7 +65,7 @@ function buildReadAckParams(
     app: message.sender.app,
     mid: message.id,
     chatId: conversationId,
-    datetime: Date.now(),
+    timestamp: Date.now(),
   };
 }
 
@@ -99,7 +97,6 @@ function buildReadAckParams(
 export function useMarkAsRead() {
   const queryClient = useQueryClient();
   const { messageService } = useServices();
-  const { currentUser } = useStrategy();
 
   return useMutation<
     void,
@@ -133,10 +130,10 @@ export function useMarkAsRead() {
 
       for (const message of messagesToMark) {
         try {
-          const readAckParams = buildReadAckParams(message, conversationId);
+          const ackPacketBody = buildAckPacketBody(message, conversationId);
 
-          if (readAckParams) {
-            await messageService.markAsRead(readAckParams);
+          if (ackPacketBody) {
+            await messageService.markAsRead(ackPacketBody);
           }
         } catch (error) {
           errors.push({ messageId: message.id, error });

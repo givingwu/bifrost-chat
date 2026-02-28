@@ -112,8 +112,21 @@ export class PacketConverter {
     );
 
     // 安全提取 ext 字段（仅 PacketBodyBase 子类型有此字段）
-    const extMetadata =
-      'ext' in packet.body && packet.body.ext ? packet.body.ext : {};
+    // ext 可能是对象或 JSON 字符串，需要统一处理为 Record<string, unknown>
+    let extMetadata: Record<string, unknown> | undefined;
+    if ('ext' in packet.body && packet.body.ext) {
+      const ext = packet.body.ext;
+      if (typeof ext === 'object') {
+        extMetadata = ext as Record<string, unknown>;
+      } else if (typeof ext === 'string') {
+        try {
+          extMetadata = JSON.parse(ext) as Record<string, unknown>;
+        } catch {
+          // JSON 解析失败时忽略
+          extMetadata = undefined;
+        }
+      }
+    }
 
     const standardMessage: StandardMessage = {
       id: packet.mid || packet.id,
