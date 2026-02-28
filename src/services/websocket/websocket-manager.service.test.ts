@@ -255,8 +255,6 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
         mid: 'msg-123',
         chatId: 'conv-456',
         datetime: Date.now(),
-        toApp: 'receiver-app',
-        toPin: 'receiver-pin',
       });
 
       expect(mockWs.send).toHaveBeenCalled();
@@ -279,8 +277,6 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
         mid: 'msg-123',
         chatId: 'conv-456',
         datetime: Date.now(),
-        toApp: 'receiver-app',
-        toPin: 'receiver-pin',
       });
 
       expect(mockWs.send).toHaveBeenCalled();

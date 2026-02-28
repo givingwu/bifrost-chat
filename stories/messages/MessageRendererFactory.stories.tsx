@@ -36,6 +36,8 @@ const baseMessage = {
   channelType: ChannelTypeEnum.WhatsApp,
   status: MessageStatusEnum.Read,
   timestamp: Date.now(),
+  sender: { app: 'sender-app', pin: 'sender-pin' },
+  receiver: { app: 'receiver-app', pin: 'receiver-pin' },
 };
 
 /**

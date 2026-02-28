@@ -16,8 +16,6 @@ describe('AckHandler', () => {
         mid: 'msg-456',
         chatId: 'conv-789',
         datetime: 1234567890,
-        toApp: 'im.waiter',
-        toPin: 'customer-456',
       };
 
       const ackPacket = AckHandler.createReadAck(params);
@@ -27,8 +25,9 @@ describe('AckHandler', () => {
       expect(ackPacket.ptype).toBe(AckMessageTypeEnum.MsgReadAck);
       expect(ackPacket.from.app).toBe('fox_collect.waiter');
       expect(ackPacket.from.pin).toBe('agent-123');
-      expect(ackPacket.to.app).toBe('im.waiter');
-      expect(ackPacket.to.pin).toBe('customer-456');
+      // to 字段使用 from 的值
+      expect(ackPacket.to.app).toBe('fox_collect.waiter');
+      expect(ackPacket.to.pin).toBe('agent-123');
       expect(ackPacket.body.sender).toBe('agent-123');
       expect(ackPacket.body.app).toBe('fox_collect.waiter');
       expect(ackPacket.body.mid).toBe('msg-456');
@@ -47,8 +46,6 @@ describe('AckHandler', () => {
         mid: 'msg-456',
         chatId: 'conv-789',
         datetime: Date.now(),
-        toApp: 'im.waiter',
-        toPin: 'customer-456',
       };
 
       const ack1 = AckHandler.createReadAck(params);
@@ -66,8 +63,6 @@ describe('AckHandler', () => {
         mid: 'msg-456',
         chatId: 'conv-789',
         datetime: 1234567890,
-        toApp: 'im.waiter',
-        toPin: 'customer-456',
       };
 
       const ackPacket = AckHandler.createReceiveAck(params);
@@ -77,8 +72,9 @@ describe('AckHandler', () => {
       expect(ackPacket.ptype).toBe(AckMessageTypeEnum.MsgReceiveAck);
       expect(ackPacket.from.app).toBe('fox_collect.waiter');
       expect(ackPacket.from.pin).toBe('agent-123');
-      expect(ackPacket.to.app).toBe('im.waiter');
-      expect(ackPacket.to.pin).toBe('customer-456');
+      // to 字段使用 from 的值
+      expect(ackPacket.to.app).toBe('fox_collect.waiter');
+      expect(ackPacket.to.pin).toBe('agent-123');
       expect(ackPacket.body.sender).toBe('agent-123');
       expect(ackPacket.body.app).toBe('fox_collect.waiter');
       expect(ackPacket.body.mid).toBe('msg-456');
@@ -97,8 +93,6 @@ describe('AckHandler', () => {
         mid: 'msg-456',
         chatId: 'conv-789',
         datetime: Date.now(),
-        toApp: 'im.waiter',
-        toPin: 'customer-456',
       };
 
       const ack1 = AckHandler.createReceiveAck(params);

@@ -37,8 +37,6 @@ describe('MessageAckHelper', () => {
         mid: 'msg-456',
         chatId: 'conv-123',
         datetime: 1234567890000,
-        toApp: 'im.waiter',
-        toPin: 'customer-456',
       };
 
       MessageAckHelper.sendReadAck(mockWsManager, params);
@@ -56,8 +54,6 @@ describe('MessageAckHelper', () => {
         mid: 'msg-456',
         chatId: 'conv-123',
         datetime: 1234567890000,
-        toApp: 'im.waiter',
-        toPin: 'customer-456',
       };
 
       MessageAckHelper.sendReadAck(mockWsManager, params);
@@ -76,8 +72,6 @@ describe('MessageAckHelper', () => {
         mid: 'msg-456',
         chatId: 'conv-123',
         datetime: 1234567890000,
-        toApp: 'im.waiter',
-        toPin: 'customer-456',
       };
 
       // 不应该抛出错误
@@ -96,8 +90,6 @@ describe('MessageAckHelper', () => {
           mid: 'msg-1',
           chatId: 'conv-123',
           datetime: 1234567890000,
-          toApp: 'im.waiter',
-          toPin: 'customer-456',
         },
         {
           sender: 'agent-123',
@@ -105,8 +97,6 @@ describe('MessageAckHelper', () => {
           mid: 'msg-2',
           chatId: 'conv-123',
           datetime: 1234567890000,
-          toApp: 'im.waiter',
-          toPin: 'customer-456',
         },
       ];
 
@@ -127,8 +117,6 @@ describe('MessageAckHelper', () => {
           mid: 'msg-1',
           chatId: 'conv-123',
           datetime: 1234567890000,
-          toApp: 'im.waiter',
-          toPin: 'customer-456',
         },
       ];
 
@@ -153,8 +141,6 @@ describe('MessageAckHelper', () => {
           mid: 'msg-1',
           chatId: 'conv-123',
           datetime: 1234567890000,
-          toApp: 'im.waiter',
-          toPin: 'customer-456',
         },
         {
           sender: 'agent-123',
@@ -162,8 +148,6 @@ describe('MessageAckHelper', () => {
           mid: 'msg-2',
           chatId: 'conv-123',
           datetime: 1234567890000,
-          toApp: 'im.waiter',
-          toPin: 'customer-456',
         },
       ];
 
@@ -185,8 +169,6 @@ describe('MessageAckHelper', () => {
         mid: 'msg-456',
         chatId: 'conv-123',
         datetime: 1234567890000,
-        toApp: 'im.waiter',
-        toPin: 'customer-456',
       };
 
       MessageAckHelper.sendReceiveAck(mockWsManager, params);
@@ -204,8 +186,6 @@ describe('MessageAckHelper', () => {
         mid: 'msg-456',
         chatId: 'conv-123',
         datetime: 1234567890000,
-        toApp: 'im.waiter',
-        toPin: 'customer-456',
       };
 
       MessageAckHelper.sendReceiveAck(mockWsManager, params);
@@ -224,8 +204,6 @@ describe('MessageAckHelper', () => {
         mid: 'msg-456',
         chatId: 'conv-123',
         datetime: 1234567890000,
-        toApp: 'im.waiter',
-        toPin: 'customer-456',
       };
 
       // 不应该抛出错误

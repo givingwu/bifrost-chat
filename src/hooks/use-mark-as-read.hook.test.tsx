@@ -55,6 +55,10 @@ function createMessage(
       app: 'fox_collect.customer',
       pin: `customer-${id}`,
     },
+    receiver: {
+      app: 'fox_collect.waiter',
+      pin: 'agent-001',
+    },
   };
 }
 
@@ -149,12 +153,10 @@ describe('useMarkAsRead Hook', () => {
       // 验证调用了 markAsRead，参数格式为 ReadAckParams
       expect(mockMessageService.markAsRead).toHaveBeenCalledWith(
         expect.objectContaining({
-          sender: 'Pin is required',
-          app: 'Bifrost Chat',
+          sender: 'customer-msg-1',
+          app: 'fox_collect.customer',
           mid: 'msg-1',
           chatId: conversationId,
-          toApp: 'fox_collect.customer',
-          toPin: 'customer-msg-1',
           datetime: expect.any(Number),
         }),
       );

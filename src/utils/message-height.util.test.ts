@@ -26,6 +26,11 @@ function createMockMessage(
     type: overrides.type ?? MessageTypeEnum.Text,
     content: overrides.content ?? { text: 'hello' },
     tempId: overrides.tempId,
+    sender: overrides.sender ?? { app: 'sender-app', pin: 'sender-pin' },
+    receiver: overrides.receiver ?? {
+      app: 'receiver-app',
+      pin: 'receiver-pin',
+    },
   };
 }
 

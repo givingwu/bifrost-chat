@@ -34,6 +34,8 @@ describe('MessageSyncService', () => {
       timestamp: Date.now(),
       type: MessageTypeEnum.Text,
       content: { text: `msg-${id}` },
+      sender: { app: 'sender-app', pin: 'sender-pin' },
+      receiver: { app: 'receiver-app', pin: 'receiver-pin' },
       ...options,
     };
   }

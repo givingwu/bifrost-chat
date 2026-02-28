@@ -49,6 +49,8 @@ function createFailedMessage(offlineMessageId: string): StandardMessage {
     timestamp: Date.now(),
     type: MessageTypeEnum.Text,
     content: { text: 'failed message' },
+    sender: { app: 'sender-app', pin: 'sender-pin' },
+    receiver: { app: 'receiver-app', pin: 'receiver-pin' },
     _offlineMessageId: offlineMessageId,
     _source: 'local',
   };

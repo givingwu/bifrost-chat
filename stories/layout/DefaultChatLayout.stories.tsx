@@ -268,6 +268,8 @@ class MockMessageService implements IMessageService {
           content: {
             text: textMessages[i % textMessages.length],
           },
+          sender: { app: 'sender-app', pin: 'sender-pin' },
+          receiver: { app: 'receiver-app', pin: 'receiver-pin' },
         };
       },
     );

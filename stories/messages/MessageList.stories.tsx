@@ -46,6 +46,8 @@ const createMessage = (
   timestamp: timestamp || Date.now(),
   type,
   content,
+  sender: { app: 'sender-app', pin: 'sender-pin' },
+  receiver: { app: 'receiver-app', pin: 'receiver-pin' },
 });
 
 const mockMessages: StandardMessage[] = [
