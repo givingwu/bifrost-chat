@@ -133,6 +133,14 @@ export default defineConfig({
               text: '安装',
               link: '/guide/installation',
             },
+            {
+              text: '架构基线',
+              link: '/guide/architecture-baseline',
+            },
+            {
+              text: 'ACK 机制',
+              link: '/guide/ack-mechanism',
+            },
           ],
         },
       ],
@@ -147,6 +155,14 @@ export default defineConfig({
             {
               text: 'Installation',
               link: '/en-US/guide/installation',
+            },
+            {
+              text: 'Architecture Baseline',
+              link: '/en-US/guide/architecture-baseline',
+            },
+            {
+              text: 'ACK Mechanism',
+              link: '/en-US/guide/ack-mechanism',
             },
           ],
         },
@@ -464,6 +480,10 @@ export default defineConfig({
               link: '/api/hooks',
             },
             {
+              text: 'Providers',
+              link: '/api/providers',
+            },
+            {
               text: 'Services',
               link: '/api/services',
             },
@@ -481,6 +501,10 @@ export default defineConfig({
             {
               text: 'Hooks',
               link: '/en-US/api/hooks',
+            },
+            {
+              text: 'Providers',
+              link: '/en-US/api/providers',
             },
             {
               text: 'Services',

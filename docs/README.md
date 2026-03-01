@@ -1,138 +1,54 @@
-# Bifrost Chat 文档站点
+# Bifrost-Chat 文档索引
 
-这是使用 Rspress 构建的 Bifrost Chat JS SDK 文档站点。
+## 文档原则
 
-## 功能特性
+- 所有架构与规范文档必须区分：
+  - 当前已实现（As-Is）
+  - 目标架构（To-Be）
+- 架构冲突时以 `docs/final-architecture.md` 为准。
 
-- ✅ **多语言支持**：中文和英文
-- ✅ **暗色模式**：支持浅色/深色主题切换
-- ✅ **Storybook 集成**：通过 iframe 内嵌交互式组件示例
-- ✅ **响应式设计**：适配各种设备
-- ✅ **快速搜索**：全文搜索功能
+## 核心文档
 
-## 开发
+1. 架构基线（SSOT）：`docs/final-architecture.md`
+2. 架构总览：`docs/architecture-overview.md`
+3. 命名规范：`docs/naming-conventions.md`
+4. 文档状态总览：`docs/IMPLEMENTATION_SUMMARY.md`
 
-### 启动开发服务器
+## 站点文档目录（Rspress）
 
-同时启动 Storybook 和 Rspress：
+```text
+docs/
+├── docs/
+│   ├── zh-CN/
+│   │   ├── index.md
+│   │   ├── guide/
+│   │   ├── components/
+│   │   └── api/
+│   └── en-US/
+│       ├── index.md
+│       ├── guide/
+│       ├── components/
+│       └── api/
+├── theme/
+├── static/
+└── tsconfig.json
+```
+
+## 开发命令
 
 ```bash
+pnpm run docs:dev
+pnpm run docs:build
+pnpm run docs:preview
 pnpm run dev:docs
 ```
 
-这将启动：
-- Storybook 开发服务器（http://localhost:6006）
-- Rspress 文档服务器（http://localhost:3000）
+## 文档维护流程
 
-### 单独启动服务
-
-```bash
-# 仅启动 Storybook
-pnpm run storybook
-
-# 仅启动文档
-pnpm run docs:dev
-```
-
-## 构建
-
-### 构建文档
-
-```bash
-pnpm run docs:build
-```
-
-构建产物将输出到 `docs-site/dist-docs/` 目录。
-
-### 预览构建结果
-
-```bash
-pnpm run docs:preview
-```
-
-## 目录结构
-
-```
-docs-site/
-├── docs/                    # 文档内容
-│   ├── zh-CN/              # 中文文档
-│   │   ├── guide/          # 指南
-│   │   ├── components/     # 组件文档
-│   │   └── api/            # API 文档
-│   └── en-US/              # 英文文档
-├── theme/                  # 主题定制
-│   ├── StorybookEmbed.tsx # Storybook iframe 组件
-│   ├── index.ts           # 主题入口
-│   └── styles/            # 自定义样式
-├── static/                 # 静态资源
-├── rspress.config.ts      # Rspress 配置
-└── tsconfig.json          # TypeScript 配置
-```
-
-## 添加新组件文档
-
-1. 在 `docs/zh-CN/components/` 或 `docs/en-US/components/` 创建 Markdown 文件
-2. 使用 `<StorybookEmbed>` 组件内嵌 Storybook stories：
-
-```markdown
----
-title: 组件名称
-sidebar_position: 1
----
-
-# 组件名称
-
-组件描述。
-
-## 基础用法
-
-<StorybookEmbed 
-  storyId="category-component--story" 
-  title="示例标题"
-  height="400"
-/>
-
-## API
-
-| 属性 | 类型 | 默认值 | 说明 |
-|------|------|--------|------|
-```
-
-3. 在 `rspress.config.ts` 的 `sidebar` 配置中添加链接
-
-## Storybook ID 规则
-
-Storybook 的 story ID 格式为：`{category}-{component}--{story}`
-
-例如：
-- `basic-button--default` - 基础组件的 Button 的 Default story
-- `composer-composertoolbar--with-emoji` - Composer 的 ComposerToolbar 的 With Emoji story
-
-你可以在 Storybook 中查看每个 story 的 ID（URL 中的 `id` 参数）。
-
-## 部署
-
-### 部署到 GitHub Pages
-
-1. 构建文档：
-```bash
-pnpm run docs:build
-```
-
-2. 将 `dist-docs/` 目录推送到 `gh-pages` 分支
-
-### 部署到其他平台
-
-将 `dist-docs/` 目录部署到任何静态网站托管服务（Vercel、Netlify 等）。
-
-## 注意事项
-
-1. **Storybook 必须运行**：文档中的组件示例需要 Storybook 服务运行才能显示
-2. **生产环境配置**：在生产环境中，需要配置 Storybook 的公共 URL
-3. **主题同步**：暗色模式切换会自动同步到所有 Storybook iframes
-
-## 相关资源
-
-- [Rspress 文档](https://rspress.dev/)
-- [Storybook 文档](https://storybook.js.org/)
-- [项目主 README](../README.md)
+1. 先对齐 `docs/final-architecture.md` 的术语与边界。
+2. 同步更新 `docs/docs/zh-CN` 与 `docs/docs/en-US`。
+3. 若影响协议接入，再同步 `specs/README.md` 与相关 spec。
+4. 提交前执行：
+   - `pnpm run check`
+   - `pnpm run test`
+   - `pnpm run build`

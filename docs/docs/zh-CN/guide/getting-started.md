@@ -1,128 +1,187 @@
 # 快速开始
 
-欢迎使用 Bifrost Chat JS SDK！本指南将帮助你快速上手。
+## 当前已实现（As-Is）
+
+- SDK 公开术语统一使用 `Conversation`（禁止公开 `Session` 命名）。
+- 接入方式采用依赖注入：
+  - `ServiceProvider` 注入服务实现
+  - `QueryProvider` 承载 React Query
+  - `ConfigProvider` 初始化 Zustand 客户端配置
+  - `ChatContainer` + `DefaultChatLayout` 负责默认渲染
+
+## 目标架构（To-Be）
+
+- 模板发送/预览演进为独立 query/mutation。
+- 渠道策略矩阵持续完善（互斥规则、能力约束）。
 
 ## 安装
 
-使用 npm、yarn 或 pnpm 安装：
-
 ```bash
-# npm
-npm install @feoe/bifrost-chat
-
-# yarn
-yarn add @feoe/bifrost-chat
-
-# pnpm
 pnpm add @feoe/bifrost-chat
 ```
 
-## 基础使用
+## 1) 实现服务接口
 
-### 1. 导入样式
-
-```typescript
-import '@feoe/bifrost-chat/styles';
-```
-
-### 2. 创建服务实现
-
-Bifrost Chat SDK 采用依赖注入模式，你需要实现以下服务接口：
-
-```typescript
-import {
-  type IConversationService,
-  type IMessageService,
-  type ITemplateService,
-  ServiceProvider,
+```tsx
+import type {
+  Conversation,
+  IConversationService,
+  IMessageService,
+  ITemplateService,
+  MessageSendResult,
+  StandardMessage,
+  Template,
 } from '@feoe/bifrost-chat';
 
-// 实现服务接口
-class MyConversationService implements IConversationService {
-  async getConversations() {
-    // 你的实现
-  }
-  // ... 其他方法
-}
+const conversationService: IConversationService = {
+  async list() {
+    const res = await fetch('/api/conversations');
+    return (await res.json()) as Conversation[];
+  },
+  async get(conversationId) {
+    const res = await fetch(`/api/conversations/${conversationId}`);
+    return (await res.json()) as Conversation | null;
+  },
+  async create(params) {
+    const res = await fetch('/api/conversations', {
+      method: 'POST',
+      body: JSON.stringify(params),
+      headers: { 'Content-Type': 'application/json' },
+    });
+    return (await res.json()) as Conversation;
+  },
+  async query(params) {
+    const res = await fetch('/api/conversations/query', {
+      method: 'POST',
+      body: JSON.stringify(params),
+      headers: { 'Content-Type': 'application/json' },
+    });
+    return (await res.json()) as Conversation | null;
+  },
+};
 
 const messageService: IMessageService = {
-  async getMessages(conversationId) {
-    // 你的实现
+  async list(conversationId, params) {
+    const res = await fetch(`/api/conversations/${conversationId}/messages`, {
+      method: 'POST',
+      body: JSON.stringify(params),
+      headers: { 'Content-Type': 'application/json' },
+    });
+    return (await res.json()) as StandardMessage[];
   },
-  // ... 其他方法
+  async send(conversationId, params) {
+    const res = await fetch(
+      `/api/conversations/${conversationId}/messages/send`,
+      {
+        method: 'POST',
+        body: JSON.stringify(params),
+        headers: { 'Content-Type': 'application/json' },
+      },
+    );
+    return (await res.json()) as MessageSendResult;
+  },
+  async markAsRead(params) {
+    await fetch('/api/messages/mark-read', {
+      method: 'POST',
+      body: JSON.stringify(params),
+      headers: { 'Content-Type': 'application/json' },
+    });
+  },
+  subscribeToMessages(_callback) {
+    return () => {};
+  },
+  subscribeToMessageStatus(_callback) {
+    return () => {};
+  },
+  async sendAttachment() {
+    throw new Error('请在宿主应用实现附件上传与发送逻辑');
+  },
+  async sendAudio() {
+    throw new Error('请在宿主应用实现音频上传与发送逻辑');
+  },
 };
 
 const templateService: ITemplateService = {
-  async getTemplates() {
-    // 你的实现
+  async list(params) {
+    const res = await fetch('/api/templates/list', {
+      method: 'POST',
+      body: JSON.stringify(params),
+      headers: { 'Content-Type': 'application/json' },
+    });
+    return (await res.json()) as Template[];
   },
-  // ... 其他方法
+  async send(params) {
+    const res = await fetch('/api/templates/send', {
+      method: 'POST',
+      body: JSON.stringify(params),
+      headers: { 'Content-Type': 'application/json' },
+    });
+    return (await res.json()) as MessageSendResult;
+  },
+  async preview(templateId, variables) {
+    const res = await fetch(`/api/templates/${templateId}/preview`, {
+      method: 'POST',
+      body: JSON.stringify(variables),
+      headers: { 'Content-Type': 'application/json' },
+    });
+    return await res.text();
+  },
 };
 ```
 
-### 3. 配置 SDK
+## 2) 组装 Provider 与默认布局
 
-```typescript
-import { BifrostChatProvider } from '@feoe/bifrost-chat';
+```tsx
+import {
+  ChannelTypeEnum,
+  ChatContainer,
+  ConfigProvider,
+  DefaultChatLayout,
+  LanguageCodeEnum,
+  QueryProvider,
+  ServiceProvider,
+} from '@feoe/bifrost-chat';
 
-function App() {
+export function App() {
   return (
-    <ServiceProvider
-      conversationService={conversationService}
-      messageService={messageService}
-      templateService={templateService}
+    <ConfigProvider
+      config={{
+        language: { code: LanguageCodeEnum.ZhCN },
+        strategy: {
+          allowedChannels: [ChannelTypeEnum.WhatsApp, ChannelTypeEnum.Email],
+          activeChannel: ChannelTypeEnum.WhatsApp,
+        },
+        composer: {
+          enableDraft: true,
+          enableAttachments: true,
+          enableAudioInput: true,
+          showEmojiButton: true,
+        },
+      }}
     >
-      <BifrostChatProvider
-        config={{
-          // 基础配置
-          agentId: 'your-agent-id',
-          agentName: '客服',
-          
-          // 渠道配置
-          strategy: {
-            allowedChannels: ['whatsapp', 'email', 'sms'],
-            defaultChannel: 'whatsapp',
-          },
-          
-          // Composer 配置
-          composerConfig: {
-            enableDraft: true,
-            enableAttachments: true,
-            enableAudio: true,
-            enableEmoji: true,
-          },
-          
-          // 国际化配置
-          locale: 'zh-CN',
-        }}
-      >
-        <YourChatComponent />
-      </BifrostChatProvider>
-    </ServiceProvider>
+      <QueryProvider>
+        <ServiceProvider
+          conversationService={conversationService}
+          messageService={messageService}
+          templateService={templateService}
+        >
+          <ChatContainer>
+            <DefaultChatLayout />
+          </ChatContainer>
+        </ServiceProvider>
+      </QueryProvider>
+    </ConfigProvider>
   );
 }
 ```
 
-### 4. 使用组件
+## 3) 术语兼容说明
 
-```typescript
-import { DefaultChatLayout } from '@feoe/bifrost-chat';
-
-function YourChatComponent() {
-  return <DefaultChatLayout />;
-}
-```
+- SDK 公开 API 统一使用 `Conversation` / `conversationId`。
+- 协议层文档中的 `chatId`、`session` 为历史兼容字段，不作为 SDK 公开命名。
 
 ## 下一步
 
-- 查看 [组件文档](/components/) 了解所有可用组件
-- 查看 [API 文档](/api/) 了解服务接口定义
-- 查看 [示例](https://github.com/your-org/bifrost-chat/tree/main/examples) 获取更多使用示例
-
-## 获取帮助
-
-如果你在使用过程中遇到问题：
-
-- 查看 [常见问题](/guide/faq)
-- 在 [GitHub](https://github.com/your-org/bifrost-chat) 上提 Issue
-- 加入我们的 [Discord 社区](https://discord.gg/your-server)
+- [安装指南](/guide/installation)
+- [架构基线](/guide/architecture-baseline)
+- [ACK 机制](/guide/ack-mechanism)

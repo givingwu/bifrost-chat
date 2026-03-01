@@ -320,10 +320,9 @@ pnpm run build
 
 ## Skills 协作约定
 
-- 先读 `skills/README.md`
-- SDK 任务优先使用 `skills/bifrost-chat-js-sdk/SKILL.md`
-- 视觉任务优先使用 `skills/bifrost-chat-ui-design/SKILL.md`
-- Skill 文档必须区分 As-Is 与 To-Be，并与代码同步。
+详见 `skills/README.md`：
+- SDK 任务：`skills/bifrost-chat-js-sdk/SKILL.md`
+- 视觉任务：`skills/bifrost-chat-ui-design/SKILL.md`
 
 ## 参考文档
 
