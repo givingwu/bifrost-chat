@@ -43,13 +43,13 @@ export interface UseTemplatesParams {
 }
 
 export function useTemplates(params?: UseTemplatesParams) {
-  const services = useServices();
+  const { templateService } = useServices();
 
   // 调试日志：检查服务注入状态
   console.log('📊 [useTemplates] Hook 调用状态:', {
-    hasTemplateService: !!services?.templateService,
+    hasTemplateService: !!templateService,
     params,
-    serviceName: services?.templateService?.constructor?.name,
+    serviceName: templateService?.constructor?.name,
     queryKey: queryKeys.templates.list(),
   });
 
@@ -58,24 +58,24 @@ export function useTemplates(params?: UseTemplatesParams) {
     queryFn: () => {
       console.log('🚀 [useTemplates] queryFn 执行开始');
 
-      if (!services?.templateService) {
+      if (!templateService) {
         console.warn('⚠️ [useTemplates] templateService 不存在，返回空数组');
         return [];
       }
 
       console.log('📡 [useTemplates] 准备调用 templateService.list', {
         params,
-        serviceInstance: services.templateService,
-        hasListMethod: typeof services.templateService.list === 'function',
+        serviceInstance: templateService,
+        hasListMethod: typeof templateService.list === 'function',
       });
 
       // 在这里打断点可以确认 templateService.list() 被调用
-      const result = services.templateService.list(params ?? ({} as never));
+      const result = templateService.list(params ?? ({} as never));
       console.log('📦 [useTemplates] templateService.list 返回 Promise');
 
       return result;
     },
     staleTime: 1000 * 60 * 5, // 5 分钟
-    enabled: !!services?.templateService, // 只有当服务存在时才执行查询
+    enabled: !!templateService, // 只有当服务存在时才执行查询
   });
 }

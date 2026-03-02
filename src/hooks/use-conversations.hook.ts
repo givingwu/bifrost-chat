@@ -35,19 +35,19 @@ export function useConversations<TParams = any>(
   params?: TParams,
   options?: { enabled?: boolean },
 ) {
-  const services = useServices();
+  const { conversationService } = useServices();
 
   return useQuery({
     queryKey: queryKeys.conversations.list(
       params as Record<string, unknown> | undefined,
     ),
     queryFn: () => {
-      if (!services?.conversationService) {
+      if (!conversationService) {
         return Promise.resolve([]);
       }
-      return services.conversationService.list(params);
+      return conversationService.list(params);
     },
-    enabled: (options?.enabled ?? true) && !!services?.conversationService,
+    enabled: (options?.enabled ?? true) && !!conversationService,
     staleTime: 1000 * 60 * 5, // 5 分钟
   });
 }
