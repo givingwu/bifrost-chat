@@ -68,11 +68,7 @@
     "release": "pnpm run test && pnpm run build && pnpm publish",
     "release:dry": "pnpm run test && pnpm run build && pnpm publish --dry-run",
     "sync:fox": "bash scripts/sync-to-fox-admin.sh",
-    "sync:install": "bash scripts/install-sync-hook.sh",
-    "dev:docs": "concurrently \"pnpm run storybook\" \"pnpm run docs:dev\"",
-    "docs:dev": "rspress dev",
-    "docs:build": "rspress build",
-    "docs:preview": "rspress preview"
+    "sync:install": "bash scripts/install-sync-hook.sh"
   },
   "devDependencies": {
     "@biomejs/biome": "2.3.8",
@@ -89,11 +85,9 @@
     "@types/react": "^19.2.8",
     "@vitest/coverage-v8": "^4.0.18",
     "autoprefixer": "^10.4.21",
-    "concurrently": "^9.2.1",
     "jsdom": "^26.1.0",
     "postcss": "^8.5.3",
     "react": "^19.2.3",
-    "rspress": "^1.47.1",
     "storybook": "^10.2.12",
     "storybook-addon-rslib": "^3.3.0",
     "storybook-react-rsbuild": "^3.3.0",
