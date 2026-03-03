@@ -42,6 +42,7 @@ vi.mock('@/store', () => ({
     allowedChannels: ['waba' as const],
     currentUser: mockCurrentUser,
   }),
+  useActiveConversationId: () => 'conv-1',
 }));
 
 // Mock MessageBuilder
