@@ -29,6 +29,7 @@ vi.mock('@/store', () => ({
     allowedChannels: ['waba' as const],
     currentUser: mockCurrentUser,
   }),
+  useActiveConversationId: () => 'conv-1',
 }));
 
 const mockConversationService: IConversationService = {
@@ -162,6 +163,11 @@ describe('useSendMessage Hook', () => {
     expect(mockMessageService.send).toHaveBeenCalledWith(conversationId, {
       content: 'hello from mobile',
       clientType: 'mobile',
+      receiver: {
+        channelType: 'waba',
+        clientType: undefined,
+        pin: undefined,
+      },
     });
   });
 

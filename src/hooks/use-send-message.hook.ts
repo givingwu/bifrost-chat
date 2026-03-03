@@ -11,7 +11,8 @@ import { queryKeys } from '@/providers/query.provider';
 import { useServices } from '@/providers/service.provider';
 import { MessageBuilder } from '@/services/message-builder.service';
 import { MessageCacheHelper } from '@/services/message-cache-helper.service';
-import { useStrategy } from '@/store';
+import { useActiveConversationId, useStrategy } from '@/store';
+import { useConversations } from './use-conversations.hook';
 
 /**
  * 使用发送消息的 Hook
@@ -57,10 +58,22 @@ import { useStrategy } from '@/store';
  * }
  * ```
  */
+
+const DEFAULT_EMPTY_DATA = {
+  pageParams: [],
+  pages: [],
+};
+
 export function useSendMessage<TParams = any>() {
   const queryClient = useQueryClient();
   const { messageService, offlineMessageQueue } = useServices();
   const { activeChannel, allowedChannels, currentUser } = useStrategy();
+
+  const activeConversationId = useActiveConversationId();
+  const { data: conversations } = useConversations();
+  const activeConversation = conversations?.find(
+    (conversation) => conversation.id === activeConversationId,
+  );
 
   return useMutation<
     MessageSendResult,
@@ -78,6 +91,11 @@ export function useSendMessage<TParams = any>() {
     mutationFn: async (params) => {
       return messageService.send(params.conversationId, {
         content: params.content,
+        receiver: {
+          pin: activeConversation?.user?.id,
+          clientType: currentUser.clientType,
+          channelType: activeChannel ?? allowedChannels[0],
+        },
         ...params.extra,
       } as never);
     },
@@ -136,7 +154,7 @@ export function useSendMessage<TParams = any>() {
         // 回滚到之前的状态
         queryClient.setQueryData(
           queryKeys.messages.list(variables.conversationId),
-          context?.previousMessages,
+          context?.previousMessages ?? DEFAULT_EMPTY_DATA,
         );
         console.info('[useSendMessage] 已回滚到发送前的状态');
         return;
@@ -169,7 +187,7 @@ export function useSendMessage<TParams = any>() {
           // 保存失败，回滚到之前的状态
           queryClient.setQueryData(
             queryKeys.messages.list(variables.conversationId),
-            context.previousMessages,
+            context.previousMessages ?? DEFAULT_EMPTY_DATA,
           );
           console.info('[useSendMessage] 已回滚到发送前的状态');
           return;
@@ -234,7 +252,7 @@ export function useSendMessage<TParams = any>() {
         // 回滚到之前的状态（移除临时消息）
         queryClient.setQueryData(
           queryKeys.messages.list(variables.conversationId),
-          context?.previousMessages,
+          context?.previousMessages ?? DEFAULT_EMPTY_DATA,
         );
         console.info('[useSendMessage] 已回滚到发送前的状态');
 
