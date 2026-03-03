@@ -134,13 +134,11 @@ export function useSendMessage<TParams = any>() {
           '[useSendMessage] 离线队列未实现，网络错误时消息将丢失。请实现 IOfflineMessageQueueService。',
         );
         // 回滚到之前的状态
-        if (context?.previousMessages) {
-          queryClient.setQueryData(
-            queryKeys.messages.list(variables.conversationId),
-            context.previousMessages,
-          );
-          console.info('[useSendMessage] 已回滚到发送前的状态');
-        }
+        queryClient.setQueryData(
+          queryKeys.messages.list(variables.conversationId),
+          context?.previousMessages,
+        );
+        console.info('[useSendMessage] 已回滚到发送前的状态');
         return;
       }
 
@@ -234,13 +232,11 @@ export function useSendMessage<TParams = any>() {
         );
 
         // 回滚到之前的状态（移除临时消息）
-        if (context?.previousMessages) {
-          queryClient.setQueryData(
-            queryKeys.messages.list(variables.conversationId),
-            context.previousMessages,
-          );
-          console.info('[useSendMessage] 已回滚到发送前的状态');
-        }
+        queryClient.setQueryData(
+          queryKeys.messages.list(variables.conversationId),
+          context?.previousMessages,
+        );
+        console.info('[useSendMessage] 已回滚到发送前的状态');
 
         return;
       }
