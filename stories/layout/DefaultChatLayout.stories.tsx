@@ -5,6 +5,7 @@ import enUS from '@/locales/en-US.json';
 import { I18nProvider } from '@/providers/I18n.provider';
 import '@/styles/theme.css';
 import {
+  ConfigProvider,
   type IConversationService,
   type IMessageService,
   type ITemplateService,
@@ -373,13 +374,27 @@ const meta: Meta<typeof DefaultChatLayout> = {
   },
   decorators: [
     (Story) => (
-      <ServiceProvider
-        conversationService={new MockConversationService()}
-        messageService={new MockMessageService()}
-        templateService={new MockTemplateService()}
+      <ConfigProvider
+        config={{
+          strategy: {
+            activeChannel: ChannelTypeEnum.WhatsApp,
+            allowedChannels: [
+              ChannelTypeEnum.WhatsApp,
+              ChannelTypeEnum.SMS,
+              ChannelTypeEnum.Email,
+              ChannelTypeEnum.Waba,
+            ],
+          },
+        }}
       >
-        <Story />
-      </ServiceProvider>
+        <ServiceProvider
+          conversationService={new MockConversationService()}
+          messageService={new MockMessageService()}
+          templateService={new MockTemplateService()}
+        >
+          <Story />
+        </ServiceProvider>
+      </ConfigProvider>
     ),
   ],
 };

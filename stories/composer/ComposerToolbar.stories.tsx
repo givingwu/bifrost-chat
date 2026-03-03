@@ -32,7 +32,6 @@ const meta: Meta<typeof ComposerToolbar> = {
     onSendAudio: { action: 'sendAudio' },
     disabled: { control: 'boolean' },
     loading: { control: 'boolean' },
-    onEmojiClick: { action: 'emojiClick' },
     maxLength: { control: 'number' },
   },
 };
@@ -97,7 +96,6 @@ export const WithAllFeatures = () => {
       showChannelBadge: true,
       showCharCount: true,
       showHint: true,
-      showEmojiButton: true,
     },
   };
 
@@ -128,7 +126,6 @@ export const Minimal = () => {
       showChannelBadge: false,
       showCharCount: false,
       showHint: false,
-      showEmojiButton: true,
     },
   };
 
@@ -151,7 +148,6 @@ export const CustomConfig = () => {
   const [showChannelBadge, setShowChannelBadge] = useState(true);
   const [showCharCount, setShowCharCount] = useState(true);
   const [showHint, setShowHint] = useState(true);
-  const [showEmojiButton, setShowEmojiButton] = useState(true);
   const [enableAttachments, setEnableAttachments] = useState(true);
 
   const config = {
@@ -161,7 +157,6 @@ export const CustomConfig = () => {
       showChannelBadge,
       showCharCount,
       showHint,
-      showEmojiButton,
     },
   };
 
@@ -193,14 +188,6 @@ export const CustomConfig = () => {
               onChange={(e) => setShowHint(e.target.checked)}
             />
             <span className="text-sm">显示提示信息</span>
-          </label>
-          <label className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={showEmojiButton}
-              onChange={(e) => setShowEmojiButton(e.target.checked)}
-            />
-            <span className="text-sm">显示表情按钮</span>
           </label>
           <label className="flex items-center gap-2">
             <input

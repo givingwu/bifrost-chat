@@ -40,14 +40,6 @@ const meta: Meta<typeof ComposerInput> = {
       control: 'boolean',
       description: '是否自动聚焦',
     },
-    showEmojiButton: {
-      control: 'boolean',
-      description: '是否显示表情按钮',
-    },
-    showCharCount: {
-      control: 'boolean',
-      description: '是否显示字符计数',
-    },
   },
 };
 
@@ -187,7 +179,6 @@ export const WithEventHandlers = () => {
           onEnter={() => addLog('Enter pressed - Send message')}
           onFocus={() => addLog('Input focused')}
           onBlur={() => addLog('Input blurred')}
-          onEmojiClick={() => addLog('Emoji button clicked')}
         />
       </div>
       <div className="w-96 h-32 overflow-y-auto p-2 bg-muted rounded text-xs font-mono">
@@ -250,10 +241,8 @@ export const WithEmojiButton = () => {
         value={value}
         onChange={setValue}
         placeholder="点击表情按钮选择表情..."
-        showEmojiButton
-        onEmojiClick={() => console.log('Emoji button clicked')}
       />
-      <p className="text-sm text-text-muted">点击右侧表情按钮选择表情</p>
+      <p className="text-sm text-text-muted">表情按钮已移至底部工具栏</p>
     </div>
   );
 };
@@ -270,7 +259,6 @@ export const WithoutEmojiButton = () => {
         value={value}
         onChange={setValue}
         placeholder="不显示表情按钮的输入框"
-        showEmojiButton={false}
       />
       <p className="text-sm text-text-muted">不显示表情按钮</p>
     </div>
@@ -290,7 +278,6 @@ export const WithCharCount = () => {
         onChange={setValue}
         placeholder="带字符计数的输入框"
         maxLength={200}
-        showCharCount
       />
       <p className="text-sm text-text-muted">
         显示字符计数：{value.length} / 200
@@ -304,29 +291,11 @@ export const WithCharCount = () => {
  */
 export const Configurable = () => {
   const [value, setValue] = useState('');
-  const [showEmojiButton, setShowEmojiButton] = useState(true);
-  const [showCharCount, setShowCharCount] = useState(false);
   const [maxLength, setMaxLength] = useState(2000);
 
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <label className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            checked={showEmojiButton}
-            onChange={(e) => setShowEmojiButton(e.target.checked)}
-          />
-          <span className="text-sm">显示表情按钮</span>
-        </label>
-        <label className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            checked={showCharCount}
-            onChange={(e) => setShowCharCount(e.target.checked)}
-          />
-          <span className="text-sm">显示字符计数</span>
-        </label>
         <label className="flex items-center gap-2">
           <span className="text-sm">最大长度：</span>
           <input
@@ -343,15 +312,9 @@ export const Configurable = () => {
           onChange={setValue}
           placeholder="可配置的输入框"
           maxLength={maxLength}
-          showEmojiButton={showEmojiButton}
-          showCharCount={showCharCount}
-          onEmojiClick={() => console.log('Emoji button clicked')}
         />
       </div>
-      <p className="text-sm text-text-muted">
-        当前配置：表情按钮 {showEmojiButton ? '显示' : '隐藏'}，字符计数{' '}
-        {showCharCount ? '显示' : '隐藏'}，最大长度 {maxLength}
-      </p>
+      <p className="text-sm text-text-muted">当前配置：最大长度 {maxLength}</p>
     </div>
   );
 };

@@ -1,36 +1,13 @@
-import { useState } from 'react';
 import type { Meta, StoryObj } from 'storybook-react-rsbuild';
 import { ChannelFilter } from '@/components/toolbar/ChannelFilter';
-import {
-  AvailableChannelTypes,
-  ChannelTypeEnum,
-} from '@/interfaces/channel.interface';
-import '@/styles/theme.css';
-
-/**
- * ChannelFilter 组件 Story 文档
- *
- * 展示渠道筛选器的各种用法：
- * - 不同渠道
- * - 激活状态
- * - 交互示例
- */
+import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 
 const meta: Meta<typeof ChannelFilter> = {
   title: 'Toolbar/ChannelFilter',
   component: ChannelFilter,
   tags: ['autodocs'],
-  argTypes: {
-    channels: {
-      control: 'check',
-      options: AvailableChannelTypes,
-      description: '可用渠道列表',
-    },
-    activeChannel: {
-      control: 'select',
-      options: AvailableChannelTypes,
-      description: '当前激活的渠道',
-    },
+  parameters: {
+    layout: 'centered',
   },
 };
 
@@ -38,99 +15,124 @@ export default meta;
 type Story = StoryObj<typeof ChannelFilter>;
 
 /**
- * 基础示例 - 默认渠道筛选器
+ * 基础示例：单渠道
  */
-export const Default = () => {
-  return (
-    <div className="p-4 bg-muted rounded-lg">
-      <ChannelFilter
-        channels={AvailableChannelTypes}
-        activeChannel={ChannelTypeEnum.WhatsApp}
-      />
-    </div>
-  );
+export const SingleChannel: Story = {
+  args: {
+    channels: [ChannelTypeEnum.SMS],
+    activeChannel: ChannelTypeEnum.SMS,
+    onChannelClick: () => {},
+    compact: true,
+    showTooltip: true,
+  },
 };
 
 /**
- * 不同激活状态 - 展示不同渠道激活
+ * 多渠道示例
  */
-export const ActiveStates = () => {
-  return (
-    <div className="space-y-4">
-      <div className="p-4 bg-muted rounded-lg">
-        <p className="text-xs text-text-muted mb-2">SMS 激活</p>
-        <ChannelFilter
-          channels={AvailableChannelTypes}
-          activeChannel={ChannelTypeEnum.SMS}
-        />
-      </div>
-      <div className="p-4 bg-muted rounded-lg">
-        <p className="text-xs text-text-muted mb-2">WhatsApp 激活</p>
-        <ChannelFilter
-          channels={AvailableChannelTypes}
-          activeChannel={ChannelTypeEnum.WhatsApp}
-        />
-      </div>
-      <div className="p-4 bg-muted rounded-lg">
-        <p className="text-xs text-text-muted mb-2">Email 激活</p>
-        <ChannelFilter
-          channels={AvailableChannelTypes}
-          activeChannel={ChannelTypeEnum.Email}
-        />
-      </div>
-    </div>
-  );
+export const MultipleChannels: Story = {
+  args: {
+    channels: [
+      ChannelTypeEnum.SMS,
+      ChannelTypeEnum.WhatsApp,
+      ChannelTypeEnum.Email,
+    ],
+    activeChannel: ChannelTypeEnum.WhatsApp,
+    onChannelClick: () => {},
+    compact: true,
+    showTooltip: true,
+  },
 };
 
 /**
- * 交互示例 - 点击切换
+ * 全部渠道
  */
-export const Interactive = () => {
-  const [activeChannel, setActiveChannel] = useState(ChannelTypeEnum.WhatsApp);
-
-  return (
-    <div className="space-y-4">
-      <div className="p-4 bg-muted rounded-lg">
-        <ChannelFilter
-          channels={AvailableChannelTypes}
-          activeChannel={activeChannel}
-          onChannelClick={setActiveChannel}
-        />
-      </div>
-      <p className="text-sm text-text-muted">当前激活: {activeChannel}</p>
-    </div>
-  );
+export const AllChannels: Story = {
+  args: {
+    channels: [
+      ChannelTypeEnum.SMS,
+      ChannelTypeEnum.WhatsApp,
+      ChannelTypeEnum.Email,
+      ChannelTypeEnum.Waba,
+      ChannelTypeEnum.Viber,
+      ChannelTypeEnum.IVR,
+    ],
+    activeChannel: ChannelTypeEnum.Waba,
+    onChannelClick: () => {},
+    compact: true,
+    showTooltip: true,
+  },
 };
 
 /**
- * 部分渠道 - 展示部分可用渠道
+ * 非紧凑模式（显示文字）
  */
-export const PartialChannels = () => {
-  const channels = [ChannelTypeEnum.SMS, ChannelTypeEnum.WhatsApp];
-
-  return (
-    <div className="p-4 bg-muted rounded-lg">
-      <ChannelFilter channels={channels} activeChannel={ChannelTypeEnum.SMS} />
-    </div>
-  );
+export const NonCompact: Story = {
+  args: {
+    channels: [
+      ChannelTypeEnum.SMS,
+      ChannelTypeEnum.WhatsApp,
+      ChannelTypeEnum.Email,
+    ],
+    activeChannel: ChannelTypeEnum.SMS,
+    onChannelClick: () => {},
+    compact: false,
+    showTooltip: true,
+  },
 };
 
 /**
- * 在工具栏中使用 - 展示实际应用场景
+ * 无工具提示
  */
-export const InToolbar = () => {
-  const [activeChannel, setActiveChannel] = useState(ChannelTypeEnum.WhatsApp);
+export const WithoutTooltip: Story = {
+  args: {
+    channels: [
+      ChannelTypeEnum.SMS,
+      ChannelTypeEnum.WhatsApp,
+      ChannelTypeEnum.Email,
+    ],
+    activeChannel: ChannelTypeEnum.WhatsApp,
+    onChannelClick: () => {},
+    compact: true,
+    showTooltip: false,
+  },
+};
 
-  return (
-    <div className="w-full p-4 bg-card rounded-lg shadow-soft">
-      <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold">筛选渠道</h3>
-        <ChannelFilter
-          channels={AvailableChannelTypes}
-          activeChannel={activeChannel}
-          onChannelClick={setActiveChannel}
-        />
-      </div>
-    </div>
-  );
+/**
+ * 暗色模式
+ */
+export const DarkMode: Story = {
+  args: {
+    channels: [
+      ChannelTypeEnum.SMS,
+      ChannelTypeEnum.WhatsApp,
+      ChannelTypeEnum.Email,
+    ],
+    activeChannel: ChannelTypeEnum.Email,
+    onChannelClick: () => {},
+    compact: true,
+    showTooltip: true,
+  },
+  parameters: {
+    backgrounds: {
+      default: 'dark',
+    },
+  },
+};
+
+/**
+ * 无激活渠道
+ */
+export const NoActiveChannel: Story = {
+  args: {
+    channels: [
+      ChannelTypeEnum.SMS,
+      ChannelTypeEnum.WhatsApp,
+      ChannelTypeEnum.Email,
+    ],
+    activeChannel: undefined,
+    onChannelClick: () => {},
+    compact: true,
+    showTooltip: true,
+  },
 };
