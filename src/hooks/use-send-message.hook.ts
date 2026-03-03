@@ -169,13 +169,11 @@ export function useSendMessage<TParams = any>() {
         } catch (queueError) {
           console.error('[useSendMessage] 保存到离线队列失败:', queueError);
           // 保存失败，回滚到之前的状态
-          if (context?.previousMessages) {
-            queryClient.setQueryData(
-              queryKeys.messages.list(variables.conversationId),
-              context.previousMessages,
-            );
-            console.info('[useSendMessage] 已回滚到发送前的状态');
-          }
+          queryClient.setQueryData(
+            queryKeys.messages.list(variables.conversationId),
+            context.previousMessages,
+          );
+          console.info('[useSendMessage] 已回滚到发送前的状态');
           return;
         }
       }
