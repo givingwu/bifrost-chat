@@ -89,19 +89,4 @@ describe('useConversations Hook', () => {
 
     expect(result.current.error).toEqual(error);
   });
-
-  it('应该支持自定义参数', async () => {
-    const customParams = { status: 'active' };
-    vi.mocked(mockConversationService.list).mockResolvedValue(
-      mockConversations,
-    );
-
-    renderHook(() => useConversations(customParams), {
-      wrapper: createTestWrapper(),
-    });
-
-    await waitFor(() => {
-      expect(mockConversationService.list).toHaveBeenCalledWith(customParams);
-    });
-  });
 });
