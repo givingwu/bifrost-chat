@@ -40,8 +40,9 @@ import { useChatStore } from '@/store';
  * }
  * ```
  */
-export function useCreateConversation<TParams = Record<string, unknown>>(
+export function useCreateConversation<TParams = Conversation>(
   conversation: Conversation,
+  params: TParams,
 ) {
   const chatStore = useChatStore();
   const queryClient = useQueryClient();
@@ -49,13 +50,12 @@ export function useCreateConversation<TParams = Record<string, unknown>>(
 
   // 使用与 useConversations 相同的 queryKey
   const queryKey = queryKeys.conversations.list();
-
   // 生成临时 ID（在 hook 初始化时生成，保持稳定）
   const tempId = MessageBuilder.generateTempId();
 
   return useMutation({
-    // 使用 hook 初始化时传入的 conversation
-    mutationFn: () => conversationService.create(conversation),
+    // 使用 hook 初始化时传入的 params
+    mutationFn: () => conversationService.create(params),
 
     // 乐观更新：在 API 调用前立即更新 UI
     onMutate: async () => {
