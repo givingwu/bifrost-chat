@@ -70,7 +70,9 @@ export const TemplateList = ({
               {template.name || (showCategory && template.category) ? (
                 <div className="flex items-center gap-2">
                   {template.name && (
-                    <span className="font-medium">{template.name}</span>
+                    <span className="font-medium break-all">
+                      {template.name}
+                    </span>
                   )}
                   {showCategory && template.category && (
                     <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] text-primary">
