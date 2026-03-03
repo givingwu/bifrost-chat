@@ -8,7 +8,7 @@ export interface IconButtonProps
   /** 按钮变体 */
   variant?: 'primary' | 'secondary' | 'ghost' | 'muted';
   /** 按钮尺寸 */
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'xs' | 'sm' | 'md' | 'lg';
   /** 是否禁用 */
   disabled?: boolean;
   /** 是否加载中 */
@@ -18,6 +18,7 @@ export interface IconButtonProps
 }
 
 const sizeClasses = {
+  xs: 'p-1.5',
   sm: 'p-2',
   md: 'p-3',
   lg: 'p-4',

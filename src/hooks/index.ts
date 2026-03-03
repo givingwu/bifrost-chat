@@ -1,6 +1,7 @@
 // ==================== Hooks 导出 ====================
 
 export { useAudioRecorder } from './use-audio-recorder.hook';
+export { useChannelSwitcher } from './use-channel-switcher.hook';
 export { useComposerDraft } from './use-composer-draft.hook';
 export { useConversations } from './use-conversations.hook';
 export { useCreateConversation } from './use-create-conversation.hook';

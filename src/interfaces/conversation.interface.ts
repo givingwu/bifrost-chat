@@ -63,6 +63,8 @@ export interface Conversation {
   tags?: string[];
   /** 会话元数据 */
   metadata?: Record<string, unknown>;
+  /** 当前会话支持的渠道列表（可选） */
+  supportedChannels?: ChannelTypeEnum[];
 }
 
 /**
