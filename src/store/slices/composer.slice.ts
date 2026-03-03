@@ -44,9 +44,9 @@ const DEFAULT_COMPOSER_CONFIG: IComposerConfig = {
   maxAudioDuration: 300, // 5分钟
   audioOutputFormat: AudioOutputFormatEnum.Raw,
   // UI 显示配置
-  showChannelBadge: false,
+  showChannelSwitcher: true,
   showCharCount: false,
-  showHint: false,
+  showHint: true,
   showEmojiButton: true,
   // 模板配置
   templateMode: 'edit',

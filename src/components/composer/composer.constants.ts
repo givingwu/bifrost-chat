@@ -31,10 +31,14 @@ export const BUTTON_SIZES = {
   ICON_SMALL: 'h-4 w-4',
   /** 图标按钮尺寸 - 中 */
   ICON_MEDIUM: 'h-5 w-5',
+  /** 图标按钮尺寸 - 超小（用于底部工具栏） */
+  ICON_XS: 'h-3 w-3',
   /** 圆形按钮内边距 */
   CIRCULAR_PADDING: 'p-3',
   /** 小按钮内边距 */
   SMALL_PADDING: 'p-2',
+  /** 超小按钮内边距（用于底部工具栏） */
+  XS_PADDING: 'p-1.5',
 } as const;
 
 /** ARIA 标签常量 */
@@ -67,7 +71,7 @@ export const TEST_IDS = {
   COMPOSER_VOICE: 'composer-voice',
   COMPOSER_EMOJI: 'composer-emoji',
   COMPOSER_HINT: 'composer-hint',
-  COMPOSER_CHANNEL_BADGE: 'composer-channel-badge',
+  COMPOSER_CHANNEL_SWITCHER: 'composer-channel-switcher',
   COMPOSER_CHAR_COUNT: 'composer-char-count',
   COMPOSER_CLEAR: 'composer-clear',
 } as const;

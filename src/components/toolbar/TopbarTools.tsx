@@ -19,12 +19,15 @@ export const TopbarTools = ({ extra }: ITopbarTools) => {
 
   return (
     <div className="flex items-center gap-4">
+      {/* 网络状态 */}
       {showNetworkStatus && <NetworkStatus status={status} />}
 
+      {/* 分隔线 */}
       {(showLanguageSwitcher || showThemeSwitcher || extra) && (
         <div className="h-6 w-px bg-gray-200 dark:bg-white/10 mx-2"></div>
       )}
 
+      {/* 语言和主题切换 */}
       <div className="flex gap-1">
         {showLanguageSwitcher && (
           <LanguageSwitcher value={code} onChange={setLanguage} />

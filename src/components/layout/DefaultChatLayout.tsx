@@ -7,7 +7,6 @@ import { ConversationPanel } from '@/components/conversation/ConversationPanel';
 import { InfiniteMessageList } from '@/components/messages/InfiniteMessageList';
 import { Profile } from '@/components/profile/Profile';
 import { TemplatePanel } from '@/components/template/TemplatePanel';
-import { ChannelFilter } from '@/components/toolbar/ChannelFilter';
 import { Topbar } from '@/components/toolbar/Topbar';
 import { TopbarTools } from '@/components/toolbar/TopbarTools';
 import { useConversations } from '@/hooks/use-conversations.hook';
@@ -86,7 +85,7 @@ export function DefaultChatLayout({
   const sendMessage = useSendMessage();
   const { templateMode } = useComposerConfig();
   const { data: conversations = [] } = useConversations();
-  const { activeChannel, allowedChannels } = useStrategy();
+  const { activeChannel } = useStrategy();
   const { activeConversationId, searchQuery } = useConversation();
 
   // Composer ref，用于外部控制输入框
@@ -236,15 +235,7 @@ export function DefaultChatLayout({
               searchValue={searchQuery}
               onSearchChange={handleSearchChange}
               onSearchSubmit={handleSearchSubmit}
-            >
-              {allowedChannels.length > 1 && (
-                <ChannelFilter
-                  channels={allowedChannels}
-                  activeChannel={activeChannel}
-                  onChannelClick={actions.setActiveChannel}
-                />
-              )}
-            </ConversationHeader>
+            />
           }
         >
           <ConversationList

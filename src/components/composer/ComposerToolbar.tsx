@@ -20,10 +20,13 @@ import {
   revokeAttachmentPreviews,
 } from './AttachmentPreview';
 import { AudioRecorder } from './AudioRecorder';
+import { ChannelBadgeSwitcher } from './ChannelBadgeSwitcher';
 import { ComposerActions } from './ComposerActions';
 import { ComposerAttachments } from './ComposerAttachments';
+import { ComposerCharCount } from './ComposerCharCount';
 import { ComposerHint } from './ComposerHint';
 import { ComposerInput, type ComposerInputRef } from './ComposerInput';
+import { ComposerVoice } from './ComposerVoice';
 import { INPUT_LIMITS, TEST_IDS } from './composer.constants';
 
 /**
@@ -64,8 +67,6 @@ export interface ComposerToolbarProps {
   disabled?: boolean;
   /** 是否加载中 */
   loading?: boolean;
-  /** Emoji 点击回调 */
-  onEmojiClick?: () => void;
   /** 最大长度 */
   maxLength?: number;
   /** 是否锁定输入（禁止编辑，如模板内容不允许编辑时） */
@@ -112,7 +113,6 @@ export const ComposerToolbar = forwardRef<
     onSendAudio,
     disabled = false,
     loading = false,
-    onEmojiClick,
     maxLength,
     templateLocked = false,
     value: controlledValue,
@@ -478,7 +478,7 @@ export const ComposerToolbar = forwardRef<
         disabled && 'opacity-50 cursor-not-allowed',
       )}
     >
-      <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-1">
         {/* 附件预览 */}
         {attachments.length > 0 && (
           <AttachmentPreview
@@ -517,73 +517,68 @@ export const ComposerToolbar = forwardRef<
           </div>
         )}
 
-        <div className="flex items-center gap-3">
-          {composerConfig.enableAttachments && (
-            <ComposerAttachments
-              disabled={
-                disabled ||
-                isSending ||
-                isRecording ||
-                isTemplateLocked ||
-                !accept
-              }
-              onAttachmentSelect={handleAttachmentSelect}
-              accept={accept}
-              multiple
-            />
-          )}
-          <ComposerInput
-            ref={inputRef}
-            value={value}
-            placeholder={placeholder}
-            onChange={handleChange}
-            onEnter={handleSend}
-            disabled={disabled || isSending || isRecording || isTemplateLocked}
-            maxLength={effectiveMaxLength}
-            onEmojiClick={onEmojiClick}
-            showEmojiButton={composerConfig.showEmojiButton}
-            showCharCount={composerConfig.showCharCount}
-          />
-          <ComposerActions
-            canSend={canSend}
-            onSend={handleSend}
-            enableAudioInput={composerConfig.enableAudioInput}
-            onAudioInput={handleAudioInput}
-            loading={isSending || loading}
-            disabled={disabled || isRecording}
-            showClear={isTemplateLocked}
-            onClear={handleClear}
-          />
-        </div>
-        {/* 底部信息栏 - 根据配置控制显示 */}
-        {(composerConfig.showChannelBadge ||
-          composerConfig.showCharCount ||
-          composerConfig.showHint) && (
-          <div className="mt-2 flex items-center justify-between text-[10px] text-gray-400 dark:text-gray-500">
-            {composerConfig.showChannelBadge && (
-              <span
-                className="rounded-full border border-border px-2.5 py-1"
-                data-testid={TEST_IDS.COMPOSER_CHANNEL_BADGE}
-              >
-                {channel ?? 'default'}
-              </span>
+        {/* 输入框区域（带视觉包裹） */}
+        <ComposerInput
+          ref={inputRef}
+          value={value}
+          placeholder={placeholder}
+          onChange={handleChange}
+          onEnter={handleSend}
+          disabled={disabled || isSending || isRecording || isTemplateLocked}
+          maxLength={effectiveMaxLength}
+        />
+
+        {/* 底部工具栏 - 所有操作按钮 */}
+        <div className="flex items-center justify-between">
+          {/* 左侧：渠道相关 */}
+          <div className="flex items-center gap-1">
+            {composerConfig.showChannelSwitcher && (
+              <ChannelBadgeSwitcher
+                activeChannel={channel}
+                data-testid={TEST_IDS.COMPOSER_CHANNEL_SWITCHER}
+              />
             )}
-            <div className="flex items-center gap-3">
-              {composerConfig.showHint && <ComposerHint channel={channel} />}
-              {composerConfig.showCharCount && (
-                <span
-                  className={cn(
-                    'transition-colors duration-200',
-                    value.length > effectiveMaxLength && 'text-destructive',
-                  )}
-                  data-testid={TEST_IDS.COMPOSER_CHAR_COUNT}
-                >
-                  {value.length} / {effectiveMaxLength}
-                </span>
-              )}
-            </div>
+            {composerConfig.showHint && <ComposerHint channel={channel} />}
+            {composerConfig.showCharCount && (
+              <ComposerCharCount
+                currentLength={value.length}
+                maxLength={effectiveMaxLength}
+              />
+            )}
           </div>
-        )}
+
+          {/* 右侧：操作按钮 */}
+          <div className="flex items-center gap-1">
+            {composerConfig.enableAttachments && (
+              <ComposerAttachments
+                disabled={
+                  disabled ||
+                  isSending ||
+                  isRecording ||
+                  isTemplateLocked ||
+                  !accept
+                }
+                onAttachmentSelect={handleAttachmentSelect}
+                accept={accept}
+                multiple
+              />
+            )}
+            {composerConfig.enableAudioInput && !canSend && (
+              <ComposerVoice
+                disabled={disabled || isRecording}
+                onClick={handleAudioInput}
+              />
+            )}
+            <ComposerActions
+              canSend={canSend}
+              onSend={handleSend}
+              loading={isSending || loading}
+              disabled={disabled || isRecording}
+              showClear={isTemplateLocked}
+              onClear={handleClear}
+            />
+          </div>
+        </div>
       </form>
     </div>
   );

@@ -3,11 +3,16 @@ export { Avatar } from './Avatar';
 export { Button, CircularButton } from './Button';
 // Composer Components
 export { AttachmentPreview } from './composer/AttachmentPreview';
+export { ChannelSwitcher } from './composer/ChannelSwitcher';
 export { ComposerActions } from './composer/ComposerActions';
 export { ComposerAttachments } from './composer/ComposerAttachments';
+export { ComposerCharCount } from './composer/ComposerCharCount';
+export { ComposerClearButton } from './composer/ComposerClearButton';
 export { ComposerHint } from './composer/ComposerHint';
 export { ComposerInput } from './composer/ComposerInput';
+export { ComposerSendButton } from './composer/ComposerSendButton';
 export { ComposerToolbar } from './composer/ComposerToolbar';
+export { ComposerVoice } from './composer/ComposerVoice';
 export { ComposerWithDraft } from './composer/ComposerWithDraft';
 export { ComposerWithSend } from './composer/ComposerWithSend';
 export { EmojiPicker } from './composer/EmojiPicker';
@@ -52,6 +57,7 @@ export { ProfileHeader } from './profile/ProfileHeader';
 export { ProfileInfoList } from './profile/ProfileInfoList';
 export { ProfileSectionTitle } from './profile/ProfileSectionTitle';
 export { SearchInput } from './SearchInput';
+export { Tooltip } from './Tooltip';
 // Template components
 export { TemplateCategoryButton } from './template/TemplateCategoryButton';
 export { TemplateHeader } from './template/TemplateHeader';

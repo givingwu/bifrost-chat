@@ -28,8 +28,15 @@ vi.mock('@/store', () => ({
     enableAudioInput: false,
     showEmojiButton: true,
     showCharCount: true,
-    showChannelBadge: true,
+    showChannelSwitcher: true,
     showHint: false,
+  }),
+  useStrategy: () => ({
+    allowedChannels: ['sms', 'whatsapp', 'email', 'waba', 'viber', 'ivr'],
+    activeChannel: 'whatsapp',
+  }),
+  useActions: () => ({
+    setActiveChannel: vi.fn(),
   }),
 }));
 
@@ -385,7 +392,7 @@ describe('ComposerWithDraft - Draft 功能验证', () => {
       }
     });
 
-    it('应该在 templateLocked=true 时显示清除按钮', async () => {
+    it('应该在 templateLocked=true 时禁用输入框', async () => {
       render(
         <ComposerWithDraft
           conversationId={conversationId}
@@ -394,9 +401,9 @@ describe('ComposerWithDraft - Draft 功能验证', () => {
         />,
       );
 
-      // 验证清除按钮显示
-      const clearButton = screen.queryByTestId('composer-clear');
-      expect(clearButton).toBeInTheDocument();
+      // 验证输入框被禁用
+      const input = screen.getByTestId('composer-input');
+      expect(input).toBeDisabled();
     });
 
     it('应该在模板锁定时不加载草稿', async () => {

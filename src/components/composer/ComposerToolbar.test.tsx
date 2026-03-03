@@ -29,12 +29,19 @@ vi.mock('@/store', () => ({
     allowedFileTypes: undefined,
     maxAudioDuration: 300,
     audioOutputFormat: 'raw',
-    showChannelBadge: true,
+    showChannelSwitcher: true,
     showCharCount: true,
     showHint: true,
     showEmojiButton: true,
     templateMode: 'edit',
     allowTemplateEdit: false,
+  }),
+  useStrategy: () => ({
+    allowedChannels: ['sms', 'whatsapp', 'email', 'waba', 'viber', 'ivr'],
+    activeChannel: 'whatsapp',
+  }),
+  useActions: () => ({
+    setActiveChannel: vi.fn(),
   }),
 }));
 
@@ -49,10 +56,11 @@ describe('ComposerToolbar', () => {
     expect(composer).toBeDefined();
   });
 
-  it('should display channel badge when channel is provided', () => {
+  it('should display channel switcher when channel is provided', () => {
     render(<ComposerToolbar channel={ChannelTypeEnum.WhatsApp} />);
-    const channelBadge = screen.getByTestId('composer-channel-badge');
-    expect(channelBadge.textContent).toBe('whatsapp');
+    // 通过渠道按钮来验证渠道切换器存在
+    const channelButton = screen.getByText('WhatsApp');
+    expect(channelButton).toBeDefined();
   });
 
   it('should display character count', () => {

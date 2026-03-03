@@ -67,17 +67,15 @@ export const ComposerAttachments = memo<ComposerAttachmentsProps>(
     };
 
     return (
-      <div className="flex items-center gap-2">
-        <IconButton
-          icon={<Paperclip className={BUTTON_SIZES.ICON_MEDIUM} />}
-          variant="ghost"
-          size="sm"
-          disabled={disabled}
-          onClick={handleClick}
-          aria-label={ARIA_LABELS.ATTACHMENT}
-          data-testid={TEST_IDS.COMPOSER_ATTACH}
-        />
-      </div>
+      <IconButton
+        icon={<Paperclip className={BUTTON_SIZES.ICON_XS} />}
+        variant="ghost"
+        size="xs"
+        disabled={disabled}
+        onClick={handleClick}
+        aria-label={ARIA_LABELS.ATTACHMENT}
+        data-testid={TEST_IDS.COMPOSER_ATTACH}
+      />
     );
   },
 );

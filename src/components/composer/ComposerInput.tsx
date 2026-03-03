@@ -10,7 +10,6 @@ import {
 } from 'react';
 import { cn } from '@/utils/class.util';
 import { INPUT_LIMITS, TEST_IDS, TEXT_SIZES } from './composer.constants';
-import { EmojiPickerButton } from './EmojiPickerButton';
 
 /**
  * ComposerInput 暴露的 ref 接口
@@ -41,12 +40,6 @@ export interface ComposerInputProps {
   onBlur?: (event: FocusEvent<HTMLTextAreaElement>) => void;
   /** 聚焦回调 */
   onFocus?: (event: FocusEvent<HTMLTextAreaElement>) => void;
-  /** Emoji 按钮点击回调 */
-  onEmojiClick?: () => void;
-  /** 是否显示表情按钮 */
-  showEmojiButton?: boolean;
-  /** 是否显示字符计数 */
-  showCharCount?: boolean;
   /** 达到最大长度时的回调 */
   onMaxLengthReached?: () => void;
 }
@@ -84,7 +77,6 @@ const debugLog = {
  *   onEnter={handleSend}
  *   placeholder="输入消息..."
  *   maxLength={2000}
- *   showCharCount
  * />
  * ```
  */
@@ -100,9 +92,6 @@ export const ComposerInput = forwardRef<ComposerInputRef, ComposerInputProps>(
       autoFocus = false,
       onBlur,
       onFocus,
-      onEmojiClick,
-      showEmojiButton = true,
-      showCharCount = false,
       onMaxLengthReached,
     },
     ref,
@@ -129,37 +118,6 @@ export const ComposerInput = forwardRef<ComposerInputRef, ComposerInputProps>(
         textareaRef.current.focus();
       }
     }, [autoFocus, disabled]);
-
-    // 表情选择器逻辑
-    const handleEmojiSelect = useCallback(
-      (emoji: string) => {
-        if (disabled) {
-          return;
-        }
-
-        const textarea = textareaRef.current;
-        if (!textarea) {
-          onChange(`${value}${emoji} `);
-          return;
-        }
-
-        const start = textarea.selectionStart ?? value.length;
-        const end = textarea.selectionEnd ?? value.length;
-        const emojiWithSpace = `${emoji} `;
-        const nextValue =
-          value.slice(0, start) + emojiWithSpace + value.slice(end);
-
-        onChange(nextValue);
-
-        // 恢复焦点并设置光标位置
-        requestAnimationFrame(() => {
-          textarea.focus();
-          const cursorPosition = start + emojiWithSpace.length;
-          textarea.setSelectionRange(cursorPosition, cursorPosition);
-        });
-      },
-      [disabled, onChange, value],
-    );
 
     // 键盘事件处理
     const handleKeyDown = useCallback(
@@ -211,31 +169,12 @@ export const ComposerInput = forwardRef<ComposerInputRef, ComposerInputProps>(
       [maxLength, onChange, onMaxLengthReached, value.length],
     );
 
-    // 字符计数显示
-    const charCount = (
-      <span
-        className={cn(
-          'absolute right-14 top-1/2 -translate-y-1/2',
-          'text-[10px] text-gray-400 dark:text-gray-500',
-          'transition-opacity duration-200',
-          value.length > 0 ? 'opacity-100' : 'opacity-0',
-          value.length >= maxLength * 0.9
-            ? 'text-orange-500'
-            : value.length >= maxLength
-              ? 'text-red-500'
-              : '',
-        )}
-      >
-        {value.length}/{maxLength}
-      </span>
-    );
-
     // 输入框是否接近或达到最大长度
     const isNearMaxLength = value.length >= maxLength * 0.9;
     const isAtMaxLength = value.length >= maxLength;
 
     return (
-      <fieldset className="relative flex-1 border-0 p-0 m-0">
+      <fieldset className="border-0 p-0 m-0">
         <textarea
           ref={textareaRef}
           rows={3}
@@ -253,35 +192,15 @@ export const ComposerInput = forwardRef<ComposerInputRef, ComposerInputProps>(
             // 字符数接近或达到最大长度时的视觉反馈
             isNearMaxLength && !isAtMaxLength && 'focus:ring-orange-400/40',
             isAtMaxLength && 'focus:ring-red-400/40',
-            // 为字符计数和表情按钮留出空间
-            showCharCount && 'pr-28',
-            !showCharCount && showEmojiButton && 'pr-14',
-            !showCharCount && !showEmojiButton && 'pr-4',
           )}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
           onBlur={onBlur}
           onFocus={onFocus}
           aria-label="消息输入框"
-          aria-describedby={
-            showCharCount ? TEST_IDS.COMPOSER_CHAR_COUNT : undefined
-          }
           aria-invalid={isAtMaxLength}
           data-testid={TEST_IDS.COMPOSER_INPUT}
         />
-
-        {/* 字符计数 */}
-        {showCharCount && maxLength !== Infinity && charCount}
-
-        {/* 表情按钮 */}
-        {showEmojiButton && (
-          <EmojiPickerButton
-            disabled={disabled}
-            onEmojiSelect={handleEmojiSelect}
-            onButtonClick={onEmojiClick}
-            containerClassName="absolute inset-y-0 right-3 flex items-center"
-          />
-        )}
       </fieldset>
     );
   },
