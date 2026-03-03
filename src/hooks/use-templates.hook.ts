@@ -50,11 +50,11 @@ export function useTemplates(params?: UseTemplatesParams) {
     hasTemplateService: !!templateService,
     params,
     serviceName: templateService?.constructor?.name,
-    queryKey: queryKeys.templates.list(),
+    queryKey: queryKeys.templates.list(params?.conversationId),
   });
 
   return useQuery({
-    queryKey: queryKeys.templates.list(),
+    queryKey: queryKeys.templates.list(params?.conversationId),
     queryFn: () => {
       console.log('🚀 [useTemplates] queryFn 执行开始');
 
