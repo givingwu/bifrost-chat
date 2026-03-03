@@ -57,6 +57,12 @@ import { useStrategy } from '@/store';
  * }
  * ```
  */
+
+const DEFAULT_EMPTY_DATA = {
+  pageParams: [],
+  pages: [],
+};
+
 export function useSendMessage<TParams = any>() {
   const queryClient = useQueryClient();
   const { messageService, offlineMessageQueue } = useServices();
@@ -136,7 +142,7 @@ export function useSendMessage<TParams = any>() {
         // 回滚到之前的状态
         queryClient.setQueryData(
           queryKeys.messages.list(variables.conversationId),
-          context?.previousMessages,
+          context?.previousMessages ?? DEFAULT_EMPTY_DATA,
         );
         console.info('[useSendMessage] 已回滚到发送前的状态');
         return;
@@ -169,7 +175,7 @@ export function useSendMessage<TParams = any>() {
           // 保存失败，回滚到之前的状态
           queryClient.setQueryData(
             queryKeys.messages.list(variables.conversationId),
-            context.previousMessages,
+            context.previousMessages ?? DEFAULT_EMPTY_DATA,
           );
           console.info('[useSendMessage] 已回滚到发送前的状态');
           return;
@@ -234,7 +240,7 @@ export function useSendMessage<TParams = any>() {
         // 回滚到之前的状态（移除临时消息）
         queryClient.setQueryData(
           queryKeys.messages.list(variables.conversationId),
-          context?.previousMessages,
+          context?.previousMessages ?? DEFAULT_EMPTY_DATA,
         );
         console.info('[useSendMessage] 已回滚到发送前的状态');
 
