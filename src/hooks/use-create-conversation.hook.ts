@@ -132,6 +132,7 @@ export function useCreateConversation<TParams = any>(
   const chatStore = useChatStore();
   const queryClient = useQueryClient();
   const { conversationService } = useServices();
+  const conversationListKey = queryKeys.conversations.lists();
 
   return useMutation<
     Conversation,
@@ -145,13 +146,12 @@ export function useCreateConversation<TParams = any>(
     onMutate: async (params: TParams) => {
       // 1. 取消正在进行的查询，避免覆盖我们的乐观更新
       await queryClient.cancelQueries({
-        queryKey: queryKeys.conversations.lists(),
+        queryKey: conversationListKey,
       });
 
       // 2. 保存旧数据，以便在出错时回滚
-      const previousConversations = queryClient.getQueryData<Conversation[]>(
-        queryKeys.conversations.lists(),
-      );
+      const previousConversations =
+        queryClient.getQueryData<Conversation[]>(conversationListKey);
 
       // 3. 生成临时 ID
       const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
@@ -172,13 +172,10 @@ export function useCreateConversation<TParams = any>(
       };
 
       // 5. 乐观更新：添加临时会话到列表头部
-      queryClient.setQueryData<Conversation[]>(
-        queryKeys.conversations.lists(),
-        (old) => {
-          if (!old) return [tempConversation];
-          return [tempConversation, ...old];
-        },
-      );
+      queryClient.setQueryData<Conversation[]>(conversationListKey, (old) => {
+        if (!old) return [tempConversation];
+        return [tempConversation, ...old];
+      });
 
       return { previousConversations, tempId };
     },
@@ -195,7 +192,7 @@ export function useCreateConversation<TParams = any>(
 
       if (context?.previousConversations) {
         queryClient.setQueryData(
-          queryKeys.conversations.lists(),
+          conversationListKey,
           context.previousConversations,
         );
       }
@@ -213,15 +210,12 @@ export function useCreateConversation<TParams = any>(
       },
     ) => {
       if (context?.tempId) {
-        queryClient.setQueryData<Conversation[]>(
-          queryKeys.conversations.lists(),
-          (old) => {
-            if (!old) return [data];
-            return old.map((conversation) =>
-              conversation.id === context.tempId ? data : conversation,
-            );
-          },
-        );
+        queryClient.setQueryData<Conversation[]>(conversationListKey, (old) => {
+          if (!old) return [data];
+          return old.map((conversation) =>
+            conversation.id === context.tempId ? data : conversation,
+          );
+        });
       }
 
       options?.onSuccess?.(data, variables, context);
