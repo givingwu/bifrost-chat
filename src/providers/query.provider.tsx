@@ -1,6 +1,5 @@
 import type { QueryClient as QueryClientType } from '@tanstack/react-query';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import type { ReactNode } from 'react';
 
 /**
@@ -65,8 +64,7 @@ export const queryKeys = {
   conversations: {
     all: ['conversations'] as const,
     lists: () => [...queryKeys.conversations.all, 'list'] as const,
-    list: (filters?: Record<string, unknown>) =>
-      [...queryKeys.conversations.lists(), filters] as const,
+    list: () => [...queryKeys.conversations.lists()] as const,
     details: () => [...queryKeys.conversations.all, 'detail'] as const,
     detail: (id: string) => [...queryKeys.conversations.details(), id] as const,
   },
@@ -125,13 +123,9 @@ export const defaultQueryClient = createQueryClient();
  */
 export function QueryProvider({
   children,
-  enableDevtools = process.env.NODE_ENV === 'development',
   queryClient = defaultQueryClient,
 }: QueryProviderProps) {
   return (
-    <QueryClientProvider client={queryClient}>
-      {children}
-      {enableDevtools && <ReactQueryDevtools initialIsOpen={false} />}
-    </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
 }

@@ -31,16 +31,14 @@ import { useServices } from '@/providers/service.provider';
  * }
  * ```
  */
-export function useConversations<TParams = any>(
-  params?: TParams,
+export function useConversations<TListParams = Record<string, unknown>>(
   options?: { enabled?: boolean },
+  params?: TListParams,
 ) {
   const { conversationService } = useServices();
 
   return useQuery({
-    queryKey: queryKeys.conversations.list(
-      params as Record<string, unknown> | undefined,
-    ),
+    queryKey: queryKeys.conversations.list(),
     queryFn: () => {
       if (!conversationService) {
         return Promise.resolve([]);
