@@ -1,31 +1,97 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { AgentStatusEnum } from '@/interfaces/agent.interface';
+import type { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import type { Conversation } from '@/interfaces/conversation.interface';
+import { ConversationStatusEnum } from '@/interfaces/conversation.interface';
 import { queryKeys } from '@/providers/query.provider';
 import { useServices } from '@/providers/service.provider';
-import { MessageBuilder } from '@/services/message-builder.service';
 import { useChatStore } from '@/store';
+
+/**
+ * useCreateConversationHook 选项
+ */
+export interface UseCreateConversationOptions<TParams> {
+  /**
+   * 自定义临时会话构建器
+   * @description用于在乐观更新时构建临时会话对象
+   * @param params 创建参数
+   * @returns 部分会话对象，将覆盖默认值
+   */
+  tempConversationBuilder?: (params: TParams) => Partial<Conversation>;
+
+  /**
+   * 创建成功回调
+   */
+  onSuccess?: (
+    data: Conversation,
+    variables: TParams,
+    context: {
+      previousConversations: Conversation[] | undefined;
+      tempId: string;
+    },
+  ) => void;
+
+  /**
+   * 创建失败回调
+   */
+  onError?: (
+    error: Error,
+    variables: TParams,
+    context:
+      | { previousConversations: Conversation[] | undefined; tempId: string }
+      | undefined,
+  ) => void;
+}
+
+/**
+ * 默认临时会话构建器
+ * @description 提供合理的默认值，避免 UI 渲染错误
+ */
+function buildTempConversation<TParams>(
+  params: TParams,
+  tempId: string,
+  channel: ChannelTypeEnum,
+): Conversation {
+  return {
+    id: tempId,
+    user: {
+      id: 'temp-user',
+      name: 'Loading...',
+      status: AgentStatusEnum.Offline,
+    },
+    lastMessage: '',
+    lastMessageTime: new Date().toISOString(),
+    unreadCount: 0,
+    channel: channel, // 默认渠道
+    status: ConversationStatusEnum.Active,
+  };
+}
 
 /**
  * 使用创建会话的 Hook
  *
  * @description
  * 使用 React Query Mutation 管理会话创建。
- * 支持乐观更新：在 API 调用前立即更新 UI，成功后用服务器数据替换临时数据。
+ * 支持乐观更新，创建成功后会自动更新会话列表缓存。
  *
- * @param conversation - 要创建的会话数据（在 hook 初始化时传入）
- * @param queryParams - 查询参数，用于匹配 useConversations 的 queryKey
+ * 特性：
+ * - 乐观更新：创建前立即在 UI 显示临时会话
+ * - 错误回滚：创建失败时恢复到之前状态
+ * - 无额外请求：成功后直接更新缓存，不触发重新获取
+ *
  * @returns Mutation 结果
  *
  * @example
  * ```tsx
- * function CreateConversationButton({ userId, channel }: Props) {
- *   // conversation 在组件渲染时就已确定
- *   const conversation = { userId, channel };
- *   const createConversation = useCreateConversation(conversation);
+ * function CreateConversationButton() {
+ *   const createConversation = useCreateConversation();
  *
  *   const handleCreate = async () => {
  *     try {
- *       const newConversation = await createConversation.mutateAsync();
+ *       const newConversation = await createConversation.mutateAsync({
+ *         userId: 'user-123',
+ *         channel: 'whatsapp',
+ *       });
  *       console.log('会话创建成功:', newConversation);
  *     } catch (error) {
  *       console.error('创建失败:', error);
@@ -34,83 +100,131 @@ import { useChatStore } from '@/store';
  *
  *   return (
  *     <button onClick={handleCreate} disabled={createConversation.isPending}>
- *       创建会话
+ *       {createConversation.isPending ? '创建中...' : '创建会话'}
  *     </button>
  *   );
  * }
  * ```
+ *
+ * @example
+ * ```tsx
+ * // 自定义临时会话构建器
+ * function CreateConversationWithCustomBuilder() {
+ *   const createConversation = useCreateConversation({
+ *     tempConversationBuilder: (params) => ({
+ *       user: {
+ *         id: params.userId,
+ *         name: 'Loading...',
+ *         status: AgentStatusEnum.Offline,
+ *       },
+ *       channel: params.channel,
+ *     }),
+ *     onSuccess: (data) => {
+ *       console.log('创建成功，可以跳转到会话详情');
+ *     },
+ *   });
+ * }
+ * ```
  */
-export function useCreateConversation<TParams = Conversation>(
-  conversation: Conversation,
-  params: TParams,
+export function useCreateConversation<TParams = any>(
+  options?: UseCreateConversationOptions<TParams>,
 ) {
   const chatStore = useChatStore();
   const queryClient = useQueryClient();
   const { conversationService } = useServices();
 
-  // 使用与 useConversations 相同的 queryKey
-  const queryKey = queryKeys.conversations.list();
-  // 生成临时 ID（在 hook 初始化时生成，保持稳定）
-  const tempId = MessageBuilder.generateTempId();
+  return useMutation<
+    Conversation,
+    Error,
+    TParams,
+    { previousConversations: Conversation[] | undefined; tempId: string }
+  >({
+    mutationFn: (params: TParams) => conversationService.create(params),
 
-  return useMutation({
-    // 使用 hook 初始化时传入的 params
-    mutationFn: () => conversationService.create(params),
+    // 乐观更新：创建前立即显示临时会话
+    onMutate: async (params: TParams) => {
+      // 1. 取消正在进行的查询，避免覆盖我们的乐观更新
+      await queryClient.cancelQueries({
+        queryKey: queryKeys.conversations.lists(),
+      });
 
-    // 乐观更新：在 API 调用前立即更新 UI
-    onMutate: async () => {
-      console.log('[use-create-conversation] conversation: ', conversation);
+      // 2. 保存旧数据，以便在出错时回滚
+      const previousConversations = queryClient.getQueryData<Conversation[]>(
+        queryKeys.conversations.lists(),
+      );
 
-      // 取消正在进行的查询，避免覆盖我们的乐观更新
-      await queryClient.cancelQueries({ queryKey });
+      // 3. 生成临时 ID
+      const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 
-      // 保存旧数据，以便在出错时回滚
-      const previousConversations =
-        queryClient.getQueryData<Conversation[]>(queryKey);
-
-      // 创建临时会话对象（带临时 ID）
-      const tempConversation = {
-        ...conversation,
+      // 4. 构建临时会话
+      const defaultTempConversation = buildTempConversation<TParams>(
+        params,
+        tempId,
+        chatStore.strategy.activeChannel ||
+          chatStore.strategy.allowedChannels?.[0], // 使用当前激活渠道或第一个允许的渠道
+      );
+      const tempConversation: Conversation = {
+        ...defaultTempConversation,
+        // 使用自定义构建器覆盖默认值
+        ...(options?.tempConversationBuilder?.(params) || {}),
+        // 确保 ID 不被覆盖
         id: tempId,
-        _isOptimistic: true, // 标记为乐观更新的临时数据
-      } as Conversation;
+      };
 
-      // 立即将临时会话插入到缓存列表开头
-      queryClient.setQueryData(queryKey, (old: Conversation[] | undefined) => {
-        if (!old?.length) return [tempConversation];
-        return [tempConversation, ...old];
-      });
+      // 5. 乐观更新：添加临时会话到列表头部
+      queryClient.setQueryData<Conversation[]>(
+        queryKeys.conversations.lists(),
+        (old) => {
+          if (!old) return [tempConversation];
+          return [tempConversation, ...old];
+        },
+      );
 
-      // 返回上下文，供 onError 和 onSuccess 使用
-      return { previousConversations };
+      return { previousConversations, tempId };
     },
 
-    // 成功后，用服务器返回的真实数据替换临时数据
-    onSuccess: (data, _variables, context) => {
-      console.log('context: ', context);
-      console.log('_variables: ', _variables);
-      console.log('[use-create-conversation] data: ', data);
-
-      // 用服务器返回的真实数据替换临时数据
-      queryClient.setQueryData(queryKey, (old: Conversation[] | undefined) => {
-        if (!old) return [data];
-        // 查找并替换临时数据
-        return old.map((conversation) =>
-          conversation.id === tempId ? data : conversation,
-        );
-      });
-
-      // 设置新会话为激活状态
-      chatStore.actions.setActiveConversationId(data.id);
-    },
-
-    // 如果出错，回滚到之前的状态
-    onError: (error, _variables, context) => {
-      console.error('[use-create-conversation] error: ', error);
+    // 错误处理：回滚到之前状态
+    onError: (
+      error: Error,
+      variables: TParams,
+      context:
+        | { previousConversations: Conversation[] | undefined; tempId: string }
+        | undefined,
+    ) => {
+      console.error('[useCreateConversation] 创建会话失败:', error);
 
       if (context?.previousConversations) {
-        queryClient.setQueryData(queryKey, context.previousConversations);
+        queryClient.setQueryData(
+          queryKeys.conversations.lists(),
+          context.previousConversations,
+        );
       }
+
+      options?.onError?.(error, variables, context);
+    },
+
+    // 成功处理：用真实数据替换临时会话（无额外请求）
+    onSuccess: (
+      data: Conversation,
+      variables: TParams,
+      context: {
+        previousConversations: Conversation[] | undefined;
+        tempId: string;
+      },
+    ) => {
+      if (context?.tempId) {
+        queryClient.setQueryData<Conversation[]>(
+          queryKeys.conversations.lists(),
+          (old) => {
+            if (!old) return [data];
+            return old.map((conversation) =>
+              conversation.id === context.tempId ? data : conversation,
+            );
+          },
+        );
+      }
+
+      options?.onSuccess?.(data, variables, context);
     },
   });
 }
