@@ -164,7 +164,7 @@ export const ComposerInput = forwardRef<ComposerInputRef, ComposerInputProps>(
     // 键盘事件处理
     const handleKeyDown = useCallback(
       async (event: KeyboardEvent<HTMLTextAreaElement>) => {
-        if (disabled) {
+        if (!value.trim() && disabled) {
           return;
         }
 
