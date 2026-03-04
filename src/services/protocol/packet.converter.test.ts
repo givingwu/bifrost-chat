@@ -44,7 +44,6 @@ describe('PacketConverter', () => {
       expect(rawPacket).toBeDefined();
       expect(rawPacket.id).toBe('msg-123');
       expect(rawPacket.chatId).toBe('chat-789');
-      expect(rawPacket.mid).toBe('temp-456');
       expect(rawPacket.from.app).toBe('fox_collect.waiter');
       expect(rawPacket.from.pin).toBe('agent-123');
       expect(rawPacket.from.channelType).toBe('whatsapp');
@@ -298,10 +297,8 @@ describe('PacketConverter', () => {
       );
 
       // 验证关键字段
-      // 注意：在双向转换中，id 和 tempId 会互换
-      // 原因：RawPacket.id 是客户端临时 ID，RawPacket.mid 是服务端 ID
-      // 转换回 StandardMessage 时，id 使用 mid（服务端 ID），tempId 使用 id（临时 ID）
-      expect(convertedMessage.id).toBe(originalMessage.tempId);
+      // 注意：toRawPacket 不设置 mid 时，转换回 StandardMessage 的 id 和 tempId 均来自 packet.id
+      expect(convertedMessage.id).toBe(originalMessage.id);
       expect(convertedMessage.tempId).toBe(originalMessage.id);
       expect(convertedMessage.conversationId).toBe(
         originalMessage.conversationId,
