@@ -4,7 +4,7 @@
  * - 对应文档: specs/bifrost-client-integration-guide.md 3.4.2
  */
 export enum ChannelTypeEnum {
-  /** SMS 短信渠道 */
+  /** SMS 短信渠道（上行短信），后面可能增加模版短信 */
   SMS = 'sms',
   /** WhatsApp 渠道 */
   WhatsApp = 'whatsapp',
