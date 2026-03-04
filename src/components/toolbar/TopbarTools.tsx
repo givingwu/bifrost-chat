@@ -1,5 +1,12 @@
 import type { ReactNode } from 'react';
-import { useActions, useLanguage, useNetwork, useTheme } from '@/store';
+import {
+  useActions,
+  useLanguage,
+  useNetwork,
+  useStrategy,
+  useTheme,
+} from '@/store';
+import { ChannelFilter } from './ChannelFilter';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { NetworkStatus } from './NetworkStatus';
 import { ThemeSwitcher } from './ThemeSwitcher';
@@ -15,10 +22,22 @@ export const TopbarTools = ({ extra }: ITopbarTools) => {
   const { status, enableStatusIndicator: showNetworkStatus } = useNetwork();
   const { mode, enableSwitcher: showThemeSwitcher } = useTheme();
   const { code, enableSwitcher: showLanguageSwitcher } = useLanguage();
-  const { setTheme, setLanguage } = useActions();
+  const { activeChannel, allowedChannels } = useStrategy();
+  const { setTheme, setLanguage, setActiveChannel } = useActions();
 
   return (
     <div className="flex items-center gap-4">
+      {/* 渠道切换器 */}
+      {allowedChannels.length > 1 && (
+        <ChannelFilter
+          channels={allowedChannels}
+          activeChannel={activeChannel}
+          onChannelClick={setActiveChannel}
+          compact
+          showTooltip
+        />
+      )}
+
       {/* 网络状态 */}
       {showNetworkStatus && <NetworkStatus status={status} />}
 

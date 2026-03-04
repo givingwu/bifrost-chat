@@ -78,8 +78,8 @@ export const ChannelFilter = memo(
 
     return (
       <fieldset
-        aria-label="渠道切换器"
-        className="relative inline-flex items-center rounded-full p-0.5 bg-gray-200/80 dark:bg-white/10 backdrop-blur-md border border-gray-300/50 dark:border-white/20 shadow-sm"
+        aria-label="Channel Filter"
+        className="relative inline-flex items-center rounded-full p-0.5 bg-white/80 dark:bg-white/10 backdrop-blur-md border border-gray-200/50 dark:border-white/10"
       >
         {/* Sliding indicator - 仅在多渠道时显示 */}
         {channels.length > 1 && activeIndex >= 0 && (
