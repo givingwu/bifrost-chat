@@ -61,11 +61,7 @@ const isValidMessage = (message: unknown): message is StandardMessage => {
   }
 
   const msg = message as Partial<StandardMessage>;
-  return (
-    typeof msg.id === 'number' &&
-    typeof msg.type === 'string' &&
-    msg.content !== undefined
-  );
+  return typeof msg.type === 'string' && msg.content !== undefined;
 };
 
 /**
