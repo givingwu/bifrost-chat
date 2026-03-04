@@ -77,10 +77,9 @@ export const ComposerActions = memo<ComposerActionsProps>(
           />
         </>
       );
+    } else {
+      return <ComposerSendButton loading={false} disabled={true} />;
     }
-
-    // 默认: 不显示任何按钮
-    return null;
   },
   // 自定义比较函数，优化性能
   (prevProps, nextProps) => {

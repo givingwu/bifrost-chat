@@ -1,6 +1,7 @@
 import { Send } from 'lucide-react';
 import { memo } from 'react';
 import { IconButton } from '@/components/IconButton';
+import { cn } from '@/utils/class.util';
 import { ARIA_LABELS, BUTTON_SIZES, TEST_IDS } from './composer.constants';
 
 export interface ComposerSendButtonProps {
@@ -33,7 +34,12 @@ export const ComposerSendButton = memo<ComposerSendButtonProps>(
         icon={<Send className={BUTTON_SIZES.ICON_XS} />}
         variant="primary"
         size="xs"
-        className="bg-blue-500 hover:bg-blue-600 text-white rounded-full shadow-lg shadow-blue-500/30 transition-all transform hover:scale-105 active:scale-95"
+        className={cn(
+          disabled
+            ? 'bg-gray-400 cursor-not-allowed'
+            : 'bg-blue-500 hover:bg-blue-600 cursor-pointer shadow-lg shadow-blue-500/30 transition-all transform hover:scale-105 active:scale-95',
+          'text-white rounded-full',
+        )}
         onClick={onClick}
         loading={loading}
         disabled={disabled}
