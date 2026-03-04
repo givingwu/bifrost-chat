@@ -78,13 +78,15 @@ export interface MessagesPage {
 export interface UseMessagesParams {
   /** 会话 ID */
   conversationId: string;
+  /** 当前渠道（可选，用于渠道切换时刷新） */
+  currentChannel?: string;
 }
 
 export function useMessages<TParams extends UseMessagesParams>(
   params: TParams,
 ) {
   const services = useServices();
-  const { conversationId } = params;
+  const { conversationId, currentChannel } = params;
 
   // 获取离线队列中的失败消息
   const { data: offlineMessages = [] } = useQuery({
@@ -107,7 +109,7 @@ export function useMessages<TParams extends UseMessagesParams>(
   });
 
   return useInfiniteQuery({
-    queryKey: queryKeys.messages.list(conversationId),
+    queryKey: queryKeys.messages.list(conversationId, currentChannel),
     queryFn: async ({ pageParam = 1 }) => {
       if (!services?.messageService) {
         return {

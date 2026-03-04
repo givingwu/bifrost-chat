@@ -44,17 +44,18 @@ export interface UseTemplatesParams {
 
 export function useTemplates(params?: UseTemplatesParams) {
   const { templateService } = useServices();
+  const { conversationId, currentChannel } = params || {};
 
   // 调试日志：检查服务注入状态
   console.log('📊 [useTemplates] Hook 调用状态:', {
     hasTemplateService: !!templateService,
     params,
     serviceName: templateService?.constructor?.name,
-    queryKey: queryKeys.templates.list(params?.conversationId),
+    queryKey: queryKeys.templates.list(conversationId, currentChannel),
   });
 
   return useQuery({
-    queryKey: queryKeys.templates.list(params?.conversationId),
+    queryKey: queryKeys.templates.list(conversationId, currentChannel),
     queryFn: () => {
       console.log('🚀 [useTemplates] queryFn 执行开始');
 

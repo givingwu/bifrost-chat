@@ -7,6 +7,8 @@ import { MessageList } from './MessageList';
 export interface InfiniteMessageListProps {
   /** 会话 ID */
   conversationId: string;
+  /** 当前渠道（用于渠道切换时刷新） */
+  currentChannel?: string;
   /** 自定义类名 */
   className?: string;
   /** 是否启用自动标记已读，默认 true */
@@ -52,6 +54,7 @@ const BOTTOM_STICKY_THRESHOLD = 120;
  */
 export function InfiniteMessageList({
   conversationId,
+  currentChannel,
   className,
   enableAutoMarkAsRead = true,
   markAsReadDebounceDelay = 1000,
@@ -66,6 +69,7 @@ export function InfiniteMessageList({
     isFetchingNextPage,
   } = useMessages({
     conversationId,
+    currentChannel,
   });
 
   const scrollRef = useRef<HTMLDivElement | null>(
@@ -75,19 +79,20 @@ export function InfiniteMessageList({
   const isNearBottomRef = useRef(true);
   const lastMessageCountRef = useRef(0);
 
-  // 当 conversationId 变化时，强制刷新消息列表
-  // 这确保了切换会话时能够加载完整的消息历史，而不仅仅是 WebSocket 推送的新消息
+  // 当 conversationId 或 currentChannel 变化时，强制刷新消息列表
+  // 这确保了切换会话或渠道时能够加载完整的消息历史
   useEffect(() => {
     if (conversationId) {
       console.log(
-        '[InfiniteMessageList] 会话切换，强制刷新消息列表:',
+        '[InfiniteMessageList] 会话/渠道切换，强制刷新消息列表:',
         conversationId,
+        currentChannel,
       );
       queryClient.invalidateQueries({
-        queryKey: queryKeys.messages.list(conversationId),
+        queryKey: queryKeys.messages.list(conversationId, currentChannel),
       });
     }
-  }, [conversationId, queryClient]);
+  }, [conversationId, currentChannel, queryClient]);
 
   // ✅ Bug 1 修复：反转页面顺序，确保更早的消息显示在上面
   // 后端返回格式：第一页 [30,29,...,1]（降序），第二页 [60,59,...,31]（降序）

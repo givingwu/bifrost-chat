@@ -72,8 +72,10 @@ export const queryKeys = {
   messages: {
     all: ['messages'] as const,
     lists: () => [...queryKeys.messages.all, 'list'] as const,
-    list: (conversationId: string) =>
-      [...queryKeys.messages.lists(), conversationId] as const,
+    list: (conversationId: string, channel?: string) =>
+      channel
+        ? ([...queryKeys.messages.lists(), conversationId, channel] as const)
+        : ([...queryKeys.messages.lists(), conversationId] as const),
     details: () => [...queryKeys.messages.all, 'detail'] as const,
     detail: (id: string) => [...queryKeys.messages.details(), id] as const,
   },
@@ -81,8 +83,12 @@ export const queryKeys = {
   templates: {
     all: ['templates'] as const,
     lists: () => [...queryKeys.templates.all, 'list'] as const,
-    list: (conversationId?: string) =>
-      [...queryKeys.templates.lists(), conversationId] as const,
+    list: (conversationId?: string, channel?: string) =>
+      conversationId && channel
+        ? ([...queryKeys.templates.lists(), conversationId, channel] as const)
+        : conversationId
+          ? ([...queryKeys.templates.lists(), conversationId] as const)
+          : ([...queryKeys.templates.lists()] as const),
   },
 } as const;
 

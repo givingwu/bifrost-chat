@@ -269,7 +269,10 @@ export function DefaultChatLayout({
       }
     >
       {/* 消息区域由 MessageList 渲染 */}
-      <InfiniteMessageList conversationId={activeConversationId as string} />
+      <InfiniteMessageList
+        conversationId={activeConversationId as string}
+        currentChannel={activeChannel}
+      />
     </ChatLayout>
   );
 }
