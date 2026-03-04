@@ -75,11 +75,6 @@ export class PacketConverter {
       timestamp: message.timestamp,
     };
 
-    if (message.tempId) {
-      // 可选字段
-      rawPacket.mid = message.tempId;
-    }
-
     return rawPacket;
   }
 
