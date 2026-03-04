@@ -1,6 +1,9 @@
 import type { StateCreator } from 'zustand';
 import { AgentStatusEnum } from '@/interfaces/agent.interface';
-import { ChannelTypeEnum } from '@/interfaces/channel.interface';
+import {
+  AvailableChannelTypes,
+  ChannelTypeEnum,
+} from '@/interfaces/channel.interface';
 import {
   ClientTypeEnum,
   type MessageTypeEnum,
@@ -30,7 +33,7 @@ export interface CurrentUser {
  */
 export interface StrategyState {
   /** 允许的渠道列表（由 strategy.allowedChannels 约束） */
-  allowedChannels: ChannelTypeEnum[];
+  allowedChannels: readonly ChannelTypeEnum[];
   /** 当前激活渠道 */
   activeChannel?: ChannelTypeEnum;
   /** 坐席状态（用于 in_call 互斥策略） */
@@ -71,8 +74,8 @@ export const createStrategySlice: StateCreator<
   StrategySlice
 > = (set) => ({
   strategy: {
-    allowedChannels: [ChannelTypeEnum.Waba],
-    activeChannel: ChannelTypeEnum.Waba,
+    allowedChannels: AvailableChannelTypes,
+    activeChannel: ChannelTypeEnum.SMS,
     currentUser: {
       app: 'Bifrost Chat',
       pin: 'Pin is required',

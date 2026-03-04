@@ -78,8 +78,7 @@ export const ComposerActions = memo<ComposerActionsProps>(
         </>
       );
     }
-
-    // 默认: 不显示任何按钮
+    // 当 canSend=false 时，不渲染任何按钮
     return null;
   },
   // 自定义比较函数，优化性能
