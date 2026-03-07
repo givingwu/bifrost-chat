@@ -20,6 +20,7 @@ const mockOfflineMessageQueue = {
 
 const mockMessageService = {
   send: vi.fn(),
+  subscribeToMessageStatus: vi.fn(() => () => {}),
 };
 
 // Mock ServiceProvider

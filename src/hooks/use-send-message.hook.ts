@@ -10,8 +10,10 @@ import {
 } from '@/interfaces/message.interface';
 import { queryKeys } from '@/providers/query.provider';
 import { useServices } from '@/providers/service.provider';
+import type { MessageStatusUpdatedEvent } from '@/services/message.service';
 import { MessageBuilder } from '@/services/message-builder.service';
 import { MessageCacheHelper } from '@/services/message-cache-helper.service';
+import { useEffect } from 'react';
 import { useActiveConversationId, useStrategy } from '@/store';
 import { useConversations } from './use-conversations.hook';
 
@@ -21,6 +23,7 @@ import { useConversations } from './use-conversations.hook';
  * @description
  * 使用 React Query Mutation 管理消息发送。
  * 支持乐观更新，发送前立即在 UI 上显示消息。
+ * 订阅消息状态更新（如 WebSocket ptype=ack），收到后将对应消息状态更新为 sent 等。
  *
  * @returns Mutation 结果
  *
@@ -78,6 +81,27 @@ export function useSendMessage<
   const activeConversation = conversations?.find(
     (conversation) => conversation.id === activeConversationId,
   );
+
+  // 订阅消息状态更新：WebSocket 收到 ptype=ack 后宿主会触发此回调，将消息状态（如 sent）写回缓存
+  useEffect(() => {
+    const unsubscribe = messageService.subscribeToMessageStatus(
+      (event: MessageStatusUpdatedEvent) => {
+        MessageCacheHelper.updateMessageInCache(
+          queryClient,
+          event.conversationId,
+          {
+            id: event.messageId,
+            tempId: event.tempId,
+            status: event.status,
+          },
+          event.messageId,
+          event.tempId,
+          { channel: activeChannel ?? undefined },
+        );
+      },
+    );
+    return unsubscribe;
+  }, [messageService, queryClient, activeChannel]);
 
   return useMutation<
     MessageSendResult,
