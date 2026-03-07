@@ -145,17 +145,22 @@ export class MessageCacheHelper {
    * @param queryClient QueryClient 实例
    * @param conversationId 会话 ID
    * @param message 要添加的消息
+   * @param options.channel 当前渠道，需与 useMessages 的 query key 一致
    *
    * @description
    * - 自动去重（基于 id 和 tempId）
    * - 添加到最后一页的末尾
    * - 如果没有页面，创建新页面
+   * - channel 必须与 useMessages 传入的 currentChannel 一致，否则乐观更新无法被 UI 读取
    */
   static addMessageToCache(
     queryClient: QueryClient,
     conversationId: string,
     message: StandardMessage,
+    options?: { channel?: string },
   ): void {
+    const queryKey = queryKeys.messages.list(conversationId, options?.channel);
+
     console.log('[MessageCacheHelper.addMessageToCache] 开始添加消息', {
       conversationId,
       messageId: message.id,
@@ -163,66 +168,63 @@ export class MessageCacheHelper {
       timestamp: message.timestamp,
     });
 
-    queryClient.setQueryData<InfiniteQueryData>(
-      queryKeys.messages.list(conversationId),
-      (old) => {
-        if (!old) {
-          console.log(
-            '[MessageCacheHelper.addMessageToCache] 没有旧数据，创建新页面',
-          );
-          // 如果没有旧数据，创建新页面
-          return {
-            pages: [{ items: [message] }],
-            pageParams: [undefined],
-          };
-        }
-
+    queryClient.setQueryData<InfiniteQueryData>(queryKey, (old) => {
+      if (!old) {
         console.log(
-          '[MessageCacheHelper.addMessageToCache] 当前页面数:',
-          old.pages.length,
+          '[MessageCacheHelper.addMessageToCache] 没有旧数据，创建新页面',
         );
-        console.log(
-          '[MessageCacheHelper.addMessageToCache] 各页面消息数:',
-          old.pages.map((p) => p.items.length),
-        );
+        // 如果没有旧数据，创建新页面
+        return {
+          pages: [{ items: [message] }],
+          pageParams: [undefined],
+        };
+      }
 
-        // 检查消息是否已存在
-        const allMessages = old.pages.flatMap((page) => page.items);
-        console.log(
-          '[MessageCacheHelper.addMessageToCache] 总消息数:',
-          allMessages.length,
-        );
+      console.log(
+        '[MessageCacheHelper.addMessageToCache] 当前页面数:',
+        old.pages.length,
+      );
+      console.log(
+        '[MessageCacheHelper.addMessageToCache] 各页面消息数:',
+        old.pages.map((p) => p.items.length),
+      );
 
-        if (MessageCacheHelper.messageExists(allMessages, message)) {
-          console.warn(
-            '[MessageCacheHelper.addMessageToCache] 消息已存在，跳过添加',
-            {
-              messageId: message.id,
-              tempId: message.tempId,
-            },
-          );
-          // 消息已存在，返回旧数据（不触发更新）
-          return old;
-        }
+      // 检查消息是否已存在
+      const allMessages = old.pages.flatMap((page) => page.items);
+      console.log(
+        '[MessageCacheHelper.addMessageToCache] 总消息数:',
+        allMessages.length,
+      );
 
-        // 添加到最后一页的末尾
-        console.log(
-          '[MessageCacheHelper.addMessageToCache] 添加到最后一页的末尾',
+      if (MessageCacheHelper.messageExists(allMessages, message)) {
+        console.warn(
+          '[MessageCacheHelper.addMessageToCache] 消息已存在，跳过添加',
+          {
+            messageId: message.id,
+            tempId: message.tempId,
+          },
         );
-        const newPages = old.pages.map((page, index) =>
-          index === old.pages.length - 1
-            ? { ...page, items: [...page.items, message] }
-            : page,
-        );
+        // 消息已存在，返回旧数据（不触发更新）
+        return old;
+      }
 
-        console.log(
-          '[MessageCacheHelper.addMessageToCache] 添加后的页面消息数:',
-          newPages.map((p) => p.items.length),
-        );
+      // 添加到最后一页的末尾
+      console.log(
+        '[MessageCacheHelper.addMessageToCache] 添加到最后一页的末尾',
+      );
+      const newPages = old.pages.map((page, index) =>
+        index === old.pages.length - 1
+          ? { ...page, items: [...page.items, message] }
+          : page,
+      );
 
-        return { ...old, pages: newPages };
-      },
-    );
+      console.log(
+        '[MessageCacheHelper.addMessageToCache] 添加后的页面消息数:',
+        newPages.map((p) => p.items.length),
+      );
+
+      return { ...old, pages: newPages };
+    });
 
     console.log('[MessageCacheHelper.addMessageToCache] 缓存更新完成');
   }
@@ -232,9 +234,10 @@ export class MessageCacheHelper {
    *
    * @param queryClient QueryClient 实例
    * @param conversationId 会话 ID
+   * @param updates 要更新的字段
    * @param messageId 消息 ID
    * @param tempId 临时消息 ID
-   * @param updates 要更新的字段
+   * @param options.channel 当前渠道，需与 useMessages 的 query key 一致
    *
    * @description
    * - 通过 messageId 或 tempId 查找消息
@@ -246,29 +249,29 @@ export class MessageCacheHelper {
     updates: Partial<StandardMessage>,
     messageId?: string,
     tempId?: string,
+    options?: { channel?: string },
   ): void {
-    queryClient.setQueryData<InfiniteQueryData>(
-      queryKeys.messages.list(conversationId),
-      (old) => {
-        if (!old) return old;
+    const queryKey = queryKeys.messages.list(conversationId, options?.channel);
 
-        const newPages = old.pages.map((page) => ({
-          ...page,
-          items: page.items.map((msg) => {
-            // 匹配 messageId 或 tempId
-            const isMatch =
-              (messageId && msg.id === messageId) ||
-              (tempId && msg.tempId === tempId) ||
-              (messageId && msg.tempId === messageId) || // 处理 tempId 被更新为 messageId 的情况
-              (tempId && msg.id === tempId);
+    queryClient.setQueryData<InfiniteQueryData>(queryKey, (old) => {
+      if (!old) return old;
 
-            return isMatch ? { ...msg, ...updates } : msg;
-          }),
-        }));
+      const newPages = old.pages.map((page) => ({
+        ...page,
+        items: page.items.map((msg) => {
+          // 匹配 messageId 或 tempId
+          const isMatch =
+            (messageId && msg.id === messageId) ||
+            (tempId && msg.tempId === tempId) ||
+            (messageId && msg.tempId === messageId) || // 处理 tempId 被更新为 messageId 的情况
+            (tempId && msg.id === tempId);
 
-        return { ...old, pages: newPages };
-      },
-    );
+          return isMatch ? { ...msg, ...updates } : msg;
+        }),
+      }));
+
+      return { ...old, pages: newPages };
+    });
   }
 
   /**
@@ -276,9 +279,10 @@ export class MessageCacheHelper {
    *
    * @param queryClient QueryClient 实例
    * @param conversationId 会话 ID
+   * @param status 新状态
    * @param messageId 消息 ID
    * @param tempId 临时消息 ID
-   * @param status 新状态
+   * @param options.channel 当前渠道，需与 useMessages 的 query key 一致
    */
   static updateMessageStatus(
     queryClient: QueryClient,
@@ -286,6 +290,7 @@ export class MessageCacheHelper {
     status: StandardMessage['status'],
     messageId?: string,
     tempId?: string,
+    options?: { channel?: string },
   ): void {
     MessageCacheHelper.updateMessageInCache(
       queryClient,
@@ -293,6 +298,7 @@ export class MessageCacheHelper {
       { status },
       messageId,
       tempId,
+      options,
     );
   }
 

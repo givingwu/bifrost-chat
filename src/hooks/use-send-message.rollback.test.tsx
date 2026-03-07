@@ -8,6 +8,7 @@ import {
   MessageFailureTypeEnum,
   MessageStatusEnum,
 } from '@/interfaces/message.interface';
+import { queryKeys } from '@/providers/query.provider';
 import type { CurrentUser } from '@/store';
 
 // Mock services
@@ -137,7 +138,8 @@ describe('useSendMessage - 消息回滚与离线队列功能测试', () => {
       expect(mockOfflineMessageQueue.createOfflineMessage).toHaveBeenCalled();
       expect(mockOfflineMessageQueue.enqueue).toHaveBeenCalled();
 
-      // 验证消息保留在缓存中，状态为 Failed
+      // 验证消息保留在缓存中，状态为 Failed（useStrategy mock 的 activeChannel 为 waba）
+      const messageQueryKey = queryKeys.messages.list(conversationId, 'waba');
       const data = queryClient.getQueryData<{
         pages: Array<{
           items: Array<{
@@ -147,7 +149,7 @@ describe('useSendMessage - 消息回滚与离线队列功能测试', () => {
             error?: string;
           }>;
         }>;
-      }>(['messages', 'list', conversationId]);
+      }>(messageQueryKey);
 
       expect(data).toBeDefined();
       expect(data?.pages[0].items).toHaveLength(1);
@@ -163,21 +165,24 @@ describe('useSendMessage - 消息回滚与离线队列功能测试', () => {
       const content = '测试消息';
       const errorMessage = '已达到发送次数上限';
 
-      // 初始化缓存（模拟发送前有 1 条消息）
-      queryClient.setQueryData(['messages', 'list', conversationId], {
-        pages: [
-          {
-            items: [
-              {
-                id: 'existing-msg-1',
-                content: { text: '已存在的消息' },
-                status: MessageStatusEnum.Sent,
-                timestamp: Date.now() - 1000,
-              },
-            ],
-          },
-        ],
-      });
+      // 初始化缓存（模拟发送前有 1 条消息，需与 useStrategy mock 的 activeChannel 一致）
+      queryClient.setQueryData(
+        queryKeys.messages.list(conversationId, 'waba'),
+        {
+          pages: [
+            {
+              items: [
+                {
+                  id: 'existing-msg-1',
+                  content: { text: '已存在的消息' },
+                  status: MessageStatusEnum.Sent,
+                  timestamp: Date.now() - 1000,
+                },
+              ],
+            },
+          ],
+        },
+      );
 
       // Mock 后端返回业务逻辑错误
       mockMessageService.send.mockResolvedValue({
@@ -212,7 +217,7 @@ describe('useSendMessage - 消息回滚与离线队列功能测试', () => {
       // 验证：缓存应该回滚到发送前状态（只有 1 条已存在的消息）
       const data = queryClient.getQueryData<{
         pages: Array<{ items: Array<{ id: string }> }>;
-      }>(['messages', 'list', conversationId]);
+      }>(queryKeys.messages.list(conversationId, 'waba'));
 
       expect(data).toBeDefined();
       expect(data?.pages).toHaveLength(1);
@@ -225,10 +230,13 @@ describe('useSendMessage - 消息回滚与离线队列功能测试', () => {
       const content = '测试消息';
       const errorMessage = '验证失败';
 
-      // 初始化空缓存
-      queryClient.setQueryData(['messages', 'list', conversationId], {
-        pages: [{ items: [] }],
-      });
+      // 初始化空缓存（需与 useStrategy mock 的 activeChannel 一致）
+      queryClient.setQueryData(
+        queryKeys.messages.list(conversationId, 'waba'),
+        {
+          pages: [{ items: [] }],
+        },
+      );
 
       // Mock 后端返回业务逻辑错误
       mockMessageService.send.mockResolvedValue({
@@ -257,7 +265,7 @@ describe('useSendMessage - 消息回滚与离线队列功能测试', () => {
       // 验证：缓存应该回滚到空列表
       const data = queryClient.getQueryData<{
         pages: Array<{ items: unknown[] }>;
-      }>(['messages', 'list', conversationId]);
+      }>(queryKeys.messages.list(conversationId, 'waba'));
 
       expect(data?.pages[0].items).toHaveLength(0);
     });
@@ -267,21 +275,24 @@ describe('useSendMessage - 消息回滚与离线队列功能测试', () => {
       const content = '测试消息';
       const errorMessage = '服务器错误';
 
-      // 初始化缓存
-      queryClient.setQueryData(['messages', 'list', conversationId], {
-        pages: [
-          {
-            items: [
-              {
-                id: 'existing-msg-1',
-                content: { text: '已存在的消息' },
-                status: MessageStatusEnum.Sent,
-                timestamp: Date.now() - 1000,
-              },
-            ],
-          },
-        ],
-      });
+      // 初始化缓存（需与 useStrategy mock 的 activeChannel 一致）
+      queryClient.setQueryData(
+        queryKeys.messages.list(conversationId, 'waba'),
+        {
+          pages: [
+            {
+              items: [
+                {
+                  id: 'existing-msg-1',
+                  content: { text: '已存在的消息' },
+                  status: MessageStatusEnum.Sent,
+                  timestamp: Date.now() - 1000,
+                },
+              ],
+            },
+          ],
+        },
+      );
 
       // Mock 后端返回业务逻辑错误（即使标记为可重试）
       mockMessageService.send.mockResolvedValue({
@@ -316,7 +327,7 @@ describe('useSendMessage - 消息回滚与离线队列功能测试', () => {
       // 验证：缓存应该回滚到发送前状态
       const data = queryClient.getQueryData<{
         pages: Array<{ items: Array<{ id: string }> }>;
-      }>(['messages', 'list', conversationId]);
+      }>(queryKeys.messages.list(conversationId, 'waba'));
 
       expect(data?.pages[0].items).toHaveLength(1);
       expect(data?.pages[0].items[0].id).toBe('existing-msg-1');
@@ -328,10 +339,13 @@ describe('useSendMessage - 消息回滚与离线队列功能测试', () => {
       const conversationId = 'conv-1';
       const content = '测试消息';
 
-      // 初始化缓存
-      queryClient.setQueryData(['messages', 'list', conversationId], {
-        pages: [{ items: [] }],
-      });
+      // 初始化缓存（需与 useStrategy mock 的 activeChannel 一致）
+      queryClient.setQueryData(
+        queryKeys.messages.list(conversationId, 'waba'),
+        {
+          pages: [{ items: [] }],
+        },
+      );
 
       // Mock 后端返回失败，但没有设置 errorType 和 retryable
       mockMessageService.send.mockResolvedValue({
@@ -358,7 +372,7 @@ describe('useSendMessage - 消息回滚与离线队列功能测试', () => {
       // 验证：缓存应该回滚到空列表
       const data = queryClient.getQueryData<{
         pages: Array<{ items: unknown[] }>;
-      }>(['messages', 'list', conversationId]);
+      }>(queryKeys.messages.list(conversationId, 'waba'));
 
       expect(data?.pages[0].items).toHaveLength(0);
     });
@@ -392,10 +406,10 @@ describe('useSendMessage - 消息回滚与离线队列功能测试', () => {
         expect(mockMessageService.send).toHaveBeenCalled();
       });
 
-      // 验证消息状态更新为 Sent
+      // 验证消息状态更新为 Sent（需与 useStrategy mock 的 activeChannel 一致）
       const data = queryClient.getQueryData<{
         pages: Array<{ items: Array<{ id: string; status: string }> }>;
-      }>(['messages', 'list', conversationId]);
+      }>(queryKeys.messages.list(conversationId, 'waba'));
 
       expect(data?.pages[0].items[0].id).toBe(messageId);
       expect(data?.pages[0].items[0].status).toBe(MessageStatusEnum.Sent);

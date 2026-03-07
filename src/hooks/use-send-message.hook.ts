@@ -86,6 +86,7 @@ export function useSendMessage<TParams = any>() {
     {
       previousMessages: unknown;
       tempMessage: StandardMessage;
+      messageQueryKey: readonly string[];
     }
   >({
     mutationFn: async (params) => {
@@ -102,15 +103,17 @@ export function useSendMessage<TParams = any>() {
 
     // 乐观更新：在请求发送前立即在 UI 上显示消息
     onMutate: async (params) => {
+      // 使用与 useMessages 一致的 query key（含 currentChannel），否则乐观更新写入的缓存与 UI 读取的缓存不一致
+      const messageQueryKey = queryKeys.messages.list(
+        params.conversationId,
+        activeChannel ?? undefined,
+      );
+
       // 取消正在进行的查询，避免覆盖我们的乐观更新
-      await queryClient.cancelQueries({
-        queryKey: queryKeys.messages.list(params.conversationId),
-      });
+      await queryClient.cancelQueries({ queryKey: messageQueryKey });
 
       // 保存旧数据，以便在出错时回滚
-      const previousMessages = queryClient.getQueryData(
-        queryKeys.messages.list(params.conversationId),
-      );
+      const previousMessages = queryClient.getQueryData(messageQueryKey);
 
       // 创建临时消息
       const tempMessage: StandardMessage = MessageBuilder.buildTextMessage(
@@ -132,9 +135,10 @@ export function useSendMessage<TParams = any>() {
         queryClient,
         params.conversationId,
         tempMessage,
+        { channel: activeChannel ?? undefined },
       );
 
-      return { previousMessages, tempMessage };
+      return { previousMessages, tempMessage, messageQueryKey };
     },
 
     // 网络错误：保存到离线队列（如果未实现则提示）
@@ -151,9 +155,12 @@ export function useSendMessage<TParams = any>() {
         console.warn(
           '[useSendMessage] 离线队列未实现，网络错误时消息将丢失。请实现 IOfflineMessageQueueService。',
         );
-        // 回滚到之前的状态
+        // 回滚到之前的状态（使用 onMutate 中的 query key）
+        const queryKey =
+          context?.messageQueryKey ??
+          queryKeys.messages.list(variables.conversationId);
         queryClient.setQueryData(
-          queryKeys.messages.list(variables.conversationId),
+          queryKey,
           context?.previousMessages ?? DEFAULT_EMPTY_DATA,
         );
         console.info('[useSendMessage] 已回滚到发送前的状态');
@@ -184,9 +191,12 @@ export function useSendMessage<TParams = any>() {
           );
         } catch (queueError) {
           console.error('[useSendMessage] 保存到离线队列失败:', queueError);
-          // 保存失败，回滚到之前的状态
+          // 保存失败，回滚到之前的状态（使用 onMutate 中的 query key）
+          const queryKey =
+            context.messageQueryKey ??
+            queryKeys.messages.list(variables.conversationId);
           queryClient.setQueryData(
-            queryKeys.messages.list(variables.conversationId),
+            queryKey,
             context.previousMessages ?? DEFAULT_EMPTY_DATA,
           );
           console.info('[useSendMessage] 已回滚到发送前的状态');
@@ -210,6 +220,7 @@ export function useSendMessage<TParams = any>() {
         updates,
         undefined, // messageId
         context?.tempMessage.tempId, // tempId
+        { channel: activeChannel ?? undefined },
       );
     },
 
@@ -249,9 +260,12 @@ export function useSendMessage<TParams = any>() {
           data.error,
         );
 
-        // 回滚到之前的状态（移除临时消息）
+        // 回滚到之前的状态（移除临时消息，使用 onMutate 中的 query key）
+        const queryKey =
+          context?.messageQueryKey ??
+          queryKeys.messages.list(variables.conversationId);
         queryClient.setQueryData(
-          queryKeys.messages.list(variables.conversationId),
+          queryKey,
           context?.previousMessages ?? DEFAULT_EMPTY_DATA,
         );
         console.info('[useSendMessage] 已回滚到发送前的状态');
@@ -280,6 +294,7 @@ export function useSendMessage<TParams = any>() {
         updates,
         data.messageId, // messageId - 使用 tempId 查找
         tempId, // tempId
+        { channel: activeChannel ?? undefined },
       );
     },
   });

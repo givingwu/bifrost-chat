@@ -69,9 +69,12 @@ function createTestWrapper(queryClient: QueryClient) {
   };
 }
 
+// useStrategy mock 的 activeChannel 为 waba，需与 query key 一致
+const ACTIVE_CHANNEL = 'waba';
+
 function getMessages(queryClient: QueryClient, conversationId: string) {
   const data = queryClient.getQueryData(
-    queryKeys.messages.list(conversationId),
+    queryKeys.messages.list(conversationId, ACTIVE_CHANNEL),
   ) as
     | {
         pages: Array<{ items: StandardMessage[] }>;
@@ -94,10 +97,13 @@ describe('useSendMessage Hook', () => {
     });
     const conversationId = 'conv-mobile';
 
-    queryClient.setQueryData(queryKeys.messages.list(conversationId), {
-      pages: [{ items: [] }],
-      pageParams: [1],
-    });
+    queryClient.setQueryData(
+      queryKeys.messages.list(conversationId, ACTIVE_CHANNEL),
+      {
+        pages: [{ items: [] }],
+        pageParams: [1],
+      },
+    );
 
     let resolveSend:
       | ((value: {
@@ -179,10 +185,13 @@ describe('useSendMessage Hook', () => {
     });
     const conversationId = 'conv-template-limit';
 
-    queryClient.setQueryData(queryKeys.messages.list(conversationId), {
-      pages: [{ items: [] }],
-      pageParams: [1],
-    });
+    queryClient.setQueryData(
+      queryKeys.messages.list(conversationId, ACTIVE_CHANNEL),
+      {
+        pages: [{ items: [] }],
+        pageParams: [1],
+      },
+    );
 
     let resolveSend:
       | ((value: {
@@ -247,10 +256,13 @@ describe('useSendMessage Hook', () => {
     });
     const conversationId = 'conv-template-error';
 
-    queryClient.setQueryData(queryKeys.messages.list(conversationId), {
-      pages: [{ items: [] }],
-      pageParams: [1],
-    });
+    queryClient.setQueryData(
+      queryKeys.messages.list(conversationId, ACTIVE_CHANNEL),
+      {
+        pages: [{ items: [] }],
+        pageParams: [1],
+      },
+    );
 
     let resolveSend: ((value: MessageSendResult) => void) | null = null;
 
@@ -307,10 +319,13 @@ describe('useSendMessage Hook', () => {
     });
     const conversationId = 'conv-template-success';
 
-    queryClient.setQueryData(queryKeys.messages.list(conversationId), {
-      pages: [{ items: [] }],
-      pageParams: [1],
-    });
+    queryClient.setQueryData(
+      queryKeys.messages.list(conversationId, ACTIVE_CHANNEL),
+      {
+        pages: [{ items: [] }],
+        pageParams: [1],
+      },
+    );
 
     let resolveSend:
       | ((value: {
