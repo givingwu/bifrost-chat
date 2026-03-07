@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import type {
   MessageSendResult,
   SendMessageOptions,
@@ -13,7 +14,6 @@ import { useServices } from '@/providers/service.provider';
 import type { MessageStatusUpdatedEvent } from '@/services/message.service';
 import { MessageBuilder } from '@/services/message-builder.service';
 import { MessageCacheHelper } from '@/services/message-cache-helper.service';
-import { useEffect } from 'react';
 import { useActiveConversationId, useStrategy } from '@/store';
 import { useConversations } from './use-conversations.hook';
 

@@ -41,6 +41,7 @@ const mockConversationService: IConversationService = {
 
 const mockTemplateService: ITemplateService = {
   list: vi.fn(),
+  preview: vi.fn(),
 };
 
 const mockMessageService: IMessageService = {
@@ -432,7 +433,9 @@ describe('useSendMessage Hook', () => {
       wrapper: createTestWrapper(queryClient),
     });
 
-    expect(mockMessageService.subscribeToMessageStatus).toHaveBeenCalledTimes(1);
+    expect(mockMessageService.subscribeToMessageStatus).toHaveBeenCalledTimes(
+      1,
+    );
 
     act(() => {
       statusCallback({

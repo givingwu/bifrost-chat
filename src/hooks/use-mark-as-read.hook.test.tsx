@@ -25,6 +25,7 @@ const mockConversationService: IConversationService = {
 
 const mockTemplateService: ITemplateService = {
   list: vi.fn(),
+  preview: vi.fn(),
 };
 
 const mockMessageService: IMessageService = {

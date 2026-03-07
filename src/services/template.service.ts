@@ -66,5 +66,5 @@ export interface ITemplateService<
    * // result.content - 预览内容
    * ```
    */
-  preview?(params: TPreviewParams): Promise<TemplatePreviewResult>;
+  preview(params: TPreviewParams): Promise<TemplatePreviewResult>;
 }

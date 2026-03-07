@@ -351,6 +351,24 @@ class MockTemplateService implements ITemplateService {
     ];
     return templates;
   }
+
+  async preview(params: {
+    conversationId: string;
+    currentChannel: string;
+    templateCode: string;
+  }) {
+    // Mock preview implementation - returns a template with preview content
+    const templates = await this.list();
+    const template = templates.find((t) => t.code === params.templateCode);
+    if (!template) {
+      throw new Error(`Template with code ${params.templateCode} not found`);
+    }
+    return {
+      ...template,
+      params: {},
+      previewContent: template.content || '',
+    };
+  }
 }
 
 const meta: Meta<typeof DefaultChatLayout> = {
