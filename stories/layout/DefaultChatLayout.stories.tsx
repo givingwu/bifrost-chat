@@ -351,15 +351,6 @@ class MockTemplateService implements ITemplateService {
     ];
     return templates;
   }
-
-  async send(params: any) {
-    const result = {
-      tempId: `temp-${Date.now()}`,
-      messageId: `msg-${Date.now()}`,
-      status: MessageStatusEnum.Sent,
-    };
-    return result;
-  }
 }
 
 const meta: Meta<typeof DefaultChatLayout> = {
