@@ -169,7 +169,7 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(
         getValue: () => logic.value,
         setTemplate: (data: {
           content: string;
-          templateCode?: string | number;
+          templateCode?: string;
           templateMetadata?: unknown;
         }) => {
           logic.setTemplate(data);
@@ -225,6 +225,7 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(
       if (channel) {
         return t('composer.placeholder.channel', { channel });
       }
+
       return t('composer.placeholder.default');
     }, [channel, t]);
 

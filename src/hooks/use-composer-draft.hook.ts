@@ -20,7 +20,7 @@ export interface DraftData {
   /** 消息类型 */
   messageType?: MessageTypeEnum;
   /** 模板 ID */
-  templateCode?: string | number;
+  templateCode?: string;
   /** 模板参数 */
   templateParams?: Record<string, string>;
   /** 模板元数据（用于发送时传递给后端） */
@@ -50,9 +50,9 @@ export interface UseComposerDraftResult {
   /** 设置消息类型 */
   setMessageType: (type?: MessageTypeEnum) => void;
   /** 模板 ID */
-  templateCode?: string | number;
+  templateCode?: string;
   /** 设置模板 ID */
-  setTemplateCode: (id?: string | number) => void;
+  setTemplateCode: (templateCode?: string) => void;
   /** 模板参数 */
   templateParams?: Record<string, string>;
   /** 设置模板参数 */
@@ -136,9 +136,7 @@ export function useComposerDraft({
 }: UseComposerDraftOptions): UseComposerDraftResult {
   const [value, setValue] = useState('');
   const [messageType, setMessageType] = useState<MessageTypeEnum | undefined>();
-  const [templateCode, setTemplateCode] = useState<
-    string | number | undefined
-  >();
+  const [templateCode, setTemplateCode] = useState<string | undefined>();
   const [templateParams, setTemplateParams] = useState<
     Record<string, string> | undefined
   >();
@@ -222,9 +220,16 @@ export function useComposerDraft({
         messageType,
         templateCode,
         templateParams,
+        templateMetadata,
       });
     },
-    [messageType, saveDraftData, templateCode, templateParams],
+    [
+      messageType,
+      saveDraftData,
+      templateCode,
+      templateParams,
+      templateMetadata,
+    ],
   );
 
   const getDraftData = useCallback(
@@ -233,8 +238,9 @@ export function useComposerDraft({
       messageType,
       templateCode,
       templateParams,
+      templateMetadata,
     }),
-    [messageType, templateCode, templateParams, value],
+    [messageType, templateCode, templateParams, templateMetadata, value],
   );
 
   const setDraftData = useCallback((data: Partial<DraftData>) => {
@@ -252,6 +258,10 @@ export function useComposerDraft({
 
     if (data.templateParams !== undefined) {
       setTemplateParams(data.templateParams);
+    }
+
+    if (data.templateMetadata !== undefined) {
+      setTemplateMetadata(data.templateMetadata);
     }
   }, []);
 

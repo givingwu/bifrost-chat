@@ -81,7 +81,7 @@ export interface UseComposerLogicResult {
   // 模板操作（供外部调用）
   setTemplate: (data: {
     content: string;
-    templateCode?: string | number;
+    templateCode?: string;
     templateMetadata?: unknown;
   }) => void;
 
@@ -172,7 +172,7 @@ export const useComposerLogic = (
       previewTemplate({
         conversationId,
         currentChannel: channel,
-        templateCode: String(draftData.templateCode),
+        templateCode: draftData.templateCode,
       })
         .then((previewed) => {
           // 使用最新的 content
@@ -280,10 +280,13 @@ export const useComposerLogic = (
         const options =
           draft.messageType === MessageTypeEnum.Template
             ? {
+                type: MessageTypeEnum.Template,
                 templateCode: draft.templateCode,
                 templateMetadata: draft.templateMetadata,
               }
-            : undefined;
+            : {
+                type: draft.messageType,
+              };
         await draft.handleSend(messageToSend, options);
       }
 
@@ -378,7 +381,7 @@ export const useComposerLogic = (
   const setTemplate = useCallback(
     (data: {
       content: string;
-      templateCode?: string | number;
+      templateCode?: string;
       templateMetadata?: unknown;
     }) => {
       draft.setValue(data.content);
