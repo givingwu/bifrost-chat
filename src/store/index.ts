@@ -281,7 +281,7 @@ export const resetChatStore = () => {
   useChatStore.setState((state) => {
     // 重置 conversation 状态
     const conversation: ConversationState = {
-      activeConversationId: null,
+      activeConversationId: '',
       searchQuery: '',
     };
 

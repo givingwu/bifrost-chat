@@ -36,9 +36,9 @@ import { useServices } from '@/providers/service.provider';
  * ```
  */
 export interface UseTemplatesParams {
-  /** 会话 ID（可选） */
+  /** 会话 ID */
   conversationId?: string;
-  /** 当前渠道（可选） */
+  /** 当前渠道 */
   currentChannel?: string;
 }
 

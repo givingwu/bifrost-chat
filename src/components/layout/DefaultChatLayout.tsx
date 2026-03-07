@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useTransition } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useTransition,
+} from 'react';
 import type { ComposerToolbarRef } from '@/components/composer/ComposerToolbar';
 import { ComposerWithSend } from '@/components/composer/ComposerWithSend';
 import { ConversationHeader } from '@/components/conversation/ConversationHeader';
@@ -9,8 +16,10 @@ import { Profile } from '@/components/profile/Profile';
 import { TemplatePanel } from '@/components/template/TemplatePanel';
 import { Topbar } from '@/components/toolbar/Topbar';
 import { TopbarTools } from '@/components/toolbar/TopbarTools';
+import { useActiveConversationMetadata } from '@/hooks/use-active-conversation-metadata.hook';
 import { useConversations } from '@/hooks/use-conversations.hook';
 import { useSendMessage } from '@/hooks/use-send-message.hook';
+import { useTemplatePreview } from '@/hooks/use-template-preview.hook';
 import type { Conversation } from '@/interfaces/conversation.interface';
 import type { Template } from '@/interfaces/template.interface';
 import { useTranslation } from '@/providers/I18n.provider';
@@ -93,6 +102,15 @@ export function DefaultChatLayout({
   // 使用 useTransition 标记搜索过滤为过渡更新（低优先级）
   const [isPending, startTransition] = useTransition();
 
+  // 模板预览相关状态
+  const { mutateAsync: previewTemplate } = useTemplatePreview();
+  const [renderingTemplateId, setRenderingTemplateId] = useState<
+    string | number | undefined
+  >();
+
+  // 后台静默同步会话元数据（supportedChannels 等）
+  useActiveConversationMetadata();
+
   // 自动选中第一个会话
   useEffect(() => {
     // 如果当前没有选中会话，且会话列表已加载且不为空
@@ -164,7 +182,7 @@ export function DefaultChatLayout({
    * 处理模板选择
    * 根据 templateMode 配置决定行为：
    * - direct: 直接发送模板消息
-   * - edit: 将模板内容填充到输入框，用户可编辑后发送
+   * - edit: 调用 preview 获取预览内容后填充到输入框
    */
   const handleTemplateSelect = useCallback(
     async (template: Template) => {
@@ -172,28 +190,60 @@ export function DefaultChatLayout({
         return;
       }
 
-      if (templateMode === 'direct') {
-        // 模式 1：直接发送
-        try {
+      // 设置渲染中状态
+      setRenderingTemplateId(template.id);
+
+      try {
+        // 尝试调用 preview 获取预览内容
+        let contentToUse = template.content;
+
+        if (template.code && activeChannel) {
+          try {
+            const previewed = await previewTemplate({
+              conversationId: activeConversationId,
+              currentChannel: activeChannel,
+              templateCode: template.code,
+            });
+            contentToUse = previewed.content;
+          } catch (previewError) {
+            console.warn(
+              '[DefaultChatLayout] Template preview failed, using fallback content:',
+              previewError,
+            );
+            // fallback: 使用原始 content
+          }
+        }
+
+        if (templateMode === 'direct') {
+          // 模式 1：直接发送
           await sendMessage.mutateAsync({
             conversationId: activeConversationId,
-            content: template.content,
+            content: contentToUse,
             extra: {
               templateId: template.id,
+              templateCode: template.code,
               templateName: template.name,
               templateCategory: template.category,
             },
           });
-        } catch (error) {
-          console.error('Failed to send template message:', error);
+        } else {
+          // 模式 2：填充到输入框
+          composerRef.current?.setValue(contentToUse, template.id);
+          composerRef.current?.focus();
         }
-      } else {
-        // 模式 2：填充到输入框，并传递 templateId
-        composerRef.current?.setValue(template.content, template.id);
-        composerRef.current?.focus();
+      } catch (error) {
+        console.error('[DefaultChatLayout] Failed to handle template:', error);
+      } finally {
+        setRenderingTemplateId(undefined);
       }
     },
-    [activeConversationId, sendMessage, templateMode],
+    [
+      activeConversationId,
+      activeChannel,
+      previewTemplate,
+      sendMessage,
+      templateMode,
+    ],
   );
   const defaultTopbarExtra = useMemo(
     () => <TopbarTools extra={extraTools} />,
@@ -264,6 +314,7 @@ export function DefaultChatLayout({
             onTemplateSelect={handleTemplateSelect}
             conversationId={activeConversationId ?? undefined}
             currentChannel={activeChannel}
+            renderingTemplateId={renderingTemplateId}
           />
         </aside>
       }

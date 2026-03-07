@@ -3,18 +3,24 @@ import type { MessageSendResult } from '@/interfaces/message.interface';
 import type { Template } from '@/interfaces/template.interface';
 
 /**
- * 模板渲染参数
+ * 模板预览参数
  */
-export interface TemplateRenderParams extends Required<UseTemplatesParams> {
+export interface TemplatePreviewParams extends Required<UseTemplatesParams> {
   /** 模板 code */
   templateCode: Template['code'];
 }
 
 /**
+ * 模板预览结果
+ */
+export type TemplatePreviewResult = Template &
+  Required<Pick<Template, 'params'>>;
+
+/**
  * 模板服务接口 (泛型版本)
  * @template TListParams 列表查询参数类型
  * @template TSendParams 发送参数类型
- * @template TRenderParams 渲染参数类型
+ * @template TPreviewParams 预览参数类型
  *
  * @description
  * SDK 定义接口，调用方提供实现。
@@ -37,7 +43,7 @@ export interface TemplateRenderParams extends Required<UseTemplatesParams> {
 export interface ITemplateService<
   TListParams = UseTemplatesParams,
   TSendParams = UseTemplatesParams,
-  TRenderParams = TemplateRenderParams,
+  TPreviewParams = TemplatePreviewParams,
 > {
   /**
    * 获取可用模板列表
@@ -54,33 +60,24 @@ export interface ITemplateService<
   send(params: TSendParams): Promise<MessageSendResult>;
 
   /**
-   * 预览模板
-   * @param templateId 模板 ID
-   * @param variables 模板变量值
-   * @returns 预览内容
-   */
-  preview?(templateId: string, params: Record<string, string>): Promise<string>;
-
-  /**
    * 预览模板（获取参数替换后的预览内容）
-   * - 返回 previewContent 供 UI 显示
+   * - 返回完整模板信息供 UI 显示
    * - 返回 params 供发送时使用
    *
-   * @param params 渲染参数
-   * @returns 渲染结果
+   * @param params 预览参数
+   * @returns 预览结果（包含模板信息和参数）
    *
    * @example
    * ```typescript
-   * const result = await templateService.render({
+   * const result = await templateService.preview({
    *   conversationId: 'conv-123',
    *   currentChannel: 'whatsapp',
    *   templateCode: 'template-code',
    * });
-   * // result.previewContent - 预览内容
-   * // result.params - 模板参数
+   * // result - 完整模板对象
+   * // result.params - 模板参数（用于发送）
+   * // result.content - 预览内容
    * ```
    */
-  render?(
-    params: TRenderParams,
-  ): Promise<Template & Required<Pick<Template, 'params'>>>;
+  preview?(params: TPreviewParams): Promise<TemplatePreviewResult>;
 }

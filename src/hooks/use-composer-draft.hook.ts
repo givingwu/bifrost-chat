@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { MessageTypeEnum } from '@/interfaces/message.interface';
 
 const DRAFT_KEY_PREFIX = 'bifrost-chat-draft-';
 const DEFAULT_DRAFT_DEBOUNCE_DELAY = 500;
@@ -9,6 +10,21 @@ function canUseLocalStorage(): boolean {
   );
 }
 
+/**
+ * 草稿数据结构
+ * 支持存储消息类型和模板相关信息
+ */
+export interface DraftData {
+  /** 输入内容 */
+  content: string;
+  /** 消息类型 */
+  messageType?: MessageTypeEnum;
+  /** 模板 ID */
+  templateCode?: string | number;
+  /** 模板参数 */
+  templateParams?: Record<string, string>;
+}
+
 export interface UseComposerDraftOptions {
   conversationId?: string;
   templateLocked?: boolean;
@@ -16,21 +32,86 @@ export interface UseComposerDraftOptions {
   draftDebounceDelay?: number;
   clearDraftOnSend?: boolean;
   keepDraftOnSwitch?: boolean;
-  onSend?: (content: string, templateId?: string) => void | Promise<void>;
+  onSend?: (content: string, templateCode?: string) => void | Promise<void>;
 }
 
 export interface UseComposerDraftResult {
+  /** 输入内容 */
   value: string;
+  /** 设置输入内容 */
   setValue: (nextValue: string) => void;
+  /** 消息类型 */
+  messageType?: MessageTypeEnum;
+  /** 设置消息类型 */
+  setMessageType: (type?: MessageTypeEnum) => void;
+  /** 模板 ID */
+  templateCode?: string | number;
+  /** 设置模板 ID */
+  setTemplateCode: (id?: string | number) => void;
+  /** 模板参数 */
+  templateParams?: Record<string, string>;
+  /** 设置模板参数 */
+  setTemplateParams: (params?: Record<string, string>) => void;
+  /** 设置完整草稿数据 */
+  setDraftData: (data: Partial<DraftData>) => void;
+  /** 获取完整草稿数据 */
+  getDraftData: () => DraftData;
+  /** 草稿存储 key */
   draftStorageKey: string | null;
+  /** 清除草稿 */
   clearDraft: () => void;
+  /** 加载草稿（仅内容） */
   loadDraft: () => string;
+  /** 加载完整草稿数据 */
+  loadDraftData: () => DraftData;
+  /** 保存草稿（仅内容） */
   saveDraft: (nextValue: string) => void;
-  handleSend: (content: string, templateId?: string) => Promise<void>;
+  /** 保存完整草稿数据 */
+  saveDraftData: (data: DraftData) => void;
+  /** 处理发送 */
+  handleSend: (content: string, templateCode?: string) => Promise<void>;
+}
+
+/**
+ * 解析草稿数据，兼容旧格式（纯文本）
+ */
+function parseDraftData(raw: string): DraftData {
+  if (!raw) {
+    return { content: '' };
+  }
+
+  // 尝试解析 JSON 格式
+  if (raw.startsWith('{')) {
+    try {
+      const parsed = JSON.parse(raw);
+      // 验证是否为有效的 DraftData 结构
+      if (typeof parsed.content === 'string') {
+        return {
+          content: parsed.content,
+          messageType: parsed.messageType,
+          templateCode: parsed.templateCode,
+          templateParams: parsed.templateParams,
+        };
+      }
+    } catch {
+      // 解析失败，当作纯文本处理
+    }
+  }
+
+  // 旧格式：纯文本
+  return { content: raw };
+}
+
+/**
+ * 序列化草稿数据为 JSON
+ */
+function serializeDraftData(data: DraftData): string {
+  return JSON.stringify(data);
 }
 
 /**
  * useComposerDraft：管理会话草稿输入值、持久化与发送后清理。
+ * 支持缓存消息类型（如 template），刷新后可恢复。
  */
 export function useComposerDraft({
   conversationId,
@@ -42,6 +123,13 @@ export function useComposerDraft({
   onSend,
 }: UseComposerDraftOptions): UseComposerDraftResult {
   const [value, setValue] = useState('');
+  const [messageType, setMessageType] = useState<MessageTypeEnum | undefined>();
+  const [templateCode, setTemplateCode] = useState<
+    string | number | undefined
+  >();
+  const [templateParams, setTemplateParams] = useState<
+    Record<string, string> | undefined
+  >();
   const saveTimeoutRef = useRef<number | undefined>(undefined);
   const loadedDraftKeyRef = useRef<string | null>(null);
   const previousDraftKeyRef = useRef<string | null>(null);
@@ -70,27 +158,40 @@ export function useComposerDraft({
     clearDraftByKey(draftStorageKey);
   }, [clearDraftByKey, draftStorageKey]);
 
-  const loadDraft = useCallback(() => {
+  const loadDraftData = useCallback((): DraftData => {
     if (!draftStorageKey || !canUseLocalStorage()) {
-      return '';
+      return { content: '' };
     }
 
     try {
-      return window.localStorage.getItem(draftStorageKey) ?? '';
+      const raw = window.localStorage.getItem(draftStorageKey);
+
+      if (!raw) {
+        return { content: '' };
+      }
+
+      return parseDraftData(raw);
     } catch {
-      return '';
+      return { content: '' };
     }
   }, [draftStorageKey]);
 
-  const saveDraft = useCallback(
-    (nextValue: string) => {
+  const loadDraft = useCallback(() => {
+    return loadDraftData().content;
+  }, [loadDraftData]);
+
+  const saveDraftData = useCallback(
+    (data: DraftData) => {
       if (!draftStorageKey || !canUseLocalStorage()) {
         return;
       }
 
       try {
-        if (nextValue) {
-          window.localStorage.setItem(draftStorageKey, nextValue);
+        if (data.content || data.messageType) {
+          window.localStorage.setItem(
+            draftStorageKey,
+            serializeDraftData(data),
+          );
           return;
         }
         window.localStorage.removeItem(draftStorageKey);
@@ -100,6 +201,46 @@ export function useComposerDraft({
     },
     [draftStorageKey],
   );
+
+  const saveDraft = useCallback(
+    (nextValue: string) => {
+      saveDraftData({
+        content: nextValue,
+        messageType,
+        templateCode,
+        templateParams,
+      });
+    },
+    [messageType, saveDraftData, templateCode, templateParams],
+  );
+
+  const getDraftData = useCallback(
+    (): DraftData => ({
+      content: value,
+      messageType,
+      templateCode,
+      templateParams,
+    }),
+    [messageType, templateCode, templateParams, value],
+  );
+
+  const setDraftData = useCallback((data: Partial<DraftData>) => {
+    if (data.content !== undefined) {
+      setValue(data.content);
+    }
+
+    if (data.messageType !== undefined) {
+      setMessageType(data.messageType);
+    }
+
+    if (data.templateCode !== undefined) {
+      setTemplateCode(data.templateCode);
+    }
+
+    if (data.templateParams !== undefined) {
+      setTemplateParams(data.templateParams);
+    }
+  }, []);
 
   useEffect(() => {
     const previousKey = previousDraftKeyRef.current;
@@ -121,6 +262,10 @@ export function useComposerDraft({
 
     if (!enableDraft || !draftStorageKey) {
       setValue('');
+      setMessageType(undefined);
+      setTemplateCode(undefined);
+      setTemplateParams(undefined);
+
       return;
     }
 
@@ -129,9 +274,15 @@ export function useComposerDraft({
       return;
     }
 
-    setValue(loadDraft());
+    const draftData = loadDraftData();
+
+    setValue(draftData.content);
+    setMessageType(draftData.messageType);
+    setTemplateCode(draftData.templateCode);
+    setTemplateParams(draftData.templateParams);
+
     loadedDraftKeyRef.current = draftStorageKey;
-  }, [draftStorageKey, enableDraft, loadDraft, templateLocked]);
+  }, [draftStorageKey, enableDraft, loadDraftData, templateLocked]);
 
   useEffect(() => {
     if (!enableDraft || !draftStorageKey) {
@@ -146,8 +297,15 @@ export function useComposerDraft({
       clearTimeout(saveTimeoutRef.current);
     }
 
+    const draftData: DraftData = {
+      content: value,
+      messageType,
+      templateCode,
+      templateParams,
+    };
+
     saveTimeoutRef.current = window.setTimeout(() => {
-      saveDraft(value);
+      saveDraftData(draftData);
       saveTimeoutRef.current = undefined;
     }, draftDebounceDelay);
 
@@ -156,12 +314,24 @@ export function useComposerDraft({
         clearTimeout(saveTimeoutRef.current);
       }
     };
-  }, [draftDebounceDelay, draftStorageKey, enableDraft, saveDraft, value]);
+  }, [
+    draftDebounceDelay,
+    draftStorageKey,
+    enableDraft,
+    messageType,
+    saveDraftData,
+    templateCode,
+    templateParams,
+    value,
+  ]);
 
   const handleSend = useCallback(
-    async (content: string, templateId?: string) => {
-      await onSend?.(content, templateId);
+    async (content: string, sendTemplateCode?: string) => {
+      await onSend?.(content, sendTemplateCode);
       setValue('');
+      setMessageType(undefined);
+      setTemplateCode(undefined);
+      setTemplateParams(undefined);
 
       if (clearDraftOnSend) {
         clearDraft();
@@ -173,10 +343,20 @@ export function useComposerDraft({
   return {
     value,
     setValue,
+    messageType,
+    setMessageType,
+    templateCode,
+    setTemplateCode,
+    templateParams,
+    setTemplateParams,
+    setDraftData,
+    getDraftData,
     draftStorageKey,
     clearDraft,
     loadDraft,
+    loadDraftData,
     saveDraft,
+    saveDraftData,
     handleSend,
   };
 }

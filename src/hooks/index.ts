@@ -1,8 +1,9 @@
 // ==================== Hooks 导出 ====================
-
+export { useActiveConversationMetadata } from './use-active-conversation-metadata.hook';
 export { useAudioRecorder } from './use-audio-recorder.hook';
 export { useChannelSwitcher } from './use-channel-switcher.hook';
 export { useComposerDraft } from './use-composer-draft.hook';
+export { useConversationMetadata } from './use-conversation-metadata.hook';
 export { useConversations } from './use-conversations.hook';
 export { useCreateConversation } from './use-create-conversation.hook';
 export { useDebounce } from './use-debounce.hook';
@@ -16,4 +17,5 @@ export { useRetryMessage } from './use-retry-message.hook';
 export { useSendAttachment } from './use-send-attachment.hook';
 export { useSendAudio } from './use-send-audio.hook';
 export { useSendMessage } from './use-send-message.hook';
+export { useTemplatePreview } from './use-template-preview.hook';
 export { useTemplates } from './use-templates.hook';

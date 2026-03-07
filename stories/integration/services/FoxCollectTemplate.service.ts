@@ -3,7 +3,11 @@ import {
   MessageStatusEnum,
 } from '@/interfaces/message.interface';
 import type { Template } from '@/interfaces/template.interface';
-import type { ITemplateService } from '@/services/template.service';
+import type {
+  ITemplateService,
+  TemplatePreviewParams,
+  TemplatePreviewResult,
+} from '@/services/template.service';
 import { toRecord } from '../utils/converter.util';
 import type { FoxCollectConfig } from './FoxCollectConversation.service';
 
@@ -25,7 +29,11 @@ interface FoxCollectTemplateSendParams {
  */
 export class FoxCollectTemplateService
   implements
-    ITemplateService<FoxCollectTemplateListParams, FoxCollectTemplateSendParams>
+    ITemplateService<
+      FoxCollectTemplateListParams,
+      FoxCollectTemplateSendParams,
+      TemplatePreviewParams
+    >
 {
   constructor(private readonly config: FoxCollectConfig) {}
 
@@ -60,6 +68,7 @@ export class FoxCollectTemplateService
       return {
         id: String(item.id ?? ''),
         name: String(item.name ?? ''),
+        code: String(item.code ?? ''),
         content: String(item.content ?? ''),
         category: '电催',
         tags: ['催收'],
@@ -113,10 +122,20 @@ export class FoxCollectTemplateService
     };
   }
 
-  async preview(
-    templateId: string,
-    _variables: Record<string, string>,
-  ): Promise<string> {
-    return `模板 ${templateId} 的预览`;
+  async preview(params: TemplatePreviewParams): Promise<TemplatePreviewResult> {
+    const templateCode = params.templateCode ?? '';
+    // 模拟预览：返回一个带有预览内容的模板对象
+    return {
+      id: templateCode,
+      code: templateCode,
+      name: `模板 ${templateCode}`,
+      content: `模板 ${templateCode} 的预览内容`,
+      category: '电催',
+      tags: ['催收'],
+      language: 'zh-CN',
+      createdAt: Date.now() - 86_400_000,
+      updatedAt: Date.now(),
+      params: {},
+    };
   }
 }

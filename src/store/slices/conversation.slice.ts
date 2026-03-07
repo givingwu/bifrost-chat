@@ -8,7 +8,7 @@ import type { StateCreator } from 'zustand';
  */
 export interface ConversationState {
   /** 当前激活的会话 ID（用于 UI 高亮，不是数据源） */
-  activeConversationId: string | null;
+  activeConversationId: string;
   /** 会话列表搜索关键词 */
   searchQuery: string;
 }
@@ -19,7 +19,7 @@ export interface ConversationState {
 export interface ConversationSlice {
   conversation: ConversationState;
   actions: {
-    setActiveConversationId: (conversationId: string | null) => void;
+    setActiveConversationId: (conversationId: string) => void;
     setSearchQuery: (query: string) => void;
   };
 }
@@ -31,11 +31,11 @@ export const createConversationSlice: StateCreator<
   ConversationSlice
 > = (set) => ({
   conversation: {
-    activeConversationId: null,
+    activeConversationId: '',
     searchQuery: '',
   },
   actions: {
-    setActiveConversationId: (conversationId: string | null) =>
+    setActiveConversationId: (conversationId: string) =>
       set((state) => ({
         conversation: {
           ...state.conversation,

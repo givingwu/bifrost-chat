@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
   cleanup,
   fireEvent,
@@ -6,6 +7,7 @@ import {
   waitFor,
 } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { DraftData } from '@/hooks/use-composer-draft.hook';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import type { ComposerToolbarRef } from './ComposerToolbar';
 import { ComposerWithDraft } from './ComposerWithDraft';
@@ -14,6 +16,19 @@ import { ComposerWithDraft } from './ComposerWithDraft';
 vi.mock('@/providers/I18n.provider', () => ({
   useTranslation: () => ({
     t: (key: string) => key,
+  }),
+}));
+
+// Mock the service provider (for useTemplateRender hook)
+vi.mock('@/providers/service.provider', () => ({
+  useServices: () => ({
+    templateService: {
+      render: vi.fn().mockResolvedValue({
+        previewContent: 'Rendered template content',
+        content: 'Template content',
+        params: {},
+      }),
+    },
   }),
 }));
 
@@ -61,6 +76,29 @@ Object.defineProperty(global, 'localStorage', {
   value: localStorageMock,
 });
 
+// Helper to create wrapper with QueryClient
+const createWrapper = () => {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+      mutations: {
+        retry: false,
+      },
+    },
+  });
+
+  return ({ children }: { children: React.ReactNode }) => (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  );
+};
+
+// Custom render function with QueryClient wrapper
+const renderWithQueryClient = (ui: React.ReactElement) => {
+  return render(ui, { wrapper: createWrapper() });
+};
+
 describe('ComposerWithDraft - Draft 功能验证', () => {
   const conversationId = 'test-conversation-123';
   const draftKey = `bifrost-chat-draft-conversation-${conversationId}`;
@@ -73,7 +111,7 @@ describe('ComposerWithDraft - Draft 功能验证', () => {
 
   describe('1. 草稿自动保存功能', () => {
     it('应该在输入时自动保存草稿到 localStorage', async () => {
-      render(
+      renderWithQueryClient(
         <ComposerWithDraft
           conversationId={conversationId}
           channel={ChannelTypeEnum.WhatsApp}
@@ -91,14 +129,16 @@ describe('ComposerWithDraft - Draft 功能验证', () => {
       await waitFor(
         () => {
           const savedDraft = localStorage.getItem(draftKey);
-          expect(savedDraft).toBe('Hello, this is a draft message');
+          expect(savedDraft).not.toBeNull();
+          const parsed = JSON.parse(savedDraft!) as DraftData;
+          expect(parsed.content).toBe('Hello, this is a draft message');
         },
         { timeout: 1000 },
       );
     });
 
     it('应该在多次输入后更新草稿', async () => {
-      render(
+      renderWithQueryClient(
         <ComposerWithDraft
           conversationId={conversationId}
           channel={ChannelTypeEnum.WhatsApp}
@@ -112,7 +152,10 @@ describe('ComposerWithDraft - Draft 功能验证', () => {
 
       await waitFor(
         () => {
-          expect(localStorage.getItem(draftKey)).toBe('First message');
+          const savedDraft = localStorage.getItem(draftKey);
+          expect(savedDraft).not.toBeNull();
+          const parsed = JSON.parse(savedDraft!) as DraftData;
+          expect(parsed.content).toBe('First message');
         },
         { timeout: 1000 },
       );
@@ -122,7 +165,10 @@ describe('ComposerWithDraft - Draft 功能验证', () => {
 
       await waitFor(
         () => {
-          expect(localStorage.getItem(draftKey)).toBe('Second message');
+          const savedDraft = localStorage.getItem(draftKey);
+          expect(savedDraft).not.toBeNull();
+          const parsed = JSON.parse(savedDraft!) as DraftData;
+          expect(parsed.content).toBe('Second message');
         },
         { timeout: 1000 },
       );
@@ -131,10 +177,11 @@ describe('ComposerWithDraft - Draft 功能验证', () => {
 
   describe('2. 草稿自动加载功能', () => {
     it('应该在组件挂载时自动加载已保存的草稿', async () => {
-      // 预先保存草稿
-      localStorage.setItem(draftKey, 'Saved draft message');
+      // 预先保存草稿（新格式）
+      const draftData: DraftData = { content: 'Saved draft message' };
+      localStorage.setItem(draftKey, JSON.stringify(draftData));
 
-      render(
+      renderWithQueryClient(
         <ComposerWithDraft
           conversationId={conversationId}
           channel={ChannelTypeEnum.WhatsApp}
@@ -153,7 +200,7 @@ describe('ComposerWithDraft - Draft 功能验证', () => {
     });
 
     it('应该在没有草稿时不加载任何内容', async () => {
-      render(
+      renderWithQueryClient(
         <ComposerWithDraft
           conversationId={conversationId}
           channel={ChannelTypeEnum.WhatsApp}
@@ -173,7 +220,7 @@ describe('ComposerWithDraft - Draft 功能验证', () => {
 
   describe('3. 组件卸载后草稿保留', () => {
     it('应该在组件卸载后保留草稿', async () => {
-      const { unmount } = render(
+      const { unmount } = renderWithQueryClient(
         <ComposerWithDraft
           conversationId={conversationId}
           channel={ChannelTypeEnum.WhatsApp}
@@ -188,7 +235,10 @@ describe('ComposerWithDraft - Draft 功能验证', () => {
       // 等待草稿保存
       await waitFor(
         () => {
-          expect(localStorage.getItem(draftKey)).toBe('Draft to persist');
+          const savedDraft = localStorage.getItem(draftKey);
+          expect(savedDraft).not.toBeNull();
+          const parsed = JSON.parse(savedDraft!) as DraftData;
+          expect(parsed.content).toBe('Draft to persist');
         },
         { timeout: 1000 },
       );
@@ -197,12 +247,15 @@ describe('ComposerWithDraft - Draft 功能验证', () => {
       unmount();
 
       // 验证草稿仍然存在
-      expect(localStorage.getItem(draftKey)).toBe('Draft to persist');
+      const savedDraft = localStorage.getItem(draftKey);
+      expect(savedDraft).not.toBeNull();
+      const parsed = JSON.parse(savedDraft!) as DraftData;
+      expect(parsed.content).toBe('Draft to persist');
     });
 
     it('应该在重新挂载时加载之前保存的草稿', async () => {
       // 第一次挂载
-      const { unmount: unmount1 } = render(
+      const { unmount: unmount1 } = renderWithQueryClient(
         <ComposerWithDraft
           conversationId={conversationId}
           channel={ChannelTypeEnum.WhatsApp}
@@ -217,7 +270,10 @@ describe('ComposerWithDraft - Draft 功能验证', () => {
       // 等待草稿保存
       await waitFor(
         () => {
-          expect(localStorage.getItem(draftKey)).toBe('Persistent draft');
+          const savedDraft = localStorage.getItem(draftKey);
+          expect(savedDraft).not.toBeNull();
+          const parsed = JSON.parse(savedDraft!) as DraftData;
+          expect(parsed.content).toBe('Persistent draft');
         },
         { timeout: 1000 },
       );
@@ -226,7 +282,7 @@ describe('ComposerWithDraft - Draft 功能验证', () => {
       unmount1();
 
       // 第二次挂载
-      render(
+      renderWithQueryClient(
         <ComposerWithDraft
           conversationId={conversationId}
           channel={ChannelTypeEnum.WhatsApp}
@@ -249,7 +305,7 @@ describe('ComposerWithDraft - Draft 功能验证', () => {
     it('应该在发送成功后清除草稿', async () => {
       const onSend = vi.fn().mockResolvedValue(undefined);
 
-      render(
+      renderWithQueryClient(
         <ComposerWithDraft
           conversationId={conversationId}
           channel={ChannelTypeEnum.WhatsApp}
@@ -265,7 +321,10 @@ describe('ComposerWithDraft - Draft 功能验证', () => {
       // 等待草稿保存
       await waitFor(
         () => {
-          expect(localStorage.getItem(draftKey)).toBe('Message to send');
+          const savedDraft = localStorage.getItem(draftKey);
+          expect(savedDraft).not.toBeNull();
+          const parsed = JSON.parse(savedDraft!) as DraftData;
+          expect(parsed.content).toBe('Message to send');
         },
         { timeout: 1000 },
       );
@@ -301,7 +360,7 @@ describe('ComposerWithDraft - Draft 功能验证', () => {
       const conversationId2 = 'conv-2';
 
       // 第一个会话
-      const { unmount: unmount1 } = render(
+      const { unmount: unmount1 } = renderWithQueryClient(
         <ComposerWithDraft
           conversationId={conversationId1}
           channel={ChannelTypeEnum.WhatsApp}
@@ -316,9 +375,12 @@ describe('ComposerWithDraft - Draft 功能验证', () => {
 
       await waitFor(
         () => {
-          expect(
-            localStorage.getItem('bifrost-chat-draft-conversation-conv-1'),
-          ).toBe('Draft for conversation 1');
+          const savedDraft = localStorage.getItem(
+            'bifrost-chat-draft-conversation-conv-1',
+          );
+          expect(savedDraft).not.toBeNull();
+          const parsed = JSON.parse(savedDraft!) as DraftData;
+          expect(parsed.content).toBe('Draft for conversation 1');
         },
         { timeout: 1000 },
       );
@@ -326,7 +388,7 @@ describe('ComposerWithDraft - Draft 功能验证', () => {
       unmount1();
 
       // 第二个会话
-      const { unmount: unmount2 } = render(
+      const { unmount: unmount2 } = renderWithQueryClient(
         <ComposerWithDraft
           conversationId={conversationId2}
           channel={ChannelTypeEnum.WhatsApp}
@@ -341,9 +403,12 @@ describe('ComposerWithDraft - Draft 功能验证', () => {
 
       await waitFor(
         () => {
-          expect(
-            localStorage.getItem('bifrost-chat-draft-conversation-conv-2'),
-          ).toBe('Draft for conversation 2');
+          const savedDraft = localStorage.getItem(
+            'bifrost-chat-draft-conversation-conv-2',
+          );
+          expect(savedDraft).not.toBeNull();
+          const parsed = JSON.parse(savedDraft!) as DraftData;
+          expect(parsed.content).toBe('Draft for conversation 2');
         },
         { timeout: 1000 },
       );
@@ -351,18 +416,26 @@ describe('ComposerWithDraft - Draft 功能验证', () => {
       unmount2();
 
       // 验证两个草稿都存在且独立
-      expect(
-        localStorage.getItem('bifrost-chat-draft-conversation-conv-1'),
-      ).toBe('Draft for conversation 1');
-      expect(
-        localStorage.getItem('bifrost-chat-draft-conversation-conv-2'),
-      ).toBe('Draft for conversation 2');
+      const draft1 = localStorage.getItem(
+        'bifrost-chat-draft-conversation-conv-1',
+      );
+      const draft2 = localStorage.getItem(
+        'bifrost-chat-draft-conversation-conv-2',
+      );
+      expect(draft1).not.toBeNull();
+      expect(draft2).not.toBeNull();
+      expect((JSON.parse(draft1!) as DraftData).content).toBe(
+        'Draft for conversation 1',
+      );
+      expect((JSON.parse(draft2!) as DraftData).content).toBe(
+        'Draft for conversation 2',
+      );
     });
   });
 
   describe('6. 模板锁定功能', () => {
     it('应该在 templateLocked=true 时禁用输入框', async () => {
-      render(
+      renderWithQueryClient(
         <ComposerWithDraft
           conversationId={conversationId}
           channel={ChannelTypeEnum.WhatsApp}
@@ -377,7 +450,7 @@ describe('ComposerWithDraft - Draft 功能验证', () => {
     });
 
     it('应该在 templateLocked=true 时禁用附件按钮', async () => {
-      render(
+      renderWithQueryClient(
         <ComposerWithDraft
           conversationId={conversationId}
           channel={ChannelTypeEnum.WhatsApp}
@@ -393,7 +466,7 @@ describe('ComposerWithDraft - Draft 功能验证', () => {
     });
 
     it('应该在 templateLocked=true 时禁用输入框', async () => {
-      render(
+      renderWithQueryClient(
         <ComposerWithDraft
           conversationId={conversationId}
           channel={ChannelTypeEnum.WhatsApp}
@@ -407,10 +480,11 @@ describe('ComposerWithDraft - Draft 功能验证', () => {
     });
 
     it('应该在模板锁定时不加载草稿', async () => {
-      // 预先保存草稿
-      localStorage.setItem(draftKey, 'Saved draft message');
+      // 预先保存草稿（新格式）
+      const draftData: DraftData = { content: 'Saved draft message' };
+      localStorage.setItem(draftKey, JSON.stringify(draftData));
 
-      render(
+      renderWithQueryClient(
         <ComposerWithDraft
           conversationId={conversationId}
           channel={ChannelTypeEnum.WhatsApp}
@@ -430,34 +504,28 @@ describe('ComposerWithDraft - Draft 功能验证', () => {
     });
 
     it('应该在模板锁定时拒绝 setValue 调用', async () => {
-      const ref: React.MutableRefObject<ComposerToolbarRef | null> = {
-        current: null,
-      };
+      const ref = { current: null as ComposerToolbarRef | null };
 
-      render(
+      renderWithQueryClient(
         <ComposerWithDraft
+          ref={ref}
           conversationId={conversationId}
           channel={ChannelTypeEnum.WhatsApp}
           templateLocked={true}
-          ref={(r) => {
-            if (r) ref.current = r;
-          }}
         />,
       );
 
+      // 尝试通过 ref 设置值
+      ref.current?.setValue('This should not be set');
+
       const input = screen.getByTestId('composer-input');
 
-      // 尝试通过 ref 设置值
-      if (ref.current) {
-        ref.current.setValue('New value');
-      }
-
-      // 验证值没有被设置（输入框应该仍然为空）
+      // 验证输入框仍然为空
       expect(input).toHaveValue('');
     });
 
     it('应该在 templateLocked 从 true 变为 false 时恢复输入功能', async () => {
-      const { rerender } = render(
+      const { rerender } = renderWithQueryClient(
         <ComposerWithDraft
           conversationId={conversationId}
           channel={ChannelTypeEnum.WhatsApp}
@@ -467,26 +535,32 @@ describe('ComposerWithDraft - Draft 功能验证', () => {
 
       const input = screen.getByTestId('composer-input');
 
-      // 初始状态：输入框被禁用
+      // 验证输入框被禁用
       expect(input).toBeDisabled();
 
       // 重新渲染，解除锁定
       rerender(
-        <ComposerWithDraft
-          conversationId={conversationId}
-          channel={ChannelTypeEnum.WhatsApp}
-          templateLocked={false}
-        />,
+        <QueryClientProvider client={new QueryClient()}>
+          <ComposerWithDraft
+            conversationId={conversationId}
+            channel={ChannelTypeEnum.WhatsApp}
+            templateLocked={false}
+          />
+        </QueryClientProvider>,
       );
 
-      // 验证输入框恢复可用
-      await waitFor(() => {
-        expect(input).not.toBeDisabled();
-      });
+      // 验证输入框已启用
+      await waitFor(
+        () => {
+          const inputAfter = screen.getByTestId('composer-input');
+          expect(inputAfter).not.toBeDisabled();
+        },
+        { timeout: 1000 },
+      );
     });
 
     it('应该在模板锁定时仍然允许通过清除按钮解锁', async () => {
-      render(
+      renderWithQueryClient(
         <ComposerWithDraft
           conversationId={conversationId}
           channel={ChannelTypeEnum.WhatsApp}
@@ -495,19 +569,24 @@ describe('ComposerWithDraft - Draft 功能验证', () => {
       );
 
       const input = screen.getByTestId('composer-input');
-      const clearButton = screen.queryByTestId('composer-clear');
 
-      // 初始状态：输入框被禁用
+      // 验证输入框被禁用
       expect(input).toBeDisabled();
 
-      // 点击清除按钮
+      // 查找清除按钮
+      const clearButton = screen.queryByTestId('composer-clear');
+
+      // 如果存在清除按钮，点击它
       if (clearButton) {
         fireEvent.click(clearButton);
 
-        // 验证输入框恢复可用
-        await waitFor(() => {
-          expect(input).not.toBeDisabled();
-        });
+        // 验证输入框已启用
+        await waitFor(
+          () => {
+            expect(input).not.toBeDisabled();
+          },
+          { timeout: 1000 },
+        );
       }
     });
   });

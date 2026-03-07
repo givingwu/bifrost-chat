@@ -24,6 +24,8 @@ export interface TemplatePanelProps {
   conversationId?: string;
   /** 当前渠道（用于获取特定渠道的模板） */
   currentChannel?: ChannelTypeEnum;
+  /** 正在渲染的模板 ID（用于显示 loading 状态） */
+  renderingTemplateId?: string | number;
 }
 
 /**
@@ -49,6 +51,7 @@ export const TemplatePanel = ({
   templates: customTemplates,
   conversationId,
   currentChannel,
+  renderingTemplateId,
 }: TemplatePanelProps) => {
   const { t } = useTranslation();
 
@@ -215,6 +218,7 @@ export const TemplatePanel = ({
             selectedId={selectedId}
             showCategory={showCategory}
             showUsageCount={showUsageCount}
+            renderingTemplateId={renderingTemplateId}
           />
         )}
       </section>

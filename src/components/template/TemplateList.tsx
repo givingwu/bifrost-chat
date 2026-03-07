@@ -1,4 +1,4 @@
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Loader2 } from 'lucide-react';
 import type { Template } from '@/interfaces/template.interface';
 import { cn } from '@/utils/class.util';
 
@@ -13,6 +13,8 @@ export interface TemplateListProps {
   showCategory?: boolean;
   /** 是否显示使用次数 */
   showUsageCount?: boolean;
+  /** 正在渲染的模板 ID（用于显示 loading 状态） */
+  renderingTemplateId?: string | number;
 }
 
 /**
@@ -37,6 +39,7 @@ export const TemplateList = ({
   selectedId,
   showCategory = true,
   showUsageCount = false,
+  renderingTemplateId,
 }: TemplateListProps) => {
   if (templates.length === 0) {
     return (
@@ -50,6 +53,9 @@ export const TemplateList = ({
     <div className="space-y-2" role="listbox" aria-label="模板列表">
       {templates.map((template) => {
         const isSelected = template.id === selectedId;
+        const isRendering =
+          template.id === renderingTemplateId ||
+          template.code === renderingTemplateId;
 
         return (
           <button
@@ -59,11 +65,15 @@ export const TemplateList = ({
             className={cn(
               'flex w-full items-center justify-between rounded-md border border-gray-200/50 dark:border-white/10',
               'bg-card px-3 py-2 text-left text-sm',
-              'transition hover:border-primary/50',
+              'transition-all duration-200',
+              'hover:border-primary/50',
               isSelected && 'border-primary bg-primary/5',
+              isRendering && 'opacity-70 cursor-wait',
             )}
+            disabled={isRendering}
             role="option"
             aria-selected={isSelected}
+            aria-busy={isRendering}
           >
             <div className="flex flex-1 flex-col gap-1 text-gray-600 hover:text-gray-800 dark:text-white">
               {/* 标题和分类 */}
@@ -95,13 +105,18 @@ export const TemplateList = ({
               )}
             </div>
 
-            <ChevronRight
-              className={cn(
-                'h-3 w-3 shrink-0 text-gray-400 dark:text-gray-500',
-                'transition-transform',
-                isSelected && 'text-primary',
-              )}
-            />
+            {/* 右侧图标：loading 或箭头 */}
+            {isRendering ? (
+              <Loader2 className="h-3 w-3 shrink-0 animate-spin text-primary" />
+            ) : (
+              <ChevronRight
+                className={cn(
+                  'h-3 w-3 shrink-0 text-gray-400 dark:text-gray-500',
+                  'transition-transform',
+                  isSelected && 'text-primary',
+                )}
+              />
+            )}
           </button>
         );
       })}

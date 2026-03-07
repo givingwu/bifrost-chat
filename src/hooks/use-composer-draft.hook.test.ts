@@ -1,5 +1,7 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { MessageTypeEnum } from '@/interfaces/message.interface';
+import type { DraftData } from './use-composer-draft.hook';
 import { useComposerDraft } from './use-composer-draft.hook';
 
 describe('useComposerDraft', () => {
@@ -13,9 +15,10 @@ describe('useComposerDraft', () => {
   });
 
   it('应在挂载时加载当前会话草稿', async () => {
+    const draftData: DraftData = { content: 'saved draft' };
     localStorage.setItem(
       'bifrost-chat-draft-conversation-conv-load',
-      'saved draft',
+      JSON.stringify(draftData),
     );
 
     const { result } = renderHook(() =>
@@ -46,9 +49,12 @@ describe('useComposerDraft', () => {
       vi.advanceTimersByTime(200);
     });
 
-    expect(
-      localStorage.getItem('bifrost-chat-draft-conversation-conv-save'),
-    ).toBe('draft content');
+    const saved = localStorage.getItem(
+      'bifrost-chat-draft-conversation-conv-save',
+    );
+    expect(saved).not.toBeNull();
+    const parsed = JSON.parse(saved!);
+    expect(parsed.content).toBe('draft content');
   });
 
   it('发送成功后应清空输入并删除草稿', async () => {
@@ -85,7 +91,7 @@ describe('useComposerDraft', () => {
   it('keepDraftOnSwitch=false 时切换会话应清理旧会话草稿', async () => {
     const key1 = 'bifrost-chat-draft-conversation-conv-1';
     const key2 = 'bifrost-chat-draft-conversation-conv-2';
-    localStorage.setItem(key1, 'draft-1');
+    localStorage.setItem(key1, JSON.stringify({ content: 'draft-1' }));
 
     const { result, rerender } = renderHook(
       ({ conversationId }) =>
@@ -107,5 +113,160 @@ describe('useComposerDraft', () => {
     });
     expect(localStorage.getItem(key1)).toBeNull();
     expect(localStorage.getItem(key2)).toBeNull();
+  });
+
+  describe('messageType 缓存', () => {
+    it('应支持设置和获取 messageType', async () => {
+      vi.useFakeTimers();
+      const { result } = renderHook(() =>
+        useComposerDraft({
+          conversationId: 'conv-type',
+          draftDebounceDelay: 200,
+        }),
+      );
+
+      act(() => {
+        result.current.setValue('template content');
+        result.current.setMessageType(MessageTypeEnum.Template);
+        result.current.setTemplateCode('template-123');
+        result.current.setTemplateParams({ name: 'John' });
+      });
+
+      act(() => {
+        vi.advanceTimersByTime(200);
+      });
+
+      const saved = localStorage.getItem(
+        'bifrost-chat-draft-conversation-conv-type',
+      );
+      expect(saved).not.toBeNull();
+      const parsed = JSON.parse(saved!);
+      expect(parsed.content).toBe('template content');
+      expect(parsed.messageType).toBe(MessageTypeEnum.Template);
+      expect(parsed.templateCode).toBe('template-123');
+      expect(parsed.templateParams).toEqual({ name: 'John' });
+    });
+
+    it('应支持 setDraftData 批量设置', async () => {
+      vi.useFakeTimers();
+      const { result } = renderHook(() =>
+        useComposerDraft({
+          conversationId: 'conv-batch',
+          draftDebounceDelay: 200,
+        }),
+      );
+
+      act(() => {
+        result.current.setDraftData({
+          content: 'batch content',
+          messageType: MessageTypeEnum.Template,
+          templateCode: 'template-batch',
+          templateParams: { key: 'value' },
+        });
+      });
+
+      expect(result.current.value).toBe('batch content');
+      expect(result.current.messageType).toBe(MessageTypeEnum.Template);
+      expect(result.current.templateCode).toBe('template-batch');
+      expect(result.current.templateParams).toEqual({ key: 'value' });
+    });
+
+    it('应支持 getDraftData 获取完整数据', async () => {
+      const { result } = renderHook(() =>
+        useComposerDraft({
+          conversationId: 'conv-get',
+        }),
+      );
+
+      act(() => {
+        result.current.setValue('test');
+        result.current.setMessageType(MessageTypeEnum.Text);
+      });
+
+      const data = result.current.getDraftData();
+      expect(data).toEqual({
+        content: 'test',
+        messageType: MessageTypeEnum.Text,
+        templateId: undefined,
+        templateParams: undefined,
+      });
+    });
+
+    it('应在挂载时恢复 messageType', async () => {
+      const draftData: DraftData = {
+        content: 'restored template',
+        messageType: MessageTypeEnum.Template,
+        templateCode: 'template-restore',
+        templateParams: { param1: 'value1' },
+      };
+      localStorage.setItem(
+        'bifrost-chat-draft-conversation-conv-restore',
+        JSON.stringify(draftData),
+      );
+
+      const { result } = renderHook(() =>
+        useComposerDraft({
+          conversationId: 'conv-restore',
+        }),
+      );
+
+      await waitFor(() => {
+        expect(result.current.value).toBe('restored template');
+        expect(result.current.messageType).toBe(MessageTypeEnum.Template);
+        expect(result.current.templateCode).toBe('template-restore');
+        expect(result.current.templateParams).toEqual({ param1: 'value1' });
+      });
+    });
+
+    it('发送成功后应清空 messageType', async () => {
+      vi.useFakeTimers();
+      const onSend = vi.fn().mockResolvedValue(undefined);
+
+      const { result } = renderHook(() =>
+        useComposerDraft({
+          conversationId: 'conv-clear-type',
+          onSend,
+          clearDraftOnSend: true,
+        }),
+      );
+
+      act(() => {
+        result.current.setValue('will send');
+        result.current.setMessageType(MessageTypeEnum.Template);
+        result.current.setTemplateCode('template-clear');
+      });
+
+      act(() => {
+        vi.advanceTimersByTime(500);
+      });
+
+      await act(async () => {
+        await result.current.handleSend('will send');
+      });
+
+      expect(result.current.messageType).toBeUndefined();
+      expect(result.current.templateCode).toBeUndefined();
+      expect(result.current.templateParams).toBeUndefined();
+    });
+
+    it('应兼容旧格式（纯文本）草稿', async () => {
+      // 模拟旧格式存储
+      localStorage.setItem(
+        'bifrost-chat-draft-conversation-conv-legacy',
+        'legacy draft content',
+      );
+
+      const { result } = renderHook(() =>
+        useComposerDraft({
+          conversationId: 'conv-legacy',
+        }),
+      );
+
+      await waitFor(() => {
+        expect(result.current.value).toBe('legacy draft content');
+        // 旧格式没有 messageType
+        expect(result.current.messageType).toBeUndefined();
+      });
+    });
   });
 });
