@@ -1,10 +1,18 @@
 import type { Conversation } from '@/interfaces/conversation.interface';
 
 /**
+ * 会话元数据基础结构
+ * SDK 层使用 supportedChannels，业务数据通过扩展字段传递
+ */
+export interface ConversationMetadata
+  extends Pick<Conversation, 'supportedChannels'> {}
+
+/**
  * 会话服务接口 (泛型版本)
  * @template TListParams 列表查询参数类型
  * @template TCreateParams 创建参数类型
  * @template TQueryParams 查询参数类型
+ * @template TMetadataParams 获取元数据的参数类型
  *
  * @description
  * SDK 定义接口，调用方提供实现。
@@ -34,6 +42,8 @@ export interface IConversationService<
   TListParams = any,
   TCreateParams = any,
   TQueryParams = any,
+  TMetadataParams extends Pick<Conversation, 'id'> = Pick<Conversation, 'id'>,
+  TConversationMetadata extends ConversationMetadata = ConversationMetadata,
 > {
   /**
    * 获取会话列表
@@ -82,4 +92,21 @@ export interface IConversationService<
     conversationId: string,
     callback: (conversation: Conversation) => void,
   ): () => void;
+
+  /**
+   * 获取会话元数据
+   * - SDK 层使用 supportedChannels
+   * - 业务数据通过返回值的扩展字段传递
+   *
+   * @param params 查询参数
+   * @returns 会话元数据（包含 supportedChannels 和业务 metadata）
+   *
+   * @example
+   * ```typescript
+   * const metadata = await conversationService.getMetadata({ conversationId: 'conv-123' });
+   * // metadata.supportedChannels - SDK 使用
+   * // metadata.agentPin, metadata.customerPin... - 业务数据
+   * ```
+   */
+  getMetadata?(params: TMetadataParams): Promise<TConversationMetadata>;
 }

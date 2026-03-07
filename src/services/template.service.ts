@@ -1,11 +1,20 @@
 import type { UseTemplatesParams } from '@/hooks/use-templates.hook';
-import type { MessageSendResult } from '../interfaces/message.interface';
-import type { Template } from '../interfaces/template.interface';
+import type { MessageSendResult } from '@/interfaces/message.interface';
+import type { Template } from '@/interfaces/template.interface';
+
+/**
+ * 模板渲染参数
+ */
+export interface TemplateRenderParams extends Required<UseTemplatesParams> {
+  /** 模板 code */
+  templateCode: Template['code'];
+}
 
 /**
  * 模板服务接口 (泛型版本)
  * @template TListParams 列表查询参数类型
  * @template TSendParams 发送参数类型
+ * @template TRenderParams 渲染参数类型
  *
  * @description
  * SDK 定义接口，调用方提供实现。
@@ -28,6 +37,7 @@ import type { Template } from '../interfaces/template.interface';
 export interface ITemplateService<
   TListParams = UseTemplatesParams,
   TSendParams = UseTemplatesParams,
+  TRenderParams = TemplateRenderParams,
 > {
   /**
    * 获取可用模板列表
@@ -49,8 +59,28 @@ export interface ITemplateService<
    * @param variables 模板变量值
    * @returns 预览内容
    */
-  preview?(
-    templateId: string,
-    variables: Record<string, string>,
-  ): Promise<string>;
+  preview?(templateId: string, params: Record<string, string>): Promise<string>;
+
+  /**
+   * 预览模板（获取参数替换后的预览内容）
+   * - 返回 previewContent 供 UI 显示
+   * - 返回 params 供发送时使用
+   *
+   * @param params 渲染参数
+   * @returns 渲染结果
+   *
+   * @example
+   * ```typescript
+   * const result = await templateService.render({
+   *   conversationId: 'conv-123',
+   *   currentChannel: 'whatsapp',
+   *   templateCode: 'template-code',
+   * });
+   * // result.previewContent - 预览内容
+   * // result.params - 模板参数
+   * ```
+   */
+  render?(
+    params: TRenderParams,
+  ): Promise<Template & Required<Pick<Template, 'params'>>>;
 }

@@ -7,21 +7,27 @@
 /**
  * 消息模板接口
  */
-export interface Template {
+export interface Template<
+  TParams extends Record<string, unknown> = Record<string, unknown>,
+> {
   /** 模板唯一标识 */
   id: string;
   /** 模板名称 */
   name: string;
+  /** 模板 code（新 API 必需） */
+  code?: string;
   /** 模板内容 */
   content: string;
+  /** 参数替换后的模板内容（新 API 必需） */
+  previewContent?: string;
+  /** 模板变量 */
+  params?: TParams;
   /** 模板分类 */
   category?: string;
   /** 模板语言 */
   language?: string;
   /** 模板标签 */
   tags?: string[];
-  /** 模板变量 */
-  variables?: Record<string, unknown>;
   /** 是否为快捷回复 */
   isQuickReply?: boolean;
   /** 使用次数 */
@@ -29,9 +35,9 @@ export interface Template {
   /** 是否已启用 */
   enabled?: boolean;
   /** 创建时间 */
-  createdAt: number;
+  createdAt?: number;
   /** 更新时间 */
-  updatedAt: number;
+  updatedAt?: number;
 }
 
 /**

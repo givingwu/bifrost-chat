@@ -67,6 +67,9 @@ export const queryKeys = {
     list: () => [...queryKeys.conversations.lists()] as const,
     details: () => [...queryKeys.conversations.all, 'detail'] as const,
     detail: (id: string) => [...queryKeys.conversations.details(), id] as const,
+    // 会话元数据
+    metadata: (chatId: string) =>
+      [...queryKeys.conversations.all, 'metadata', chatId] as const,
   },
   // 消息相关
   messages: {
@@ -89,6 +92,15 @@ export const queryKeys = {
         : conversationId
           ? ([...queryKeys.templates.lists(), conversationId] as const)
           : ([...queryKeys.templates.lists()] as const),
+    // 模板渲染
+    render: (chatId: string, channelType: string, template: string) =>
+      [
+        ...queryKeys.templates.all,
+        'render',
+        chatId,
+        channelType,
+        template,
+      ] as const,
   },
 } as const;
 

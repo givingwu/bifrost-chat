@@ -186,7 +186,10 @@ export interface StandardMessage {
 /**
  * 发送消息的选项
  */
-export interface SendMessageOptions {
+export interface SendMessageOptions<
+  CMType = Record<string, unknown>,
+  TMType = Record<string, unknown>,
+> {
   /** 消息类型，默认 Text */
   type?: MessageTypeEnum;
   /** 自定义 sender，默认从当前会话推断 */
@@ -203,6 +206,10 @@ export interface SendMessageOptions {
   expireAt?: number;
   /** 自定义元数据 */
   metadata?: Record<string, unknown>;
+  /** 会话级元数据 */
+  conversationMetadata?: CMType;
+  /** 模版元数据 */
+  templateMetadata?: TMType;
 }
 
 /**
