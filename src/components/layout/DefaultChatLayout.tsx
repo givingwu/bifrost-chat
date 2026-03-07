@@ -228,8 +228,8 @@ export function DefaultChatLayout({
             },
           });
         } else {
-          // 模式 2：填充到输入框
-          composerRef.current?.setValue(contentToUse, template.id);
+          // 模式 2：填充到输入框（缓存 template code 用于草稿恢复与发送）
+          composerRef.current?.setValue(contentToUse, template.code);
           composerRef.current?.focus();
         }
       } catch (error) {

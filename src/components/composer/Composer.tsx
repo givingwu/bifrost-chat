@@ -77,10 +77,10 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(
     useImperativeHandle(
       ref,
       () => ({
-        setValue: (value: string, templateId?: string) => {
+        setValue: (value: string, templateCode?: string | number) => {
           logic.setValue(value);
-          if (templateId) {
-            logic.setTemplate({ content: value, templateCode: templateId });
+          if (templateCode) {
+            logic.setTemplate({ content: value, templateCode });
           }
         },
         focus: () => {
