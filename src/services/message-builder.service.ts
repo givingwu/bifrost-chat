@@ -215,7 +215,7 @@ export class MessageBuilder {
   /**
    * 生成临时消息 ID
    */
-  static generateTempId(prefix = 'temp'): string {
+  static generateTempId(prefix = 'chat'): string {
     return `${prefix}_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
   }
 
