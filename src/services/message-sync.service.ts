@@ -44,11 +44,12 @@ export class MessageSyncService {
       return;
     }
 
-    // 将新消息添加到缓存中
+    // 将新消息添加到缓存中（传入 channel 以匹配 useMessages 的 query key）
     MessageCacheHelper.addMessageToCache(
       this.queryClient,
       event.conversationId,
       event.message,
+      { channel: event.message.channelType },
     );
   }
 
@@ -61,6 +62,7 @@ export class MessageSyncService {
    * @returns
    */
   updateMessageStatus(event: MessageStatusUpdatedEvent) {
+    // 注意：event 暂无 channelType，更新的是无 channel 的缓存；若 useMessages 使用 channel，状态更新可能不生效
     MessageCacheHelper.updateMessageInCache(
       this.queryClient,
       event.conversationId,

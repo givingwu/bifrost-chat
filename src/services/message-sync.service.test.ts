@@ -53,7 +53,9 @@ describe('MessageSyncService', () => {
       message,
     });
 
-    expect(addMessageSpy).toHaveBeenCalledWith(queryClient, 'conv-1', message);
+    expect(addMessageSpy).toHaveBeenCalledWith(queryClient, 'conv-1', message, {
+      channel: ChannelTypeEnum.WhatsApp,
+    });
   });
 
   it('应在收到状态事件时更新已存在消息', () => {
@@ -94,6 +96,7 @@ describe('MessageSyncService', () => {
       },
     });
 
+    // updateMessageStatus 无 channel，写入无 channel 的缓存
     queryClient.setQueryData(queryKeys.messages.list('conv-1'), {
       pages: [{ items: [templateMessage] }],
       pageParams: [undefined],
@@ -142,9 +145,14 @@ describe('MessageSyncService', () => {
       message: duplicateByTempId,
     });
 
+    // pushNewMessage 使用 message.channelType 写入带 channel 的缓存
+    const messageQueryKey = queryKeys.messages.list(
+      'conv-1',
+      ChannelTypeEnum.WhatsApp,
+    );
     const data = queryClient.getQueryData<{
       pages: Array<{ items: StandardMessage[] }>;
-    }>(queryKeys.messages.list('conv-1'));
+    }>(messageQueryKey);
 
     const items = data?.pages?.[0]?.items ?? [];
     expect(items).toHaveLength(1);
@@ -168,9 +176,14 @@ describe('MessageSyncService', () => {
       message: createMessage('cust-msg-2', { tempId: 'temp-c-2' }),
     });
 
+    // pushNewMessage 使用 message.channelType 写入带 channel 的缓存
+    const messageQueryKey = queryKeys.messages.list(
+      'conv-1',
+      ChannelTypeEnum.WhatsApp,
+    );
     const data = queryClient.getQueryData<{
       pages: Array<{ items: StandardMessage[] }>;
-    }>(queryKeys.messages.list('conv-1'));
+    }>(messageQueryKey);
 
     const items = data?.pages?.[0]?.items ?? [];
     expect(items).toHaveLength(2);
