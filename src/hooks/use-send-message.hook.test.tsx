@@ -167,7 +167,7 @@ describe('useSendMessage Hook', () => {
     expect(sentMessage?.status).toBe(MessageStatusEnum.Sent);
     expect(sentMessage?.id).not.toBe(optimisticId);
     expect(mockMessageService.send).toHaveBeenCalledWith(conversationId, {
-      content: { text: 'hello from mobile' },
+      content: 'hello from mobile',
       metadata: { clientType: 'mobile' },
       channelType: 'waba',
       receiver: {

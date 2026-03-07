@@ -11,9 +11,9 @@ import {
 } from '@/interfaces/message.interface';
 import { queryKeys } from '@/providers/query.provider';
 import { useServices } from '@/providers/service.provider';
-import type { MessageStatusUpdatedEvent } from '@/services/message.service';
 import { MessageBuilder } from '@/services/message-builder.service';
 import { MessageCacheHelper } from '@/services/message-cache-helper.service';
+import { pendingMessageTracker } from '@/services/pending-message-tracker.service';
 import { useActiveConversationId, useStrategy } from '@/store';
 import { useConversations } from './use-conversations.hook';
 
@@ -82,25 +82,37 @@ export function useSendMessage<
     (conversation) => conversation.id === activeConversationId,
   );
 
-  // 订阅消息状态更新：WebSocket 收到 ptype=ack 后宿主会触发此回调，将消息状态（如 sent）写回缓存
   useEffect(() => {
-    const unsubscribe = messageService.subscribeToMessageStatus(
-      (event: MessageStatusUpdatedEvent) => {
-        MessageCacheHelper.updateMessageInCache(
-          queryClient,
-          event.conversationId,
-          {
-            id: event.messageId,
-            tempId: event.tempId,
-            status: event.status,
-          },
-          event.messageId,
-          event.tempId,
-          { channel: activeChannel ?? undefined },
-        );
-      },
-    );
-    return unsubscribe;
+    const unsubscribe = messageService.subscribeToMessageStatus((event) => {
+      const updates: Partial<StandardMessage> = {
+        id: event.messageId,
+        tempId: event.tempId,
+        status: event.status,
+      };
+
+      // 兼容无 channel 的缓存
+      MessageCacheHelper.updateMessageInCache(
+        queryClient,
+        event.conversationId,
+        updates,
+        event.messageId,
+        event.tempId,
+      );
+
+      // 兼容按当前 channel 分片的缓存
+      MessageCacheHelper.updateMessageInCache(
+        queryClient,
+        event.conversationId,
+        updates,
+        event.messageId,
+        event.tempId,
+        { channel: activeChannel ?? undefined },
+      );
+    });
+
+    return () => {
+      unsubscribe?.();
+    };
   }, [messageService, queryClient, activeChannel]);
 
   return useMutation<
@@ -122,7 +134,7 @@ export function useSendMessage<
         // 1. 默认选项（初始化时传入）
         ...defaultOptions,
         // 2. 内置默认值
-        content: { text: params.content },
+        content: params.content,
         receiver: {
           app: currentUser.app,
           pin: activeConversation?.user?.id ?? '',
@@ -337,6 +349,17 @@ export function useSendMessage<
         tempId, // tempId
         { channel: activeChannel ?? undefined },
       );
+
+      // 注册 messageId → conversationId 映射
+      // 用于在 ACK 中缺少 chatId 时查找对应的会话
+      const messageId = data.messageId ?? context?.tempMessage.id;
+      if (messageId && variables.conversationId) {
+        pendingMessageTracker.register(messageId, variables.conversationId);
+        console.info('[useSendMessage] 已注册消息映射', {
+          messageId,
+          conversationId: variables.conversationId,
+        });
+      }
     },
   });
 }

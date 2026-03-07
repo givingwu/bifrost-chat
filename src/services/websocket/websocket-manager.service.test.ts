@@ -109,7 +109,7 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
 
       const ackPacket: RawPacket = {
         id: 'ack-123',
-        chatId: '',
+        chatId: 'conv-123', // 提供有效的 chatId
         from: { app: 'test-app', pin: 'test-pin' },
         to: { app: 'receiver-app', pin: 'receiver-pin' },
         ptype: PacketMessageTypeEnum.Ack,
@@ -133,7 +133,7 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
 
       const ackPacket: RawPacket = {
         id: 'ack-123',
-        chatId: '',
+        chatId: 'conv-123', // 提供有效的 chatId
         from: { app: 'test-app', pin: 'test-pin' },
         to: { app: 'receiver-app', pin: 'receiver-pin' },
         ptype: PacketMessageTypeEnum.Ack,
@@ -157,7 +157,7 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
 
       const ackPacket: RawPacket = {
         id: 'ack-123',
-        chatId: '',
+        chatId: 'conv-123', // 提供有效的 chatId
         from: { app: 'test-app', pin: 'test-pin' },
         to: { app: 'receiver-app', pin: 'receiver-pin' },
         ptype: PacketMessageTypeEnum.Ack,
@@ -181,7 +181,7 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
 
       const ackPacket: RawPacket = {
         id: 'ack-123',
-        chatId: '',
+        chatId: 'conv-123', // 提供有效的 chatId
         from: { app: 'test-app', pin: 'test-pin' },
         to: { app: 'receiver-app', pin: 'receiver-pin' },
         ptype: PacketMessageTypeEnum.Ack,
@@ -205,7 +205,7 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
 
       const ackPacket: RawPacket = {
         id: 'ack-123',
-        chatId: '',
+        chatId: 'conv-123', // 提供有效的 chatId
         from: { app: 'test-app', pin: 'test-pin' },
         to: { app: 'receiver-app', pin: 'receiver-pin' },
         ptype: PacketMessageTypeEnum.Ack,
