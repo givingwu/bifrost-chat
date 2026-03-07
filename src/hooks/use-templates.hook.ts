@@ -46,35 +46,14 @@ export function useTemplates(params?: UseTemplatesParams) {
   const { templateService } = useServices();
   const { conversationId, currentChannel } = params || {};
 
-  // 调试日志：检查服务注入状态
-  console.log('📊 [useTemplates] Hook 调用状态:', {
-    hasTemplateService: !!templateService,
-    params,
-    serviceName: templateService?.constructor?.name,
-    queryKey: queryKeys.templates.list(conversationId, currentChannel),
-  });
-
   return useQuery({
     queryKey: queryKeys.templates.list(conversationId, currentChannel),
     queryFn: () => {
-      console.log('🚀 [useTemplates] queryFn 执行开始');
-
       if (!templateService) {
-        console.warn('⚠️ [useTemplates] templateService 不存在，返回空数组');
         return [];
       }
 
-      console.log('📡 [useTemplates] 准备调用 templateService.list', {
-        params,
-        serviceInstance: templateService,
-        hasListMethod: typeof templateService.list === 'function',
-      });
-
-      // 在这里打断点可以确认 templateService.list() 被调用
-      const result = templateService.list(params ?? ({} as never));
-      console.log('📦 [useTemplates] templateService.list 返回 Promise');
-
-      return result;
+      return templateService.list(params ?? ({} as never));
     },
     staleTime: 1000 * 60 * 5, // 5 分钟
     enabled: !!templateService, // 只有当服务存在时才执行查询

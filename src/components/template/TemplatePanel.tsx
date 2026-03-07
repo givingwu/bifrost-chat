@@ -1,11 +1,11 @@
 import { useCallback, useMemo, useState, useTransition } from 'react';
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
-import { LoadingState } from '@/components/LoadingState';
 import { useTemplates } from '@/hooks/use-templates.hook';
 import type { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import type { Template } from '@/interfaces/template.interface';
 import { useTranslation } from '@/providers/I18n.provider';
+import { cn } from '@/utils/class.util';
 import { TemplateHeader } from './TemplateHeader';
 import { TemplateList } from './TemplateList';
 
@@ -58,15 +58,6 @@ export const TemplatePanel = ({
   // 仅在未提供自定义模板时才调用 useTemplates
   const shouldFetchFromServer = !customTemplates;
 
-  // 调试日志：检查数据获取决策
-  console.log('🔍 [TemplatePanel] 数据获取决策:', {
-    hasCustomTemplates: !!customTemplates,
-    customTemplatesCount: customTemplates?.length,
-    shouldFetchFromServer,
-    conversationId,
-    currentChannel,
-  });
-
   const {
     data: serverTemplates,
     isLoading,
@@ -80,14 +71,6 @@ export const TemplatePanel = ({
         }
       : ({} as never),
   );
-
-  // 调试日志：检查 useTemplates 返回状态
-  console.log('📊 [TemplatePanel] useTemplates 返回状态:', {
-    isLoading,
-    error: error?.message,
-    serverTemplatesCount: serverTemplates?.length,
-    hasServerData: !!serverTemplates,
-  });
 
   const templates = customTemplates ?? serverTemplates ?? [];
 
@@ -184,25 +167,27 @@ export const TemplatePanel = ({
 
       {/* 模板列表 */}
       <section
-        className="flex-1 overflow-y-auto p-4"
+        className={cn('flex-1 overflow-y-auto p-4', isPending && 'opacity-60')}
         aria-label={t('template.title')}
         aria-live="polite"
-        aria-busy={isPending}
+        aria-busy={isLoading || isPending}
       >
-        {isLoading || isPending ? (
-          <LoadingState
-            message={
-              isPending
-                ? t('template.search') // 搜索中显示搜索提示
-                : t('template.panel.loading')
-            }
-          />
-        ) : error ? (
+        {error ? (
           <ErrorState
             message={t('template.panel.loadFailed')}
             onRetry={handleRetry}
             retryText={t('template.panel.retry')}
           />
+        ) : isLoading && filteredTemplates.length === 0 ? (
+          // 首次加载时显示骨架屏
+          <div className="space-y-2">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="h-16 rounded-md border border-gray-200/50 dark:border-white/10 bg-gray-100 dark:bg-gray-800 animate-pulse"
+              />
+            ))}
+          </div>
         ) : filteredTemplates.length === 0 ? (
           <EmptyState
             message={

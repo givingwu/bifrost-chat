@@ -53,9 +53,10 @@ export const TemplateList = ({
     <div className="space-y-2" role="listbox" aria-label="模板列表">
       {templates.map((template) => {
         const isSelected = template.id === selectedId;
+        // 只有当 renderingTemplateId 有值时才进行比较，避免 undefined === undefined 的问题
         const isRendering =
-          template.id === renderingTemplateId ||
-          template.code === renderingTemplateId;
+          renderingTemplateId !== undefined &&
+          template.id === renderingTemplateId;
 
         return (
           <button
