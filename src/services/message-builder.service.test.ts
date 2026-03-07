@@ -24,7 +24,7 @@ describe('MessageBuilder', () => {
     expect(message.sender?.pin).toBe('agent-1');
     expect(message.receiver?.pin).toBe('user-1');
     expect(message.id).toMatch(/^msg_\d+_[a-z0-9]+$/);
-    expect(message.tempId).toMatch(/^temp_\d+_[a-z0-9]+$/);
+    expect(message.tempId).toMatch(/^chat_\d+_[a-z0-9]+$/);
   });
 
   it('should generate unique IDs', () => {
