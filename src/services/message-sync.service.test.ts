@@ -71,7 +71,8 @@ describe('MessageSyncService', () => {
       timestamp: Date.now(),
     });
 
-    expect(updateSpy).toHaveBeenCalledWith(
+    expect(updateSpy).toHaveBeenNthCalledWith(
+      1,
       queryClient,
       'conv-1',
       {
@@ -82,6 +83,76 @@ describe('MessageSyncService', () => {
       'msg-1',
       'tmp-1',
     );
+    expect(updateSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('状态事件包含 channelType 时应同步更新按渠道分片缓存', () => {
+    const updateSpy = vi.spyOn(MessageCacheHelper, 'updateMessageInCache');
+
+    const syncService = new MessageSyncService(queryClient);
+
+    syncService.updateMessageStatus({
+      conversationId: 'conv-1',
+      messageId: 'msg-1',
+      tempId: 'tmp-1',
+      status: MessageStatusEnum.Delivered,
+      timestamp: Date.now(),
+      channelType: ChannelTypeEnum.WhatsApp,
+    });
+
+    expect(updateSpy).toHaveBeenNthCalledWith(
+      1,
+      queryClient,
+      'conv-1',
+      {
+        id: 'msg-1',
+        tempId: 'tmp-1',
+        status: MessageStatusEnum.Delivered,
+      },
+      'msg-1',
+      'tmp-1',
+    );
+    expect(updateSpy).toHaveBeenNthCalledWith(
+      2,
+      queryClient,
+      'conv-1',
+      {
+        id: 'msg-1',
+        tempId: 'tmp-1',
+        status: MessageStatusEnum.Delivered,
+      },
+      'msg-1',
+      'tmp-1',
+      { channel: ChannelTypeEnum.WhatsApp },
+    );
+  });
+
+  it('状态事件缺失 channelType 时不应更新分片缓存', () => {
+    const updateSpy = vi.spyOn(MessageCacheHelper, 'updateMessageInCache');
+
+    const syncService = new MessageSyncService(queryClient);
+
+    syncService.updateMessageStatus({
+      conversationId: 'conv-1',
+      messageId: 'msg-1',
+      tempId: 'tmp-1',
+      status: MessageStatusEnum.Delivered,
+      timestamp: Date.now(),
+    });
+
+    expect(updateSpy).toHaveBeenNthCalledWith(
+      1,
+      queryClient,
+      'conv-1',
+      {
+        id: 'msg-1',
+        tempId: 'tmp-1',
+        status: MessageStatusEnum.Delivered,
+      },
+      'msg-1',
+      'tmp-1',
+    );
+    expect(updateSpy).toHaveBeenCalledTimes(1);
   });
 
   it('状态回调不应新增重复模板消息，只应更新现有消息', () => {

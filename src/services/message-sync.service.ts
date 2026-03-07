@@ -57,22 +57,39 @@ export class MessageSyncService {
    * 处理消息状态更新事件，更新消息缓存
    * - 根据 messageId 或 tempId 定位到对应消息
    * - 更新消息状态（status 字段）
+   * - 同时兼容无 channel 与按 channel 分片缓存
    * - 如果消息不存在，记录警告日志
    * @param event
    * @returns
    */
   updateMessageStatus(event: MessageStatusUpdatedEvent) {
-    // 注意：event 暂无 channelType，更新的是无 channel 的缓存；若 useMessages 使用 channel，状态更新可能不生效
-    MessageCacheHelper.updateMessageInCache(
-      this.queryClient,
-      event.conversationId,
-      {
-        id: event.messageId,
-        tempId: event.tempId,
-        status: event.status,
-      },
-      event.messageId,
-      event.tempId,
-    );
+    const updates = {
+      id: event.messageId,
+      tempId: event.tempId,
+      status: event.status,
+    };
+
+    // 2) 兼容按 channel 分片缓存
+    const channel = event.channelType;
+
+    if (!channel) {
+      // 1) 兼容无 channel 的缓存
+      MessageCacheHelper.updateMessageInCache(
+        this.queryClient,
+        event.conversationId,
+        updates,
+        event.messageId,
+        event.tempId,
+      );
+    } else {
+      MessageCacheHelper.updateMessageInCache(
+        this.queryClient,
+        event.conversationId,
+        updates,
+        event.messageId,
+        event.tempId,
+        { channel },
+      );
+    }
   }
 }

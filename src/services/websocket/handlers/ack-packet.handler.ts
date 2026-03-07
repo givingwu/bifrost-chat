@@ -74,6 +74,7 @@ export class AckPacketHandler extends BasePacketHandler {
     const ackEventData = {
       conversationId,
       messageId: ackData.id,
+      channelType: packet.from.channelType ?? packet.to.channelType,
       timestamp: ackData.timestamp ?? Date.now(),
     };
 

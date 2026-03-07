@@ -153,7 +153,11 @@ describe('AckPacketHandler', () => {
         id: 'msg-123',
         chatId: 'conv-456',
         ptype: PacketMessageTypeEnum.Ack,
-        from: { app: 'test', pin: 'server' },
+        from: {
+          app: 'test',
+          pin: 'server',
+          channelType: 'whatsapp' as any,
+        },
         to: { app: 'test', pin: 'user' },
         body: { type: AckMessageTypeEnum.MsgReceiveAck },
         ver: '1.0',
@@ -165,6 +169,7 @@ describe('AckPacketHandler', () => {
       expect((result.eventData?.data as any).status).toBe(
         MessageStatusEnum.Delivered,
       );
+      expect((result.eventData?.data as any).channelType).toBe('whatsapp');
     });
 
     it('应该正确处理 msg_read_ack 类型', () => {

@@ -22,6 +22,8 @@ export interface MessageStatusUpdate {
   messageId: string;
   /** 临时消息 ID */
   tempId?: string;
+  /** 渠道类型（可选，用于更新按渠道分片的缓存） */
+  channelType?: StandardMessage['channelType'];
   /** 新状态 */
   status: StandardMessage['status'];
   /** 更新时间戳 */

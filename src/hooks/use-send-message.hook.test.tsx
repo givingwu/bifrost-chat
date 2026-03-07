@@ -419,6 +419,7 @@ describe('useSendMessage Hook', () => {
       conversationId: string;
       messageId: string;
       tempId?: string;
+      channelType?: string;
       status: MessageStatusEnum;
       timestamp: number;
     }) => void = () => {};
@@ -442,6 +443,7 @@ describe('useSendMessage Hook', () => {
         conversationId,
         messageId,
         tempId,
+        channelType: 'waba',
         status: MessageStatusEnum.Sent,
         timestamp: Date.now(),
       });

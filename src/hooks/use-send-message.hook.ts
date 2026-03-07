@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import type {
   MessageSendResult,
   SendMessageOptions,
@@ -13,6 +13,7 @@ import { queryKeys } from '@/providers/query.provider';
 import { useServices } from '@/providers/service.provider';
 import { MessageBuilder } from '@/services/message-builder.service';
 import { MessageCacheHelper } from '@/services/message-cache-helper.service';
+import { MessageSyncService } from '@/services/message-sync.service';
 import { pendingMessageTracker } from '@/services/pending-message-tracker.service';
 import { useActiveConversationId, useStrategy } from '@/store';
 import { useConversations } from './use-conversations.hook';
@@ -73,6 +74,10 @@ export function useSendMessage<
   TMType = unknown,
 >(defaultOptions?: Partial<SendMessageOptions<CMType, TMType>>) {
   const queryClient = useQueryClient();
+  const messageSyncService = useMemo(
+    () => new MessageSyncService(queryClient),
+    [queryClient],
+  );
   const { messageService, offlineMessageQueue } = useServices();
   const { activeChannel, allowedChannels, currentUser } = useStrategy();
 
@@ -84,36 +89,13 @@ export function useSendMessage<
 
   useEffect(() => {
     const unsubscribe = messageService.subscribeToMessageStatus((event) => {
-      const updates: Partial<StandardMessage> = {
-        id: event.messageId,
-        tempId: event.tempId,
-        status: event.status,
-      };
-
-      // 兼容无 channel 的缓存
-      MessageCacheHelper.updateMessageInCache(
-        queryClient,
-        event.conversationId,
-        updates,
-        event.messageId,
-        event.tempId,
-      );
-
-      // 兼容按当前 channel 分片的缓存
-      MessageCacheHelper.updateMessageInCache(
-        queryClient,
-        event.conversationId,
-        updates,
-        event.messageId,
-        event.tempId,
-        { channel: activeChannel ?? undefined },
-      );
+      messageSyncService.updateMessageStatus(event);
     });
 
     return () => {
       unsubscribe?.();
     };
-  }, [messageService, queryClient, activeChannel]);
+  }, [messageService, messageSyncService]);
 
   return useMutation<
     MessageSendResult,
