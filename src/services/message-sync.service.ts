@@ -69,27 +69,25 @@ export class MessageSyncService {
       status: event.status,
     };
 
-    // 2) 兼容按 channel 分片缓存
+    // 1) 始终兼容无 channel 的缓存
+    MessageCacheHelper.updateMessageInCache(
+      this.queryClient,
+      event.conversationId,
+      updates,
+      event.messageId,
+      event.tempId,
+    );
+    // 2) 若携带 channelType，再同步更新按 channel 分片缓存
     const channel = event.channelType;
+    if (!channel) return;
 
-    if (!channel) {
-      // 1) 兼容无 channel 的缓存
-      MessageCacheHelper.updateMessageInCache(
-        this.queryClient,
-        event.conversationId,
-        updates,
-        event.messageId,
-        event.tempId,
-      );
-    } else {
-      MessageCacheHelper.updateMessageInCache(
-        this.queryClient,
-        event.conversationId,
-        updates,
-        event.messageId,
-        event.tempId,
-        { channel },
-      );
-    }
+    MessageCacheHelper.updateMessageInCache(
+      this.queryClient,
+      event.conversationId,
+      updates,
+      event.messageId,
+      event.tempId,
+      { channel },
+    );
   }
 }
