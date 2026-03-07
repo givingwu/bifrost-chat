@@ -1,20 +1,96 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  createAttachments,
+  revokeAttachmentPreviews,
+} from '@/components/composer/AttachmentPreview';
 import { useComposerDraft } from '@/hooks/use-composer-draft.hook';
 import { useTemplatePreview } from '@/hooks/use-template-preview.hook';
 import type { Attachment } from '@/interfaces/attachment.interface';
 import type { AudioData } from '@/interfaces/audio.interface';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
+import type { IComposerConfig } from '@/interfaces/composer.interface';
 import { MessageTypeEnum } from '@/interfaces/message.interface';
 import { useComposerConfig } from '@/store';
-import {
-  createAttachments,
-  revokeAttachmentPreviews,
-} from './AttachmentPreview';
-import type {
-  ResolvedComposerConfig,
-  UseComposerLogicOptions,
-  UseComposerLogicResult,
-} from './Composer.types';
+
+// ==================== 类型定义 ====================
+
+/**
+ * 合并后的 Composer 配置
+ */
+export type ResolvedComposerConfig = IComposerConfig & {
+  disabled?: boolean;
+  loading?: boolean;
+};
+
+/**
+ * useComposerLogic Hook 选项
+ */
+export interface UseComposerLogicOptions {
+  conversationId?: string;
+  channel?: ChannelTypeEnum;
+  enableDraft?: boolean;
+  onSend?: (
+    content: string,
+    options?: { templateMetadata?: unknown },
+  ) => void | Promise<void>;
+  onSendAttachment?: (
+    attachments: Attachment[],
+    text?: string,
+  ) => void | Promise<void>;
+  onSendAudio?: (audio: AudioData) => void | Promise<void>;
+  disabled?: boolean;
+  loading?: boolean;
+  maxLength?: number;
+}
+
+/**
+ * useComposerLogic Hook 返回值
+ */
+export interface UseComposerLogicResult {
+  // 状态
+  value: string;
+  attachments: Attachment[];
+  isRecording: boolean;
+  isSending: boolean;
+  isTemplateLocked: boolean;
+  isRestoring: boolean;
+  sendError: string | null;
+
+  // 草稿元数据
+  messageType: MessageTypeEnum | undefined;
+  templateCode: string | number | undefined;
+
+  // 配置
+  config: ResolvedComposerConfig;
+
+  // 计算值
+  effectiveMaxLength: number;
+  placeholder: string;
+  canSend: boolean;
+
+  // 操作
+  setValue: (value: string) => void;
+  handleSend: () => Promise<void>;
+  handleClear: () => void;
+  handleAttachmentSelect: (files: File[]) => void;
+  handleRemoveAttachment: (index: number) => void;
+  handleAudioInput: () => void;
+  handleSendAudio: (audio: AudioData) => Promise<void>;
+  handleCancelRecording: () => void;
+
+  // 模板操作（供外部调用）
+  setTemplate: (data: {
+    content: string;
+    templateCode?: string | number;
+    templateMetadata?: unknown;
+  }) => void;
+
+  // Ref 支持
+  inputRef: React.RefObject<HTMLTextAreaElement | null>;
+  focus: () => void;
+}
+
+// ==================== Hook 实现 ====================
 
 /**
  * 渠道最大长度映射
@@ -201,12 +277,14 @@ export const useComposerLogic = (
         await onSendAttachment(attachments, messageToSend || undefined);
         setAttachments([]);
       } else if (messageToSend) {
-        // 发送时携带 templateCode
-        const templateCode =
+        const options =
           draft.messageType === MessageTypeEnum.Template
-            ? String(draft.templateCode)
+            ? {
+                templateCode: draft.templateCode,
+                templateMetadata: draft.templateMetadata,
+              }
             : undefined;
-        await draft.handleSend(messageToSend, templateCode);
+        await draft.handleSend(messageToSend, options);
       }
 
       // 清空
@@ -214,6 +292,7 @@ export const useComposerLogic = (
       draft.setMessageType(undefined);
       draft.setTemplateCode(undefined);
       draft.setTemplateParams(undefined);
+      draft.setTemplateMetadata(undefined);
     } catch (error) {
       console.error('[Composer] Failed to send:', error);
       setSendError(error instanceof Error ? error.message : '发送失败');
@@ -274,6 +353,7 @@ export const useComposerLogic = (
       if (!onSendAudio) return;
 
       setIsSending(true);
+
       try {
         await onSendAudio(audio);
         setIsRecording(false);
@@ -296,10 +376,15 @@ export const useComposerLogic = (
    * 这是外部控制 Composer 内容的唯一合法入口
    */
   const setTemplate = useCallback(
-    (data: { content: string; templateCode?: string | number }) => {
+    (data: {
+      content: string;
+      templateCode?: string | number;
+      templateMetadata?: unknown;
+    }) => {
       draft.setValue(data.content);
       draft.setMessageType(MessageTypeEnum.Template);
       draft.setTemplateCode(data.templateCode);
+      draft.setTemplateMetadata(data.templateMetadata);
     },
     [draft],
   );

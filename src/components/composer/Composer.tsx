@@ -7,17 +7,89 @@ import {
   useMemo,
   useRef,
 } from 'react';
+import { useComposerLogic } from '@/hooks/use-composer-logic.hook';
 import type { Attachment } from '@/interfaces/attachment.interface';
 import type { AudioData } from '@/interfaces/audio.interface';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
+import type { Template } from '@/interfaces/template.interface';
 import { useTranslation } from '@/providers/I18n.provider';
 import { useComposerConfig } from '@/store';
 import { cn } from '@/utils/class.util';
 import { AttachmentPreview } from './AttachmentPreview';
 import { AudioRecorder } from './AudioRecorder';
 import { ChannelBadgeSwitcher } from './ChannelBadgeSwitcher';
-import type { ComposerProps, ComposerRef } from './Composer.types';
 import { ComposerActions } from './ComposerActions';
+
+// ==================== 类型定义 ====================
+
+/**
+ * Composer 组件 Props
+ */
+export interface ComposerProps {
+  // 核心配置
+  /** 会话 ID（用于草稿存储） */
+  conversationId?: string;
+  /** 当前激活渠道 */
+  channel?: ChannelTypeEnum;
+
+  // 功能开关
+  /** 是否启用草稿功能 */
+  enableDraft?: boolean;
+
+  // 回调
+  /** 发送消息回调（如果不提供，使用内置发送逻辑） */
+  onSend?: (
+    content: string,
+    options?: { templateMetadata?: unknown },
+  ) => void | Promise<void>;
+  /** 发送附件回调 */
+  onSendAttachment?: (
+    attachments: Attachment[],
+    text?: string,
+  ) => void | Promise<void>;
+  /** 发送音频回调 */
+  onSendAudio?: (audio: AudioData) => void | Promise<void>;
+
+  // UI 状态
+  /** 是否禁用 */
+  disabled?: boolean;
+  /** 是否加载中 */
+  loading?: boolean;
+  /** 最大输入长度 */
+  maxLength?: number;
+
+  // 样式
+  /** 自定义类名 */
+  className?: string;
+}
+
+/**
+ * Composer 组件 Ref 接口
+ */
+export interface ComposerRef {
+  /** 设置输入框的值 */
+  setValue: (
+    value: string,
+    templateCode?: string,
+    templateMetadata?: unknown,
+  ) => void;
+  /** 聚焦输入框 */
+  focus: () => void;
+  /** 获取当前输入框的值 */
+  getValue: () => string;
+  /** 清空输入框（包括模板状态） */
+  clear: () => void;
+  /** 设置模板内容（由外部布局组件调用） */
+  setTemplate: (data: {
+    content: string;
+    templateCode?: Template['code'];
+    templateMetadata?: unknown;
+  }) => void;
+  /** 获取当前附件列表 */
+  getAttachments: () => Attachment[];
+}
+
+// ==================== 组件实现 ====================
 import { ComposerAttachments } from './ComposerAttachments';
 import { ComposerCharCount } from './ComposerCharCount';
 import { ComposerHint } from './ComposerHint';
@@ -25,7 +97,6 @@ import { ComposerInput, type ComposerInputRef } from './ComposerInput';
 import { MAX_LENGTH_MAP } from './ComposerToolbar';
 import { ComposerVoice } from './ComposerVoice';
 import { INPUT_LIMITS, TEST_IDS } from './composer.constants';
-import { useComposerLogic } from './useComposerLogic';
 
 /**
  * Composer 组件
@@ -77,10 +148,19 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(
     useImperativeHandle(
       ref,
       () => ({
-        setValue: (value: string, templateId?: string) => {
+        setValue: (
+          value: string,
+          templateCode?: string,
+          templateMetadata?: unknown,
+        ) => {
           logic.setValue(value);
-          if (templateId) {
-            logic.setTemplate({ content: value, templateCode: templateId });
+
+          if (templateCode) {
+            logic.setTemplate({
+              content: value,
+              templateCode,
+              templateMetadata,
+            });
           }
         },
         focus: () => {
@@ -90,6 +170,7 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(
         setTemplate: (data: {
           content: string;
           templateCode?: string | number;
+          templateMetadata?: unknown;
         }) => {
           logic.setTemplate(data);
         },
@@ -341,5 +422,3 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(
 );
 
 Composer.displayName = 'Composer';
-
-export type { ComposerProps, ComposerRef } from './Composer.types';

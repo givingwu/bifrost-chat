@@ -35,7 +35,7 @@ export interface StrategyState {
   /** 允许的渠道列表（由 strategy.allowedChannels 约束） */
   allowedChannels: readonly ChannelTypeEnum[];
   /** 当前激活渠道 */
-  activeChannel?: ChannelTypeEnum;
+  activeChannel: ChannelTypeEnum;
   /** 坐席状态（用于 in_call 互斥策略） */
   agentStatus?: AgentStatusEnum;
   /** 当前用户信息（坐席） */

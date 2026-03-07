@@ -131,7 +131,7 @@ describe('useSendMessage Hook', () => {
       result.current.mutate({
         conversationId,
         content: 'hello from mobile',
-        extra: { clientType: 'mobile' },
+        options: { metadata: { clientType: 'mobile' } },
       });
     });
 
@@ -166,12 +166,14 @@ describe('useSendMessage Hook', () => {
     expect(sentMessage?.status).toBe(MessageStatusEnum.Sent);
     expect(sentMessage?.id).not.toBe(optimisticId);
     expect(mockMessageService.send).toHaveBeenCalledWith(conversationId, {
-      content: 'hello from mobile',
-      clientType: 'mobile',
+      content: { text: 'hello from mobile' },
+      metadata: { clientType: 'mobile' },
+      channelType: 'waba',
       receiver: {
+        app: 'test-app',
+        pin: '',
         channelType: 'waba',
         clientType: undefined,
-        pin: undefined,
       },
     });
   });
@@ -219,7 +221,7 @@ describe('useSendMessage Hook', () => {
       result.current.mutate({
         conversationId,
         content: 'template limit reached',
-        extra: { templateId: 'tpl-1' },
+        options: { templateMetadata: { templateId: 'tpl-1' } },
       });
     });
 
@@ -281,7 +283,7 @@ describe('useSendMessage Hook', () => {
       result.current.mutate({
         conversationId,
         content: 'template error',
-        extra: { templateId: 'tpl-2' },
+        options: { templateMetadata: { templateId: 'tpl-2' } },
       });
     });
 
@@ -351,7 +353,7 @@ describe('useSendMessage Hook', () => {
       result.current.mutate({
         conversationId,
         content: 'template ok',
-        extra: { templateId: 'tpl-3' },
+        options: { templateMetadata: { templateId: 'tpl-3' } },
       });
     });
 

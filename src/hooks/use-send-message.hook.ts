@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type {
   MessageSendResult,
+  SendMessageOptions,
   StandardMessage,
 } from '@/interfaces/message.interface';
 import {
@@ -64,7 +65,10 @@ const DEFAULT_EMPTY_DATA = {
   pages: [],
 };
 
-export function useSendMessage<TParams = any>() {
+export function useSendMessage<
+  CMType = Record<string, unknown>,
+  TMType = unknown,
+>(defaultOptions?: Partial<SendMessageOptions<CMType, TMType>>) {
   const queryClient = useQueryClient();
   const { messageService, offlineMessageQueue } = useServices();
   const { activeChannel, allowedChannels, currentUser } = useStrategy();
@@ -81,7 +85,7 @@ export function useSendMessage<TParams = any>() {
     {
       conversationId: string;
       content: string;
-      extra?: TParams;
+      options?: Partial<SendMessageOptions<CMType, TMType>>;
     },
     {
       previousMessages: unknown;
@@ -90,15 +94,28 @@ export function useSendMessage<TParams = any>() {
     }
   >({
     mutationFn: async (params) => {
-      return messageService.send(params.conversationId, {
-        content: params.content,
+      const options: SendMessageOptions<CMType, TMType> = {
+        // 1. 默认选项（初始化时传入）
+        ...defaultOptions,
+        // 2. 内置默认值
+        content: { text: params.content },
         receiver: {
-          pin: activeConversation?.user?.id,
+          app: currentUser.app,
+          pin: activeConversation?.user?.id ?? '',
           clientType: currentUser.clientType,
           channelType: activeChannel ?? allowedChannels[0],
         },
-        ...params.extra,
-      } as never);
+        channelType: activeChannel ?? allowedChannels[0],
+        // 3. 调用时的选项（优先级最高）
+        ...params.options,
+      };
+
+      // 由于 useServices() 返回的 messageService 类型是固定的，
+      // 需要类型断言来兼容泛型参数
+      return messageService.send(
+        params.conversationId,
+        options as SendMessageOptions,
+      );
     },
 
     // 乐观更新：在请求发送前立即在 UI 上显示消息
@@ -175,7 +192,7 @@ export function useSendMessage<TParams = any>() {
             variables.conversationId,
             {
               content: variables.content,
-              ...variables.extra,
+              ...variables.options,
             },
             MessagePriorityEnum.Normal,
           );

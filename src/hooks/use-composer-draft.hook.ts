@@ -23,6 +23,8 @@ export interface DraftData {
   templateCode?: string | number;
   /** 模板参数 */
   templateParams?: Record<string, string>;
+  /** 模板元数据（用于发送时传递给后端） */
+  templateMetadata?: unknown;
 }
 
 export interface UseComposerDraftOptions {
@@ -32,7 +34,10 @@ export interface UseComposerDraftOptions {
   draftDebounceDelay?: number;
   clearDraftOnSend?: boolean;
   keepDraftOnSwitch?: boolean;
-  onSend?: (content: string, templateCode?: string) => void | Promise<void>;
+  onSend?: (
+    content: string,
+    options?: Record<string, unknown>,
+  ) => void | Promise<void>;
 }
 
 export interface UseComposerDraftResult {
@@ -52,6 +57,10 @@ export interface UseComposerDraftResult {
   templateParams?: Record<string, string>;
   /** 设置模板参数 */
   setTemplateParams: (params?: Record<string, string>) => void;
+  /** 模板元数据 */
+  templateMetadata?: unknown;
+  /** 设置模板元数据 */
+  setTemplateMetadata: (metadata?: unknown) => void;
   /** 设置完整草稿数据 */
   setDraftData: (data: Partial<DraftData>) => void;
   /** 获取完整草稿数据 */
@@ -69,7 +78,10 @@ export interface UseComposerDraftResult {
   /** 保存完整草稿数据 */
   saveDraftData: (data: DraftData) => void;
   /** 处理发送 */
-  handleSend: (content: string, templateCode?: string) => Promise<void>;
+  handleSend: (
+    content: string,
+    options?: Record<string, unknown>,
+  ) => Promise<void>;
 }
 
 /**
@@ -130,6 +142,7 @@ export function useComposerDraft({
   const [templateParams, setTemplateParams] = useState<
     Record<string, string> | undefined
   >();
+  const [templateMetadata, setTemplateMetadata] = useState<unknown>(undefined);
   const saveTimeoutRef = useRef<number | undefined>(undefined);
   const loadedDraftKeyRef = useRef<string | null>(null);
   const previousDraftKeyRef = useRef<string | null>(null);
@@ -326,8 +339,9 @@ export function useComposerDraft({
   ]);
 
   const handleSend = useCallback(
-    async (content: string, sendTemplateCode?: string) => {
-      await onSend?.(content, sendTemplateCode);
+    async (content: string, options?: Record<string, unknown>) => {
+      await onSend?.(content, options);
+
       setValue('');
       setMessageType(undefined);
       setTemplateCode(undefined);
@@ -349,6 +363,8 @@ export function useComposerDraft({
     setTemplateCode,
     templateParams,
     setTemplateParams,
+    templateMetadata,
+    setTemplateMetadata,
     setDraftData,
     getDraftData,
     draftStorageKey,

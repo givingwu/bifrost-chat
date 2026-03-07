@@ -188,8 +188,10 @@ export interface StandardMessage {
  */
 export interface SendMessageOptions<
   CMType = Record<string, unknown>,
-  TMType = Record<string, unknown>,
+  TMType = unknown,
 > {
+  /** 消息内容 */
+  content?: MessageContent | string;
   /** 消息类型，默认 Text */
   type?: MessageTypeEnum;
   /** 自定义 sender，默认从当前会话推断 */
@@ -208,7 +210,7 @@ export interface SendMessageOptions<
   metadata?: Record<string, unknown>;
   /** 会话级元数据 */
   conversationMetadata?: CMType;
-  /** 模版元数据 */
+  /** 模版元数据（支持任意类型） */
   templateMetadata?: TMType;
 }
 

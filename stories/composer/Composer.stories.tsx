@@ -117,8 +117,11 @@ export const WithSendCallback: Story = {
   args: {
     conversationId: 'conv-callback',
     channel: ChannelTypeEnum.WhatsApp,
-    onSend: async (content: string, templateId?: string) => {
-      console.log('Sending message:', { content, templateId });
+    onSend: async (
+      content: string,
+      options?: { templateMetadata?: unknown },
+    ) => {
+      console.log('Sending message:', { content, options });
       await new Promise((resolve) => setTimeout(resolve, 1000));
       console.log('Message sent!');
     },

@@ -91,7 +91,6 @@ export function DefaultChatLayout({
   const { t } = useTranslation();
   const actions = useActions();
   const { profile } = useProfile();
-  const sendMessage = useSendMessage();
   const { templateMode } = useComposerConfig();
   const { data: conversations = [] } = useConversations();
   const { activeChannel } = useStrategy();
@@ -110,7 +109,8 @@ export function DefaultChatLayout({
 
   // 后台静默同步会话元数据（supportedChannels 等）
   const { metadata: conversationMetadata } = useActiveConversationMetadata();
-  console.log('conversationMetadata: ', conversationMetadata);
+  // 初始化 useSendMessage 时传入 conversationMetadata
+  const sendMessage = useSendMessage({ conversationMetadata });
 
   // 自动选中第一个会话
   useEffect(() => {
@@ -179,6 +179,27 @@ export function DefaultChatLayout({
     },
     [actions],
   );
+
+  /**
+   * 统一的消息发送处理函数
+   * @param content 消息内容
+   * @param options 可选的发送选项
+   */
+  const handleSend = useCallback(
+    async (content: string, options?: Record<string, unknown>) => {
+      if (!activeConversationId) {
+        return;
+      }
+
+      await sendMessage.mutateAsync({
+        conversationId: activeConversationId,
+        content,
+        options,
+      });
+    },
+    [activeConversationId, sendMessage],
+  );
+
   /**
    * 处理模板选择
    * 根据 templateMode 配置决定行为：
@@ -198,7 +219,7 @@ export function DefaultChatLayout({
         // 尝试调用 preview 获取预览内容
         let contentToUse = template.content;
 
-        if (template.code && activeChannel) {
+        if (template.code) {
           try {
             const templateMetadata = await previewTemplate({
               conversationId: activeConversationId,
@@ -216,20 +237,27 @@ export function DefaultChatLayout({
         }
 
         if (templateMode === 'direct') {
-          // 模式 1：直接发送
-          await sendMessage.mutateAsync({
+          const templateMetadata = await previewTemplate({
             conversationId: activeConversationId,
-            content: contentToUse,
-            extra: {
-              templateId: template.id,
-              templateCode: template.code,
-              templateName: template.name,
-              templateCategory: template.category,
-            },
+            currentChannel: activeChannel,
+            templateCode: template.code,
           });
+
+          // 模式 1：直接发送（使用统一的 handleSend）
+          await handleSend(contentToUse, { templateMetadata });
         } else {
           // 模式 2：填充到输入框
-          composerRef.current?.setValue(contentToUse, template.id);
+          // 获取 templateMetadata 以便在编辑后发送时使用
+          const templateMetadata = await previewTemplate({
+            conversationId: activeConversationId,
+            currentChannel: activeChannel,
+            templateCode: template.code,
+          });
+          composerRef.current?.setValue(
+            contentToUse,
+            template.code,
+            templateMetadata,
+          );
           composerRef.current?.focus();
         }
       } catch (error) {
@@ -242,7 +270,7 @@ export function DefaultChatLayout({
       activeConversationId,
       activeChannel,
       previewTemplate,
-      sendMessage,
+      handleSend,
       templateMode,
     ],
   );
@@ -305,6 +333,7 @@ export function DefaultChatLayout({
             ref={composerRef}
             conversationId={activeConversationId}
             channel={activeChannel}
+            onSend={handleSend}
           />
         ) : null
       }
