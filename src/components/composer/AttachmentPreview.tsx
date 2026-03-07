@@ -1,26 +1,9 @@
 import { File, FileText, Image as ImageIcon, Video, X } from 'lucide-react';
 import { memo } from 'react';
+import { MessageTypeEnum } from '@/index';
+import type { Attachment } from '@/interfaces/attachment.interface';
 import { cn } from '@/utils/class.util';
 import { TEST_IDS } from './composer.constants';
-
-/**
- * 附件类型
- */
-export type AttachmentType = 'image' | 'video' | 'document' | 'other';
-
-/**
- * 附件信息
- */
-export interface Attachment {
-  /** 文件对象 */
-  file: File;
-  /** 预览 URL（对于图片/视频） */
-  preview?: string;
-  /** 附件类型 */
-  type: AttachmentType;
-  /** 文件大小（格式化后） */
-  size: string;
-}
 
 export interface AttachmentPreviewProps {
   /** 附件列表 */
@@ -34,13 +17,15 @@ export interface AttachmentPreviewProps {
 /**
  * 获取附件类型
  */
-function getAttachmentType(file: File): AttachmentType {
+function getAttachmentType(file: File): Attachment['type'] {
   if (file.type.startsWith('image/')) {
-    return 'image';
+    return MessageTypeEnum.Image;
   }
+
   if (file.type.startsWith('video/')) {
-    return 'video';
+    return MessageTypeEnum.Video;
   }
+
   if (
     file.type.includes('pdf') ||
     file.type.includes('document') ||
@@ -48,9 +33,10 @@ function getAttachmentType(file: File): AttachmentType {
     file.type.includes('sheet') ||
     file.type.includes('presentation')
   ) {
-    return 'document';
+    return MessageTypeEnum.File;
   }
-  return 'other';
+
+  return MessageTypeEnum.File;
 }
 
 /**
@@ -69,13 +55,13 @@ function formatFileSize(bytes: number): string {
 /**
  * 获取附件图标
  */
-function getAttachmentIcon(type: AttachmentType) {
+function getAttachmentIcon(type: Attachment['type']) {
   switch (type) {
-    case 'image':
+    case MessageTypeEnum.Image:
       return ImageIcon;
-    case 'video':
+    case MessageTypeEnum.Video:
       return Video;
-    case 'document':
+    case MessageTypeEnum.File:
       return FileText;
     default:
       return File;
@@ -188,6 +174,7 @@ export async function createAttachments(files: File[]): Promise<Attachment[]> {
   for (const file of files) {
     const type = getAttachmentType(file);
     const size = formatFileSize(file.size);
+
     let preview: string | undefined;
 
     // 为图片和视频创建预览
@@ -195,7 +182,15 @@ export async function createAttachments(files: File[]): Promise<Attachment[]> {
       preview = URL.createObjectURL(file);
     }
 
-    attachments.push({ file, preview, type, size });
+    attachments.push({
+      file,
+      preview,
+      type,
+      size: file.size,
+      formattedSize: size,
+      name: file.name,
+      mimeType: file.type,
+    } as Attachment);
   }
 
   return attachments;

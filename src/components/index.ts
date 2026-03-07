@@ -4,6 +4,7 @@ export { Button, CircularButton } from './Button';
 // Composer Components
 export { AttachmentPreview } from './composer/AttachmentPreview';
 export { ChannelSwitcher } from './composer/ChannelSwitcher';
+export { Composer } from './composer/Composer';
 export { ComposerActions } from './composer/ComposerActions';
 export { ComposerAttachments } from './composer/ComposerAttachments';
 export { ComposerCharCount } from './composer/ComposerCharCount';
@@ -13,8 +14,6 @@ export { ComposerInput } from './composer/ComposerInput';
 export { ComposerSendButton } from './composer/ComposerSendButton';
 export { ComposerToolbar } from './composer/ComposerToolbar';
 export { ComposerVoice } from './composer/ComposerVoice';
-export { ComposerWithDraft } from './composer/ComposerWithDraft';
-export { ComposerWithSend } from './composer/ComposerWithSend';
 export { EmojiPicker } from './composer/EmojiPicker';
 export { EmojiPickerButton } from './composer/EmojiPickerButton';
 export { MentionPicker } from './composer/MentionPicker';

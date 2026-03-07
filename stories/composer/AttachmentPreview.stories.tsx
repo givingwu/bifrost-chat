@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from 'storybook-react-rsbuild';
 import { AttachmentPreview } from '@/components/composer/AttachmentPreview';
+import { MessageTypeEnum } from '@/index';
+import type { Attachment } from '@/interfaces/attachment.interface';
 import '@/styles/theme.css';
 
 /**
@@ -45,17 +47,21 @@ function createMockFile(name: string, type: string, size: number): File {
  * 图片附件
  */
 export const ImageAttachments = () => {
-  const attachments = [
+  const attachments: Attachment[] = [
     {
       file: createMockFile('photo1.jpg', 'image/jpeg', 1024 * 500),
-      type: 'image' as const,
-      size: '500 KB',
+      type: MessageTypeEnum.Image,
+      size: 1024 * 500,
+      name: 'photo1.jpg',
+      mimeType: 'image/jpeg',
       preview: 'https://picsum.photos/200/150',
     },
     {
       file: createMockFile('photo2.jpg', 'image/jpeg', 1024 * 800),
-      type: 'image' as const,
-      size: '800 KB',
+      type: MessageTypeEnum.Image,
+      size: 1024 * 800,
+      name: 'photo2.jpg',
+      mimeType: 'image/jpeg',
       preview: 'https://picsum.photos/200/150?random=2',
     },
   ];
@@ -74,16 +80,20 @@ export const ImageAttachments = () => {
  * 文件附件
  */
 export const FileAttachments = () => {
-  const attachments = [
+  const attachments: Attachment[] = [
     {
       file: createMockFile('document.pdf', 'application/pdf', 1024 * 1024 * 2),
-      type: 'document' as const,
-      size: '2 MB',
+      type: MessageTypeEnum.File,
+      size: 1024 * 1024 * 2,
+      name: 'document.pdf',
+      mimeType: 'application/pdf',
     },
     {
       file: createMockFile('report.docx', 'application/docx', 1024 * 500),
-      type: 'document' as const,
-      size: '500 KB',
+      type: MessageTypeEnum.File,
+      size: 1024 * 500,
+      name: 'report.docx',
+      mimeType: 'application/docx',
     },
   ];
 
@@ -101,22 +111,28 @@ export const FileAttachments = () => {
  * 混合附件
  */
 export const MixedAttachments = () => {
-  const attachments = [
+  const attachments: Attachment[] = [
     {
       file: createMockFile('photo.jpg', 'image/jpeg', 1024 * 500),
-      type: 'image' as const,
-      size: '500 KB',
+      type: MessageTypeEnum.Image,
+      size: 1024 * 500,
+      name: 'photo.jpg',
+      mimeType: 'image/jpeg',
       preview: 'https://picsum.photos/200/150',
     },
     {
       file: createMockFile('document.pdf', 'application/pdf', 1024 * 1024),
-      type: 'document' as const,
-      size: '1 MB',
+      type: MessageTypeEnum.File,
+      size: 1024 * 1024,
+      name: 'document.pdf',
+      mimeType: 'application/pdf',
     },
     {
       file: createMockFile('video.mp4', 'video/mp4', 1024 * 1024 * 5),
-      type: 'video' as const,
-      size: '5 MB',
+      type: MessageTypeEnum.Video,
+      size: 1024 * 1024 * 5,
+      name: 'video.mp4',
+      mimeType: 'video/mp4',
     },
   ];
 
@@ -134,11 +150,13 @@ export const MixedAttachments = () => {
  * 禁用状态
  */
 export const Disabled = () => {
-  const attachments = [
+  const attachments: Attachment[] = [
     {
       file: createMockFile('photo.jpg', 'image/jpeg', 1024 * 500),
-      type: 'image' as const,
-      size: '500 KB',
+      type: MessageTypeEnum.Image,
+      size: 1024 * 500,
+      name: 'photo.jpg',
+      mimeType: 'image/jpeg',
       preview: 'https://picsum.photos/200/150',
     },
   ];

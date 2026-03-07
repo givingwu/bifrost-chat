@@ -1,0 +1,345 @@
+import {
+  type FormEvent,
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+} from 'react';
+import type { Attachment } from '@/interfaces/attachment.interface';
+import type { AudioData } from '@/interfaces/audio.interface';
+import { ChannelTypeEnum } from '@/interfaces/channel.interface';
+import { useTranslation } from '@/providers/I18n.provider';
+import { useComposerConfig } from '@/store';
+import { cn } from '@/utils/class.util';
+import { AttachmentPreview } from './AttachmentPreview';
+import { AudioRecorder } from './AudioRecorder';
+import { ChannelBadgeSwitcher } from './ChannelBadgeSwitcher';
+import type { ComposerProps, ComposerRef } from './Composer.types';
+import { ComposerActions } from './ComposerActions';
+import { ComposerAttachments } from './ComposerAttachments';
+import { ComposerCharCount } from './ComposerCharCount';
+import { ComposerHint } from './ComposerHint';
+import { ComposerInput, type ComposerInputRef } from './ComposerInput';
+import { MAX_LENGTH_MAP } from './ComposerToolbar';
+import { ComposerVoice } from './ComposerVoice';
+import { INPUT_LIMITS, TEST_IDS } from './composer.constants';
+import { useComposerLogic } from './useComposerLogic';
+
+/**
+ * Composer 组件
+ *
+ * 统一的消息输入组件，整合了草稿、附件、录音等功能。
+ * 使用 useComposerLogic hook 管理所有状态。
+ *
+ * @example
+ * ```tsx
+ * <Composer
+ *   conversationId="conv-123"
+ *   channel={ChannelTypeEnum.WhatsApp}
+ *   onSend={handleSend}
+ *   onSendAttachment={handleSendAttachment}
+ *   onSendAudio={handleSendAudio}
+ * />
+ * ```
+ */
+export const Composer = forwardRef<ComposerRef, ComposerProps>(
+  function Composer(
+    {
+      conversationId,
+      channel,
+      onSend,
+      onSendAttachment,
+      onSendAudio,
+      disabled = false,
+      loading = false,
+      maxLength: maxLengthProp,
+      className,
+    },
+    ref,
+  ) {
+    const { t } = useTranslation();
+    const composerConfig = useComposerConfig();
+    const inputRef = useRef<ComposerInputRef>(null);
+
+    // 使用统一的逻辑 hook
+    const logic = useComposerLogic({
+      conversationId,
+      channel,
+      onSend,
+      onSendAttachment,
+      onSendAudio,
+      disabled,
+    });
+
+    // 暴露 ref 方法给父组件
+    useImperativeHandle(
+      ref,
+      () => ({
+        setValue: (value: string, templateId?: string) => {
+          logic.setValue(value);
+          if (templateId) {
+            logic.setTemplate({ content: value, templateCode: templateId });
+          }
+        },
+        focus: () => {
+          inputRef.current?.focus();
+        },
+        getValue: () => logic.value,
+        setTemplate: (data: {
+          content: string;
+          templateCode?: string | number;
+        }) => {
+          logic.setTemplate(data);
+        },
+        clear: logic.handleClear,
+        getAttachments: () => logic.attachments,
+      }),
+      [logic],
+    );
+
+    // 监听消息发送失败事件，显示错误提示
+    useEffect(() => {
+      const handleMessageSendFailed = (event: Event) => {
+        const customEvent = event as CustomEvent<{
+          conversationId: string;
+          error?: string;
+        }>;
+        const { error } = customEvent.detail;
+
+        if (error) {
+          // 重新触发错误状态（通过 custom event）
+          window.dispatchEvent(
+            new CustomEvent('composerError', { detail: { error } }),
+          );
+        }
+      };
+
+      window.addEventListener('messageSendFailed', handleMessageSendFailed);
+
+      return () => {
+        window.removeEventListener(
+          'messageSendFailed',
+          handleMessageSendFailed,
+        );
+      };
+    }, []);
+
+    // 根据渠道确定最大长度
+    const effectiveMaxLength = useMemo(() => {
+      if (maxLengthProp) {
+        return maxLengthProp;
+      }
+
+      if (channel) {
+        return MAX_LENGTH_MAP[channel];
+      }
+
+      return INPUT_LIMITS.DEFAULT_MAX_LENGTH;
+    }, [channel, maxLengthProp]);
+
+    // 计算占位符文本
+    const placeholder = useMemo(() => {
+      if (channel) {
+        return t('composer.placeholder.channel', { channel });
+      }
+      return t('composer.placeholder.default');
+    }, [channel, t]);
+
+    // 处理表单提交（防止意外的表单提交）
+    const handleSubmit = useCallback(
+      (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        logic.handleSend();
+      },
+      [logic],
+    );
+
+    // 处理移除附件
+    const handleRemoveAttachment = useCallback(
+      (index: number) => {
+        logic.handleRemoveAttachment(index);
+      },
+      [logic],
+    );
+
+    // 处理音频输入
+    const handleAudioInput = useCallback(() => {
+      logic.handleAudioInput();
+    }, [logic]);
+
+    // 处理发送音频
+    const handleSendAudio = useCallback(
+      async (audio: AudioData) => {
+        await logic.handleSendAudio(audio);
+      },
+      [logic],
+    );
+
+    // 处理取消录音
+    const handleCancelRecording = useCallback(() => {
+      logic.handleCancelRecording();
+    }, [logic]);
+
+    // 处理清空输入框
+    const handleClear = useCallback(() => {
+      logic.handleClear();
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 0);
+    }, [logic]);
+
+    // 根据渠道确定允许的文件类型
+    const accept = useMemo(() => {
+      switch (channel) {
+        case ChannelTypeEnum.SMS:
+          // SMS 通常不支持附件
+          return '';
+        case ChannelTypeEnum.WhatsApp:
+          // WhatsApp 支持图片、视频、文档等
+          return 'image/*,video/*,application/pdf,.doc,.docx,.xls,.xlsx';
+        case ChannelTypeEnum.Waba:
+          // WABA 支持的文件类型（与 WhatsApp 类似但可能有差异）
+          return 'image/*,video/*,audio/*,application/pdf,.doc,.docx,.xls,.xlsx';
+        case ChannelTypeEnum.Email:
+          // Email 支持所有类型
+          return '*';
+        default:
+          return '*';
+      }
+    }, [channel]);
+
+    // 从 logic 解构出需要的状态
+    const {
+      value,
+      attachments,
+      isRecording,
+      isSending,
+      isTemplateLocked,
+      sendError,
+      canSend,
+    } = logic;
+
+    return (
+      <div
+        data-testid={TEST_IDS.COMPOSER}
+        data-component={TEST_IDS.COMPOSER}
+        data-channel={channel}
+        className={cn(
+          'p-4 bg-white/50 dark:bg-gray-900/50 backdrop-blur-md',
+          'border-t border-gray-200/50 dark:border-white/10',
+          disabled && 'opacity-50 cursor-not-allowed',
+          className,
+        )}
+      >
+        <form onSubmit={handleSubmit} className="flex flex-col gap-1">
+          {/* 附件预览 */}
+          {attachments.length > 0 && (
+            <AttachmentPreview
+              attachments={attachments}
+              onRemove={handleRemoveAttachment}
+              disabled={disabled || isSending}
+            />
+          )}
+
+          {/* 音频录音器 */}
+          {isRecording && composerConfig.enableAudioInput && (
+            <AudioRecorder
+              onSendAudio={handleSendAudio}
+              onCancel={handleCancelRecording}
+              disabled={disabled || isSending}
+              maxDuration={composerConfig.maxAudioDuration}
+            />
+          )}
+
+          {/* 错误提示 */}
+          {sendError && (
+            <div
+              className="bg-error/10 text-error text-sm px-3 py-2 rounded-lg flex items-center justify-between"
+              role="alert"
+              aria-live="polite"
+            >
+              <span>{sendError}</span>
+              <button
+                type="button"
+                onClick={handleClear}
+                className="text-error hover:text-error/80 ml-2"
+                aria-label="关闭错误提示"
+              >
+                ✕
+              </button>
+            </div>
+          )}
+
+          {/* 输入框区域（带视觉包裹） */}
+          <ComposerInput
+            ref={inputRef}
+            value={value}
+            placeholder={placeholder}
+            onChange={logic.setValue}
+            onEnter={logic.handleSend}
+            disabled={disabled || isSending || isRecording || isTemplateLocked}
+            maxLength={effectiveMaxLength}
+          />
+
+          {/* 底部工具栏 - 所有操作按钮 */}
+          <div className="flex items-center justify-between">
+            {/* 左侧：渠道相关 */}
+            <div className="flex items-center gap-1">
+              {composerConfig.showChannelSwitcher && (
+                <ChannelBadgeSwitcher
+                  activeChannel={channel}
+                  data-testid={TEST_IDS.COMPOSER_CHANNEL_SWITCHER}
+                />
+              )}
+              {composerConfig.showHint && <ComposerHint channel={channel} />}
+              {composerConfig.showCharCount && (
+                <ComposerCharCount
+                  currentLength={value.length}
+                  maxLength={effectiveMaxLength}
+                />
+              )}
+            </div>
+
+            {/* 右侧：操作按钮 */}
+            <div className="flex items-center gap-1">
+              {composerConfig.enableAttachments && (
+                <ComposerAttachments
+                  disabled={
+                    disabled ||
+                    isSending ||
+                    isRecording ||
+                    isTemplateLocked ||
+                    !accept
+                  }
+                  onAttachmentSelect={logic.handleAttachmentSelect}
+                  accept={accept}
+                  multiple
+                />
+              )}
+              {composerConfig.enableAudioInput && !canSend && (
+                <ComposerVoice
+                  disabled={disabled || isRecording}
+                  onClick={handleAudioInput}
+                />
+              )}
+              <ComposerActions
+                canSend={canSend}
+                onSend={logic.handleSend}
+                loading={isSending || loading}
+                disabled={disabled || isRecording}
+                showClear={isTemplateLocked}
+                onClear={handleClear}
+              />
+            </div>
+          </div>
+        </form>
+      </div>
+    );
+  },
+);
+
+Composer.displayName = 'Composer';
+
+export type { ComposerProps, ComposerRef } from './Composer.types';

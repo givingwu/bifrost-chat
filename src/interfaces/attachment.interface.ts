@@ -1,4 +1,4 @@
-import type { MessageTypeEnum } from './message.interface';
+import type { MessageStatusEnum, MessageTypeEnum } from './message.interface';
 
 /**
  * 附件信息
@@ -6,7 +6,11 @@ import type { MessageTypeEnum } from './message.interface';
  * @description
  * 表示一个待发送的附件文件
  */
-export interface AttachmentInfo {
+export interface Attachment {
+  /** 唯一标识 */
+  id?: string;
+  /** 文件名 */
+  name: string;
   /** 文件对象 */
   file: File;
   /** 附件类型（图片、视频、文档等） */
@@ -15,6 +19,8 @@ export interface AttachmentInfo {
   preview?: string;
   /** 文件大小（字节） */
   size: number;
+  /** 扩展文件大小（例如 "1.2 MB"） */
+  formattedSize?: string;
   /** MIME 类型 */
   mimeType: string;
 }
@@ -41,7 +47,7 @@ export interface SendAttachmentParams {
   /** 会话 ID */
   conversationId: string;
   /** 附件列表 */
-  attachments: AttachmentInfo[];
+  attachments: Attachment[];
   /** 附加文本（可选） */
   text?: string;
   /** 自定义元数据 */
@@ -60,7 +66,7 @@ export interface SendAttachmentResult {
   /** 真实消息 ID（服务端返回） */
   messageId?: string;
   /** 发送状态 */
-  status: 'sent' | 'failed';
+  status: MessageStatusEnum;
   /** 错误信息（如果失败） */
   error?: string;
   /** 上传的文件 URL（服务端返回） */

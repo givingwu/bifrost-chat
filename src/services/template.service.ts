@@ -13,7 +13,7 @@ export interface TemplatePreviewParams extends Required<UseTemplatesParams> {
  * 模板预览结果
  */
 export type TemplatePreviewResult = Template &
-  Required<Pick<Template, 'params'>>;
+  Required<Pick<Template, 'params' | 'previewContent'>>;
 
 /**
  * 模板服务接口 (泛型版本)

@@ -8,13 +8,13 @@ import {
   useRef,
   useState,
 } from 'react';
+import type { Attachment } from '@/interfaces/attachment.interface';
 import type { AudioData } from '@/interfaces/audio.interface';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import { useTranslation } from '@/providers/I18n.provider';
 import { useComposerConfig } from '@/store';
 import { cn } from '@/utils/class.util';
 import {
-  type Attachment,
   AttachmentPreview,
   createAttachments,
   revokeAttachmentPreviews,

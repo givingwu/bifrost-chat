@@ -6,8 +6,8 @@ import {
   useState,
   useTransition,
 } from 'react';
-import type { ComposerToolbarRef } from '@/components/composer/ComposerToolbar';
-import { ComposerWithSend } from '@/components/composer/ComposerWithSend';
+import type { ComposerRef } from '@/components/composer/Composer';
+import { Composer } from '@/components/composer/Composer';
 import { ConversationHeader } from '@/components/conversation/ConversationHeader';
 import { ConversationList } from '@/components/conversation/ConversationList';
 import { ConversationPanel } from '@/components/conversation/ConversationPanel';
@@ -98,7 +98,7 @@ export function DefaultChatLayout({
   const { activeConversationId, searchQuery } = useConversation();
 
   // Composer ref，用于外部控制输入框
-  const composerRef = useRef<ComposerToolbarRef>(null);
+  const composerRef = useRef<ComposerRef>(null);
   // 使用 useTransition 标记搜索过滤为过渡更新（低优先级）
   const [isPending, startTransition] = useTransition();
 
@@ -109,7 +109,8 @@ export function DefaultChatLayout({
   >();
 
   // 后台静默同步会话元数据（supportedChannels 等）
-  useActiveConversationMetadata();
+  const { metadata: conversationMetadata } = useActiveConversationMetadata();
+  console.log('conversationMetadata: ', conversationMetadata);
 
   // 自动选中第一个会话
   useEffect(() => {
@@ -199,18 +200,18 @@ export function DefaultChatLayout({
 
         if (template.code && activeChannel) {
           try {
-            const previewed = await previewTemplate({
+            const templateMetadata = await previewTemplate({
               conversationId: activeConversationId,
               currentChannel: activeChannel,
               templateCode: template.code,
             });
-            contentToUse = previewed.content;
+            contentToUse = templateMetadata.previewContent;
+            console.log('templateMetadata: ', templateMetadata);
           } catch (previewError) {
             console.warn(
               '[DefaultChatLayout] Template preview failed, using fallback content:',
               previewError,
             );
-            // fallback: 使用原始 content
           }
         }
 
@@ -300,7 +301,7 @@ export function DefaultChatLayout({
       }
       composer={
         activeConversationId ? (
-          <ComposerWithSend
+          <Composer
             ref={composerRef}
             conversationId={activeConversationId}
             channel={activeChannel}
