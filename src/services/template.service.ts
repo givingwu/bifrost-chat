@@ -1,5 +1,4 @@
 import type { UseTemplatesParams } from '@/hooks/use-templates.hook';
-import type { MessageSendResult } from '@/interfaces/message.interface';
 import type { Template } from '@/interfaces/template.interface';
 
 /**
@@ -19,7 +18,6 @@ export type TemplatePreviewResult = Template &
 /**
  * 模板服务接口 (泛型版本)
  * @template TListParams 列表查询参数类型
- * @template TSendParams 发送参数类型
  * @template TPreviewParams 预览参数类型
  *
  * @description
@@ -30,11 +28,8 @@ export type TemplatePreviewResult = Template &
  * ```typescript
  * // 业务方实现接口
  * class MyTemplateService
- *   implements ITemplateService<MyListParams, MySendParams> {
+ *   implements ITemplateService<MyListParams> {
  *   async list(params: MyListParams): Promise<Template[]> {
- *     // 自定义实现
- *   }
- *   async send(params: MySendParams): Promise<MessageSendResult> {
  *     // 自定义实现
  *   }
  * }
@@ -42,7 +37,6 @@ export type TemplatePreviewResult = Template &
  */
 export interface ITemplateService<
   TListParams = UseTemplatesParams,
-  TSendParams = UseTemplatesParams,
   TPreviewParams = TemplatePreviewParams,
 > {
   /**
@@ -51,13 +45,6 @@ export interface ITemplateService<
    * @returns 模板列表
    */
   list(params: TListParams): Promise<Template[]>;
-
-  /**
-   * 发送模板消息
-   * @param params 发送参数
-   * @returns 发送结果
-   */
-  send(params: TSendParams): Promise<MessageSendResult>;
 
   /**
    * 预览模板（获取参数替换后的预览内容）
