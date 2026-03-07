@@ -352,7 +352,7 @@ export function useSendMessage<
 
       // 注册 messageId → conversationId 映射
       // 用于在 ACK 中缺少 chatId 时查找对应的会话
-      const messageId = data.messageId ?? context?.tempMessage.id;
+      const messageId = data.messageId ?? context?.tempMessage.tempId;
       if (messageId && variables.conversationId) {
         pendingMessageTracker.register(messageId, variables.conversationId);
         console.info('[useSendMessage] 已注册消息映射', {
