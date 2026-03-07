@@ -378,4 +378,76 @@ describe('useSendMessage Hook', () => {
       expect(sentMessage?.error).toBeUndefined();
     });
   });
+
+  it('应在挂载时订阅 subscribeToMessageStatus，收到 ack 回调后将消息状态更新为 sent', () => {
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+      },
+    });
+    const conversationId = 'conv-ack';
+    const tempId = 'temp-ack-1';
+    const messageId = 'msg-ack-1001';
+
+    queryClient.setQueryData(
+      queryKeys.messages.list(conversationId, ACTIVE_CHANNEL),
+      {
+        pages: [
+          {
+            items: [
+              {
+                id: messageId,
+                tempId,
+                content: { text: 'pending ack' },
+                direction: 'outgoing' as const,
+                channelType: 'waba',
+                status: MessageStatusEnum.Sending,
+                timestamp: Date.now(),
+                type: 'text' as const,
+                conversationId,
+              },
+            ],
+          },
+        ],
+        pageParams: [undefined],
+      },
+    );
+
+    let statusCallback: (event: {
+      conversationId: string;
+      messageId: string;
+      tempId?: string;
+      status: MessageStatusEnum;
+      timestamp: number;
+    }) => void = () => {};
+    vi.mocked(mockMessageService.subscribeToMessageStatus).mockImplementation(
+      (cb) => {
+        statusCallback = cb as typeof statusCallback;
+        return () => {};
+      },
+    );
+
+    renderHook(() => useSendMessage(), {
+      wrapper: createTestWrapper(queryClient),
+    });
+
+    expect(mockMessageService.subscribeToMessageStatus).toHaveBeenCalledTimes(1);
+
+    act(() => {
+      statusCallback({
+        conversationId,
+        messageId,
+        tempId,
+        status: MessageStatusEnum.Sent,
+        timestamp: Date.now(),
+      });
+    });
+
+    const messages = getMessages(queryClient, conversationId);
+    expect(messages).toHaveLength(1);
+    expect(messages[0]?.status).toBe(MessageStatusEnum.Sent);
+    expect(messages[0]?.id).toBe(messageId);
+    expect(messages[0]?.tempId).toBe(tempId);
+  });
 });
