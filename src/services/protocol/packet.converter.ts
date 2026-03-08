@@ -108,9 +108,16 @@ export class PacketConverter {
 
     // 安全提取 ext 字段（仅 PacketBodyBase 子类型有此字段）
     // ext 可能是对象或 JSON 字符串，需要统一处理为 Record<string, unknown>
+    // packet.body 可能为空字符串，需先校验为有效对象再访问 ext
     let extMetadata: Record<string, unknown> | undefined;
-    if ('ext' in packet.body && packet.body.ext) {
-      const ext = packet.body.ext;
+    const body = packet.body;
+    // 运行时 body 可能为空字符串等非对象，仅当为普通对象时才访问 ext
+    const isBodyObject =
+      body != null &&
+      typeof body === 'object' &&
+      !Array.isArray(body);
+    if (isBodyObject && 'ext' in body && body.ext) {
+      const ext = body.ext;
       if (typeof ext === 'object') {
         extMetadata = ext as Record<string, unknown>;
       } else if (typeof ext === 'string') {
