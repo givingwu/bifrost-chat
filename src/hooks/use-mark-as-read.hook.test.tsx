@@ -9,10 +9,12 @@ import {
   MessageTypeEnum,
   type StandardMessage,
 } from '@/interfaces/message.interface';
+import type { AckPacketBody } from '@/interfaces/protocol.interface';
 import { queryKeys } from '@/providers/query.provider';
 import { ServiceProvider } from '@/providers/service.provider';
 import type { IConversationService } from '@/services/conversation.service';
 import type { IMessageService } from '@/services/message.service';
+import { messageQueue } from '@/services/message-queue.service';
 import type { ITemplateService } from '@/services/template.service';
 import { useMarkAsRead } from './use-mark-as-read.hook';
 
@@ -44,6 +46,7 @@ function createMessage(
 ): StandardMessage {
   return {
     id,
+    tempId: `temp-${id}`,
     conversationId: 'conv-mark-read',
     direction: MessageDirectionEnum.Incoming,
     channelType: ChannelTypeEnum.WhatsApp,
@@ -51,7 +54,6 @@ function createMessage(
     timestamp: Date.now(),
     type: MessageTypeEnum.Text,
     content: { text: `message-${id}` },
-    // 添加 sender 信息（消息发送者，即对方）
     sender: {
       app: 'fox_collect.customer',
       pin: `customer-${id}`,
@@ -79,13 +81,31 @@ function createTestWrapper(queryClient: QueryClient) {
   };
 }
 
+function seedConversationMessages(
+  queryClient: QueryClient,
+  conversationId: string,
+  messages: StandardMessage[],
+) {
+  const data = {
+    pages: [{ items: messages }],
+    pageParams: [1],
+  };
+
+  queryClient.setQueryData(queryKeys.messages.list(conversationId), data);
+  queryClient.setQueryData(
+    queryKeys.messages.list(conversationId, ChannelTypeEnum.WhatsApp),
+    data,
+  );
+}
+
 function getMessageStatus(
   queryClient: QueryClient,
   conversationId: string,
   messageId: string,
+  channel?: string,
 ) {
   const data = queryClient.getQueryData(
-    queryKeys.messages.list(conversationId),
+    queryKeys.messages.list(conversationId, channel),
   ) as {
     pages: Array<{ items: StandardMessage[] }>;
   };
@@ -97,9 +117,11 @@ function getMessageStatus(
 describe('useMarkAsRead Hook', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    messageQueue.clear();
+    mockMessageService.markAsRead = vi.fn();
   });
 
-  it('应该在请求前乐观更新消息状态为已读', async () => {
+  it('旧宿主应继续乐观更新，并透传 meta.requestId', async () => {
     const queryClient = new QueryClient({
       defaultOptions: {
         queries: { retry: false },
@@ -108,20 +130,13 @@ describe('useMarkAsRead Hook', () => {
     });
     const conversationId = 'conv-1';
 
-    queryClient.setQueryData(queryKeys.messages.list(conversationId), {
-      pages: [
-        {
-          items: [
-            createMessage('msg-1', MessageStatusEnum.Sent),
-            createMessage('msg-2', MessageStatusEnum.Delivered),
-          ],
-        },
-      ],
-      pageParams: [1],
-    });
+    seedConversationMessages(queryClient, conversationId, [
+      createMessage('msg-1', MessageStatusEnum.Delivered),
+      createMessage('msg-2', MessageStatusEnum.Delivered),
+    ]);
 
     let resolveMarkAsRead: (() => void) | null = null;
-    vi.mocked(mockMessageService.markAsRead).mockImplementation(
+    mockMessageService.markAsRead = vi.fn(
       () =>
         new Promise<void>((resolve) => {
           resolveMarkAsRead = resolve;
@@ -139,19 +154,25 @@ describe('useMarkAsRead Hook', () => {
       });
     });
 
-    expect(getMessageStatus(queryClient, conversationId, 'msg-1')).toBe(
-      MessageStatusEnum.Read,
-    );
-    expect(getMessageStatus(queryClient, conversationId, 'msg-2')).toBe(
-      MessageStatusEnum.Delivered,
-    );
+    await waitFor(() => {
+      expect(getMessageStatus(queryClient, conversationId, 'msg-1')).toBe(
+        MessageStatusEnum.Read,
+      );
+      expect(
+        getMessageStatus(
+          queryClient,
+          conversationId,
+          'msg-1',
+          ChannelTypeEnum.WhatsApp,
+        ),
+      ).toBe(MessageStatusEnum.Read);
+    });
 
     act(() => {
       resolveMarkAsRead?.();
     });
 
     await waitFor(() => {
-      // 验证调用了 markAsRead，参数格式为 AckPacketBody
       expect(mockMessageService.markAsRead).toHaveBeenCalledWith(
         expect.objectContaining({
           sender: 'customer-msg-1',
@@ -160,11 +181,17 @@ describe('useMarkAsRead Hook', () => {
           chatId: conversationId,
           timestamp: expect.any(Number),
         }),
+        expect.objectContaining({
+          requestId: expect.any(String),
+          conversationId,
+          messageId: 'msg-1',
+          channelType: ChannelTypeEnum.WhatsApp,
+        }),
       );
     });
   });
 
-  it('请求失败时应该回滚到之前状态', async () => {
+  it('旧宿主失败时应回滚所有会话消息缓存分片', async () => {
     const queryClient = new QueryClient({
       defaultOptions: {
         queries: { retry: false },
@@ -173,17 +200,16 @@ describe('useMarkAsRead Hook', () => {
     });
     const conversationId = 'conv-2';
 
-    queryClient.setQueryData(queryKeys.messages.list(conversationId), {
-      pages: [
-        {
-          items: [createMessage('msg-rollback', MessageStatusEnum.Delivered)],
-        },
-      ],
-      pageParams: [1],
-    });
+    seedConversationMessages(queryClient, conversationId, [
+      createMessage('msg-rollback', MessageStatusEnum.Delivered),
+    ]);
 
-    vi.mocked(mockMessageService.markAsRead).mockRejectedValue(
-      new Error('mark-as-read failed'),
+    let rejectMarkAsRead: ((error: Error) => void) | null = null;
+    mockMessageService.markAsRead = vi.fn(
+      () =>
+        new Promise<void>((_, reject) => {
+          rejectMarkAsRead = reject;
+        }),
     );
 
     const { result } = renderHook(() => useMarkAsRead(), {
@@ -197,9 +223,15 @@ describe('useMarkAsRead Hook', () => {
       });
     });
 
-    expect(getMessageStatus(queryClient, conversationId, 'msg-rollback')).toBe(
-      MessageStatusEnum.Read,
-    );
+    await waitFor(() => {
+      expect(
+        getMessageStatus(queryClient, conversationId, 'msg-rollback'),
+      ).toBe(MessageStatusEnum.Read);
+    });
+
+    act(() => {
+      rejectMarkAsRead?.(new Error('mark-as-read failed'));
+    });
 
     await waitFor(() => {
       expect(result.current.isError).toBe(true);
@@ -208,5 +240,58 @@ describe('useMarkAsRead Hook', () => {
     expect(getMessageStatus(queryClient, conversationId, 'msg-rollback')).toBe(
       MessageStatusEnum.Delivered,
     );
+    expect(
+      getMessageStatus(
+        queryClient,
+        conversationId,
+        'msg-rollback',
+        ChannelTypeEnum.WhatsApp,
+      ),
+    ).toBe(MessageStatusEnum.Delivered);
+  });
+
+  it('严格 ACK 模式下不应立即标记为已读，而应登记队列项', async () => {
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+      },
+    });
+    const conversationId = 'conv-3';
+
+    seedConversationMessages(queryClient, conversationId, [
+      createMessage('msg-strict', MessageStatusEnum.Delivered),
+    ]);
+
+    const strictCalls: Array<[unknown, unknown]> = [];
+    mockMessageService.markAsRead = function markAsReadStrict(
+      params: AckPacketBody,
+      meta?: { requestId?: string },
+    ) {
+      strictCalls.push([params, meta]);
+      return Promise.resolve({
+        ackRequestId: meta?.requestId,
+      });
+    };
+
+    const { result } = renderHook(() => useMarkAsRead(), {
+      wrapper: createTestWrapper(queryClient),
+    });
+
+    await act(async () => {
+      await result.current.mutateAsync({
+        conversationId,
+        messageIds: ['msg-strict'],
+      });
+    });
+
+    expect(getMessageStatus(queryClient, conversationId, 'msg-strict')).toBe(
+      MessageStatusEnum.Delivered,
+    );
+    expect(strictCalls).toHaveLength(1);
+
+    const meta = strictCalls[0]?.[1] as { requestId?: string } | undefined;
+    expect(meta?.requestId).toBeTruthy();
+    expect(messageQueue.findById(meta?.requestId ?? '')).toBeDefined();
   });
 });

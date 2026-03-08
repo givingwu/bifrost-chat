@@ -15,6 +15,7 @@ import {
   type PacketHandlerResult,
   WebSocketEventTypeEnum,
 } from '@/interfaces/websocket.interface';
+import { MessageBuilder } from '@/services/message-builder.service';
 import { PacketConverter } from '@/services/protocol';
 import type { WebSocketManager } from '../websocket-manager.service';
 
@@ -93,14 +94,23 @@ export class ChatMessageHandler extends BasePacketHandler {
     }
 
     try {
-      this.wsManager.sendReceiveAck({
-        sender: rawPacket.from.pin,
-        app: rawPacket.from.app,
-        mid: rawPacket.mid,
-        // chatId 对于 chat_message 类型一定存在（服务端保证）
-        chatId: rawPacket.chatId,
-        timestamp: rawPacket.timestamp,
-      });
+      this.wsManager.sendReceiveAck(
+        {
+          sender: rawPacket.from.pin,
+          app: rawPacket.from.app,
+          mid: rawPacket.mid,
+          // chatId 对于 chat_message 类型一定存在（服务端保证）
+          chatId: rawPacket.chatId,
+          timestamp: rawPacket.timestamp,
+        },
+        {
+          targetMessageId: String(rawPacket.mid ?? rawPacket.id),
+          targetTempId: rawPacket.id,
+          channelType:
+            MessageBuilder.stringToChannelType(rawPacket.from.channelType) ??
+            MessageBuilder.stringToChannelType(rawPacket.to.channelType),
+        },
+      );
     } catch (error) {
       // ACK 发送失败不应影响消息处理流程
       console.error('[ChatMessageHandler] Failed to send receive ACK:', error);

@@ -355,6 +355,73 @@ describe('MessageCacheHelper', () => {
         pageParams: [undefined],
       });
     });
+
+    it('不应将 Read 降级为 Delivered，但应保留其他字段更新', () => {
+      queryClient.setQueryData(queryKeys.messages.list(conversationId), {
+        pages: [
+          {
+            items: [
+              {
+                id: 'msg-read-1',
+                status: MessageStatusEnum.Read,
+                timestamp: 1000,
+              } as StandardMessage,
+            ],
+          },
+        ],
+        pageParams: [undefined],
+      });
+
+      MessageCacheHelper.updateMessageInCache(
+        queryClient,
+        conversationId,
+        {
+          status: MessageStatusEnum.Delivered,
+          timestamp: 2000,
+        },
+        'msg-read-1',
+      );
+
+      const data = queryClient.getQueryData<InfiniteQueryData>(
+        queryKeys.messages.list(conversationId),
+      );
+
+      expect(data?.pages[0]?.items[0]?.status).toBe(MessageStatusEnum.Read);
+      expect(data?.pages[0]?.items[0]?.timestamp).toBe(2000);
+    });
+
+    it('不应让 Failed 覆盖 Delivered', () => {
+      queryClient.setQueryData(queryKeys.messages.list(conversationId), {
+        pages: [
+          {
+            items: [
+              {
+                id: 'msg-delivered-1',
+                status: MessageStatusEnum.Delivered,
+              } as StandardMessage,
+            ],
+          },
+        ],
+        pageParams: [undefined],
+      });
+
+      MessageCacheHelper.updateMessageInCache(
+        queryClient,
+        conversationId,
+        {
+          status: MessageStatusEnum.Failed,
+        },
+        'msg-delivered-1',
+      );
+
+      const data = queryClient.getQueryData<InfiniteQueryData>(
+        queryKeys.messages.list(conversationId),
+      );
+
+      expect(data?.pages[0]?.items[0]?.status).toBe(
+        MessageStatusEnum.Delivered,
+      );
+    });
   });
 
   describe('updateMessageStatus', () => {

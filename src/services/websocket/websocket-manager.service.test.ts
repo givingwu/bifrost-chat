@@ -15,6 +15,7 @@ import {
   WebSocketEventTypeEnum,
   WebSocketStatusEnum,
 } from '@/interfaces/websocket.interface';
+import { messageQueue } from '@/services/message-queue.service';
 import { WebSocketManager } from '@/services/websocket/websocket-manager.service';
 
 describe('WebSocketManager - 协议层 Helper 集成测试', () => {
@@ -22,6 +23,7 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    messageQueue.clear();
 
     // 创建管理器实例
     manager = new WebSocketManager({
@@ -41,6 +43,7 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
 
   afterEach(() => {
     manager.destroy();
+    messageQueue.clear();
   });
 
   describe('PacketValidator 集成', () => {
@@ -103,9 +106,22 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
   });
 
   describe('AckHandler 集成', () => {
+    const registerReceiptAck = (
+      ackRequestId: string,
+      status: MessageStatusEnum.Delivered | MessageStatusEnum.Read,
+    ) => {
+      messageQueue.registerReceiptAck({
+        ackRequestId,
+        conversationId: 'conv-123',
+        targetMessageId: 'msg-origin-1',
+        targetStatus: status,
+      });
+    };
+
     it('应该使用 parseDownstream 解析 ACK 消息', () => {
       const messageListener = vi.fn();
       manager.onMessage(messageListener);
+      registerReceiptAck('ack-123', MessageStatusEnum.Read);
 
       const ackPacket: RawPacket = {
         id: 'ack-123',
@@ -130,6 +146,7 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
     it('应该使用 ackTypeToMessageStatus 映射状态', () => {
       const messageListener = vi.fn();
       manager.onMessage(messageListener);
+      registerReceiptAck('ack-123', MessageStatusEnum.Read);
 
       const ackPacket: RawPacket = {
         id: 'ack-123',
@@ -178,6 +195,7 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
     it('应该使用 isReceiveAck 判断已接收', () => {
       const messageListener = vi.fn();
       manager.onMessage(messageListener);
+      registerReceiptAck('ack-123', MessageStatusEnum.Delivered);
 
       const ackPacket: RawPacket = {
         id: 'ack-123',
@@ -202,6 +220,7 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
     it('应该使用 isReadAck 判断已读', () => {
       const messageListener = vi.fn();
       manager.onMessage(messageListener);
+      registerReceiptAck('ack-123', MessageStatusEnum.Read);
 
       const ackPacket: RawPacket = {
         id: 'ack-123',
@@ -277,7 +296,7 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
       (manager as any).ws = mockWs;
       (manager as any).status = WebSocketStatusEnum.Connected;
 
-      manager.sendReceiveAck({
+      const packet = manager.sendReceiveAck({
         sender: 'test-pin',
         app: 'test-app',
         mid: 'msg-123',
@@ -289,6 +308,8 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
       const ackData = JSON.parse(mockWs.send.mock.calls[0][0] as string);
       // ✅ 应该使用 msg_receive_ack
       expect(ackData.ptype).toBe(AckMessageTypeEnum.MsgReceiveAck);
+      expect(packet.id).toBe(ackData.id);
+      expect(messageQueue.findById(packet.id)).toBeDefined();
     });
   });
 

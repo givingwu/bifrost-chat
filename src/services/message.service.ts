@@ -49,6 +49,34 @@ export interface MessageStatusUpdatedEvent extends MessageStatusUpdate {
 }
 
 /**
+ * markAsRead 附加元信息
+ *
+ * @description
+ * SDK 用于将服务端 ACK 与原消息建立关联，宿主可选择透传并使用。
+ */
+export interface MarkAsReadMeta {
+  /** SDK 生成的 ACK 请求 ID */
+  requestId: string;
+  /** 会话 ID */
+  conversationId: string;
+  /** 原消息 ID */
+  messageId: string;
+  /** 渠道类型 */
+  channelType?: StandardMessage['channelType'];
+}
+
+/**
+ * markAsRead 返回结果
+ *
+ * @description
+ * 宿主若使用严格 ACK 确认模式，可返回 ACK 请求 ID。
+ */
+export interface MarkAsReadResult {
+  /** 实际发出的 ACK 请求 ID */
+  ackRequestId?: string;
+}
+
+/**
  * 消息服务接口 (泛型版本)
  * @template TListParams 列表查询参数类型
  * @template TSendParams 发送参数类型
@@ -110,7 +138,10 @@ export interface IMessageService<
    * 标记消息已读
    * @param params 已读参数
    */
-  markAsRead(params: TReadParams): Promise<void>;
+  markAsRead(
+    params: TReadParams,
+    meta?: MarkAsReadMeta,
+  ): Promise<void | MarkAsReadResult>;
 
   /**
    * 订阅实时消息

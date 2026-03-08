@@ -1,13 +1,24 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { MessageStatusEnum } from '@/interfaces/message.interface';
+import { ChannelTypeEnum } from '@/interfaces/channel.interface';
+import {
+  ClientTypeEnum,
+  MessageStatusEnum,
+} from '@/interfaces/message.interface';
 import {
   AckMessageTypeEnum,
   PacketMessageTypeEnum,
   type RawPacket,
 } from '@/interfaces/protocol.interface';
-import { WebSocketEventTypeEnum } from '@/interfaces/websocket.interface';
+import type { MessageStatusUpdatedEvent } from '@/services/message.service';
+import { messageQueue } from '@/services/message-queue.service';
 import { pendingMessageTracker } from '@/services/pending-message-tracker.service';
 import { AckPacketHandler } from './ack-packet.handler';
+
+function getStatusEventData(
+  result: ReturnType<AckPacketHandler['handle']>,
+): MessageStatusUpdatedEvent {
+  return result.eventData?.data as MessageStatusUpdatedEvent;
+}
 
 describe('AckPacketHandler', () => {
   let handler: AckPacketHandler;
@@ -16,10 +27,12 @@ describe('AckPacketHandler', () => {
     handler = new AckPacketHandler();
     // 清空映射表
     pendingMessageTracker.clear();
+    messageQueue.clear();
   });
 
   afterEach(() => {
     pendingMessageTracker.clear();
+    messageQueue.clear();
   });
 
   describe('canHandle', () => {
@@ -36,36 +49,17 @@ describe('AckPacketHandler', () => {
   });
 
   describe('handle', () => {
-    it('当 packet.chatId 存在时应该优先使用', () => {
-      const packet: RawPacket = {
-        id: 'msg-123',
-        chatId: 'conv-456',
-        ptype: PacketMessageTypeEnum.Ack,
-        from: { app: 'test', pin: 'server' },
-        to: { app: 'test', pin: 'user' },
-        body: { type: AckMessageTypeEnum.MsgReceiveAck },
-        ver: '1.0',
-        timestamp: Date.now(),
-      };
-
-      const result = handler.handle({ packet });
-
-      expect(result.eventData).not.toBeNull();
-      expect(result.eventData?.type).toBe(WebSocketEventTypeEnum.MessageStatus);
-      expect((result.eventData?.data as any).conversationId).toBe('conv-456');
-    });
-
-    it('当 packet.chatId 为 null 时应该从映射表查找', () => {
+    it('队列未命中时，chat_message ACK 应继续从映射表查找', () => {
       // 预先注册映射
       pendingMessageTracker.register('msg-123', 'conv-from-tracker');
 
       const packet: RawPacket = {
         id: 'msg-123',
-        chatId: null as any, // 模拟后端返回 null
+        chatId: null as unknown as string, // 模拟后端返回 null
         ptype: PacketMessageTypeEnum.Ack,
         from: { app: 'test', pin: 'server' },
         to: { app: 'test', pin: 'user' },
-        body: { type: AckMessageTypeEnum.MsgReceiveAck },
+        body: { type: PacketMessageTypeEnum.ChatMessage },
         ver: '1.0',
         timestamp: Date.now(),
       };
@@ -73,30 +67,7 @@ describe('AckPacketHandler', () => {
       const result = handler.handle({ packet });
 
       expect(result.eventData).not.toBeNull();
-      expect((result.eventData?.data as any).conversationId).toBe(
-        'conv-from-tracker',
-      );
-    });
-
-    it('当 packet.chatId 为空字符串时应该从映射表查找', () => {
-      // 预先注册映射
-      pendingMessageTracker.register('msg-123', 'conv-from-tracker');
-
-      const packet: RawPacket = {
-        id: 'msg-123',
-        chatId: '',
-        ptype: PacketMessageTypeEnum.Ack,
-        from: { app: 'test', pin: 'server' },
-        to: { app: 'test', pin: 'user' },
-        body: { type: AckMessageTypeEnum.MsgReceiveAck },
-        ver: '1.0',
-        timestamp: Date.now(),
-      };
-
-      const result = handler.handle({ packet });
-
-      expect(result.eventData).not.toBeNull();
-      expect((result.eventData?.data as any).conversationId).toBe(
+      expect(getStatusEventData(result).conversationId).toBe(
         'conv-from-tracker',
       );
     });
@@ -106,11 +77,11 @@ describe('AckPacketHandler', () => {
 
       const packet: RawPacket = {
         id: 'msg-123',
-        chatId: null as any,
+        chatId: null as unknown as string,
         ptype: PacketMessageTypeEnum.Ack,
         from: { app: 'test', pin: 'server' },
         to: { app: 'test', pin: 'user' },
-        body: { type: AckMessageTypeEnum.MsgReceiveAck },
+        body: { type: PacketMessageTypeEnum.ChatMessage },
         ver: '1.0',
         timestamp: Date.now(),
       };
@@ -127,17 +98,17 @@ describe('AckPacketHandler', () => {
       consoleSpy.mockRestore();
     });
 
-    it('处理完成后应该移除映射', () => {
+    it('fallback 路径处理完成后应该移除映射', () => {
       // 预先注册映射
       pendingMessageTracker.register('msg-123', 'conv-456');
 
       const packet: RawPacket = {
         id: 'msg-123',
-        chatId: null as any,
+        chatId: null as unknown as string,
         ptype: PacketMessageTypeEnum.Ack,
         from: { app: 'test', pin: 'server' },
         to: { app: 'test', pin: 'user' },
-        body: { type: AckMessageTypeEnum.MsgReceiveAck },
+        body: { type: PacketMessageTypeEnum.ChatMessage },
         ver: '1.0',
         timestamp: Date.now(),
       };
@@ -148,15 +119,23 @@ describe('AckPacketHandler', () => {
       expect(pendingMessageTracker.has('msg-123')).toBe(false);
     });
 
-    it('应该正确处理 msg_receive_ack 类型', () => {
+    it('应优先使用队列将 msg_receive_ack 更新到原消息', () => {
+      messageQueue.registerReceiptAck({
+        ackRequestId: 'ack-123',
+        conversationId: 'conv-456',
+        targetMessageId: 'msg-origin-1',
+        targetTempId: 'temp-origin-1',
+        targetStatus: MessageStatusEnum.Delivered,
+      });
+
       const packet: RawPacket = {
-        id: 'msg-123',
-        chatId: 'conv-456',
+        id: 'ack-123',
+        chatId: null as unknown as string,
         ptype: PacketMessageTypeEnum.Ack,
         from: {
           app: 'test',
           pin: 'server',
-          channelType: 'whatsapp' as any,
+          channelType: ChannelTypeEnum.WhatsApp,
         },
         to: { app: 'test', pin: 'user' },
         body: { type: AckMessageTypeEnum.MsgReceiveAck },
@@ -166,16 +145,24 @@ describe('AckPacketHandler', () => {
 
       const result = handler.handle({ packet });
 
-      expect((result.eventData?.data as any).status).toBe(
+      expect(getStatusEventData(result).messageId).toBe('msg-origin-1');
+      expect(getStatusEventData(result).tempId).toBe('temp-origin-1');
+      expect(getStatusEventData(result).status).toBe(
         MessageStatusEnum.Delivered,
       );
-      expect((result.eventData?.data as any).channelType).toBe('whatsapp');
     });
 
-    it('应该正确处理 msg_read_ack 类型', () => {
+    it('应优先使用队列将 msg_read_ack 更新到原消息', () => {
+      messageQueue.registerReceiptAck({
+        ackRequestId: 'ack-read-1',
+        conversationId: 'conv-456',
+        targetMessageId: 'msg-origin-1',
+        targetStatus: MessageStatusEnum.Read,
+      });
+
       const packet: RawPacket = {
-        id: 'msg-123',
-        chatId: 'conv-456',
+        id: 'ack-read-1',
+        chatId: null as unknown as string,
         ptype: PacketMessageTypeEnum.Ack,
         from: { app: 'test', pin: 'server' },
         to: { app: 'test', pin: 'user' },
@@ -186,9 +173,25 @@ describe('AckPacketHandler', () => {
 
       const result = handler.handle({ packet });
 
-      expect((result.eventData?.data as any).status).toBe(
-        MessageStatusEnum.Read,
-      );
+      expect(getStatusEventData(result).status).toBe(MessageStatusEnum.Read);
+    });
+
+    it('队列未命中时，msg_receive_ack 不应错误更新 ACK 自身 id', () => {
+      const packet: RawPacket = {
+        id: 'ack-unknown-1',
+        chatId: 'conv-456',
+        ptype: PacketMessageTypeEnum.Ack,
+        from: { app: 'test', pin: 'server' },
+        to: { app: 'test', pin: 'user' },
+        body: { type: AckMessageTypeEnum.MsgReceiveAck },
+        ver: '1.0',
+        timestamp: Date.now(),
+      };
+
+      const result = handler.handle({ packet });
+
+      expect(result.eventData).toBeNull();
+      expect(result.shouldContinue).toBe(false);
     });
 
     it('应该正确处理 msg_send_failed 类型', () => {
@@ -205,9 +208,7 @@ describe('AckPacketHandler', () => {
 
       const result = handler.handle({ packet });
 
-      expect((result.eventData?.data as any).status).toBe(
-        MessageStatusEnum.Failed,
-      );
+      expect(getStatusEventData(result).status).toBe(MessageStatusEnum.Failed);
     });
 
     it('应将 body.type 为 chat_message 的服务端 ACK 映射为 sent', () => {
@@ -215,14 +216,14 @@ describe('AckPacketHandler', () => {
 
       const packet: RawPacket = {
         id: 'chat-123',
-        chatId: null as any,
+        chatId: null as unknown as string,
         ptype: PacketMessageTypeEnum.Ack,
         from: { app: 'test', pin: '@im.kn.com' },
         to: {
           app: 'test',
           pin: 'user',
-          channelType: 'sms' as any,
-          clientType: 'web' as any,
+          channelType: ChannelTypeEnum.SMS,
+          clientType: ClientTypeEnum.Web,
         },
         body: { type: PacketMessageTypeEnum.ChatMessage },
         ver: '1.0.0',
@@ -231,11 +232,9 @@ describe('AckPacketHandler', () => {
 
       const result = handler.handle({ packet });
 
-      expect((result.eventData?.data as any).conversationId).toBe('conv-456');
-      expect((result.eventData?.data as any).status).toBe(
-        MessageStatusEnum.Sent,
-      );
-      expect((result.eventData?.data as any).channelType).toBe('sms');
+      expect(getStatusEventData(result).conversationId).toBe('conv-456');
+      expect(getStatusEventData(result).status).toBe(MessageStatusEnum.Sent);
+      expect(getStatusEventData(result).channelType).toBe(ChannelTypeEnum.SMS);
     });
 
     it('当 ACK 类型无效时应该返回 null', () => {
@@ -249,7 +248,7 @@ describe('AckPacketHandler', () => {
         ptype: PacketMessageTypeEnum.Ack,
         from: { app: 'test', pin: 'server' },
         to: { app: 'test', pin: 'user' },
-        body: { type: 'invalid_type' as any },
+        body: { type: 'invalid_type' as unknown as AckMessageTypeEnum },
         ver: '1.0',
         timestamp: Date.now(),
       };

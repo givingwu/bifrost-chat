@@ -13,6 +13,7 @@ import { queryKeys } from '@/providers/query.provider';
 import { useServices } from '@/providers/service.provider';
 import { MessageBuilder } from '@/services/message-builder.service';
 import { MessageCacheHelper } from '@/services/message-cache-helper.service';
+import { messageQueue } from '@/services/message-queue.service';
 import { MessageSyncService } from '@/services/message-sync.service';
 import { pendingMessageTracker } from '@/services/pending-message-tracker.service';
 import { useActiveConversationId, useStrategy } from '@/store';
@@ -195,6 +196,13 @@ export function useSendMessage<
         tempMessage.id,
         tempMessage.tempId,
       ]);
+      messageQueue.register({
+        requestId: tempMessage.id,
+        tempId: tempMessage.tempId ?? tempMessage.id,
+        conversationId: params.conversationId,
+        channelType: activeChannel ?? allowedChannels[0],
+        rawMessage: tempMessage,
+      });
 
       return { previousMessages, tempMessage, messageQueryKey };
     },
@@ -260,6 +268,10 @@ export function useSendMessage<
           console.info('[useSendMessage] 已回滚到发送前的状态');
           return;
         }
+      }
+
+      if (context?.tempMessage?.tempId) {
+        messageQueue.remove(context.tempMessage.tempId);
       }
 
       // 更新消息状态为 Failed
@@ -328,6 +340,8 @@ export function useSendMessage<
         );
         console.info('[useSendMessage] 已回滚到发送前的状态');
 
+        messageQueue.remove(tempId);
+
         return;
       }
 
@@ -360,6 +374,22 @@ export function useSendMessage<
         data.messageId,
         data.tempId,
       ]);
+
+      if (isFailed) {
+        messageQueue.remove(tempId);
+        return;
+      }
+
+      if (data.messageId) {
+        const replayedEvents = messageQueue.bindServerMessageId(
+          tempId,
+          data.messageId,
+        );
+
+        for (const replayedEvent of replayedEvents) {
+          messageSyncService.updateMessageStatus(replayedEvent);
+        }
+      }
     },
   });
 }

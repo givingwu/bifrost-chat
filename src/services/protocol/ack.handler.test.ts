@@ -53,6 +53,23 @@ describe('AckHandler', () => {
 
       expect(ack1.id).not.toBe(ack2.id);
     });
+
+    it('应该支持自定义 requestId', () => {
+      const ackPacket = AckHandler.createReadAck(
+        {
+          sender: 'agent-123',
+          app: 'fox_collect.waiter',
+          mid: 'msg-456',
+          chatId: 'conv-789',
+          timestamp: 1234567890,
+        },
+        {
+          requestId: 'read-ack-custom-id',
+        },
+      );
+
+      expect(ackPacket.id).toBe('read-ack-custom-id');
+    });
   });
 
   describe('createReceiveAck', () => {
@@ -99,6 +116,23 @@ describe('AckHandler', () => {
       const ack2 = AckHandler.createReceiveAck(params);
 
       expect(ack1.id).not.toBe(ack2.id);
+    });
+
+    it('应该支持自定义 requestId', () => {
+      const ackPacket = AckHandler.createReceiveAck(
+        {
+          sender: 'agent-123',
+          app: 'fox_collect.waiter',
+          mid: 'msg-456',
+          chatId: 'conv-789',
+          timestamp: 1234567890,
+        },
+        {
+          requestId: 'receive-ack-custom-id',
+        },
+      );
+
+      expect(ackPacket.id).toBe('receive-ack-custom-id');
     });
   });
 

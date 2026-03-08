@@ -12,6 +12,7 @@ import { queryKeys } from '@/providers/query.provider';
 import { ServiceProvider } from '@/providers/service.provider';
 import type { IConversationService } from '@/services/conversation.service';
 import type { IMessageService } from '@/services/message.service';
+import { messageQueue } from '@/services/message-queue.service';
 import { pendingMessageTracker } from '@/services/pending-message-tracker.service';
 import type { ITemplateService } from '@/services/template.service';
 import type { CurrentUser } from '@/store';
@@ -89,10 +90,12 @@ describe('useSendMessage Hook', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     pendingMessageTracker.clear();
+    messageQueue.clear();
   });
 
   afterEach(() => {
     pendingMessageTracker.clear();
+    messageQueue.clear();
   });
 
   it('应在发送成功后回填服务端 messageId 并更新状态', async () => {
@@ -146,6 +149,9 @@ describe('useSendMessage Hook', () => {
       const optimisticMessages = getMessages(queryClient, conversationId);
       expect(optimisticMessages).toHaveLength(1);
       expect(optimisticMessages[0]?.status).toBe(MessageStatusEnum.Sending);
+      expect(
+        messageQueue.findByTempId(optimisticMessages[0]?.tempId ?? ''),
+      ).toBeDefined();
     });
 
     const optimisticTempId = getMessages(queryClient, conversationId)[0]
@@ -172,6 +178,7 @@ describe('useSendMessage Hook', () => {
     expect(sentMessage?.tempId).toBe(optimisticTempId);
     expect(sentMessage?.status).toBe(MessageStatusEnum.Sent);
     expect(sentMessage?.id).not.toBe(optimisticId);
+    expect(messageQueue.findByMid('mobile-message-id-1001')).toBeDefined();
     expect(mockMessageService.send).toHaveBeenCalledWith(conversationId, {
       content: 'hello from mobile',
       metadata: { clientType: 'mobile' },

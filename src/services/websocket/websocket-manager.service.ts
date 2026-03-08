@@ -28,6 +28,7 @@ import {
 } from '@/interfaces/error.interface';
 import {
   ClientTypeEnum,
+  MessageStatusEnum,
   type StandardMessage,
 } from '@/interfaces/message.interface';
 import {
@@ -47,6 +48,7 @@ import {
   type WebSocketStatusListener,
 } from '@/interfaces/websocket.interface';
 import { MessageBuilder } from '@/services/message-builder.service';
+import { messageQueue } from '@/services/message-queue.service';
 import {
   AckHandler,
   HeartbeatManager,
@@ -426,9 +428,22 @@ export class WebSocketManager {
    * @param params 已读 ACK 参数
    * @throws {SendFailedError} 发送失败
    */
-  sendReadAck(params: AckPacketBody): void {
-    const packet = AckHandler.createReadAck(params);
-    this.send(packet);
+  sendReadAck(
+    params: AckPacketBody,
+    options?: {
+      requestId?: string;
+    },
+  ): AckRawPacket {
+    const packet = AckHandler.createReadAck(params, {
+      requestId: options?.requestId,
+    });
+    try {
+      this.send(packet);
+    } catch (error) {
+      messageQueue.remove(packet.id);
+      throw error;
+    }
+    return packet;
   }
 
   /**
@@ -440,9 +455,38 @@ export class WebSocketManager {
    * @param params 收到 ACK 参数
    * @throws {SendFailedError} 发送失败
    */
-  sendReceiveAck(params: AckPacketBody): void {
-    const packet = AckHandler.createReceiveAck(params);
-    this.send(packet);
+  sendReceiveAck(
+    params: AckPacketBody,
+    options?: {
+      requestId?: string;
+      targetMessageId?: string;
+      targetTempId?: string;
+      channelType?: StandardMessage['channelType'];
+    },
+  ): AckRawPacket {
+    const packet = AckHandler.createReceiveAck(params, {
+      requestId: options?.requestId,
+    });
+
+    const targetMessageId =
+      options?.targetMessageId ?? String(params.mid ?? packet.id);
+    messageQueue.registerReceiptAck({
+      ackRequestId: packet.id,
+      conversationId: params.chatId,
+      targetMessageId,
+      targetTempId: options?.targetTempId,
+      channelType: options?.channelType,
+      targetStatus: MessageStatusEnum.Delivered,
+      ackKind: 'receive',
+    });
+
+    try {
+      this.send(packet);
+    } catch (error) {
+      messageQueue.remove(packet.id);
+      throw error;
+    }
+    return packet;
   }
 
   /**
@@ -566,18 +610,32 @@ export class WebSocketManager {
         }
 
         // 使用策略模式处理协议事件
-        const protocolEvent = this.packetHandler.handle({
+        const protocolResult = this.packetHandler.handle({
           packet: data,
           currentPin: this.config.currentPin,
         });
 
-        if (protocolEvent) {
-          // 特殊处理登录失败事件
-          if (protocolEvent.type === WebSocketEventTypeEnum.AuthFail) {
-            this.notifyAuthFailListeners(protocolEvent.data);
+        if (protocolResult) {
+          const protocolEvents = [
+            ...(protocolResult.eventData ? [protocolResult.eventData] : []),
+            ...(protocolResult.extraEvents ?? []),
+          ];
+
+          if (protocolEvents.length === 0) {
+            return;
           }
 
-          this.notifyMessageListeners(protocolEvent);
+          // 特殊处理登录失败事件
+          const authFailEvent = protocolEvents.find(
+            (event) => event.type === WebSocketEventTypeEnum.AuthFail,
+          );
+          if (authFailEvent) {
+            this.notifyAuthFailListeners(authFailEvent.data);
+          }
+
+          for (const protocolEvent of protocolEvents) {
+            this.notifyMessageListeners(protocolEvent);
+          }
           return;
         }
       }
