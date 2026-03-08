@@ -2,6 +2,88 @@ import type { QueryClient } from '@tanstack/react-query';
 import type { StandardMessage } from '@/interfaces/message.interface';
 import { queryKeys } from '@/providers/query.provider';
 
+function normalizeComparableValue(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map((item) => normalizeComparableValue(item));
+  }
+
+  if (value && typeof value === 'object') {
+    return Object.keys(value as Record<string, unknown>)
+      .sort()
+      .reduce<Record<string, unknown>>((result, key) => {
+        const nextValue = normalizeComparableValue(
+          (value as Record<string, unknown>)[key],
+        );
+
+        if (nextValue !== undefined) {
+          result[key] = nextValue;
+        }
+
+        return result;
+      }, {});
+  }
+
+  return value;
+}
+
+function mergeDefinedMessage(
+  existingMessage: StandardMessage,
+  incomingMessage: StandardMessage,
+): StandardMessage {
+  const mergedMessage: Record<string, unknown> = {
+    ...existingMessage,
+  };
+
+  for (const [key, value] of Object.entries(incomingMessage)) {
+    if (value !== undefined) {
+      mergedMessage[key] = value;
+    }
+  }
+
+  return mergedMessage as unknown as StandardMessage;
+}
+
+interface MessageIdentityMatch {
+  reason: 'id' | 'tempId' | 'id_tempId';
+  isSameContent: boolean;
+}
+
+function matchMessageIdentity(
+  existingMessage: StandardMessage,
+  incomingMessage: StandardMessage,
+): MessageIdentityMatch | null {
+  if (incomingMessage.id && existingMessage.id === incomingMessage.id) {
+    return {
+      reason: 'id',
+      isSameContent:
+        JSON.stringify(normalizeComparableValue(existingMessage.content)) ===
+        JSON.stringify(normalizeComparableValue(incomingMessage.content)),
+    };
+  }
+
+  if (
+    incomingMessage.tempId &&
+    existingMessage.tempId === incomingMessage.tempId
+  ) {
+    return {
+      reason: 'tempId',
+      isSameContent: true,
+    };
+  }
+
+  if (
+    (incomingMessage.id && existingMessage.tempId === incomingMessage.id) ||
+    (incomingMessage.tempId && existingMessage.id === incomingMessage.tempId)
+  ) {
+    return {
+      reason: 'id_tempId',
+      isSameContent: true,
+    };
+  }
+
+  return null;
+}
+
 /**
  * 无限查询页面结构
  */
@@ -41,6 +123,20 @@ export interface InfiniteQueryData {
 // biome-ignore lint/complexity/noStaticOnlyClass: <Static Class>
 export class MessageCacheHelper {
   /**
+   * 判断两条消息内容是否一致。
+   * 主要用于兼容后端重复返回同一 MID 的历史消息。
+   */
+  static isSameMessageContent(
+    left: StandardMessage,
+    right: StandardMessage,
+  ): boolean {
+    return (
+      JSON.stringify(normalizeComparableValue(left.content)) ===
+      JSON.stringify(normalizeComparableValue(right.content))
+    );
+  }
+
+  /**
    * 检查消息是否已存在于列表中
    *
    * @param messages 消息列表
@@ -60,50 +156,81 @@ export class MessageCacheHelper {
       totalMessages: messages.length,
     });
 
-    const exists = messages.some((msg) => {
-      // 检查 id 是否相同（都需要有 id）
-      if (message.id && msg.id === message.id) {
-        console.warn('[MessageCacheHelper.messageExists] 发现相同的 id', {
-          id: message.id,
-          existingMessage: msg,
-        });
-        return true;
-      }
-      // 检查 tempId 是否相同（都需要有 tempId）
-      if (message.tempId && msg.tempId === message.tempId) {
-        console.warn('[MessageCacheHelper.messageExists] 发现相同的 tempId', {
-          tempId: message.tempId,
-          existingMessage: msg,
-        });
-        return true;
-      }
-      // 检查 id 是否与 tempId 相同（处理临时消息被更新的情况）
-      if (message.id && msg.tempId === message.id) {
+    const matchedMessage = messages.find((msg) =>
+      matchMessageIdentity(msg, message),
+    );
+    const duplicateMatch = matchedMessage
+      ? matchMessageIdentity(matchedMessage, message)
+      : null;
+    const exists = !!duplicateMatch;
+
+    if (matchedMessage && duplicateMatch) {
+      if (duplicateMatch.reason === 'id' && !duplicateMatch.isSameContent) {
         console.warn(
-          '[MessageCacheHelper.messageExists] 发现 id 与 tempId 相同',
+          '[MessageCacheHelper.messageExists] 发现相同 id 但内容不一致，按幂等消息处理',
           {
             id: message.id,
-            existingTempId: msg.tempId,
+            existingMessage: matchedMessage,
+            incomingMessage: message,
           },
         );
-        return true;
       }
-      // 检查 tempId 是否与 id 相同（处理临时消息被更新的情况）
-      if (message.tempId && msg.id === message.tempId) {
+
+      if (duplicateMatch.reason === 'id') {
+        console.warn('[MessageCacheHelper.messageExists] 发现相同的 id', {
+          id: message.id,
+          isSameContent: duplicateMatch.isSameContent,
+          existingMessage: matchedMessage,
+        });
+      }
+
+      if (duplicateMatch.reason === 'tempId') {
+        console.warn('[MessageCacheHelper.messageExists] 发现相同的 tempId', {
+          tempId: message.tempId,
+          existingMessage: matchedMessage,
+        });
+      }
+
+      if (duplicateMatch.reason === 'id_tempId') {
         console.warn(
-          '[MessageCacheHelper.messageExists] 发现 tempId 与 id 相同',
+          '[MessageCacheHelper.messageExists] 发现 id 与 tempId 交叉重复',
           {
+            messageId: message.id,
             tempId: message.tempId,
-            existingId: msg.id,
+            existingMessage: matchedMessage,
           },
         );
-        return true;
       }
-      return false;
-    });
+    }
 
     console.log('[MessageCacheHelper.messageExists] 检查结果:', exists);
     return exists;
+  }
+
+  /**
+   * 对消息数组进行幂等去重，保留原始顺序。
+   * 相同 id/MID 的消息视为同一条消息；若内容不一致，记录告警并保留后到的已定义字段。
+   */
+  static dedupeMessages(messages: StandardMessage[]): StandardMessage[] {
+    const deduplicatedMessages: StandardMessage[] = [];
+
+    for (const message of messages) {
+      const duplicateIndex = deduplicatedMessages.findIndex(
+        (existingMessage) => !!matchMessageIdentity(existingMessage, message),
+      );
+
+      if (duplicateIndex < 0) {
+        deduplicatedMessages.push(message);
+        continue;
+      }
+
+      deduplicatedMessages[duplicateIndex] = mergeDefinedMessage(
+        deduplicatedMessages[duplicateIndex],
+        message,
+      );
+    }
+
+    return deduplicatedMessages;
   }
 
   /**
@@ -438,7 +565,9 @@ export class MessageCacheHelper {
 
     if (!data) return [];
 
-    return data.pages.flatMap((page) => page.items);
+    return MessageCacheHelper.dedupeMessages(
+      data.pages.flatMap((page) => page.items),
+    );
   }
 
   /**
@@ -466,7 +595,7 @@ export class MessageCacheHelper {
   static prefetchMessages(
     queryClient: QueryClient,
     conversationId: string,
-    params?: unknown,
+    _params?: unknown,
   ): void {
     queryClient.prefetchQuery({
       queryKey: queryKeys.messages.list(conversationId),
