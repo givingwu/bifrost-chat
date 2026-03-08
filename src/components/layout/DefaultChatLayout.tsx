@@ -22,6 +22,7 @@ import { useSendMessage } from '@/hooks/use-send-message.hook';
 import { useTemplatePreview } from '@/hooks/use-template-preview.hook';
 import type { Conversation } from '@/interfaces/conversation.interface';
 import type { Template } from '@/interfaces/template.interface';
+import type { TemplatePreviewResult } from '@/services/template.service';
 import { useTranslation } from '@/providers/I18n.provider';
 import {
   useActions,
@@ -216,18 +217,18 @@ export function DefaultChatLayout({
       setRenderingTemplateId(template.id);
 
       try {
-        // 尝试调用 preview 获取预览内容
+        // 仅调用一次 preview：同时得到预览内容与 templateMetadata
         let contentToUse = template.content;
+        let templateMetadata: TemplatePreviewResult | undefined;
 
         if (template.code) {
           try {
-            const templateMetadata = await previewTemplate({
+            templateMetadata = await previewTemplate({
               conversationId: activeConversationId,
               currentChannel: activeChannel,
               templateCode: template.code,
             });
             contentToUse = templateMetadata.previewContent;
-            console.log('templateMetadata: ', templateMetadata);
           } catch (previewError) {
             console.warn(
               '[DefaultChatLayout] Template preview failed, using fallback content:',
@@ -237,22 +238,10 @@ export function DefaultChatLayout({
         }
 
         if (templateMode === 'direct') {
-          const templateMetadata = await previewTemplate({
-            conversationId: activeConversationId,
-            currentChannel: activeChannel,
-            templateCode: template.code,
-          });
-
-          // 模式 1：直接发送（使用统一的 handleSend）
+          // 模式 1：直接发送（复用上方已取得的 templateMetadata）
           await handleSend(contentToUse, { templateMetadata });
         } else {
-          // 模式 2：填充到输入框
-          // 获取 templateMetadata 以便在编辑后发送时使用
-          const templateMetadata = await previewTemplate({
-            conversationId: activeConversationId,
-            currentChannel: activeChannel,
-            templateCode: template.code,
-          });
+          // 模式 2：填充到输入框（复用上方已取得的 templateMetadata）
           composerRef.current?.setValue(
             contentToUse,
             template.code,
