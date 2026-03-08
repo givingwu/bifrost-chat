@@ -19,3 +19,5 @@ export { useSendAudio } from './use-send-audio.hook';
 export { useSendMessage } from './use-send-message.hook';
 export { useTemplatePreview } from './use-template-preview.hook';
 export { useTemplates } from './use-templates.hook';
+export { getMergedUnreadCount, useTotalUnread } from './use-total-unread.hook';
+export { useUnreadSync } from './use-unread-sync.hook';

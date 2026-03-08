@@ -20,16 +20,22 @@ import { useActiveConversationMetadata } from '@/hooks/use-active-conversation-m
 import { useConversations } from '@/hooks/use-conversations.hook';
 import { useSendMessage } from '@/hooks/use-send-message.hook';
 import { useTemplatePreview } from '@/hooks/use-template-preview.hook';
+import { useUnreadSync } from '@/hooks/use-unread-sync.hook';
+import {
+  getMergedUnreadCount,
+  useTotalUnread,
+} from '@/hooks/use-total-unread.hook';
 import type { Conversation } from '@/interfaces/conversation.interface';
 import type { Template } from '@/interfaces/template.interface';
-import type { TemplatePreviewResult } from '@/services/template.service';
 import { useTranslation } from '@/providers/I18n.provider';
+import type { TemplatePreviewResult } from '@/services/template.service';
 import {
   useActions,
   useComposerConfig,
   useConversation,
   useProfile,
   useStrategy,
+  useUnreadDeltaByConversation,
 } from '@/store';
 import { cn } from '@/utils/class.util';
 import { ChatLayout } from './ChatLayout';
@@ -59,6 +65,11 @@ export interface DefaultChatLayoutProps {
    * - 传入函数：在保持默认 Topbar 行为的基础上包一层（例如增加拖拽区域）
    */
   renderTopbar?: DefaultChatLayoutRenderTopbar;
+  /**
+   * 全量未读总数变化回调（所有会话的未读之和）
+   * 便于业务方做标题栏徽章、埋点等
+   */
+  onTotalUnreadChange?: (total: number) => void;
 }
 
 /**
@@ -88,6 +99,7 @@ export function DefaultChatLayout({
   renderTopbar,
   className,
   style,
+  onTotalUnreadChange,
 }: DefaultChatLayoutProps) {
   const { t } = useTranslation();
   const actions = useActions();
@@ -96,6 +108,10 @@ export function DefaultChatLayout({
   const { data: conversations = [] } = useConversations();
   const { activeChannel } = useStrategy();
   const { activeConversationId, searchQuery } = useConversation();
+  const unreadDeltaByConversation = useUnreadDeltaByConversation();
+
+  // 库内订阅 messageService 实时消息/状态，自动维护未读增量（无需订阅方注册）
+  useUnreadSync();
 
   // Composer ref，用于外部控制输入框
   const composerRef = useRef<ComposerRef>(null);
@@ -161,6 +177,31 @@ export function DefaultChatLayout({
       );
     });
   }, [conversations, searchQuery]);
+
+  // 合并未读：展示未读 = 订阅方 unreadCount + 库内增量
+  const conversationsWithMergedUnread = useMemo(() => {
+    return (filteredConversations ?? []).map((conv) => {
+      const delta = unreadDeltaByConversation[conv.id] ?? 0;
+      const mergedUnread = getMergedUnreadCount(conv.unreadCount ?? 0, delta);
+      return { ...conv, unreadCount: mergedUnread };
+    });
+  }, [filteredConversations, unreadDeltaByConversation]);
+
+  // 全量未读总数（基于完整会话列表 + 库内增量，不随搜索筛选变化）
+  const { totalUnread } = useTotalUnread(conversations ?? null);
+
+  useEffect(() => {
+    onTotalUnreadChange?.(totalUnread);
+  }, [totalUnread, onTotalUnreadChange]);
+
+  // 选会话时：设置激活 ID 并清除该会话未读增量（读会话即全量已读）
+  const handleSelectConversation = useCallback(
+    (conversationId: string) => {
+      actions.setActiveConversationId(conversationId);
+      actions.clearUnread(conversationId);
+    },
+    [actions],
+  );
 
   // 搜索回调（使用 startTransition 标记为过渡更新）
   const handleSearchChange = useCallback(
@@ -311,8 +352,8 @@ export function DefaultChatLayout({
               'transition',
               isPending ? 'opacity-80' : 'opacity-100',
             )}
-            conversations={filteredConversations}
-            onSelect={actions.setActiveConversationId}
+            conversations={conversationsWithMergedUnread}
+            onSelect={handleSelectConversation}
           />
         </ConversationPanel>
       }
