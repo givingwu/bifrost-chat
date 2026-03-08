@@ -126,8 +126,8 @@ export const ConversationItem = memo(
         </div>
 
         {conversation.unreadCount > 0 && !conversation.isActive && (
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-primary px-2 py-1 text-[10px] font-semibold text-primary-foreground">
-            {conversation.unreadCount}
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-red-500 px-2 py-1 text-[10px] font-semibold text-primary-foreground">
+            {conversation.unreadCount > 99 ? '99+' : conversation.unreadCount}
           </span>
         )}
       </Button>
