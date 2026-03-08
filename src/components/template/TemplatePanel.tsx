@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState, useTransition } from 'react';
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
+import { LoadingState } from '@/components/LoadingState';
 import { useTemplates } from '@/hooks/use-templates.hook';
 import type { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import type { Template } from '@/interfaces/template.interface';
@@ -179,15 +180,7 @@ export const TemplatePanel = ({
             retryText={t('template.panel.retry')}
           />
         ) : isLoading && filteredTemplates.length === 0 ? (
-          // 首次加载时显示骨架屏
-          <div className="space-y-2">
-            {[1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="h-16 rounded-md border border-gray-200/50 dark:border-white/10 bg-gray-100 dark:bg-gray-800 animate-pulse"
-              />
-            ))}
-          </div>
+          <LoadingState message={t('common.loading')} />
         ) : filteredTemplates.length === 0 ? (
           <EmptyState
             message={
