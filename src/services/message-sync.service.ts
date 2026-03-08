@@ -1,4 +1,5 @@
 import type { QueryClient } from '@tanstack/react-query';
+import { ConversationCacheHelper } from '@/services/conversation-cache-helper.service';
 import type {
   MessageReceivedEvent,
   MessageStatusUpdatedEvent,
@@ -22,14 +23,21 @@ export class MessageSyncService {
   /**
    * 处理新消息事件，更新消息缓存
    * - 检测重复消息（message.id 或 tempId 已存在），避免重复添加
+   * - 如果会话列表中不存在该会话，则基于消息构造一个临时会话并插入顶部
    * - 将新消息添加到对应会话的消息列表缓存中
    * @param event
    * @returns
    */
   pushNewMessage(event: MessageReceivedEvent) {
+    ConversationCacheHelper.upsertConversationFromMessage(
+      this.queryClient,
+      event.message,
+    );
+
     const messages = MessageCacheHelper.getAllMessagesFromCache(
       this.queryClient,
       event.conversationId,
+      { channel: event.message.channelType },
     );
 
     if (MessageCacheHelper.messageExists(messages, event.message)) {
@@ -41,7 +49,7 @@ export class MessageSyncService {
           tempId: event.message.tempId,
         },
       );
-      return;
+      return { isNewMessage: false };
     }
 
     // 将新消息添加到缓存中（传入 channel 以匹配 useMessages 的 query key）
@@ -51,6 +59,8 @@ export class MessageSyncService {
       event.message,
       { channel: event.message.channelType },
     );
+
+    return { isNewMessage: true };
   }
 
   /**

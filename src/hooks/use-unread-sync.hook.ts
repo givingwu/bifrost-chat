@@ -1,6 +1,8 @@
-import { useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useEffect, useMemo } from 'react';
 import { MessageStatusEnum } from '@/interfaces/message.interface';
 import { useServices } from '@/providers/service.provider';
+import { MessageSyncService } from '@/services/message-sync.service';
 import { useActions } from '@/store';
 
 /**
@@ -8,23 +10,34 @@ import { useActions } from '@/store';
  *
  * @description
  * 挂载后订阅 messageService.subscribeToMessages / subscribeToMessageStatus，
- * 收到新消息时该会话未读 +1，收到下行 msg_read_ack（status=Read）时该会话未读 -1。
+ * 收到新消息时会先同步消息缓存和临时会话，再让该会话未读 +1；
+ * 收到下行 msg_read_ack（status=Read）时该会话未读 -1。
  * 无需订阅方再注册或调用回调，只要宿主在实现 IMessageService 时将 WebSocket 的
  * chat_message / MessageStatus 事件转发到上述两个订阅即可。
  *
  * 使用 DefaultChatLayout 时会在布局内自动调用本 Hook；自定义布局时可在根组件调用一次以启用未读同步。
  */
 export function useUnreadSync(): void {
+  const queryClient = useQueryClient();
   const actions = useActions();
   const { messageService } = useServices();
+  const messageSyncService = useMemo(
+    () => new MessageSyncService(queryClient),
+    [queryClient],
+  );
 
   useEffect(() => {
-    if (!messageService?.subscribeToMessages || !messageService?.subscribeToMessageStatus) {
+    if (
+      !messageService?.subscribeToMessages ||
+      !messageService?.subscribeToMessageStatus
+    ) {
       return;
     }
 
     const unsubMessages = messageService.subscribeToMessages((event) => {
-      if (event.conversationId) {
+      const syncResult = messageSyncService.pushNewMessage(event);
+
+      if (syncResult.isNewMessage && event.conversationId) {
         actions.incrementUnread(event.conversationId);
       }
     });
@@ -39,5 +52,5 @@ export function useUnreadSync(): void {
       unsubMessages?.();
       unsubStatus?.();
     };
-  }, [messageService, actions]);
+  }, [messageService, actions, messageSyncService]);
 }

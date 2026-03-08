@@ -2,7 +2,9 @@
 // cspell:words conv cust
 import { QueryClient } from '@tanstack/react-query';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { AgentStatusEnum } from '@/interfaces/agent.interface';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
+import type { Conversation } from '@/interfaces/conversation.interface';
 import type { StandardMessage } from '@/interfaces/message.interface';
 import {
   MessageDirectionEnum,
@@ -55,6 +57,126 @@ describe('MessageSyncService', () => {
 
     expect(addMessageSpy).toHaveBeenCalledWith(queryClient, 'conv-1', message, {
       channel: ChannelTypeEnum.WhatsApp,
+    });
+  });
+
+  it('应在收到陌生会话消息时构造临时会话并插入列表顶部', () => {
+    const syncService = new MessageSyncService(queryClient);
+
+    queryClient.setQueryData<Conversation[]>(queryKeys.conversations.list(), [
+      {
+        id: 'conv-existing',
+        user: {
+          id: 'existing-user',
+          name: '已有会话',
+          status: AgentStatusEnum.Offline,
+        },
+        lastMessage: '旧消息',
+        lastMessageTime: new Date(1_770_000_000_000).toISOString(),
+        unreadCount: 2,
+        channel: ChannelTypeEnum.SMS,
+      },
+    ]);
+
+    const message = createMessage('msg-new-conversation', {
+      conversationId: 'conv-new',
+      timestamp: 1_770_000_004_000,
+      content: { text: '新会话第一条消息' },
+      sender: {
+        app: 'customer-app',
+        pin: '13900000000',
+      },
+      metadata: {
+        senderName: '新客户',
+      },
+    });
+
+    syncService.pushNewMessage({
+      conversationId: 'conv-new',
+      message,
+    });
+
+    const conversations = queryClient.getQueryData<Conversation[]>(
+      queryKeys.conversations.list(),
+    );
+
+    expect(conversations?.map((item) => item.id)).toEqual([
+      'conv-new',
+      'conv-existing',
+    ]);
+    expect(conversations?.[0]).toMatchObject({
+      id: 'conv-new',
+      lastMessage: '新会话第一条消息',
+      unreadCount: 0,
+      channel: ChannelTypeEnum.WhatsApp,
+      user: {
+        id: '13900000000',
+        name: '新客户',
+      },
+    });
+  });
+
+  it('应在已有会话收到新消息时刷新摘要并提升到列表顶部', () => {
+    const syncService = new MessageSyncService(queryClient);
+
+    queryClient.setQueryData<Conversation[]>(queryKeys.conversations.list(), [
+      {
+        id: 'conv-other',
+        user: {
+          id: 'other-user',
+          name: '其他会话',
+          status: AgentStatusEnum.Offline,
+        },
+        lastMessage: '其他旧消息',
+        lastMessageTime: new Date(1_770_000_000_000).toISOString(),
+        unreadCount: 1,
+        channel: ChannelTypeEnum.SMS,
+      },
+      {
+        id: 'conv-1',
+        user: {
+          id: 'sender-pin',
+          name: '已知客户',
+          avatarUrl: 'https://example.com/avatar.png',
+          status: AgentStatusEnum.Online,
+        },
+        lastMessage: '老消息',
+        lastMessageTime: new Date(1_770_000_000_000).toISOString(),
+        unreadCount: 9,
+        channel: ChannelTypeEnum.WhatsApp,
+        supportedChannels: [ChannelTypeEnum.WhatsApp],
+      },
+    ]);
+
+    syncService.pushNewMessage({
+      conversationId: 'conv-1',
+      message: createMessage('msg-refresh', {
+        timestamp: 1_770_000_005_000,
+        content: { text: '会话有新动态' },
+        channelType: ChannelTypeEnum.Email,
+        sender: {
+          app: 'sender-app',
+          pin: 'sender-pin',
+        },
+      }),
+    });
+
+    const conversations = queryClient.getQueryData<Conversation[]>(
+      queryKeys.conversations.list(),
+    );
+
+    expect(conversations?.[0]).toMatchObject({
+      id: 'conv-1',
+      lastMessage: '会话有新动态',
+      unreadCount: 9,
+      channel: ChannelTypeEnum.Email,
+      user: {
+        id: 'sender-pin',
+        name: '已知客户',
+        avatarUrl: 'https://example.com/avatar.png',
+        status: AgentStatusEnum.Online,
+      },
+      supportedChannels: [ChannelTypeEnum.WhatsApp, ChannelTypeEnum.Email],
     });
   });
 

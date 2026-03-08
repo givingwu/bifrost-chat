@@ -554,9 +554,10 @@ export class MessageCacheHelper {
   static getAllMessagesFromCache(
     queryClient: QueryClient,
     conversationId: string,
+    options?: { channel?: string },
   ): StandardMessage[] {
     const data = queryClient.getQueryData<InfiniteQueryData>(
-      queryKeys.messages.list(conversationId),
+      queryKeys.messages.list(conversationId, options?.channel),
     );
 
     if (!data) return [];
