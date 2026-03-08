@@ -210,6 +210,34 @@ describe('AckPacketHandler', () => {
       );
     });
 
+    it('应将 body.type 为 chat_message 的服务端 ACK 映射为 sent', () => {
+      pendingMessageTracker.register('chat-123', 'conv-456');
+
+      const packet: RawPacket = {
+        id: 'chat-123',
+        chatId: null as any,
+        ptype: PacketMessageTypeEnum.Ack,
+        from: { app: 'test', pin: '@im.kn.com' },
+        to: {
+          app: 'test',
+          pin: 'user',
+          channelType: 'sms' as any,
+          clientType: 'web' as any,
+        },
+        body: { type: PacketMessageTypeEnum.ChatMessage },
+        ver: '1.0.0',
+        timestamp: Date.now(),
+      };
+
+      const result = handler.handle({ packet });
+
+      expect((result.eventData?.data as any).conversationId).toBe('conv-456');
+      expect((result.eventData?.data as any).status).toBe(
+        MessageStatusEnum.Sent,
+      );
+      expect((result.eventData?.data as any).channelType).toBe('sms');
+    });
+
     it('当 ACK 类型无效时应该返回 null', () => {
       const consoleSpy = vi
         .spyOn(console, 'error')
