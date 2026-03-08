@@ -9,7 +9,7 @@ import { useServices } from '@/providers/service.provider';
 
 export interface MarkAsReadParams {
   conversationId: string;
-  messageIds: string[];
+  messageIds: Array<string | number>;
 }
 
 interface MarkAsReadContext {
@@ -23,6 +23,42 @@ interface MessagesQueryData {
     [key: string]: unknown;
   }>;
   [key: string]: unknown;
+}
+
+function getMessagesQueryDataFromCache(
+  queryClient: ReturnType<typeof useQueryClient>,
+  conversationId: string,
+): MessagesQueryData | null {
+  const exactData = queryClient.getQueryData(
+    queryKeys.messages.list(conversationId),
+  );
+
+  if (isMessagesQueryData(exactData)) {
+    return exactData;
+  }
+
+  const candidates = queryClient.getQueriesData({
+    queryKey: queryKeys.messages.lists(),
+  });
+
+  for (const [queryKey, queryData] of candidates) {
+    if (!Array.isArray(queryKey)) {
+      continue;
+    }
+
+    // 兼容 key 形态: ['messages', 'list', conversationId] 或
+    // ['messages', 'list', conversationId, channel]
+    const keyConversationId = queryKey[2];
+
+    if (
+      keyConversationId === conversationId &&
+      isMessagesQueryData(queryData)
+    ) {
+      return queryData;
+    }
+  }
+
+  return null;
 }
 
 function isMessagesQueryData(data: unknown): data is MessagesQueryData {
@@ -106,14 +142,27 @@ export function useMarkAsRead() {
   >({
     mutationFn: async (params: MarkAsReadParams) => {
       const { conversationId, messageIds } = params;
+      const readMessageIds = new Set(messageIds.map(String));
+
+      if (readMessageIds.size === 0) {
+        return;
+      }
 
       // 从 QueryCache 获取消息列表
-      const queryData = queryClient.getQueryData(
-        queryKeys.messages.list(conversationId),
+      const queryData = getMessagesQueryDataFromCache(
+        queryClient,
+        conversationId,
       );
 
-      if (!isMessagesQueryData(queryData)) {
-        throw new Error('Messages query data not found');
+      if (!queryData) {
+        console.warn(
+          '[markAsRead] Messages query data not found, skip remote ack',
+          {
+            conversationId,
+            messageIds: Array.from(readMessageIds),
+          },
+        );
+        return;
       }
 
       // 提取所有消息对象
@@ -121,8 +170,8 @@ export function useMarkAsRead() {
         (page) => page.items,
       ) as StandardMessage[];
       const messagesToMark = allMessages.filter((msg) => {
-        const messageId = msg.id || msg.tempId;
-        return messageId && messageIds.includes(messageId);
+        const messageId = String(msg.id || msg.tempId || '');
+        return messageId && readMessageIds.has(messageId);
       });
 
       // 循环调用 markAsRead
@@ -165,7 +214,7 @@ export function useMarkAsRead() {
       const previousData = queryClient.getQueryData(
         queryKeys.messages.list(conversationId),
       );
-      const readMessageIds = new Set(messageIds);
+      const readMessageIds = new Set(messageIds.map(String));
 
       queryClient.setQueryData(
         queryKeys.messages.list(conversationId),
@@ -179,7 +228,7 @@ export function useMarkAsRead() {
             pages: oldData.pages.map((page) => ({
               ...page,
               items: page.items.map((item) => {
-                const messageId = item.id || item.tempId;
+                const messageId = String(item.id || item.tempId || '');
                 const shouldMarkAsRead =
                   !!messageId &&
                   readMessageIds.has(messageId) &&
