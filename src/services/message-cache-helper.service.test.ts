@@ -1,5 +1,5 @@
 import { QueryClient } from '@tanstack/react-query';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import type { StandardMessage } from '@/interfaces/message.interface';
 import { MessageStatusEnum } from '@/interfaces/message.interface';
 import { queryKeys } from '@/providers/query.provider';
@@ -57,6 +57,59 @@ describe('MessageCacheHelper', () => {
       expect(MessageCacheHelper.messageExists(messages, newMessage)).toBe(
         false,
       );
+    });
+
+    it('应该兼容相同 id 且内容一致的重复消息', () => {
+      const messages: StandardMessage[] = [
+        {
+          id: 'msg-1',
+          content: { text: 'hello' },
+        } as StandardMessage,
+      ];
+
+      const duplicateMessage = {
+        id: 'msg-1',
+        content: { text: 'hello' },
+      } as StandardMessage;
+
+      expect(MessageCacheHelper.messageExists(messages, duplicateMessage)).toBe(
+        true,
+      );
+    });
+  });
+
+  describe('dedupeMessages', () => {
+    it('应该合并跨页重复的同一 MID 消息', () => {
+      const messages = [
+        {
+          id: 'msg-1',
+          content: { text: 'hello' },
+          status: MessageStatusEnum.Sending,
+        } as StandardMessage,
+        {
+          id: 'msg-1',
+          content: { text: 'hello' },
+          status: MessageStatusEnum.Sent,
+          tempId: 'temp-1',
+        } as StandardMessage,
+        {
+          id: 'msg-2',
+          content: { text: 'world' },
+        } as StandardMessage,
+      ];
+
+      expect(MessageCacheHelper.dedupeMessages(messages)).toEqual([
+        {
+          id: 'msg-1',
+          content: { text: 'hello' },
+          status: MessageStatusEnum.Sent,
+          tempId: 'temp-1',
+        },
+        {
+          id: 'msg-2',
+          content: { text: 'world' },
+        },
+      ]);
     });
   });
 
@@ -454,6 +507,44 @@ describe('MessageCacheHelper', () => {
       );
 
       expect(messages).toEqual([{ id: 'msg-1' }, { id: 'msg-2' }]);
+    });
+
+    it('应该在扁平化时去重重复 MID', () => {
+      queryClient.setQueryData(queryKeys.messages.list(conversationId), {
+        pages: [
+          {
+            items: [
+              {
+                id: 'msg-1',
+                content: { text: 'same' },
+              } as StandardMessage,
+            ],
+          },
+          {
+            items: [
+              {
+                id: 'msg-1',
+                content: { text: 'same' },
+                tempId: 'temp-1',
+              } as StandardMessage,
+            ],
+          },
+        ],
+        pageParams: [1, 2],
+      });
+
+      const messages = MessageCacheHelper.getAllMessagesFromCache(
+        queryClient,
+        conversationId,
+      );
+
+      expect(messages).toEqual([
+        {
+          id: 'msg-1',
+          content: { text: 'same' },
+          tempId: 'temp-1',
+        },
+      ]);
     });
 
     it('应该返回空数组当缓存不存在时', () => {

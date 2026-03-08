@@ -2,6 +2,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef } from 'react';
 import { useMessages } from '@/hooks/use-messages.hook';
 import { queryKeys } from '@/providers/query.provider';
+import { MessageCacheHelper } from '@/services/message-cache-helper.service';
 import { MessageList } from './MessageList';
 
 export interface InfiniteMessageListProps {
@@ -128,8 +129,9 @@ export function InfiniteMessageList({
       );
     }
 
-    const reversedMessages =
-      [...pages].reverse().flatMap((page) => page.items) || [];
+    const reversedMessages = MessageCacheHelper.dedupeMessages(
+      [...pages].reverse().flatMap((page) => page.items) || [],
+    );
     console.log(
       '[InfiniteMessageList] 反转后的总消息数:',
       reversedMessages.length,

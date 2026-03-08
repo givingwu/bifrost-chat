@@ -1,0 +1,122 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { render, screen } from '@testing-library/react';
+import type { ReactNode } from 'react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { ChannelTypeEnum } from '@/interfaces/channel.interface';
+import {
+  MessageDirectionEnum,
+  MessageStatusEnum,
+  MessageTypeEnum,
+  type StandardMessage,
+} from '@/interfaces/message.interface';
+import { InfiniteMessageList } from './InfiniteMessageList';
+
+const useMessagesMock = vi.fn();
+const messageListSpy = vi.fn();
+
+vi.mock('@/hooks/use-messages.hook', () => ({
+  useMessages: (...args: unknown[]) => useMessagesMock(...args),
+}));
+
+vi.mock('./MessageList', () => ({
+  MessageList: (props: unknown) => {
+    messageListSpy(props);
+    return <div data-testid="mock-message-list" />;
+  },
+}));
+
+function createMessage(
+  id: string,
+  timestamp: number,
+  overrides?: Partial<StandardMessage>,
+): StandardMessage {
+  return {
+    id,
+    conversationId: 'conv-1',
+    direction: MessageDirectionEnum.Incoming,
+    channelType: ChannelTypeEnum.WhatsApp,
+    status: MessageStatusEnum.Sent,
+    timestamp,
+    type: MessageTypeEnum.Text,
+    content: { text: `message-${id}` },
+    sender: { app: 'sender-app', pin: 'sender-pin' },
+    receiver: { app: 'receiver-app', pin: 'receiver-pin' },
+    ...overrides,
+  };
+}
+
+function createWrapper(queryClient: QueryClient) {
+  return function TestWrapper({ children }: { children: ReactNode }) {
+    return (
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    );
+  };
+}
+
+describe('InfiniteMessageList', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    useMessagesMock.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      error: null,
+      hasNextPage: false,
+      fetchNextPage: vi.fn(),
+      isFetchingNextPage: false,
+    });
+  });
+
+  it('应对跨页重复 MID 做幂等去重后再渲染', () => {
+    useMessagesMock.mockReturnValue({
+      data: {
+        pages: [
+          {
+            items: [
+              createMessage('mid-1', 2000, {
+                content: { text: 'same-mid-message' },
+                tempId: 'temp-mid-1',
+              }),
+              createMessage('mid-2', 3000),
+            ],
+          },
+          {
+            items: [
+              createMessage('mid-1', 2000, {
+                content: { text: 'same-mid-message' },
+              }),
+            ],
+          },
+        ],
+      },
+      isLoading: false,
+      error: null,
+      hasNextPage: false,
+      fetchNextPage: vi.fn(),
+      isFetchingNextPage: false,
+    });
+
+    render(
+      <InfiniteMessageList
+        conversationId="conv-1"
+        currentChannel={ChannelTypeEnum.WhatsApp}
+      />,
+      {
+        wrapper: createWrapper(new QueryClient()),
+      },
+    );
+
+    expect(screen.getByTestId('mock-message-list')).toBeInTheDocument();
+    expect(messageListSpy).toHaveBeenCalled();
+
+    const latestCall = messageListSpy.mock.calls.at(-1)?.[0] as {
+      messages: StandardMessage[];
+    };
+
+    expect(latestCall.messages).toHaveLength(2);
+    expect(latestCall.messages.map((message) => message.id)).toEqual([
+      'mid-1',
+      'mid-2',
+    ]);
+    expect(latestCall.messages[0]?.tempId).toBe('temp-mid-1');
+  });
+});
