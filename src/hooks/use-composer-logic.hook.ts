@@ -176,7 +176,7 @@ export const useComposerLogic = (
       })
         .then((previewed) => {
           // 使用最新的 content
-          const newContent = previewed.content ?? draftData.content;
+          const newContent = previewed.previewContent ?? draftData.content;
           draft.setValue(newContent);
 
           // 更新 draft 数据
