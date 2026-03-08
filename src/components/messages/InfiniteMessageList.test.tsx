@@ -232,9 +232,11 @@ describe('InfiniteMessageList', () => {
       },
     );
 
-    expect(screen.getByText('加载失败，请重试')).toBeInTheDocument();
+    expect(
+      screen.getByText('Loading failed, please try again'),
+    ).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: '重试' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Retry' }));
 
     expect(refetch).toHaveBeenCalledTimes(1);
   });
