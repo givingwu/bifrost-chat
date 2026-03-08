@@ -361,7 +361,8 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(
             placeholder={placeholder}
             onChange={logic.setValue}
             onEnter={logic.handleSend}
-            disabled={disabled || isSending || isRecording || isTemplateLocked}
+            disabled={disabled || isSending || isRecording}
+            readOnly={isTemplateLocked}
             maxLength={effectiveMaxLength}
           />
 

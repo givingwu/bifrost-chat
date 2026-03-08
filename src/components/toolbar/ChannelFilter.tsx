@@ -109,7 +109,7 @@ export const ChannelFilter = memo(
               aria-pressed={isActive}
               className={cn(
                 'relative z-10 flex items-center justify-center px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-300 group',
-                'min-w-[40px]',
+                'min-w-[40px] cursor-pointer',
                 isActive
                   ? 'text-blue-600 dark:text-blue-400'
                   : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200',

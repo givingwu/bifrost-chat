@@ -524,7 +524,8 @@ export const ComposerToolbar = forwardRef<
           placeholder={placeholder}
           onChange={handleChange}
           onEnter={handleSend}
-          disabled={disabled || isSending || isRecording || isTemplateLocked}
+          disabled={disabled || isSending || isRecording}
+          readOnly={isTemplateLocked}
           maxLength={effectiveMaxLength}
         />
 

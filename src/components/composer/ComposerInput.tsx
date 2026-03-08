@@ -32,6 +32,8 @@ export interface ComposerInputProps {
   placeholder?: string;
   /** 是否禁用 */
   disabled?: boolean;
+  /** 是否只读（可聚焦、可响应 Enter 发送，但不可编辑，用于模板锁定等） */
+  readOnly?: boolean;
   /** 最大长度 */
   maxLength?: number;
   /** 是否自动聚焦 */
@@ -88,6 +90,7 @@ export const ComposerInput = forwardRef<ComposerInputRef, ComposerInputProps>(
       placeholder,
       onEnter,
       disabled = false,
+      readOnly = false,
       maxLength = INPUT_LIMITS.DEFAULT_MAX_LENGTH,
       autoFocus = false,
       onBlur,
@@ -181,6 +184,7 @@ export const ComposerInput = forwardRef<ComposerInputRef, ComposerInputProps>(
           value={value}
           placeholder={placeholder}
           disabled={disabled}
+          readOnly={readOnly}
           maxLength={maxLength}
           className={cn(
             'w-full rounded-sm border border-transparent bg-gray-200/50 dark:bg-white/10 px-2 py-1.5',
@@ -188,6 +192,7 @@ export const ComposerInput = forwardRef<ComposerInputRef, ComposerInputProps>(
             'text-text dark:text-white outline-none transition-all duration-200',
             'focus:bg-card focus:ring-2 focus:ring-primary/40',
             'disabled:cursor-not-allowed disabled:opacity-50',
+            readOnly && 'cursor-not-allowed opacity-50',
             'placeholder:text-gray-500/50 resize-none',
             // 字符数接近或达到最大长度时的视觉反馈
             isNearMaxLength && !isAtMaxLength && 'focus:ring-orange-400/40',
