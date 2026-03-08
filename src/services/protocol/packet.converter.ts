@@ -4,7 +4,10 @@ import {
   MessageDirectionEnum,
   MessageStatusEnum,
 } from '@/interfaces/message.interface';
-import type { RawPacket } from '@/interfaces/protocol.interface';
+import {
+  isPacketBodyRecord,
+  type RawPacket,
+} from '@/interfaces/protocol.interface';
 import { MessageBuilder } from '@/services/message-builder.service';
 
 /**
@@ -111,12 +114,7 @@ export class PacketConverter {
     // packet.body 可能为空字符串，需先校验为有效对象再访问 ext
     let extMetadata: Record<string, unknown> | undefined;
     const body = packet.body;
-    // 运行时 body 可能为空字符串等非对象，仅当为普通对象时才访问 ext
-    const isBodyObject =
-      body != null &&
-      typeof body === 'object' &&
-      !Array.isArray(body);
-    if (isBodyObject && 'ext' in body && body.ext) {
+    if (isPacketBodyRecord(body) && body.ext) {
       const ext = body.ext;
       if (typeof ext === 'object') {
         extMetadata = ext as Record<string, unknown>;

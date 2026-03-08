@@ -2,7 +2,10 @@ import type {
   HeartbeatParams,
   RawPacket,
 } from '@/interfaces/protocol.interface';
-import { PacketMessageTypeEnum } from '@/interfaces/protocol.interface';
+import {
+  isPacketBodyRecord,
+  PacketMessageTypeEnum,
+} from '@/interfaces/protocol.interface';
 import { MessageBuilder } from '../message-builder.service';
 
 /**
@@ -76,15 +79,12 @@ export class HeartbeatManager {
     }
 
     // 检查 body 是否存在
-    if (!packet.body || typeof packet.body !== 'object') {
+    if (!isPacketBodyRecord(packet.body)) {
       return false;
     }
 
     // 检查是否为心跳 ACK
-    return (
-      'type' in packet.body &&
-      packet.body.type === PacketMessageTypeEnum.ClientHeartbeat
-    );
+    return packet.body.type === PacketMessageTypeEnum.ClientHeartbeat;
   }
 
   /**
@@ -133,8 +133,7 @@ export class HeartbeatManager {
       typeof packet.id !== 'string' ||
       !packet.from ||
       !packet.to ||
-      !packet.body ||
-      typeof packet.body !== 'object'
+      !isPacketBodyRecord(packet.body)
     ) {
       return false;
     }
@@ -150,8 +149,7 @@ export class HeartbeatManager {
     }
 
     // 检查 body 是否为空对象
-    const body = packet.body as Record<string, unknown>;
-    if (Object.keys(body).length > 0) {
+    if (Object.keys(packet.body).length > 0) {
       return false;
     }
 

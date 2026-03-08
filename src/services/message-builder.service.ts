@@ -16,6 +16,7 @@ import {
   type StandardMessage,
 } from '@/interfaces/message.interface';
 import {
+  isPacketBodyRecord,
   type LocationPacketBody,
   type MediaPacketBody,
   type PacketBody,
@@ -33,16 +34,16 @@ import {
 /**
  * 判断是否为文本 Packet body
  */
-function isTextPacketBody(body: PacketBody): body is TextPacketBody {
-  return 'type' in body && body.type === MessageTypeEnum.Text;
+function isTextPacketBody(body: unknown): body is TextPacketBody {
+  return isPacketBodyRecord(body) && body.type === MessageTypeEnum.Text;
 }
 
 /**
  * 判断是否为多媒体 Packet body
  */
-function isMediaPacketBody(body: PacketBody): body is MediaPacketBody {
+function isMediaPacketBody(body: unknown): body is MediaPacketBody {
   return (
-    'type' in body &&
+    isPacketBodyRecord(body) &&
     [
       MessageTypeEnum.Image,
       MessageTypeEnum.Audio,
@@ -55,22 +56,22 @@ function isMediaPacketBody(body: PacketBody): body is MediaPacketBody {
 /**
  * 判断是否为模板 Packet body
  */
-function isTemplatePacketBody(body: PacketBody): body is TemplatePacketBody {
-  return 'type' in body && body.type === MessageTypeEnum.Template;
+function isTemplatePacketBody(body: unknown): body is TemplatePacketBody {
+  return isPacketBodyRecord(body) && body.type === MessageTypeEnum.Template;
 }
 
 /**
  * 判断是否为位置 Packet body
  */
-function isLocationPacketBody(body: PacketBody): body is LocationPacketBody {
-  return 'type' in body && body.type === MessageTypeEnum.Location;
+function isLocationPacketBody(body: unknown): body is LocationPacketBody {
+  return isPacketBodyRecord(body) && body.type === MessageTypeEnum.Location;
 }
 
 /**
  * 判断是否为富媒体 Packet body
  */
-function isRichMediaPacketBody(body: PacketBody): body is RichMediaPacketBody {
-  return 'type' in body && body.type === MessageTypeEnum.RichMedia;
+function isRichMediaPacketBody(body: unknown): body is RichMediaPacketBody {
+  return isPacketBodyRecord(body) && body.type === MessageTypeEnum.RichMedia;
 }
 
 /**
@@ -252,9 +253,13 @@ export class MessageBuilder {
   /**
    * 从 Packet body 解析 MessageTypeEnum
    */
-  static packetBodyToMessageType(body: PacketBody): MessageTypeEnum {
+  static packetBodyToMessageType(body: unknown): MessageTypeEnum {
+    if (typeof body === 'string') {
+      return MessageTypeEnum.Text;
+    }
+
     // AckDataBody 没有 type 属性，返回 Other
-    if (!('type' in body)) {
+    if (!isPacketBodyRecord(body) || typeof body.type !== 'string') {
       return MessageTypeEnum.Other;
     }
 
@@ -297,7 +302,13 @@ export class MessageBuilder {
    * 将 Packet body 转换为 MessageContent
    * 使用类型守卫和独立转换函数确保类型安全
    */
-  static packetBodyToMessageContent(body: PacketBody): MessageContent {
+  static packetBodyToMessageContent(body: unknown): MessageContent {
+    if (typeof body === 'string') {
+      return {
+        text: body,
+      };
+    }
+
     if (isTextPacketBody(body)) {
       return convertTextPacketBody(body.content);
     }
@@ -320,7 +331,7 @@ export class MessageBuilder {
 
     // 降级处理：未知类型返回空文本消息
     // AckDataBody 或其他没有 type 属性的类型
-    if (!('type' in body)) {
+    if (!isPacketBodyRecord(body) || typeof body.type !== 'string') {
       return {
         text: 'Unsupported message type',
       };

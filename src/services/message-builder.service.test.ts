@@ -82,4 +82,24 @@ describe('MessageBuilder', () => {
 
     expect(message.type).toBe(MessageTypeEnum.Text);
   });
+
+  it('should treat string packet body as text message', () => {
+    expect(MessageBuilder.packetBodyToMessageType('plain text body')).toBe(
+      MessageTypeEnum.Text,
+    );
+    expect(
+      MessageBuilder.packetBodyToMessageContent('plain text body'),
+    ).toEqual({
+      text: 'plain text body',
+    });
+  });
+
+  it('should degrade invalid packet body object safely', () => {
+    expect(MessageBuilder.packetBodyToMessageType(null)).toBe(
+      MessageTypeEnum.Other,
+    );
+    expect(MessageBuilder.packetBodyToMessageContent(null)).toEqual({
+      text: 'Unsupported message type',
+    });
+  });
 });

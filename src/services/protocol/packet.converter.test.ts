@@ -257,6 +257,33 @@ describe('PacketConverter', () => {
       // 未知渠道应该默认为 SMS
       expect(message.channelType).toBe(ChannelTypeEnum.SMS);
     });
+
+    it('应该兼容字符串类型的 packet.body', () => {
+      const rawPacket = {
+        id: 'packet-plain-body',
+        chatId: 'chat-plain-body',
+        from: {
+          app: 'im.waiter',
+          pin: 'customer-456',
+          channelType: ChannelTypeEnum.SMS,
+        },
+        to: {
+          app: 'fox_collect.waiter',
+          pin: 'agent-123',
+          channelType: ChannelTypeEnum.SMS,
+        },
+        ptype: PacketMessageTypeEnum.ChatMessage,
+        body: '',
+        ver: '1.0',
+        timestamp: Date.now(),
+      } as unknown as RawPacket;
+
+      const message = PacketConverter.toStandardMessage(rawPacket);
+
+      expect(message.type).toBe(MessageTypeEnum.Text);
+      expect(message.content).toEqual({ text: '' });
+      expect(message.metadata).toBeUndefined();
+    });
   });
 
   describe('双向转换', () => {

@@ -8,6 +8,7 @@ import type {
 } from '@/interfaces/protocol.interface';
 import {
   AckMessageTypeEnum,
+  isPacketBodyRecord,
   PacketMessageTypeEnum,
 } from '@/interfaces/protocol.interface';
 import { MessageBuilder } from '@/services/message-builder.service';
@@ -163,9 +164,10 @@ export class AckHandler {
       return null;
     }
 
-    const body = packet.body as Record<string, unknown>;
-
-    if (!body.type || typeof body.type !== 'string') {
+    if (
+      !isPacketBodyRecord(packet.body) ||
+      typeof packet.body.type !== 'string'
+    ) {
       return null;
     }
 
@@ -177,7 +179,7 @@ export class AckHandler {
       id: packet.id as string,
       ptype: packet.ptype as PacketMessageTypeEnum,
       body: {
-        type: body.type as string,
+        type: packet.body.type,
       },
       timestamp,
     };

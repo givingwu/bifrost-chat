@@ -273,6 +273,15 @@ export interface AckPacketBody {
 }
 
 /**
+ * 类型守卫：判断 Packet body 是否为可安全访问属性的普通对象
+ */
+export function isPacketBodyRecord(
+  body: unknown,
+): body is PacketBodyBase & Record<string, unknown> {
+  return typeof body === 'object' && body !== null && !Array.isArray(body);
+}
+
+/**
  * 心跳协议参数
  *
  * @description

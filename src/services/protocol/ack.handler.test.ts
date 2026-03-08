@@ -141,6 +141,13 @@ describe('AckHandler', () => {
       expect(AckHandler.parseDownstream(undefined)).toBeNull();
       expect(AckHandler.parseDownstream('')).toBeNull();
       expect(AckHandler.parseDownstream({})).toBeNull();
+      expect(
+        AckHandler.parseDownstream({
+          id: 'ack-123',
+          ptype: PacketMessageTypeEnum.Ack,
+          body: '',
+        }),
+      ).toBeNull();
     });
 
     it('应该拒绝缺少必要字段的 ACK', () => {

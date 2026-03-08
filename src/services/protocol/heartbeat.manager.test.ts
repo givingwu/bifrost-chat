@@ -88,6 +88,13 @@ describe('HeartbeatManager', () => {
       expect(HeartbeatManager.isHeartbeatResponse(undefined)).toBe(false);
       expect(HeartbeatManager.isHeartbeatResponse('')).toBe(false);
       expect(HeartbeatManager.isHeartbeatResponse({})).toBe(false);
+      expect(
+        HeartbeatManager.isHeartbeatResponse({
+          id: 'ack-123',
+          ptype: PacketMessageTypeEnum.Ack,
+          body: '',
+        }),
+      ).toBe(false);
     });
 
     it('应该拒绝非 ACK 类型的消息', () => {
@@ -150,7 +157,7 @@ describe('HeartbeatManager', () => {
           body: {},
           ver: '1.0',
           timestamp: Date.now(),
-        } as any),
+        }),
       ).toBe(false);
 
       // 缺少 id
@@ -162,7 +169,7 @@ describe('HeartbeatManager', () => {
           body: {},
           ver: '1.0',
           timestamp: Date.now(),
-        } as any),
+        }),
       ).toBe(false);
 
       // 缺少 from
@@ -174,7 +181,7 @@ describe('HeartbeatManager', () => {
           body: {},
           ver: '1.0',
           timestamp: Date.now(),
-        } as any),
+        }),
       ).toBe(false);
 
       // 缺少 to
@@ -186,7 +193,7 @@ describe('HeartbeatManager', () => {
           body: {},
           ver: '1.0',
           timestamp: Date.now(),
-        } as any),
+        }),
       ).toBe(false);
 
       // body 不为空
@@ -199,15 +206,15 @@ describe('HeartbeatManager', () => {
           body: { extra: 'field' },
           ver: '1.0',
           timestamp: Date.now(),
-        } as any),
+        }),
       ).toBe(false);
     });
 
     it('应该拒绝无效的数据类型', () => {
-      expect(HeartbeatManager.isValidHeartbeat(null as any)).toBe(false);
-      expect(HeartbeatManager.isValidHeartbeat(undefined as any)).toBe(false);
-      expect(HeartbeatManager.isValidHeartbeat('' as any)).toBe(false);
-      expect(HeartbeatManager.isValidHeartbeat(123 as any)).toBe(false);
+      expect(HeartbeatManager.isValidHeartbeat(null)).toBe(false);
+      expect(HeartbeatManager.isValidHeartbeat(undefined)).toBe(false);
+      expect(HeartbeatManager.isValidHeartbeat('')).toBe(false);
+      expect(HeartbeatManager.isValidHeartbeat(123)).toBe(false);
     });
   });
 });
