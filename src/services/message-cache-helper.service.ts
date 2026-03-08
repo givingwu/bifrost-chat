@@ -276,7 +276,7 @@ export class MessageCacheHelper {
    *
    * @description
    * - 自动去重（基于 id 和 tempId）
-   * - 添加到最后一页的末尾
+   * - 添加到最新页的末尾
    * - 如果没有页面，创建新页面
    * - channel 必须与 useMessages 传入的 currentChannel 一致，否则乐观更新无法被 UI 读取
    */
@@ -335,14 +335,10 @@ export class MessageCacheHelper {
         return old;
       }
 
-      // 添加到最后一页的末尾
-      console.log(
-        '[MessageCacheHelper.addMessageToCache] 添加到最后一页的末尾',
-      );
+      // pages[0] 始终是最新页；fetchNextPage 追加的是更旧的历史页
+      console.log('[MessageCacheHelper.addMessageToCache] 添加到最新页的末尾');
       const newPages = old.pages.map((page, index) =>
-        index === old.pages.length - 1
-          ? { ...page, items: [...page.items, message] }
-          : page,
+        index === 0 ? { ...page, items: [...page.items, message] } : page,
       );
 
       console.log(
@@ -474,7 +470,7 @@ export class MessageCacheHelper {
    *
    * @description
    * - 自动去重
-   * - 批量添加到最后一页
+   * - 批量添加到最新页
    */
   static addMessagesToCache(
     queryClient: QueryClient,
@@ -501,9 +497,9 @@ export class MessageCacheHelper {
           return old;
         }
 
-        // 添加到最后一页
+        // pages[0] 始终是最新页；fetchNextPage 追加的是更旧的历史页
         const newPages = old.pages.map((page, index) =>
-          index === old.pages.length - 1
+          index === 0
             ? { ...page, items: [...page.items, ...newMessages] }
             : page,
         );

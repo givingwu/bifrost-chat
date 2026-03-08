@@ -136,7 +136,7 @@ describe('MessageCacheHelper', () => {
       });
     });
 
-    it('应该添加消息到现有缓存的最后一页', () => {
+    it('应该添加消息到现有缓存的最新页', () => {
       // 初始化缓存
       queryClient.setQueryData(queryKeys.messages.list(conversationId), {
         pages: [
@@ -160,8 +160,8 @@ describe('MessageCacheHelper', () => {
 
       expect(data).toEqual({
         pages: [
-          { items: [{ id: 'msg-1' }] },
-          { items: [{ id: 'msg-2' }, { id: 'msg-3' }] },
+          { items: [{ id: 'msg-1' }, { id: 'msg-3' }] },
+          { items: [{ id: 'msg-2' }] },
         ],
         pageParams: [1, 2],
       });
@@ -454,6 +454,37 @@ describe('MessageCacheHelper', () => {
 
       // 应该只有 3 条消息（msg-1, msg-2, msg-3）
       expect(data?.pages?.[0]?.items?.length).toBe(3);
+    });
+
+    it('应该批量添加到最新页而不是历史页', () => {
+      queryClient.setQueryData(queryKeys.messages.list(conversationId), {
+        pages: [
+          { items: [{ id: 'latest-1' } as StandardMessage] },
+          { items: [{ id: 'older-1' } as StandardMessage] },
+        ],
+        pageParams: [1, 2],
+      });
+
+      MessageCacheHelper.addMessagesToCache(queryClient, conversationId, [
+        { id: 'msg-2' } as StandardMessage,
+        { id: 'msg-3' } as StandardMessage,
+      ]);
+
+      const data = queryClient.getQueryData<InfiniteQueryData>(
+        queryKeys.messages.list(conversationId),
+      );
+
+      expect(data).toEqual({
+        pages: [
+          {
+            items: [{ id: 'latest-1' }, { id: 'msg-2' }, { id: 'msg-3' }],
+          },
+          {
+            items: [{ id: 'older-1' }],
+          },
+        ],
+        pageParams: [1, 2],
+      });
     });
   });
 
