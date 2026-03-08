@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AgentStatusEnum } from '@/interfaces/agent.interface';
 import {
   type MessageSendResult,
@@ -12,6 +12,7 @@ import { queryKeys } from '@/providers/query.provider';
 import { ServiceProvider } from '@/providers/service.provider';
 import type { IConversationService } from '@/services/conversation.service';
 import type { IMessageService } from '@/services/message.service';
+import { pendingMessageTracker } from '@/services/pending-message-tracker.service';
 import type { ITemplateService } from '@/services/template.service';
 import type { CurrentUser } from '@/store';
 import { useSendMessage } from './use-send-message.hook';
@@ -87,6 +88,11 @@ function getMessages(queryClient: QueryClient, conversationId: string) {
 describe('useSendMessage Hook', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    pendingMessageTracker.clear();
+  });
+
+  afterEach(() => {
+    pendingMessageTracker.clear();
   });
 
   it('应在发送成功后回填服务端 messageId 并更新状态', async () => {
@@ -454,5 +460,66 @@ describe('useSendMessage Hook', () => {
     expect(messages[0]?.status).toBe(MessageStatusEnum.Sent);
     expect(messages[0]?.id).toBe(messageId);
     expect(messages[0]?.tempId).toBe(tempId);
+  });
+
+  it('应在 send 完成前预注册 ACK 映射，兼容 chatId 缺失的早到 ACK', async () => {
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+      },
+    });
+    const conversationId = 'conv-early-ack';
+
+    queryClient.setQueryData(
+      queryKeys.messages.list(conversationId, ACTIVE_CHANNEL),
+      {
+        pages: [{ items: [] }],
+        pageParams: [undefined],
+      },
+    );
+
+    let resolveSend: ((value: MessageSendResult) => void) | null = null;
+
+    vi.mocked(mockMessageService.send).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveSend = resolve;
+        }),
+    );
+
+    const { result } = renderHook(() => useSendMessage(), {
+      wrapper: createTestWrapper(queryClient),
+    });
+
+    act(() => {
+      result.current.mutate({
+        conversationId,
+        content: 'ack first',
+      });
+    });
+
+    await waitFor(() => {
+      const optimisticMessage = getMessages(queryClient, conversationId)[0];
+      expect(optimisticMessage).toBeDefined();
+      expect(pendingMessageTracker.has(optimisticMessage?.id ?? '')).toBe(true);
+      expect(pendingMessageTracker.has(optimisticMessage?.tempId ?? '')).toBe(
+        true,
+      );
+    });
+
+    act(() => {
+      resolveSend?.({
+        tempId: getMessages(queryClient, conversationId)[0]?.tempId ?? '',
+        messageId: 'server-message-id',
+        status: MessageStatusEnum.Sent,
+      });
+    });
+
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
+
+    expect(pendingMessageTracker.has('server-message-id')).toBe(true);
   });
 });

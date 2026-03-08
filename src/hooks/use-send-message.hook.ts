@@ -69,6 +69,24 @@ const DEFAULT_EMPTY_DATA = {
   pages: [],
 };
 
+function registerPendingAckMappings(
+  conversationId: string,
+  ids: Array<string | undefined>,
+): void {
+  const uniqueIds = [...new Set(ids.filter(Boolean))] as string[];
+
+  for (const id of uniqueIds) {
+    pendingMessageTracker.register(id, conversationId);
+  }
+
+  if (uniqueIds.length > 0) {
+    console.info('[useSendMessage] 已注册消息映射', {
+      conversationId,
+      messageIds: uniqueIds,
+    });
+  }
+}
+
 export function useSendMessage<
   CMType = Record<string, unknown>,
   TMType = unknown,
@@ -172,6 +190,11 @@ export function useSendMessage<
         tempMessage,
         { channel: activeChannel ?? undefined },
       );
+
+      registerPendingAckMappings(params.conversationId, [
+        tempMessage.id,
+        tempMessage.tempId,
+      ]);
 
       return { previousMessages, tempMessage, messageQueryKey };
     },
@@ -332,16 +355,11 @@ export function useSendMessage<
         { channel: activeChannel ?? undefined },
       );
 
-      // 注册 messageId → conversationId 映射
-      // 用于在 ACK 中缺少 chatId 时查找对应的会话
-      const messageId = data.tempId ?? context?.tempMessage.tempId;
-      if (messageId && variables.conversationId) {
-        pendingMessageTracker.register(messageId, variables.conversationId);
-        console.info('[useSendMessage] 已注册消息映射', {
-          messageId,
-          conversationId: variables.conversationId,
-        });
-      }
+      // 补充注册服务端返回的消息标识，兼容后续 ACK 不再使用本地临时 ID 的场景。
+      registerPendingAckMappings(variables.conversationId, [
+        data.messageId,
+        data.tempId,
+      ]);
     },
   });
 }
