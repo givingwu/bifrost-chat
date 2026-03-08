@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
@@ -122,27 +122,23 @@ describe('InfiniteMessageList', () => {
     expect(latestCall.messages[0]?.tempId).toBe('temp-mid-1');
   });
 
-  it('打开会话时应只保留最新页缓存', async () => {
+  it('打开会话时保留已有缓存，不因挂载而 invalidate（避免重复请求）', () => {
     const queryClient = new QueryClient();
     const queryKey = queryKeys.messages.list(
       'conv-1',
       ChannelTypeEnum.WhatsApp,
     );
-
-    queryClient.setQueryData(queryKey, {
+    const initialData = {
       pages: [
-        {
-          items: [createMessage('latest-mid', 3000)],
-        },
-        {
-          items: [createMessage('older-mid', 2000)],
-        },
+        { items: [createMessage('latest-mid', 3000)] },
+        { items: [createMessage('older-mid', 2000)] },
       ],
       pageParams: [1, 2],
-    });
+    };
+    queryClient.setQueryData(queryKey, initialData);
 
     useMessagesMock.mockReturnValue({
-      data: undefined,
+      data: initialData,
       isLoading: false,
       error: null,
       hasNextPage: false,
@@ -160,21 +156,13 @@ describe('InfiniteMessageList', () => {
       },
     );
 
-    await waitFor(() => {
-      expect(
-        queryClient.getQueryData<{
-          pages: Array<{ items: StandardMessage[] }>;
-          pageParams: unknown[];
-        }>(queryKey),
-      ).toEqual({
-        pages: [
-          {
-            items: [createMessage('latest-mid', 3000)],
-          },
-        ],
-        pageParams: [1],
-      });
-    });
+    // 挂载时不再 invalidate，缓存应保持不变，避免 messageService.list 重复调用
+    expect(
+      queryClient.getQueryData<{
+        pages: Array<{ items: StandardMessage[] }>;
+        pageParams: unknown[];
+      }>(queryKey),
+    ).toEqual(initialData);
   });
 
   it('打开会话时不应自动加载历史消息', () => {

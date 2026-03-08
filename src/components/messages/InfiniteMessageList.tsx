@@ -1,12 +1,7 @@
-import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef } from 'react';
 import { ErrorState } from '@/components/ErrorState';
 import { useMessages } from '@/hooks/use-messages.hook';
-import { queryKeys } from '@/providers/query.provider';
-import {
-  type InfiniteQueryData,
-  MessageCacheHelper,
-} from '@/services/message-cache-helper.service';
+import { MessageCacheHelper } from '@/services/message-cache-helper.service';
 import { MessageList } from './MessageList';
 
 export interface InfiniteMessageListProps {
@@ -64,7 +59,6 @@ export function InfiniteMessageList({
   enableAutoMarkAsRead = true,
   markAsReadDebounceDelay = 1000,
 }: InfiniteMessageListProps) {
-  const queryClient = useQueryClient();
   const {
     data,
     isLoading,
@@ -85,34 +79,8 @@ export function InfiniteMessageList({
   const isNearBottomRef = useRef(true);
   const lastMessageCountRef = useRef(0);
 
-  // 当会话/渠道变化时，仅保留最新页并触发最新消息刷新。
-  // 打开会话应先看到最新消息，历史消息只在用户向上滚动时再继续加载。
-  useEffect(() => {
-    if (conversationId) {
-      const queryKey = queryKeys.messages.list(conversationId, currentChannel);
-
-      queryClient.setQueryData<InfiniteQueryData>(queryKey, (old) => {
-        if (!old || old.pages.length <= 1) {
-          return old;
-        }
-
-        return {
-          ...old,
-          pages: old.pages.slice(0, 1),
-          pageParams: old.pageParams.slice(0, 1),
-        };
-      });
-
-      console.log(
-        '[InfiniteMessageList] 会话/渠道切换，仅保留最新页并刷新消息列表:',
-        conversationId,
-        currentChannel,
-      );
-      queryClient.invalidateQueries({
-        queryKey,
-      });
-    }
-  }, [conversationId, currentChannel, queryClient]);
+  // 会话/渠道切换时无需在此 invalidate：useMessages 的 queryKey 已包含
+  // conversationId 与 currentChannel，切换后会自动作为新 query 拉取数据。
 
   // ✅ Bug 1 修复：反转页面顺序，确保更早的消息显示在上面
   // 后端返回格式：第一页 [30,29,...,1]（降序），第二页 [60,59,...,31]（降序）
