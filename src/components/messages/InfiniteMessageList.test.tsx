@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
@@ -64,6 +64,7 @@ describe('InfiniteMessageList', () => {
       hasNextPage: false,
       fetchNextPage: vi.fn(),
       isFetchingNextPage: false,
+      refetch: vi.fn(),
     });
   });
 
@@ -192,6 +193,7 @@ describe('InfiniteMessageList', () => {
       hasNextPage: true,
       fetchNextPage,
       isFetchingNextPage: false,
+      refetch: vi.fn(),
     });
 
     render(
@@ -205,5 +207,35 @@ describe('InfiniteMessageList', () => {
     );
 
     expect(fetchNextPage).not.toHaveBeenCalled();
+  });
+
+  it('加载失败时应显示重试按钮并支持重新拉取', () => {
+    const refetch = vi.fn();
+
+    useMessagesMock.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      error: new Error('load failed'),
+      hasNextPage: false,
+      fetchNextPage: vi.fn(),
+      isFetchingNextPage: false,
+      refetch,
+    });
+
+    render(
+      <InfiniteMessageList
+        conversationId="conv-1"
+        currentChannel={ChannelTypeEnum.WhatsApp}
+      />,
+      {
+        wrapper: createWrapper(new QueryClient()),
+      },
+    );
+
+    expect(screen.getByText('加载失败，请重试')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: '重试' }));
+
+    expect(refetch).toHaveBeenCalledTimes(1);
   });
 });

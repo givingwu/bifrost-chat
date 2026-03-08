@@ -1,5 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef } from 'react';
+import { ErrorState } from '@/components/ErrorState';
 import { useMessages } from '@/hooks/use-messages.hook';
 import { queryKeys } from '@/providers/query.provider';
 import {
@@ -71,6 +72,7 @@ export function InfiniteMessageList({
     hasNextPage,
     fetchNextPage,
     isFetchingNextPage,
+    refetch,
   } = useMessages({
     conversationId,
     currentChannel,
@@ -253,9 +255,14 @@ export function InfiniteMessageList({
     console.error('Failed to load messages:', error);
 
     return (
-      <div className="flex h-full items-center justify-center text-red-500">
-        加载失败，请重试
-      </div>
+      <ErrorState
+        className="flex h-full flex-col items-center justify-center"
+        message="Loading failed, please try again"
+        retryText="Retry"
+        onRetry={() => {
+          void refetch();
+        }}
+      />
     );
   }
 
