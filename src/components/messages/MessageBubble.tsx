@@ -63,7 +63,7 @@ export const MessageBubble = ({
       >
         <div
           className={cn(
-            'relative px-4 py-2.5 text-sm rounded-2xl shadow-soft wrap-break-words',
+            'relative px-4 py-2.5 text-sm rounded-2xl shadow-soft wrap-anywhere',
             isMe
               ? 'rounded-tr-sm bg-primary text-primary-foreground'
               : 'rounded-tl-sm border border-gray-100 dark:border-gray-700/50 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100',
