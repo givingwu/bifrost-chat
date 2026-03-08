@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
@@ -9,6 +9,7 @@ import {
   MessageTypeEnum,
   type StandardMessage,
 } from '@/interfaces/message.interface';
+import { queryKeys } from '@/providers/query.provider';
 import { InfiniteMessageList } from './InfiniteMessageList';
 
 const useMessagesMock = vi.fn();
@@ -118,5 +119,91 @@ describe('InfiniteMessageList', () => {
       'mid-2',
     ]);
     expect(latestCall.messages[0]?.tempId).toBe('temp-mid-1');
+  });
+
+  it('打开会话时应只保留最新页缓存', async () => {
+    const queryClient = new QueryClient();
+    const queryKey = queryKeys.messages.list(
+      'conv-1',
+      ChannelTypeEnum.WhatsApp,
+    );
+
+    queryClient.setQueryData(queryKey, {
+      pages: [
+        {
+          items: [createMessage('latest-mid', 3000)],
+        },
+        {
+          items: [createMessage('older-mid', 2000)],
+        },
+      ],
+      pageParams: [1, 2],
+    });
+
+    useMessagesMock.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      error: null,
+      hasNextPage: false,
+      fetchNextPage: vi.fn(),
+      isFetchingNextPage: false,
+    });
+
+    render(
+      <InfiniteMessageList
+        conversationId="conv-1"
+        currentChannel={ChannelTypeEnum.WhatsApp}
+      />,
+      {
+        wrapper: createWrapper(queryClient),
+      },
+    );
+
+    await waitFor(() => {
+      expect(
+        queryClient.getQueryData<{
+          pages: Array<{ items: StandardMessage[] }>;
+          pageParams: unknown[];
+        }>(queryKey),
+      ).toEqual({
+        pages: [
+          {
+            items: [createMessage('latest-mid', 3000)],
+          },
+        ],
+        pageParams: [1],
+      });
+    });
+  });
+
+  it('打开会话时不应自动加载历史消息', () => {
+    const fetchNextPage = vi.fn();
+
+    useMessagesMock.mockReturnValue({
+      data: {
+        pages: [
+          {
+            items: [createMessage('mid-1', 2000)],
+          },
+        ],
+      },
+      isLoading: false,
+      error: null,
+      hasNextPage: true,
+      fetchNextPage,
+      isFetchingNextPage: false,
+    });
+
+    render(
+      <InfiniteMessageList
+        conversationId="conv-1"
+        currentChannel={ChannelTypeEnum.WhatsApp}
+      />,
+      {
+        wrapper: createWrapper(new QueryClient()),
+      },
+    );
+
+    expect(fetchNextPage).not.toHaveBeenCalled();
   });
 });

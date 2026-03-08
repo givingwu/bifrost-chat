@@ -2,7 +2,10 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef } from 'react';
 import { useMessages } from '@/hooks/use-messages.hook';
 import { queryKeys } from '@/providers/query.provider';
-import { MessageCacheHelper } from '@/services/message-cache-helper.service';
+import {
+  type InfiniteQueryData,
+  MessageCacheHelper,
+} from '@/services/message-cache-helper.service';
 import { MessageList } from './MessageList';
 
 export interface InfiniteMessageListProps {
@@ -80,17 +83,31 @@ export function InfiniteMessageList({
   const isNearBottomRef = useRef(true);
   const lastMessageCountRef = useRef(0);
 
-  // 当 conversationId 或 currentChannel 变化时，强制刷新消息列表
-  // 这确保了切换会话或渠道时能够加载完整的消息历史
+  // 当会话/渠道变化时，仅保留最新页并触发最新消息刷新。
+  // 打开会话应先看到最新消息，历史消息只在用户向上滚动时再继续加载。
   useEffect(() => {
     if (conversationId) {
+      const queryKey = queryKeys.messages.list(conversationId, currentChannel);
+
+      queryClient.setQueryData<InfiniteQueryData>(queryKey, (old) => {
+        if (!old || old.pages.length <= 1) {
+          return old;
+        }
+
+        return {
+          ...old,
+          pages: old.pages.slice(0, 1),
+          pageParams: old.pageParams.slice(0, 1),
+        };
+      });
+
       console.log(
-        '[InfiniteMessageList] 会话/渠道切换，强制刷新消息列表:',
+        '[InfiniteMessageList] 会话/渠道切换，仅保留最新页并刷新消息列表:',
         conversationId,
         currentChannel,
       );
       queryClient.invalidateQueries({
-        queryKey: queryKeys.messages.list(conversationId, currentChannel),
+        queryKey,
       });
     }
   }, [conversationId, currentChannel, queryClient]);
@@ -185,7 +202,6 @@ export function InfiniteMessageList({
       }
     };
 
-    handleScroll();
     element.addEventListener('scroll', handleScroll, { passive: true });
 
     return () => {
