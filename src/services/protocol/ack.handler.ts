@@ -32,6 +32,10 @@ export interface AckData {
   timestamp?: number;
 }
 
+interface AckCreateOptions {
+  requestId?: string;
+}
+
 /**
  * AckHandler - ACK 处理器
  *
@@ -86,9 +90,12 @@ export class AckHandler {
    * @param params 已读 ACK 参数
    * @returns RawPacket
    */
-  static createReadAck(params: AckPacketBody): AckRawPacket {
+  static createReadAck(
+    params: AckPacketBody,
+    options?: AckCreateOptions,
+  ): AckRawPacket {
     const ackPacket: AckRawPacket = {
-      id: MessageBuilder.generateUniqueId(),
+      id: options?.requestId ?? MessageBuilder.generateUniqueId(),
       chatId: params.chatId,
       from: {
         app: params.app,
@@ -118,9 +125,12 @@ export class AckHandler {
    * @param params 收到 ACK 参数
    * @returns RawPacket
    */
-  static createReceiveAck(params: AckPacketBody): AckRawPacket {
+  static createReceiveAck(
+    params: AckPacketBody,
+    options?: AckCreateOptions,
+  ): AckRawPacket {
     const ackPacket: AckRawPacket = {
-      id: MessageBuilder.generateUniqueId(),
+      id: options?.requestId ?? MessageBuilder.generateUniqueId(),
       chatId: params.chatId,
       from: {
         app: params.app,

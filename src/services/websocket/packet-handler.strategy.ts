@@ -10,7 +10,7 @@
 import type {
   BasePacketHandler,
   PacketHandlerContext,
-  WebSocketEventData,
+  PacketHandlerResult,
 } from '@/interfaces/websocket.interface';
 import { AckHandler, PacketValidator } from '@/services/protocol';
 import { HeartbeatManager } from '@/services/protocol/heartbeat.manager';
@@ -58,7 +58,7 @@ export class PacketHandlerStrategy {
    * @param context 处理器上下文
    * @returns 事件数据，如果没有匹配的处理器则返回 null
    */
-  handle(context: PacketHandlerContext): WebSocketEventData | null {
+  handle(context: PacketHandlerContext): PacketHandlerResult | null {
     const packetType = PacketValidator.getPType(context.packet);
 
     if (!packetType) {
@@ -79,7 +79,7 @@ export class PacketHandlerStrategy {
           return null;
         }
 
-        return result.eventData;
+        return result;
       }
     }
 

@@ -208,6 +208,12 @@ describe('MessageList markAsRead', () => {
         chatId: 'conv-mark-read',
         timestamp: expect.any(Number),
       }),
+      expect.objectContaining({
+        requestId: expect.any(String),
+        conversationId: 'conv-mark-read',
+        messageId: 'msg-visible',
+        channelType: ChannelTypeEnum.WhatsApp,
+      }),
     );
   });
 

@@ -141,6 +141,8 @@ export type AuthFailListener = (error: unknown) => void;
 export interface PacketHandlerResult {
   /** 事件数据 */
   eventData: WebSocketEventData | null;
+  /** 额外事件数据 */
+  extraEvents?: WebSocketEventData[];
   /** 是否应该继续处理 */
   shouldContinue: boolean;
 }

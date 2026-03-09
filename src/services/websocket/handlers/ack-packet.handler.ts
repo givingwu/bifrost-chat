@@ -8,13 +8,18 @@
  */
 
 import { MessageStatusEnum } from '@/interfaces/message.interface';
-import { PacketMessageTypeEnum } from '@/interfaces/protocol.interface';
+import {
+  AckMessageTypeEnum,
+  isPacketBodyRecord,
+  PacketMessageTypeEnum,
+} from '@/interfaces/protocol.interface';
 import {
   BasePacketHandler,
   type PacketHandlerContext,
   type PacketHandlerResult,
   WebSocketEventTypeEnum,
 } from '@/interfaces/websocket.interface';
+import { messageQueue } from '@/services/message-queue.service';
 import { pendingMessageTracker } from '@/services/pending-message-tracker.service';
 import { AckHandler } from '@/services/protocol';
 
@@ -52,6 +57,53 @@ export class AckPacketHandler extends BasePacketHandler {
     // 验证 ACK 类型
     if (!AckHandler.isValidAckType(ackData.body.type)) {
       console.error('Invalid ACK type:', ackData.body.type);
+      return { eventData: null, shouldContinue: false };
+    }
+
+    const queueResult = messageQueue.handleAck({
+      id: ackData.id,
+      ptype: packet.ptype,
+      mid: packet.mid,
+      chatId: packet.chatId,
+      channelType: packet.from.channelType ?? packet.to.channelType,
+      timestamp: ackData.timestamp ?? packet.timestamp,
+      body: isPacketBodyRecord(packet.body)
+        ? {
+            ...packet.body,
+            type: ackData.body.type,
+          }
+        : {
+            type: ackData.body.type,
+          },
+    });
+
+    if (queueResult.handled) {
+      this.cleanupMapping(ackData.id);
+
+      if (!queueResult.statusEvent) {
+        return {
+          eventData: null,
+          shouldContinue: false,
+        };
+      }
+
+      return {
+        eventData: this.createEventData(
+          WebSocketEventTypeEnum.MessageStatus,
+          queueResult.statusEvent,
+        ),
+        shouldContinue: true,
+      };
+    }
+
+    if (
+      ackData.body.type === AckMessageTypeEnum.MsgReceiveAck ||
+      ackData.body.type === AckMessageTypeEnum.MsgReadAck
+    ) {
+      console.warn('[AckPacketHandler] 队列未命中 ACK 回执关联，跳过状态更新', {
+        ackRequestId: ackData.id,
+        ackType: ackData.body.type,
+      });
       return { eventData: null, shouldContinue: false };
     }
 

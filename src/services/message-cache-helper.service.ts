@@ -1,5 +1,8 @@
 import type { QueryClient } from '@tanstack/react-query';
-import type { StandardMessage } from '@/interfaces/message.interface';
+import {
+  MessageStatusEnum,
+  type StandardMessage,
+} from '@/interfaces/message.interface';
 import { queryKeys } from '@/providers/query.provider';
 
 function normalizeComparableValue(value: unknown): unknown {
@@ -41,6 +44,76 @@ function mergeDefinedMessage(
   }
 
   return mergedMessage as unknown as StandardMessage;
+}
+
+const MESSAGE_STATUS_PRIORITY: Record<MessageStatusEnum, number> = {
+  [MessageStatusEnum.Created]: 0,
+  [MessageStatusEnum.Queued]: 0,
+  [MessageStatusEnum.Sending]: 1,
+  [MessageStatusEnum.Sent]: 2,
+  [MessageStatusEnum.Delivered]: 3,
+  [MessageStatusEnum.Read]: 4,
+  [MessageStatusEnum.Failed]: 1,
+  [MessageStatusEnum.Revoked]: 5,
+  [MessageStatusEnum.Deleted]: 5,
+};
+
+function shouldApplyStatusUpdate(
+  currentStatus: StandardMessage['status'] | undefined,
+  nextStatus: StandardMessage['status'] | undefined,
+): boolean {
+  if (!nextStatus) {
+    return false;
+  }
+
+  if (!currentStatus) {
+    return true;
+  }
+
+  if (currentStatus === nextStatus) {
+    return true;
+  }
+
+  if (nextStatus === MessageStatusEnum.Failed) {
+    return ![
+      MessageStatusEnum.Delivered,
+      MessageStatusEnum.Read,
+      MessageStatusEnum.Revoked,
+      MessageStatusEnum.Deleted,
+    ].includes(currentStatus);
+  }
+
+  if (currentStatus === MessageStatusEnum.Failed) {
+    return ![
+      MessageStatusEnum.Created,
+      MessageStatusEnum.Queued,
+      MessageStatusEnum.Sending,
+    ].includes(nextStatus);
+  }
+
+  return (
+    MESSAGE_STATUS_PRIORITY[nextStatus] >=
+    MESSAGE_STATUS_PRIORITY[currentStatus]
+  );
+}
+
+function mergeMessageUpdates(
+  currentMessage: StandardMessage,
+  updates: Partial<StandardMessage>,
+): StandardMessage {
+  const mergedMessage = {
+    ...currentMessage,
+    ...updates,
+  };
+
+  if (
+    'status' in updates &&
+    !shouldApplyStatusUpdate(currentMessage.status, updates.status)
+  ) {
+    mergedMessage.status = currentMessage.status;
+  }
+
+  return mergedMessage;
 }
 
 interface MessageIdentityMatch {
@@ -389,7 +462,7 @@ export class MessageCacheHelper {
             (messageId && msg.tempId === messageId) || // 处理 tempId 被更新为 messageId 的情况
             (tempId && msg.id === tempId);
 
-          return isMatch ? { ...msg, ...updates } : msg;
+          return isMatch ? mergeMessageUpdates(msg, updates) : msg;
         }),
       }));
 
