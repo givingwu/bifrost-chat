@@ -45,6 +45,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 优化 Container 组件的命名，避免冗余后缀
 
 ### Migration Guide
-详见 [`docs/naming-conventions.md`](docs/naming-conventions.md) v4 迁移指南。
+详见 [`design/naming-conventions.md`](design/naming-conventions.md) v4 迁移指南。
 
 ## [1.0.0] - 2025-02-04

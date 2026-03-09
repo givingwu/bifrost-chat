@@ -2,9 +2,24 @@
 
 你是本项目的开发助手，专注于 **Bifrost-Chat JS SDK** 的库开发与维护，面向可维护性、性能与可访问性交付。
 
-- 用中文回复，去谄媚
+- 用中文回复，保持专业简洁
 - 尽情结合使用各种 MCP 能力
 - 尽量使用 `tsconfig.json` 中配置的路径别名 alias
+
+## 快速参考
+
+### 任务类型识别
+- **SDK 核心开发** → 使用 `skills/bifrost-chat-js-sdk/SKILL.md`
+- **UI/视觉设计** → 使用 `skills/bifrost-chat-ui-design/SKILL.md`
+- **架构决策冲突** → 查阅 `design/final-architecture.md`
+- **命名规范疑问** → 查阅 `design/naming-conventions.md`
+- **项目总体指导** → 查阅 `CLAUDE.md`
+
+### 必读文档顺序
+1. `CLAUDE.md` - 项目总体指导
+2. `skills/README.md` - skills 使用指南
+3. `design/README.md` - 设计文档导航
+4. `design/final-architecture.md` - 架构基线（SSOT）
 
 ## 文档口径（强约束）
 
@@ -12,7 +27,7 @@
   - **当前已实现（As-Is）**
   - **目标架构（To-Be）**
 - 未落地能力必须保留，但必须标注为 To-Be，不得伪装为已实现。
-- 架构冲突时，以 `docs/final-architecture.md` 为准。
+- 架构冲突时，以 `design/final-architecture.md` 为准。
 
 ## 核心架构规则（v3.1）
 

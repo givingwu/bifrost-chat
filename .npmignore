@@ -14,7 +14,7 @@ vitest.config.ts
 vitest.setup.ts
 
 # Documentation
-docs/
+design/
 skills/
 specs/
 AGENTS.md

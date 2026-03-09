@@ -1,9 +1,27 @@
 ---
 name: bifrost-chat-js-sdk
+version: "1.0"
+author: "FEOF Team"
 description: 开发与维护 Bifrost-Chat JS SDK。用于接口抽象、依赖注入、React Query 与 Zustand 边界治理、Conversation 语义统一、Storybook/Vitest 联动与代码审查场景。
+language: "zh-CN"
 ---
 
 # Bifrost Chat JS SDK
+
+## 适用场景
+
+使用此 skill 的情况：
+- ✅ 新增或修改服务接口（IConversationService、IMessageService、ITemplateService）
+- ✅ 添加或修改 React Query hooks（useConversations、useMessages、useTemplates 等）
+- ✅ 创建或修改状态管理逻辑（Zustand store slices）
+- ✅ 调整组件逻辑但不涉及视觉变更
+- ✅ 实现 mutation 和 query 的 optimistic/rollback/success 更新
+- ✅ 处理依赖注入和服务实现
+
+不使用此 skill 的情况：
+- ❌ 仅调整样式和主题（使用 bifrost-chat-ui-design）
+- ❌ 仅创建视觉示例或 Storybook（使用 bifrost-chat-ui-design）
+- ❌ 纯视觉一致性检查（使用 bifrost-chat-ui-design）
 
 ## 执行目标
 
@@ -18,7 +36,9 @@ description: 开发与维护 Bifrost-Chat JS SDK。用于接口抽象、依赖�
 - `references/conventions.md`
 - `references/toolchain.md`
 - `references/themes.md`
-- `../../docs/final-architecture.md`
+- `../../design/final-architecture.md`（架构基线 - SSOT）
+- `../../design/naming-conventions.md`（命名规范）
+- `../../CLAUDE.md`（项目总体指导）
 
 ## 按流程实施
 
