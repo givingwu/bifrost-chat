@@ -24,16 +24,24 @@
 
 - 对外公开组件：`Topbar`、`AudioMessage`、`TemplatePanel` 等。
 - 对外公开 Hooks：
-  `useComposerDraft`、`useComposerShortcuts`、`useConversations`、
-  `useCreateConversation`、`useMarkAsRead`、`useMessages`、
-  `useSendMessage`、`useTemplates`、`useTotalUnread`、`useUnreadSync`。
+  `useConversations`、`useCreateConversation`、`useInViewport`、
+  `useMarkAsRead`、`useMessages`、`useSendMessage`、`useTemplates`、
+  `useTotalUnread`、`useUnreadSync`。
 - 对外公开 Providers：
   `ConfigProvider`、`I18nProvider`、`QueryProvider`、`ServiceProvider`。
 - 对外公开服务接口：
-  `IConversationService`、`IMessageService`、`ITemplateService`。
+  `IConversationService`、`IMessageService`、`ITemplateService`、
+  `INetworkService`。
 
 未从包入口公开（仅仓库内部能力）：
 
+- `TemplatePicker`
+- `Tooltip`
+- `SDKConfig` / `ChatSDK`
+- `clearSDK`
+- `MessageBuilder`
+- `MessageCacheHelper`
+- `MessageSyncService`
 - `useWebSocket`
 - `createWebSocketMessageHandler`
 - `useTranslation`

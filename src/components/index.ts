@@ -17,7 +17,6 @@ export { ComposerVoice } from './composer/ComposerVoice';
 export { EmojiPicker } from './composer/EmojiPicker';
 export { EmojiPickerButton } from './composer/EmojiPickerButton';
 export { MentionPicker } from './composer/MentionPicker';
-export { TemplatePicker } from './composer/TemplatePicker';
 // Conversation Components
 export { ConversationAvatar } from './conversation/ConversationAvatar';
 export { ConversationHeader } from './conversation/ConversationHeader';
@@ -56,7 +55,6 @@ export { ProfileHeader } from './profile/ProfileHeader';
 export { ProfileInfoList } from './profile/ProfileInfoList';
 export { ProfileSectionTitle } from './profile/ProfileSectionTitle';
 export { SearchInput } from './SearchInput';
-export { Tooltip } from './Tooltip';
 // Template components
 export { TemplateCategoryButton } from './template/TemplateCategoryButton';
 export { TemplateHeader } from './template/TemplateHeader';

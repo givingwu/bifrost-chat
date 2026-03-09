@@ -274,36 +274,21 @@ export function App() {
 
 ### 组件
 
-- 基础：`Avatar`、`Button`、`IconButton`、`Image`、`SearchInput`
-- 布局：`ChatContainer`、`ChatLayout`、`DefaultChatLayout`
-- 会话：`ConversationList`、`ConversationItem`、`ConversationHeader`、
-  `ConversationAvatar`、`ConversationPanel`
-- 消息：`MessageList`、`InfiniteMessageList`、`MessageBubble`、
-  `MessageRendererFactory`、`MessageContentRenderer`、`MessageTimestamp`、
-  `StatusIndicator`、`TextMessage`、`ImageMessage`、`AudioMessage`、
-  `VideoMessage`、`FileMessage`、`LocationMessage`、`RichMediaMessage`、
-  `WhatsAppMessage`、`UnsupportedMessage`
-- 输入区：`ComposerInput`、`ComposerActions`、`ComposerAttachments`、
-  `ComposerToolbar`、`ComposerWithSend`、`AttachmentPreview`、`ComposerHint`、
-  `EmojiPicker`、`MentionPicker`、`TemplatePicker`
-- 模板：`TemplateHeader`、`TemplateCategoryButton`、`TemplateSearch`、
-  `TemplateList`、`TemplatePanel`
-- 画像：`Profile`、`ProfileHeader`、`ProfileInfoList`、`ProfileSectionTitle`
-- 工具栏：`Topbar`、`TopbarTools`、`ChannelBadge`、`ChannelButtonFactory`、
-  `ChannelFilter`、`LanguageSwitcher`、`ThemeSwitcher`、`NetworkStatus`
-- 状态反馈：`LoadingState`、`EmptyState`、`ErrorState`
+- 组件导出以 `src/components/index.ts` 为准。
+- 当前公开范围覆盖基础组件、布局组件、Conversation 组件、消息组件、
+  Composer 组件、Template 组件、Profile 组件和 Toolbar 组件。
+- `TemplatePicker`、`Tooltip` 不再属于公开导出。
 
 ### Hooks
 
-- `useComposerDraft`
-- `useComposerShortcuts`
 - `useConversations`
 - `useCreateConversation`
+- `useInViewport`
 - `useMarkAsRead`
 - `useMessages`
 - `useSendMessage`
-- `useTotalUnread`
 - `useTemplates`
+- `useTotalUnread`
 - `useUnreadSync`
 
 ### Providers
@@ -315,23 +300,30 @@ export function App() {
 
 ### 类型与服务接口
 
-- 全部导出的接口定义见：
-  `src/interfaces/*.interface.ts`
-- 服务接口：
-  `IConversationService`、`IMessageService`、`ITemplateService`
+- 业务实体与服务接口类型以 `src/index.ts` 为准。
+- 当前公开服务接口：`IConversationService`、`IMessageService`、
+  `ITemplateService`、`INetworkService`
+- `SDKConfig`、`ChatSDK`、`WebSocket*` 相关类型不属于当前公开 API。
 
 ### Store 与工具
 
 - Store：`useChatStore`、`configureChatStore`、`useStrategy`、`useNetwork`、
   `useTheme`、`useLanguage`、`useConversation`、`useProfile`、
   `useComposerConfig`、`useActions`
-- 工具：`cn`、`MessageBuilder`、`formatTimestamp`
+- 工具：`cn`、`formatTimestamp`、`formatDuration`、`createStorageHelper`
 - 语言包：`enUSMessages`、`zhCNMessages`
 
 ## 内部能力说明（未从包入口导出）
 
 以下能力在仓库内部可用，但不属于当前公开 API：
 
+- `TemplatePicker`
+- `Tooltip`
+- `SDKConfig` / `ChatSDK`
+- `clearSDK`
+- `MessageBuilder`
+- `MessageCacheHelper`
+- `MessageSyncService`
 - `useWebSocket`
 - `createWebSocketMessageHandler`
 - `useTranslation`

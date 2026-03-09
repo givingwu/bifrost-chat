@@ -39,10 +39,8 @@ export * from '@/interfaces/network.interface';
 export * from '@/interfaces/offline-message.interface';
 export * from '@/interfaces/profile.interface';
 export * from '@/interfaces/protocol.interface';
-export * from '@/interfaces/sdk.interface';
 export * from '@/interfaces/template.interface';
 export * from '@/interfaces/theme.interface';
-export * from '@/interfaces/websocket.interface';
 
 // Locales
 export { default as enUSMessages } from '@/locales/en-US.json';
@@ -61,19 +59,12 @@ export * from '@/providers/service.provider';
 // Service Interfaces
 export * from '@/services/conversation.service';
 export * from '@/services/message.service';
-export * from '@/services/message-builder.service';
-export * from '@/services/message-cache-helper.service';
-export * from '@/services/message-sync.service';
 export * from '@/services/network.service';
-// Protocol Layer
-export * from '@/services/protocol';
 export * from '@/services/template.service';
-export * from '@/services/websocket';
 
 // Store
 export * from '@/store';
 // Utils
 export * from '@/utils/class.util';
-export * from '@/utils/sdk-cleanup.util';
 export * from '@/utils/storage.util';
 export * from '@/utils/time.util';
