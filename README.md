@@ -310,7 +310,8 @@ export function App() {
 - Store：`useChatStore`、`configureChatStore`、`useStrategy`、`useNetwork`、
   `useTheme`、`useLanguage`、`useConversation`、`useProfile`、
   `useComposerConfig`、`useActions`
-- 工具：`cn`、`formatTimestamp`、`formatDuration`、`createStorageHelper`
+- 工具：`cn`、`formatTimestamp`、`formatDuration`、`createStorageHelper`、
+  `clearSDK`
 - 语言包：`enUSMessages`、`zhCNMessages`
 
 ## 内部能力说明（未从包入口导出）
@@ -320,13 +321,19 @@ export function App() {
 - `TemplatePicker`
 - `Tooltip`
 - `SDKConfig` / `ChatSDK`
-- `clearSDK`
 - `MessageBuilder`
 - `MessageCacheHelper`
 - `MessageSyncService`
 - `useWebSocket`
 - `createWebSocketMessageHandler`
 - `useTranslation`
+
+兼容迁移说明：
+
+- `clearSDK()` 已恢复导出，用于兼容既有接入方。
+- 新代码建议显式调用 `resetChatStore()` +
+  `clearQueryCache(queryClient)`，只在需要清理草稿时再传
+  `clearStorage: true`。
 
 如需对外开放，建议先在 `design/final-architecture.md` 中完成设计评审。
 
