@@ -96,10 +96,12 @@ export class AckPacketHandler extends BasePacketHandler {
       };
     }
 
-    if (
-      ackData.body.type === AckMessageTypeEnum.MsgReceiveAck ||
-      ackData.body.type === AckMessageTypeEnum.MsgReadAck
-    ) {
+    const isReceiptAckWithoutStatus =
+      !('status' in ackData.body) &&
+      (ackData.body.type === AckMessageTypeEnum.MsgReceiveAck ||
+        ackData.body.type === AckMessageTypeEnum.MsgReadAck);
+
+    if (isReceiptAckWithoutStatus) {
       console.warn('[AckPacketHandler] 队列未命中 ACK 回执关联，跳过状态更新', {
         ackRequestId: ackData.id,
         ackType: ackData.body.type,
@@ -107,67 +109,55 @@ export class AckPacketHandler extends BasePacketHandler {
       return { eventData: null, shouldContinue: false };
     }
 
-    // 获取 conversationId：优先使用 packet.chatId，否则从映射表查找
-    const conversationId = this.resolveConversationId(packet, ackData.id);
+    const messageId = ackData.body.id ?? ackData.id;
+
+    // 获取 conversationId：优先使用 body.chatId / packet.chatId，否则从映射表查找
+    const conversationId = this.resolveConversationId(
+      packet,
+      messageId,
+      ackData.body.chatId,
+    );
 
     if (!conversationId) {
       console.warn('[AckPacketHandler] 无法确定 conversationId，跳过状态更新', {
-        messageId: ackData.id,
+        messageId,
         packetChatId: packet.chatId,
+        bodyChatId: ackData.body.chatId,
         bodyType: ackData.body.type,
       });
       return { eventData: null, shouldContinue: false };
     }
 
+    const resolvedStatus = AckHandler.ackDataToMessageStatus(ackData);
+
+    if (!resolvedStatus) {
+      console.warn('[AckPacketHandler] 无法解析状态回调，跳过状态更新', {
+        messageId,
+        ackType: ackData.body.type,
+        callbackStatus: ackData.body.status,
+      });
+      return { eventData: null, shouldContinue: false };
+    }
+
     // 处理完成后移除映射（无论成功与否）
-    this.cleanupMapping(ackData.id);
+    this.cleanupMapping(messageId);
 
     // 构建 ACK 事件数据
     const ackEventData = {
       conversationId,
-      messageId: ackData.id,
+      messageId,
       channelType: packet.from.channelType ?? packet.to.channelType,
       timestamp: ackData.timestamp ?? Date.now(),
     };
 
-    // 处理发送失败 ACK
-    if (AckHandler.isSendFailedAck(packet)) {
-      return {
-        eventData: this.createEventData(WebSocketEventTypeEnum.MessageStatus, {
-          ...ackEventData,
-          status: MessageStatusEnum.Failed,
-        }),
-        shouldContinue: true,
-      };
-    }
-
-    // 处理客户端已收
-    if (AckHandler.isReceiveAck(packet)) {
-      return {
-        eventData: this.createEventData(WebSocketEventTypeEnum.MessageStatus, {
-          ...ackEventData,
-          status: MessageStatusEnum.Delivered,
-        }),
-        shouldContinue: true,
-      };
-    }
-
-    // 处理客户端已读
-    if (AckHandler.isReadAck(packet)) {
-      return {
-        eventData: this.createEventData(WebSocketEventTypeEnum.MessageStatus, {
-          ...ackEventData,
-          status: MessageStatusEnum.Read,
-        }),
-        shouldContinue: true,
-      };
-    }
-
-    // 其他 ACK 类型
     return {
       eventData: this.createEventData(WebSocketEventTypeEnum.MessageStatus, {
         ...ackEventData,
-        status: AckHandler.ackTypeToMessageStatus(ackData.body.type),
+        status: resolvedStatus,
+        ...(resolvedStatus === MessageStatusEnum.Failed &&
+        ackData.body.errorInfo
+          ? { error: ackData.body.errorInfo }
+          : {}),
       }),
       shouldContinue: true,
     };
@@ -186,7 +176,12 @@ export class AckPacketHandler extends BasePacketHandler {
   private resolveConversationId(
     packet: Parameters<typeof this.extractChatId>[0],
     messageId: string,
+    bodyChatId?: string,
   ): string | undefined {
+    if (bodyChatId) {
+      return bodyChatId;
+    }
+
     // 优先使用 packet.chatId
     const packetChatId = this.extractChatId(packet);
     if (packetChatId) {

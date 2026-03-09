@@ -18,6 +18,8 @@ import {
 } from '@/interfaces/message-queue.interface';
 import {
   AckMessageTypeEnum,
+  isServerMessageStatus,
+  mapServerMessageStatusToLocal,
   PacketMessageTypeEnum,
 } from '@/interfaces/protocol.interface';
 import type { MessageStatusUpdatedEvent } from '@/services/message.service';
@@ -30,7 +32,7 @@ const DEFAULT_CONFIG: Required<MessageQueueConfig> = {
   orphanFoxAckMaxAge: 30000,
 };
 
-type OrphanFoxAckEntry = {
+type OrphanStatusAckEntry = {
   ackData: AckData;
   storedAt: number;
 };
@@ -40,16 +42,16 @@ const RECEIPT_ACK_TYPES = new Set<string>([
   AckMessageTypeEnum.MsgReadAck,
 ]);
 
-const FOX_ACK_STATUS_PRIORITY: Record<MessageStatusEnum, number> = {
+const OUTGOING_STATUS_PRIORITY: Record<MessageStatusEnum, number> = {
   [MessageStatusEnum.Created]: 0,
   [MessageStatusEnum.Queued]: 0,
   [MessageStatusEnum.Sending]: 1,
   [MessageStatusEnum.Sent]: 2,
   [MessageStatusEnum.Delivered]: 3,
   [MessageStatusEnum.Read]: 4,
-  [MessageStatusEnum.Failed]: -1,
-  [MessageStatusEnum.Revoked]: -1,
-  [MessageStatusEnum.Deleted]: -1,
+  [MessageStatusEnum.Failed]: 1,
+  [MessageStatusEnum.Revoked]: 5,
+  [MessageStatusEnum.Deleted]: 5,
 };
 
 function toServerMessageId(value: unknown): string | undefined {
@@ -93,7 +95,7 @@ function isReceiptAckItem(item: MessageQueueItem): item is ReceiptAckQueueItem {
   return item.kind === 'receipt_ack';
 }
 
-function shouldKeepExistingFoxStatus(
+function shouldKeepExistingOutgoingStatus(
   current: MessageStatusEnum | undefined,
   next: MessageStatusEnum,
 ): boolean {
@@ -101,7 +103,7 @@ function shouldKeepExistingFoxStatus(
     return false;
   }
 
-  return FOX_ACK_STATUS_PRIORITY[current] >= FOX_ACK_STATUS_PRIORITY[next];
+  return OUTGOING_STATUS_PRIORITY[current] >= OUTGOING_STATUS_PRIORITY[next];
 }
 
 export class MessageQueueService {
@@ -116,7 +118,10 @@ export class MessageQueueService {
     string,
     ReceiptAckQueueItem
   >();
-  private readonly orphanFoxAcksByMid = new Map<string, OrphanFoxAckEntry[]>();
+  private readonly orphanStatusAcksByMessageId = new Map<
+    string,
+    OrphanStatusAckEntry[]
+  >();
   private readonly subscribers = new Set<MessageQueueCallback>();
   private timeoutChecker: ReturnType<typeof setInterval> | null = null;
 
@@ -270,7 +275,7 @@ export class MessageQueueService {
     item.updatedAt = Date.now();
     this.serverMessageIdToTempId.set(normalizedServerMessageId, item.tempId);
 
-    return this.replayOrphanFoxAcks(item, normalizedServerMessageId);
+    return this.replayOrphanStatusAcks(item, normalizedServerMessageId);
   }
 
   handleAck(ackData: AckData): MessageQueueAckResult {
@@ -280,7 +285,7 @@ export class MessageQueueService {
       ackData.ptype === PacketMessageTypeEnum.FoxMessageAck ||
       ackType === PacketMessageTypeEnum.FoxMessageAck
     ) {
-      return this.handleFoxMessageAck(ackData);
+      return this.handleDeliveryStatusAck(ackData);
     }
 
     if (
@@ -288,6 +293,10 @@ export class MessageQueueService {
       ackType === AckMessageTypeEnum.MsgSendFailed
     ) {
       return this.handleOutgoingAck(ackData);
+    }
+
+    if ('status' in ackData.body) {
+      return this.handleDeliveryStatusAck(ackData);
     }
 
     if (RECEIPT_ACK_TYPES.has(ackType)) {
@@ -439,7 +448,7 @@ export class MessageQueueService {
     this.requestIdToTempId.clear();
     this.serverMessageIdToTempId.clear();
     this.receiptByAckRequestId.clear();
-    this.orphanFoxAcksByMid.clear();
+    this.orphanStatusAcksByMessageId.clear();
   }
 
   subscribe(callback: MessageQueueCallback): () => void {
@@ -496,7 +505,12 @@ export class MessageQueueService {
         ? MessageQueueStageEnum.Failed
         : MessageQueueStageEnum.PendingChannelReceipt;
 
-    const event = this.transitionOutgoingItem(item, nextStage, nextStatus);
+    const event = this.transitionOutgoingItem(
+      item,
+      nextStage,
+      nextStatus,
+      ackData,
+    );
 
     const resolvedServerMessageId =
       toServerMessageId(ackData.body.mid) ?? toServerMessageId(ackData.mid);
@@ -543,44 +557,52 @@ export class MessageQueueService {
     return { handled: true, statusEvent: event };
   }
 
-  private handleFoxMessageAck(ackData: AckData): MessageQueueAckResult {
-    const serverMessageId =
-      toServerMessageId(ackData.body.mid) ?? toServerMessageId(ackData.mid);
-
-    if (!serverMessageId) {
+  private handleDeliveryStatusAck(ackData: AckData): MessageQueueAckResult {
+    const targetMessageId = this.resolveAckTargetMessageId(ackData);
+    if (!targetMessageId) {
       return { handled: false };
     }
 
-    const item = this.findByServerMessageId(serverMessageId);
+    const item = this.findOutgoing(targetMessageId);
     if (!item) {
-      this.storeOrphanFoxAck(serverMessageId, ackData);
+      this.storeOrphanStatusAck(targetMessageId, ackData);
       return { handled: false };
     }
 
-    return this.applyFoxStatus(item, ackData);
+    return this.applyDeliveryStatus(item, ackData);
   }
 
-  private applyFoxStatus(
+  private applyDeliveryStatus(
     item: OutgoingMessageQueueItem,
     ackData: AckData,
   ): MessageQueueAckResult {
-    const nextStatus = this.resolveFoxMessageStatus(ackData);
+    const nextStatus = this.resolveDeliveryStatus(ackData);
     if (!nextStatus) {
       return { handled: false };
     }
 
-    if (shouldKeepExistingFoxStatus(item.rawMessage?.status, nextStatus)) {
+    if (shouldKeepExistingOutgoingStatus(item.rawMessage?.status, nextStatus)) {
       return { handled: true };
     }
 
     const nextStage =
-      nextStatus === MessageStatusEnum.Delivered
-        ? MessageQueueStageEnum.Delivered
-        : nextStatus === MessageStatusEnum.Read
-          ? MessageQueueStageEnum.Completed
-          : MessageQueueStageEnum.Failed;
+      nextStatus === MessageStatusEnum.Sending ||
+      nextStatus === MessageStatusEnum.Sent
+        ? MessageQueueStageEnum.PendingChannelReceipt
+        : nextStatus === MessageStatusEnum.Delivered
+          ? MessageQueueStageEnum.Delivered
+          : nextStatus === MessageStatusEnum.Read ||
+              nextStatus === MessageStatusEnum.Revoked ||
+              nextStatus === MessageStatusEnum.Deleted
+            ? MessageQueueStageEnum.Completed
+            : MessageQueueStageEnum.Failed;
 
-    const event = this.transitionOutgoingItem(item, nextStage, nextStatus);
+    const event = this.transitionOutgoingItem(
+      item,
+      nextStage,
+      nextStatus,
+      ackData,
+    );
 
     if (
       nextStage === MessageQueueStageEnum.Completed ||
@@ -596,6 +618,7 @@ export class MessageQueueService {
     item: OutgoingMessageQueueItem,
     nextStage: OutgoingMessageQueueItem['stage'],
     nextStatus: MessageStatusEnum,
+    ackData?: AckData,
   ): MessageStatusUpdatedEvent {
     const oldStage = item.stage;
     item.stage = nextStage;
@@ -618,13 +641,22 @@ export class MessageQueueService {
       tempId: item.tempId,
       channelType: item.channelType,
       status: nextStatus,
+      ...(this.extractErrorInfo(ackData)
+        ? { error: this.extractErrorInfo(ackData) }
+        : {}),
       timestamp: item.updatedAt,
     };
   }
 
-  private resolveFoxMessageStatus(
+  private resolveDeliveryStatus(
     ackData: AckData,
   ): MessageStatusEnum | undefined {
+    if ('status' in ackData.body) {
+      return isServerMessageStatus(ackData.body.status)
+        ? mapServerMessageStatusToLocal(ackData.body.status)
+        : undefined;
+    }
+
     const sendResult = ackData.body.sendResult;
     if (typeof sendResult === 'string') {
       switch (sendResult) {
@@ -655,20 +687,37 @@ export class MessageQueueService {
     }
   }
 
-  private replayOrphanFoxAcks(
+  private resolveAckTargetMessageId(ackData: AckData): string | undefined {
+    return (
+      toServerMessageId(ackData.body.id) ??
+      toServerMessageId(ackData.body.mid) ??
+      toServerMessageId(ackData.mid) ??
+      toServerMessageId(ackData.id)
+    );
+  }
+
+  private extractErrorInfo(ackData?: AckData): string | undefined {
+    if (!ackData || typeof ackData.body.errorInfo !== 'string') {
+      return undefined;
+    }
+
+    return ackData.body.errorInfo || undefined;
+  }
+
+  private replayOrphanStatusAcks(
     item: OutgoingMessageQueueItem,
-    serverMessageId: string,
+    messageId: string,
   ): MessageStatusUpdatedEvent[] {
-    const orphanEntries = this.orphanFoxAcksByMid.get(serverMessageId);
+    const orphanEntries = this.orphanStatusAcksByMessageId.get(messageId);
     if (!orphanEntries || orphanEntries.length === 0) {
       return [];
     }
 
-    this.orphanFoxAcksByMid.delete(serverMessageId);
+    this.orphanStatusAcksByMessageId.delete(messageId);
 
     const events: MessageStatusUpdatedEvent[] = [];
     for (const orphanEntry of orphanEntries) {
-      const result = this.applyFoxStatus(item, orphanEntry.ackData);
+      const result = this.applyDeliveryStatus(item, orphanEntry.ackData);
       if (result.statusEvent) {
         events.push(result.statusEvent);
       }
@@ -683,13 +732,13 @@ export class MessageQueueService {
     return events;
   }
 
-  private storeOrphanFoxAck(serverMessageId: string, ackData: AckData): void {
-    const entries = this.orphanFoxAcksByMid.get(serverMessageId) ?? [];
+  private storeOrphanStatusAck(messageId: string, ackData: AckData): void {
+    const entries = this.orphanStatusAcksByMessageId.get(messageId) ?? [];
     entries.push({
       ackData,
       storedAt: Date.now(),
     });
-    this.orphanFoxAcksByMid.set(serverMessageId, entries);
+    this.orphanStatusAcksByMessageId.set(messageId, entries);
   }
 
   private startTimeoutChecker(): void {
@@ -698,7 +747,7 @@ export class MessageQueueService {
     }
 
     this.timeoutChecker = setInterval(() => {
-      this.cleanupExpiredOrphanFoxAcks();
+      this.cleanupExpiredOrphanStatusAcks();
       this.handleTimeouts();
     }, this.config.timeoutCheckInterval);
   }
@@ -710,18 +759,18 @@ export class MessageQueueService {
     }
   }
 
-  private cleanupExpiredOrphanFoxAcks(): void {
+  private cleanupExpiredOrphanStatusAcks(): void {
     const now = Date.now();
 
-    for (const [serverMessageId, entries] of this.orphanFoxAcksByMid) {
+    for (const [messageId, entries] of this.orphanStatusAcksByMessageId) {
       const nextEntries = entries.filter(
         (entry) => now - entry.storedAt <= this.config.orphanFoxAckMaxAge,
       );
 
       if (nextEntries.length === 0) {
-        this.orphanFoxAcksByMid.delete(serverMessageId);
+        this.orphanStatusAcksByMessageId.delete(messageId);
       } else {
-        this.orphanFoxAcksByMid.set(serverMessageId, nextEntries);
+        this.orphanStatusAcksByMessageId.set(messageId, nextEntries);
       }
     }
   }

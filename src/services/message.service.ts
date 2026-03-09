@@ -26,6 +26,8 @@ export interface MessageStatusUpdate {
   channelType?: StandardMessage['channelType'];
   /** 新状态 */
   status: StandardMessage['status'];
+  /** 错误信息（可选，常用于失败回调） */
+  error?: StandardMessage['error'];
   /** 更新时间戳 */
   timestamp: number;
 }

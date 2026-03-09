@@ -170,6 +170,105 @@ describe('MessageQueueService', () => {
     expect(queue.findByTempId('temp-123')).toBeUndefined();
   });
 
+  it('应处理 msg_read_ack 状态回调并将消息更新为 delivered', () => {
+    queue.register({
+      requestId: 'req-123',
+      tempId: 'temp-123',
+      conversationId: 'conv-456',
+    });
+    queue.bindServerMessageId('temp-123', '789');
+
+    const result = queue.handleAck({
+      id: '789',
+      ptype: PacketMessageTypeEnum.Ack,
+      body: {
+        type: AckMessageTypeEnum.MsgReadAck,
+        id: '789',
+        status: 'UN_READ',
+      },
+      timestamp: 5_000,
+    });
+
+    expect(result.handled).toBe(true);
+    expect(result.statusEvent).toEqual({
+      conversationId: 'conv-456',
+      messageId: '789',
+      tempId: 'temp-123',
+      channelType: undefined,
+      status: MessageStatusEnum.Delivered,
+      timestamp: expect.any(Number),
+    });
+    expect(queue.findByTempId('temp-123')?.stage).toBe(
+      MessageQueueStageEnum.Delivered,
+    );
+  });
+
+  it('应缓存并回放乱序到达的 msg_read_ack 状态回调', () => {
+    queue.register({
+      requestId: 'req-123',
+      tempId: 'temp-123',
+      conversationId: 'conv-456',
+    });
+
+    const firstResult = queue.handleAck({
+      id: '789',
+      ptype: PacketMessageTypeEnum.Ack,
+      body: {
+        type: AckMessageTypeEnum.MsgReadAck,
+        id: '789',
+        status: 'READ',
+      },
+      timestamp: 6_000,
+    });
+
+    expect(firstResult.handled).toBe(false);
+
+    const replayedEvents = queue.bindServerMessageId('temp-123', '789');
+    expect(replayedEvents).toHaveLength(1);
+    expect(replayedEvents[0]).toEqual({
+      conversationId: 'conv-456',
+      messageId: '789',
+      tempId: 'temp-123',
+      channelType: undefined,
+      status: MessageStatusEnum.Read,
+      timestamp: expect.any(Number),
+    });
+    expect(queue.findByTempId('temp-123')).toBeUndefined();
+  });
+
+  it('应将 DELIVER_FAIL 状态回调映射为 failed，并透传错误信息', () => {
+    queue.register({
+      requestId: 'req-123',
+      tempId: 'temp-123',
+      conversationId: 'conv-456',
+    });
+    queue.bindServerMessageId('temp-123', '789');
+
+    const result = queue.handleAck({
+      id: '789',
+      ptype: PacketMessageTypeEnum.Ack,
+      body: {
+        type: AckMessageTypeEnum.MsgReadAck,
+        id: '789',
+        status: 'DELIVER_FAIL',
+        errorInfo: 'supplier timeout',
+      },
+      timestamp: 7_000,
+    });
+
+    expect(result.handled).toBe(true);
+    expect(result.statusEvent).toEqual({
+      conversationId: 'conv-456',
+      messageId: '789',
+      tempId: 'temp-123',
+      channelType: undefined,
+      status: MessageStatusEnum.Failed,
+      error: 'supplier timeout',
+      timestamp: expect.any(Number),
+    });
+    expect(queue.findByTempId('temp-123')).toBeUndefined();
+  });
+
   it('应返回超时的 outgoing 与 receipt 项', () => {
     queue.register({
       requestId: 'req-123',

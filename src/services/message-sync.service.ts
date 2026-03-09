@@ -77,6 +77,7 @@ export class MessageSyncService {
       id: event.messageId,
       tempId: event.tempId,
       status: event.status,
+      ...(event.error !== undefined ? { error: event.error } : {}),
     };
 
     // 1) 始终兼容无 channel 的缓存

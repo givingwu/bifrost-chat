@@ -249,6 +249,34 @@ describe('MessageSyncService', () => {
     );
   });
 
+  it('状态事件携带 error 时应一并更新消息错误信息', () => {
+    const updateSpy = vi.spyOn(MessageCacheHelper, 'updateMessageInCache');
+
+    const syncService = new MessageSyncService(queryClient);
+
+    syncService.updateMessageStatus({
+      conversationId: 'conv-1',
+      messageId: 'msg-1',
+      status: MessageStatusEnum.Failed,
+      error: 'provider rejected',
+      timestamp: Date.now(),
+    });
+
+    expect(updateSpy).toHaveBeenNthCalledWith(
+      1,
+      queryClient,
+      'conv-1',
+      {
+        id: 'msg-1',
+        tempId: undefined,
+        status: MessageStatusEnum.Failed,
+        error: 'provider rejected',
+      },
+      'msg-1',
+      undefined,
+    );
+  });
+
   it('状态事件缺失 channelType 时不应更新分片缓存', () => {
     const updateSpy = vi.spyOn(MessageCacheHelper, 'updateMessageInCache');
 

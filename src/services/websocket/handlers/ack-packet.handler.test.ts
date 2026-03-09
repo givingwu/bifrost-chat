@@ -194,6 +194,35 @@ describe('AckPacketHandler', () => {
       expect(result.shouldContinue).toBe(false);
     });
 
+    it('队列未命中时，应使用 body.status/body.id 处理新的状态回调', () => {
+      const packet: RawPacket = {
+        id: 'ack-status-1',
+        chatId: null as unknown as string,
+        ptype: PacketMessageTypeEnum.Ack,
+        from: { app: 'test', pin: 'server' },
+        to: { app: 'test', pin: 'user' },
+        body: {
+          type: AckMessageTypeEnum.MsgReadAck,
+          id: 'msg-origin-1',
+          chatId: 'conv-456',
+          status: 'DELIVER_FAIL',
+          errorInfo: 'provider rejected',
+        } as unknown as RawPacket['body'],
+        ver: '1.0',
+        timestamp: Date.now(),
+      };
+
+      const result = handler.handle({ packet });
+
+      expect(result.eventData).not.toBeNull();
+      expect(getStatusEventData(result).messageId).toBe('msg-origin-1');
+      expect(getStatusEventData(result).conversationId).toBe('conv-456');
+      expect(getStatusEventData(result).status).toBe(MessageStatusEnum.Failed);
+      expect((result.eventData?.data as MessageStatusUpdatedEvent).error).toBe(
+        'provider rejected',
+      );
+    });
+
     it('应该正确处理 msg_send_failed 类型', () => {
       const packet: RawPacket = {
         id: 'msg-123',

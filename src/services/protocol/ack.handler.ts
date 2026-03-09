@@ -9,12 +9,16 @@ import type {
 import {
   AckMessageTypeEnum,
   isPacketBodyRecord,
+  isServerMessageStatus,
+  mapServerMessageStatusToLocal,
   PacketMessageTypeEnum,
 } from '@/interfaces/protocol.interface';
 import { MessageBuilder } from '@/services/message-builder.service';
-
-// Re-export AckMessageTypeEnum for external use
-export { AckMessageTypeEnum } from '@/interfaces/protocol.interface';
+import {
+  buildOptionalFields,
+  extractMessageId,
+  extractTimestamp,
+} from '@/utils/packet.util';
 
 /**
  * ACK 数据结构（下行）
@@ -27,6 +31,11 @@ export interface AckData {
   /** Body */
   body: {
     type: string;
+    id?: string;
+    chatId?: string;
+    sender?: string;
+    status?: string;
+    errorInfo?: string;
   };
   /** 时间戳 */
   timestamp?: number;
@@ -169,8 +178,7 @@ export class AckHandler {
       return null;
     }
 
-    // 检查是否有 id 和 body
-    if (!packet.id || !packet.body) {
+    if (!packet.body) {
       return null;
     }
 
@@ -181,15 +189,30 @@ export class AckHandler {
       return null;
     }
 
-    // 处理 timestamp - 如果是数字则使用，否则返回 undefined
-    const timestamp =
-      typeof packet.timestamp === 'number' ? packet.timestamp : undefined;
+    const messageId = extractMessageId(
+      packet.id,
+      packet.body.id,
+      packet.body.mid,
+    );
+
+    if (!messageId) {
+      return null;
+    }
+
+    const timestamp = extractTimestamp(packet.timestamp, packet.body.timestamp);
 
     return {
-      id: packet.id as string,
+      id: messageId,
       ptype: packet.ptype as PacketMessageTypeEnum,
       body: {
         type: packet.body.type,
+        ...buildOptionalFields({
+          id: packet.body.id,
+          chatId: packet.body.chatId,
+          sender: packet.body.sender,
+          status: packet.body.status,
+          errorInfo: packet.body.errorInfo,
+        }),
       },
       timestamp,
     };
@@ -230,6 +253,28 @@ export class AckHandler {
       default:
         return MessageStatusEnum.Sent;
     }
+  }
+
+  /**
+   * 解析 ACK/状态回调对应的消息状态
+   *
+   * @description
+   * 新版状态回调会通过 body.status 携带真实状态，此时应优先使用
+   * body.status，而不是仅凭 body.type 推断。
+   *
+   * @param ackData ACK 数据
+   * @returns 消息状态；若 body.status 非法则返回 undefined
+   */
+  static ackDataToMessageStatus(
+    ackData: AckData,
+  ): MessageStatusEnum | undefined {
+    if (ackData.body.status !== undefined) {
+      return isServerMessageStatus(ackData.body.status)
+        ? mapServerMessageStatusToLocal(ackData.body.status)
+        : undefined;
+    }
+
+    return AckHandler.ackTypeToMessageStatus(ackData.body.type);
   }
 
   /**
