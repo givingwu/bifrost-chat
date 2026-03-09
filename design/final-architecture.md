@@ -35,13 +35,15 @@
 - 对外公开兼容清理入口：
   `clearSDK`（兼容 API，推荐新代码改用 `resetChatStore` +
   `clearQueryCache` 组合）。
+- 对外公开兼容协议/实时能力：
+  `MessageBuilder`、`PacketConverter`、`WebSocketManager`、
+  `WebSocketEventTypeEnum` 及相关 WebSocket 类型。
 
 未从包入口公开（仅仓库内部能力）：
 
 - `TemplatePicker`
 - `Tooltip`
 - `SDKConfig` / `ChatSDK`
-- `MessageBuilder`
 - `MessageCacheHelper`
 - `MessageSyncService`
 - `useWebSocket`

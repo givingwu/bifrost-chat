@@ -41,6 +41,7 @@ export * from '@/interfaces/profile.interface';
 export * from '@/interfaces/protocol.interface';
 export * from '@/interfaces/template.interface';
 export * from '@/interfaces/theme.interface';
+export * from '@/interfaces/websocket.interface';
 
 // Locales
 export { default as enUSMessages } from '@/locales/en-US.json';
@@ -59,8 +60,11 @@ export * from '@/providers/service.provider';
 // Service Interfaces
 export * from '@/services/conversation.service';
 export * from '@/services/message.service';
+export * from '@/services/message-builder.service';
 export * from '@/services/network.service';
+export * from '@/services/protocol';
 export * from '@/services/template.service';
+export * from '@/services/websocket';
 
 // Store
 export * from '@/store';

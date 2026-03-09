@@ -304,6 +304,8 @@ export function App() {
 - 当前公开服务接口：`IConversationService`、`IMessageService`、
   `ITemplateService`、`INetworkService`
 - `SDKConfig`、`ChatSDK`、`WebSocket*` 相关类型不属于当前公开 API。
+  兼容导出除外：历史接入仍可使用 `WebSocketManager`、
+  `WebSocketEventTypeEnum`、`PacketConverter`、`MessageBuilder`。
 
 ### Store 与工具
 
@@ -311,7 +313,7 @@ export function App() {
   `useTheme`、`useLanguage`、`useConversation`、`useProfile`、
   `useComposerConfig`、`useActions`
 - 工具：`cn`、`formatTimestamp`、`formatDuration`、`createStorageHelper`、
-  `clearSDK`
+  `clearSDK`、`MessageBuilder`
 - 语言包：`enUSMessages`、`zhCNMessages`
 
 ## 内部能力说明（未从包入口导出）
@@ -321,7 +323,6 @@ export function App() {
 - `TemplatePicker`
 - `Tooltip`
 - `SDKConfig` / `ChatSDK`
-- `MessageBuilder`
 - `MessageCacheHelper`
 - `MessageSyncService`
 - `useWebSocket`
@@ -331,6 +332,8 @@ export function App() {
 兼容迁移说明：
 
 - `clearSDK()` 已恢复导出，用于兼容既有接入方。
+- 协议/实时层兼容导出已恢复：`PacketConverter`、`WebSocketManager`、
+  `WebSocketEventTypeEnum`、`MessageBuilder`。
 - 新代码建议显式调用 `resetChatStore()` +
   `clearQueryCache(queryClient)`，只在需要清理草稿时再传
   `clearStorage: true`。
