@@ -64,18 +64,6 @@ export const DEFAULT_CHANNEL_MESSAGE_TYPES: Partial<
     MessageTypeEnum.File,
   ],
 
-  // WABA: 支持所有类型
-  [ChannelTypeEnum.Waba]: [
-    MessageTypeEnum.Text,
-    MessageTypeEnum.Image,
-    MessageTypeEnum.Video,
-    MessageTypeEnum.Audio,
-    MessageTypeEnum.File,
-    MessageTypeEnum.Location,
-    MessageTypeEnum.Template,
-    MessageTypeEnum.RichMedia,
-  ],
-
   // Viber: 支持多种消息类型
   [ChannelTypeEnum.Viber]: [
     MessageTypeEnum.Text,

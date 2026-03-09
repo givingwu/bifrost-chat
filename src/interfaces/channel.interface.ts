@@ -6,12 +6,10 @@
 export enum ChannelTypeEnum {
   /** SMS 短信渠道（上行短信），后面可能增加模版短信 */
   SMS = 'sms',
-  /** WhatsApp 渠道 */
+  /** WhatsApp 渠道（包含 WhatsApp Business API） */
   WhatsApp = 'whatsapp',
   /** Email 邮件渠道 */
   Email = 'email',
-  /** WABA (WhatsApp Business API) 是 WhatsApp 的官方企业级 API */
-  Waba = 'waba',
   /** Viber 渠道 */
   Viber = 'viber',
   /** IVR 语音渠道 */
@@ -25,7 +23,6 @@ export const AvailableChannelTypes = [
   ChannelTypeEnum.SMS,
   ChannelTypeEnum.WhatsApp,
   ChannelTypeEnum.Email,
-  ChannelTypeEnum.Waba,
   ChannelTypeEnum.Viber,
   ChannelTypeEnum.IVR,
 ] as const;

@@ -24,14 +24,6 @@ const meta: Meta<typeof ChannelBadge> = {
 export default meta;
 type Story = StoryObj<typeof ChannelBadge>;
 
-export const Waba = () => {
-  return (
-    <div className="p-4 bg-muted rounded-lg">
-      <ChannelBadge type={ChannelTypeEnum.Waba} />
-    </div>
-  );
-};
-
 export const WhatsApp = () => {
   return (
     <div className="p-4 bg-muted rounded-lg">

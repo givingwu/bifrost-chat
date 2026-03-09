@@ -24,7 +24,6 @@ export const iconMap: Partial<Record<ChannelTypeEnum, React.ReactNode>> = {
   [ChannelTypeEnum.SMS]: <Smartphone className="h-3 w-3" />,
   [ChannelTypeEnum.WhatsApp]: <MessageSquare className="h-3 w-3" />,
   [ChannelTypeEnum.Email]: <Mail className="h-3 w-3" />,
-  [ChannelTypeEnum.Waba]: <MessageSquare className="h-3 w-3" />,
   [ChannelTypeEnum.Viber]: <MessageSquare className="h-3 w-3" />,
   [ChannelTypeEnum.IVR]: <Phone className="h-3 w-3" />,
 };
@@ -33,7 +32,6 @@ export const labelMap: Record<ChannelTypeEnum, string> = {
   [ChannelTypeEnum.SMS]: 'SMS',
   [ChannelTypeEnum.WhatsApp]: 'WhatsApp',
   [ChannelTypeEnum.Email]: 'Email',
-  [ChannelTypeEnum.Waba]: 'WABA',
   [ChannelTypeEnum.Viber]: 'Viber',
   [ChannelTypeEnum.IVR]: 'IVR',
 };

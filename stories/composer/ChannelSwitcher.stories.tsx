@@ -158,7 +158,7 @@ export const DifferentChannels = () => {
               ChannelTypeEnum.SMS,
               ChannelTypeEnum.WhatsApp,
               ChannelTypeEnum.Email,
-              ChannelTypeEnum.Waba,
+              ChannelTypeEnum.WhatsApp,
               ChannelTypeEnum.Viber,
               ChannelTypeEnum.IVR,
             ]}

@@ -44,8 +44,8 @@ vi.mock('@/store', async (importOriginal) => {
   return {
     ...actual,
     useStrategy: () => ({
-      activeChannel: 'waba' as const,
-      allowedChannels: ['waba' as const],
+      activeChannel: 'whatsapp' as const,
+      allowedChannels: ['whatsapp' as const],
       currentUser: mockCurrentUser,
     }),
     useActiveConversationId: () => 'conv-1',
@@ -91,8 +91,8 @@ function createTestWrapper(queryClient: QueryClient) {
   };
 }
 
-// useStrategy mock 的 activeChannel 为 waba，需与 query key 一致
-const ACTIVE_CHANNEL = 'waba';
+// useStrategy mock 的 activeChannel 为 whatsapp，需与 query key 一致
+const ACTIVE_CHANNEL = 'whatsapp';
 
 function getMessages(queryClient: QueryClient, conversationId: string) {
   const data = queryClient.getQueryData(
@@ -208,11 +208,11 @@ describe('useSendMessage Hook', () => {
     expect(mockMessageService.send).toHaveBeenCalledWith(conversationId, {
       content: 'hello from mobile',
       metadata: { clientType: 'mobile' },
-      channelType: 'waba',
+      channelType: 'whatsapp',
       receiver: {
         app: 'test-app',
         pin: '',
-        channelType: 'waba',
+        channelType: 'whatsapp',
         clientType: undefined,
       },
     });
@@ -387,11 +387,11 @@ describe('useSendMessage Hook', () => {
 
     expect(mockMessageService.send).toHaveBeenCalledWith(conversationId, {
       content: 'reconnecting but reachable',
-      channelType: 'waba',
+      channelType: 'whatsapp',
       receiver: {
         app: 'test-app',
         pin: '',
-        channelType: 'waba',
+        channelType: 'whatsapp',
         clientType: undefined,
       },
     });
@@ -557,7 +557,7 @@ describe('useSendMessage Hook', () => {
                 tempId,
                 content: { text: 'pending ack' },
                 direction: 'outgoing' as const,
-                channelType: 'waba',
+                channelType: 'whatsapp',
                 status: MessageStatusEnum.Sending,
                 timestamp: Date.now(),
                 type: 'text' as const,
@@ -598,7 +598,7 @@ describe('useSendMessage Hook', () => {
         conversationId,
         messageId,
         tempId,
-        channelType: 'waba',
+        channelType: 'whatsapp',
         status: MessageStatusEnum.Sent,
         timestamp: Date.now(),
       });

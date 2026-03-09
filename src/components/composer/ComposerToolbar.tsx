@@ -82,7 +82,6 @@ export const MAX_LENGTH_MAP: Record<ChannelTypeEnum, number> = {
   [ChannelTypeEnum.SMS]: INPUT_LIMITS.SMS_MAX_LENGTH,
   [ChannelTypeEnum.Email]: INPUT_LIMITS.DEFAULT_MAX_LENGTH,
   [ChannelTypeEnum.WhatsApp]: INPUT_LIMITS.WHATSAPP_MAX_LENGTH,
-  [ChannelTypeEnum.Waba]: INPUT_LIMITS.WABA_MAX_LENGTH,
   [ChannelTypeEnum.Viber]: INPUT_LIMITS.WHATSAPP_MAX_LENGTH,
   [ChannelTypeEnum.IVR]: INPUT_LIMITS.DEFAULT_MAX_LENGTH,
 };
@@ -454,10 +453,7 @@ export const ComposerToolbar = forwardRef<
         // SMS 通常不支持附件
         return '';
       case ChannelTypeEnum.WhatsApp:
-        // WhatsApp 支持图片、视频、文档等
-        return 'image/*,video/*,application/pdf,.doc,.docx,.xls,.xlsx';
-      case ChannelTypeEnum.Waba:
-        // WABA 支持的文件类型（与 WhatsApp 类似但可能有差异）
+        // WhatsApp 支持图片、视频、音频、文档等
         return 'image/*,video/*,audio/*,application/pdf,.doc,.docx,.xls,.xlsx';
       case ChannelTypeEnum.Email:
         // Email 支持所有类型

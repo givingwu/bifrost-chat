@@ -47,7 +47,7 @@ class MockConversationService implements IConversationService {
         ChannelTypeEnum.WhatsApp,
         ChannelTypeEnum.SMS,
         ChannelTypeEnum.Email,
-        ChannelTypeEnum.Waba,
+        ChannelTypeEnum.WhatsApp,
       ];
       const statuses = [
         AgentStatusEnum.Online,
@@ -222,7 +222,7 @@ class MockMessageService implements IMessageService {
           ChannelTypeEnum.WhatsApp,
           ChannelTypeEnum.SMS,
           ChannelTypeEnum.Email,
-          ChannelTypeEnum.Waba,
+          ChannelTypeEnum.WhatsApp,
         ];
         const textMessages = [
           '你好，请问有什么可以帮助您的？',
@@ -391,7 +391,7 @@ const meta: Meta<typeof DefaultChatLayout> = {
               ChannelTypeEnum.WhatsApp,
               ChannelTypeEnum.SMS,
               ChannelTypeEnum.Email,
-              ChannelTypeEnum.Waba,
+              ChannelTypeEnum.WhatsApp,
             ],
           },
         }}

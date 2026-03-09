@@ -100,7 +100,7 @@ const mockConversations = [
     lastMessage: '你好，有什么可以帮助你的吗？',
     lastMessageTime: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
     unreadCount: 2,
-    channel: ChannelTypeEnum.Waba,
+    channel: ChannelTypeEnum.WhatsApp,
     isActive: true,
   },
   {
@@ -115,7 +115,7 @@ const mockConversations = [
     lastMessage: '我想查询一下订单状态',
     lastMessageTime: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
     unreadCount: 0,
-    channel: ChannelTypeEnum.Waba,
+    channel: ChannelTypeEnum.WhatsApp,
   },
   {
     id: '3',
@@ -128,7 +128,7 @@ const mockConversations = [
     lastMessage: '好的，谢谢',
     lastMessageTime: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
     unreadCount: 0,
-    channel: ChannelTypeEnum.Waba,
+    channel: ChannelTypeEnum.WhatsApp,
   },
 ];
 
@@ -138,7 +138,7 @@ const mockMessages = [
     id: '1',
     tempId: 'temp1',
     direction: MessageDirectionEnum.Incoming,
-    channelType: ChannelTypeEnum.Waba,
+    channelType: ChannelTypeEnum.WhatsApp,
     status: MessageStatusEnum.Sent,
     timestamp: Date.now() - 1000 * 60 * 5,
     type: MessageTypeEnum.Text,
@@ -146,12 +146,12 @@ const mockMessages = [
     sender: {
       app: 'bifrost-chat-sdk',
       pin: 'user1',
-      channelType: ChannelTypeEnum.Waba,
+      channelType: ChannelTypeEnum.WhatsApp,
     },
     receiver: {
       app: 'bifrost-chat-sdk',
       pin: 'agent1',
-      channelType: ChannelTypeEnum.Waba,
+      channelType: ChannelTypeEnum.WhatsApp,
     },
   },
   {
@@ -159,7 +159,7 @@ const mockMessages = [
     id: '2',
     tempId: 'temp2',
     direction: MessageDirectionEnum.Outgoing,
-    channelType: ChannelTypeEnum.Waba,
+    channelType: ChannelTypeEnum.WhatsApp,
     status: MessageStatusEnum.Sent,
     timestamp: Date.now() - 1000 * 60 * 4,
     type: MessageTypeEnum.Text,
@@ -167,12 +167,12 @@ const mockMessages = [
     sender: {
       app: 'bifrost-chat-sdk',
       pin: 'agent1',
-      channelType: ChannelTypeEnum.Waba,
+      channelType: ChannelTypeEnum.WhatsApp,
     },
     receiver: {
       app: 'bifrost-chat-sdk',
       pin: 'user1',
-      channelType: ChannelTypeEnum.Waba,
+      channelType: ChannelTypeEnum.WhatsApp,
     },
   },
 ];
@@ -236,7 +236,7 @@ export const FullLayout = () => {
               }
               composer={
                 <ComposerToolbar
-                  channel={ChannelTypeEnum.Waba}
+                  channel={ChannelTypeEnum.WhatsApp}
                   onSend={async (message) => {
                     console.log('Send message:', message);
                   }}
@@ -322,7 +322,7 @@ export const WithTopbarAndComposer = () => {
               }
               composer={
                 <ComposerToolbar
-                  channel={ChannelTypeEnum.Waba}
+                  channel={ChannelTypeEnum.WhatsApp}
                   onSend={async (message) => {
                     console.log('Send message:', message);
                   }}
@@ -410,7 +410,7 @@ export const CustomStyled = () => {
               }
               composer={
                 <ComposerToolbar
-                  channel={ChannelTypeEnum.Waba}
+                  channel={ChannelTypeEnum.WhatsApp}
                   onSend={async (message) => {
                     console.log('Send message:', message);
                   }}
@@ -479,7 +479,7 @@ export const Responsive = () => {
               }
               composer={
                 <ComposerToolbar
-                  channel={ChannelTypeEnum.Waba}
+                  channel={ChannelTypeEnum.WhatsApp}
                   onSend={async (message) => {
                     console.log('Send message:', message);
                   }}

@@ -57,8 +57,8 @@ vi.mock('@/store', async (importOriginal) => {
   return {
     ...actual,
     useStrategy: () => ({
-      activeChannel: 'waba' as const,
-      allowedChannels: ['waba' as const],
+      activeChannel: 'whatsapp' as const,
+      allowedChannels: ['whatsapp' as const],
       currentUser: mockCurrentUser,
     }),
     useActiveConversationId: () => 'conv-1',
@@ -191,8 +191,11 @@ describe('useSendMessage - 消息回滚与离线队列功能测试', () => {
       expect(mockOfflineMessageQueue.createOfflineMessage).toHaveBeenCalled();
       expect(mockOfflineMessageQueue.enqueue).toHaveBeenCalled();
 
-      // 验证消息保留在缓存中，状态为 Failed（useStrategy mock 的 activeChannel 为 waba）
-      const messageQueryKey = queryKeys.messages.list(conversationId, 'waba');
+      // 验证消息保留在缓存中，状态为 Failed（useStrategy mock 的 activeChannel 为 whatsapp）
+      const messageQueryKey = queryKeys.messages.list(
+        conversationId,
+        'whatsapp',
+      );
       const data = queryClient.getQueryData<{
         pages: Array<{
           items: Array<{
@@ -221,7 +224,7 @@ describe('useSendMessage - 消息回滚与离线队列功能测试', () => {
 
       // 初始化缓存（模拟发送前有 1 条消息，需与 useStrategy mock 的 activeChannel 一致）
       queryClient.setQueryData(
-        queryKeys.messages.list(conversationId, 'waba'),
+        queryKeys.messages.list(conversationId, 'whatsapp'),
         {
           pages: [
             {
@@ -271,7 +274,7 @@ describe('useSendMessage - 消息回滚与离线队列功能测试', () => {
       // 验证：缓存应该回滚到发送前状态（只有 1 条已存在的消息）
       const data = queryClient.getQueryData<{
         pages: Array<{ items: Array<{ id: string }> }>;
-      }>(queryKeys.messages.list(conversationId, 'waba'));
+      }>(queryKeys.messages.list(conversationId, 'whatsapp'));
 
       expect(data).toBeDefined();
       expect(data?.pages).toHaveLength(1);
@@ -286,7 +289,7 @@ describe('useSendMessage - 消息回滚与离线队列功能测试', () => {
 
       // 初始化空缓存（需与 useStrategy mock 的 activeChannel 一致）
       queryClient.setQueryData(
-        queryKeys.messages.list(conversationId, 'waba'),
+        queryKeys.messages.list(conversationId, 'whatsapp'),
         {
           pages: [{ items: [] }],
         },
@@ -319,7 +322,7 @@ describe('useSendMessage - 消息回滚与离线队列功能测试', () => {
       // 验证：缓存应该回滚到空列表
       const data = queryClient.getQueryData<{
         pages: Array<{ items: unknown[] }>;
-      }>(queryKeys.messages.list(conversationId, 'waba'));
+      }>(queryKeys.messages.list(conversationId, 'whatsapp'));
 
       expect(data?.pages[0].items).toHaveLength(0);
     });
@@ -331,7 +334,7 @@ describe('useSendMessage - 消息回滚与离线队列功能测试', () => {
 
       // 初始化缓存（需与 useStrategy mock 的 activeChannel 一致）
       queryClient.setQueryData(
-        queryKeys.messages.list(conversationId, 'waba'),
+        queryKeys.messages.list(conversationId, 'whatsapp'),
         {
           pages: [
             {
@@ -384,7 +387,7 @@ describe('useSendMessage - 消息回滚与离线队列功能测试', () => {
             _offlineMessageId?: string;
           }>;
         }>;
-      }>(queryKeys.messages.list(conversationId, 'waba'));
+      }>(queryKeys.messages.list(conversationId, 'whatsapp'));
 
       expect(data?.pages[0].items).toHaveLength(2);
       expect(data?.pages[0].items[0].id).toBe('existing-msg-1');
@@ -401,7 +404,7 @@ describe('useSendMessage - 消息回滚与离线队列功能测试', () => {
 
       // 初始化缓存（需与 useStrategy mock 的 activeChannel 一致）
       queryClient.setQueryData(
-        queryKeys.messages.list(conversationId, 'waba'),
+        queryKeys.messages.list(conversationId, 'whatsapp'),
         {
           pages: [{ items: [] }],
         },
@@ -432,7 +435,7 @@ describe('useSendMessage - 消息回滚与离线队列功能测试', () => {
       // 验证：缓存应该回滚到空列表
       const data = queryClient.getQueryData<{
         pages: Array<{ items: unknown[] }>;
-      }>(queryKeys.messages.list(conversationId, 'waba'));
+      }>(queryKeys.messages.list(conversationId, 'whatsapp'));
 
       expect(data?.pages[0].items).toHaveLength(0);
     });
@@ -469,7 +472,7 @@ describe('useSendMessage - 消息回滚与离线队列功能测试', () => {
       // 验证消息状态更新为 Sent（需与 useStrategy mock 的 activeChannel 一致）
       const data = queryClient.getQueryData<{
         pages: Array<{ items: Array<{ id: string; status: string }> }>;
-      }>(queryKeys.messages.list(conversationId, 'waba'));
+      }>(queryKeys.messages.list(conversationId, 'whatsapp'));
 
       expect(data?.pages[0].items[0].id).toBe(messageId);
       expect(data?.pages[0].items[0].status).toBe(MessageStatusEnum.Sent);
@@ -480,7 +483,7 @@ describe('useSendMessage - 消息回滚与离线队列功能测试', () => {
       const content = '测试消息';
 
       queryClient.setQueryData(
-        queryKeys.messages.list(conversationId, 'waba'),
+        queryKeys.messages.list(conversationId, 'whatsapp'),
         {
           pages: [{ items: [] }],
         },
@@ -508,7 +511,7 @@ describe('useSendMessage - 消息回滚与离线队列功能测试', () => {
 
       const data = queryClient.getQueryData<{
         pages: Array<{ items: unknown[] }>;
-      }>(queryKeys.messages.list(conversationId, 'waba'));
+      }>(queryKeys.messages.list(conversationId, 'whatsapp'));
 
       expect(data?.pages[0].items).toHaveLength(0);
     });
