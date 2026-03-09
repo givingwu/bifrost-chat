@@ -1,14 +1,29 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo } from 'react';
+import {
+  AuthorizationError,
+  ConnectionFailedError,
+  ConnectionTimeoutError,
+  HTTPError,
+  SDKError,
+  SendFailedError,
+  ValidationError,
+} from '@/interfaces/error.interface';
 import type {
   MessageSendResult,
   SendMessageOptions,
   StandardMessage,
 } from '@/interfaces/message.interface';
 import {
+  MessageFailureTypeEnum,
   MessagePriorityEnum,
   MessageStatusEnum,
 } from '@/interfaces/message.interface';
+import {
+  NetworkError,
+  NetworkErrorCodeEnum,
+  NetworkReachabilityEnum,
+} from '@/interfaces/network.interface';
 import { queryKeys } from '@/providers/query.provider';
 import { useServices } from '@/providers/service.provider';
 import { MessageBuilder } from '@/services/message-builder.service';
@@ -16,7 +31,7 @@ import { MessageCacheHelper } from '@/services/message-cache-helper.service';
 import { messageQueue } from '@/services/message-queue.service';
 import { MessageSyncService } from '@/services/message-sync.service';
 import { pendingMessageTracker } from '@/services/pending-message-tracker.service';
-import { useActiveConversationId, useStrategy } from '@/store';
+import { useActiveConversationId, useNetwork, useStrategy } from '@/store';
 import { useConversations } from './use-conversations.hook';
 
 /**
@@ -88,6 +103,39 @@ function registerPendingAckMappings(
   }
 }
 
+function shouldPersistFailedMessage(
+  errorType?: MessageFailureTypeEnum,
+  retryable?: boolean,
+) {
+  return errorType === MessageFailureTypeEnum.Network || retryable === true;
+}
+
+function resolveThrownErrorType(error: unknown): MessageFailureTypeEnum {
+  if (
+    error instanceof NetworkError ||
+    error instanceof HTTPError ||
+    error instanceof ConnectionTimeoutError ||
+    error instanceof ConnectionFailedError ||
+    error instanceof SendFailedError
+  ) {
+    return MessageFailureTypeEnum.Network;
+  }
+
+  if (error instanceof AuthorizationError) {
+    return MessageFailureTypeEnum.Authorization;
+  }
+
+  if (error instanceof ValidationError) {
+    return MessageFailureTypeEnum.Validation;
+  }
+
+  if (error instanceof SDKError) {
+    return MessageFailureTypeEnum.BusinessLogic;
+  }
+
+  return MessageFailureTypeEnum.Network;
+}
+
 export function useSendMessage<
   CMType = Record<string, unknown>,
   TMType = unknown,
@@ -99,6 +147,7 @@ export function useSendMessage<
   );
   const { messageService, offlineMessageQueue } = useServices();
   const { activeChannel, allowedChannels, currentUser } = useStrategy();
+  const { reachability } = useNetwork();
 
   const activeConversationId = useActiveConversationId();
   const { data: conversations } = useConversations();
@@ -116,6 +165,50 @@ export function useSendMessage<
     };
   }, [messageService, messageSyncService]);
 
+  const rollbackMessage = (
+    conversationId: string,
+    context?: {
+      previousMessages: unknown;
+      tempMessage: StandardMessage;
+      messageQueryKey: readonly string[];
+    },
+  ) => {
+    const queryKey =
+      context?.messageQueryKey ?? queryKeys.messages.list(conversationId);
+    queryClient.setQueryData(
+      queryKey,
+      context?.previousMessages ?? DEFAULT_EMPTY_DATA,
+    );
+    console.info('[useSendMessage] 已回滚到发送前的状态');
+  };
+
+  const persistOfflineMessage = async (
+    tempMessage: StandardMessage,
+    conversationId: string,
+    content: string,
+    options?: Partial<SendMessageOptions<CMType, TMType>>,
+    errorMessage?: string,
+  ) => {
+    if (!offlineMessageQueue) {
+      return undefined;
+    }
+
+    const offlineMessage = offlineMessageQueue.createOfflineMessage(
+      tempMessage,
+      conversationId,
+      {
+        content,
+        ...options,
+      },
+      options?.priority ?? MessagePriorityEnum.Normal,
+    );
+
+    offlineMessage.error = errorMessage;
+    await offlineMessageQueue.enqueue(offlineMessage);
+
+    return offlineMessage.id;
+  };
+
   return useMutation<
     MessageSendResult,
     Error,
@@ -130,7 +223,15 @@ export function useSendMessage<
       messageQueryKey: readonly string[];
     }
   >({
+    networkMode: 'always',
     mutationFn: async (params) => {
+      if (reachability === NetworkReachabilityEnum.Offline) {
+        throw new NetworkError(
+          '网络不可用，消息已加入离线重试流程',
+          NetworkErrorCodeEnum.NetworkUnreachable,
+        );
+      }
+
       const options: SendMessageOptions<CMType, TMType> = {
         // 1. 默认选项（初始化时传入）
         ...defaultOptions,
@@ -215,83 +316,62 @@ export function useSendMessage<
 
       const errorMessage =
         error instanceof Error ? error.message : String(error);
+      const errorType = resolveThrownErrorType(error);
+      const shouldPersist = shouldPersistFailedMessage(errorType);
+      const tempId = context?.tempMessage?.tempId;
 
-      // 如果没有离线队列服务，提示实现
-      if (!offlineMessageQueue) {
-        console.warn(
-          '[useSendMessage] 离线队列未实现，网络错误时消息将丢失。请实现 IOfflineMessageQueueService。',
-        );
-        // 回滚到之前的状态（使用 onMutate 中的 query key）
-        const queryKey =
-          context?.messageQueryKey ??
-          queryKeys.messages.list(variables.conversationId);
-        queryClient.setQueryData(
-          queryKey,
-          context?.previousMessages ?? DEFAULT_EMPTY_DATA,
-        );
-        console.info('[useSendMessage] 已回滚到发送前的状态');
+      if (!context?.tempMessage || !shouldPersist || !offlineMessageQueue) {
+        if (shouldPersist && !offlineMessageQueue) {
+          console.warn(
+            '[useSendMessage] 离线队列未实现，可重试消息将回滚。请实现 OfflineMessageQueueService。',
+          );
+        }
+
+        if (tempId) {
+          messageQueue.remove(tempId);
+        }
+        rollbackMessage(variables.conversationId, context);
         return;
       }
 
-      // 将失败的消息保存到离线队列
-      if (context?.tempMessage) {
-        try {
-          const offlineMessage = offlineMessageQueue.createOfflineMessage(
-            context.tempMessage,
-            variables.conversationId,
-            {
-              content: variables.content,
-              ...variables.options,
-            },
-            MessagePriorityEnum.Normal,
-          );
+      try {
+        const offlineMessageId = await persistOfflineMessage(
+          context.tempMessage,
+          variables.conversationId,
+          variables.content,
+          variables.options,
+          errorMessage,
+        );
 
-          // 添加错误信息
-          offlineMessage.error = errorMessage;
-
-          await offlineMessageQueue.enqueue(offlineMessage);
-
-          console.info(
-            '[useSendMessage] 消息已保存到离线队列:',
-            offlineMessage.id,
-          );
-        } catch (queueError) {
-          console.error('[useSendMessage] 保存到离线队列失败:', queueError);
-          // 保存失败，回滚到之前的状态（使用 onMutate 中的 query key）
-          const queryKey =
-            context.messageQueryKey ??
-            queryKeys.messages.list(variables.conversationId);
-          queryClient.setQueryData(
-            queryKey,
-            context.previousMessages ?? DEFAULT_EMPTY_DATA,
-          );
-          console.info('[useSendMessage] 已回滚到发送前的状态');
-          return;
+        if (tempId) {
+          messageQueue.remove(tempId);
         }
+
+        MessageCacheHelper.updateMessageInCache(
+          queryClient,
+          variables.conversationId,
+          {
+            status: MessageStatusEnum.Failed,
+            error: errorMessage,
+            _source: 'local',
+            _offlineMessageId: offlineMessageId,
+          },
+          undefined,
+          tempId,
+          { channel: activeChannel ?? undefined },
+        );
+
+        console.info(
+          '[useSendMessage] 消息已保存到离线队列:',
+          offlineMessageId,
+        );
+      } catch (queueError) {
+        console.error('[useSendMessage] 保存到离线队列失败:', queueError);
+        if (tempId) {
+          messageQueue.remove(tempId);
+        }
+        rollbackMessage(variables.conversationId, context);
       }
-
-      if (context?.tempMessage?.tempId) {
-        messageQueue.remove(context.tempMessage.tempId);
-      }
-
-      // 更新消息状态为 Failed
-      const updates: Partial<StandardMessage> = {
-        status: MessageStatusEnum.Failed,
-        error: errorMessage,
-        _source: 'local',
-        _offlineMessageId: context?.tempMessage.tempId,
-      };
-
-      // 使用 MessageCacheHelper 更新消息状态为 Failed
-      // 支持通过 tempId 查找消息
-      MessageCacheHelper.updateMessageInCache(
-        queryClient,
-        variables.conversationId,
-        updates,
-        undefined, // messageId
-        context?.tempMessage.tempId, // tempId
-        { channel: activeChannel ?? undefined },
-      );
     },
 
     // 成功后，更新临时消息的状态
@@ -301,26 +381,60 @@ export function useSendMessage<
 
       const isFailed =
         data.status === MessageStatusEnum.Failed || Boolean(data.error);
+      const shouldPersist = shouldPersistFailedMessage(
+        data.errorType,
+        data.retryable,
+      );
+      const shouldRollback =
+        data.needRollback === true ||
+        (isFailed &&
+          !shouldPersist &&
+          (data.retryable === false ||
+            data.errorType !== undefined ||
+            data.retryable === undefined));
 
-      // 判断是否需要回滚
-      // 1. 显式设置 needRollback 为 true
-      // 2. 或者明确是不可重试的错误（retryable 为 false）
-      // 3. 或者是业务逻辑错误（errorType 为非网络错误）
-      // 4. 向后兼容：没有设置 errorType 和 retryable 时，默认回滚
-      let shouldRollback = data.needRollback;
-
-      if (isFailed && !shouldRollback) {
-        if (data.retryable === false) {
-          // 明确标记为不可重试，回滚
-          shouldRollback = true;
-        } else if (data.errorType && data.errorType !== 'network') {
-          // 业务逻辑错误（非网络错误），回滚
-          shouldRollback = true;
-        } else if (!data.errorType && data.retryable === undefined) {
-          // 向后兼容：没有设置 errorType 和 retryable 时，默认回滚
-          shouldRollback = true;
+      if (isFailed && shouldPersist) {
+        if (!offlineMessageQueue) {
+          console.warn(
+            '[useSendMessage] 离线队列未实现，可重试消息将回滚。请实现 OfflineMessageQueueService。',
+          );
+          rollbackMessage(variables.conversationId, context);
+          messageQueue.remove(tempId);
+          return;
         }
-        // 其他情况（网络错误、可重试），不回滚
+
+        try {
+          const offlineMessageId = await persistOfflineMessage(
+            context.tempMessage,
+            variables.conversationId,
+            variables.content,
+            variables.options,
+            data.error,
+          );
+
+          MessageCacheHelper.updateMessageInCache(
+            queryClient,
+            variables.conversationId,
+            {
+              id: data.messageId ?? context.tempMessage.id,
+              status: MessageStatusEnum.Failed,
+              error: data.error ?? 'Send Failed',
+              _source: 'local',
+              _offlineMessageId: offlineMessageId,
+            },
+            data.messageId,
+            tempId,
+            { channel: activeChannel ?? undefined },
+          );
+
+          messageQueue.remove(tempId);
+          return;
+        } catch (queueError) {
+          console.error('[useSendMessage] 保存到离线队列失败:', queueError);
+          rollbackMessage(variables.conversationId, context);
+          messageQueue.remove(tempId);
+          return;
+        }
       }
 
       if (shouldRollback) {
@@ -330,18 +444,8 @@ export function useSendMessage<
           data.error,
         );
 
-        // 回滚到之前的状态（移除临时消息，使用 onMutate 中的 query key）
-        const queryKey =
-          context?.messageQueryKey ??
-          queryKeys.messages.list(variables.conversationId);
-        queryClient.setQueryData(
-          queryKey,
-          context?.previousMessages ?? DEFAULT_EMPTY_DATA,
-        );
-        console.info('[useSendMessage] 已回滚到发送前的状态');
-
+        rollbackMessage(variables.conversationId, context);
         messageQueue.remove(tempId);
-
         return;
       }
 

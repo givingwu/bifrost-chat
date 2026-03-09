@@ -64,6 +64,7 @@ export * from '@/services/message.service';
 export * from '@/services/message-builder.service';
 export * from '@/services/message-cache-helper.service';
 export * from '@/services/message-sync.service';
+export * from '@/services/network.service';
 // Protocol Layer
 export * from '@/services/protocol';
 export * from '@/services/template.service';

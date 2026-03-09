@@ -128,6 +128,7 @@ export const StateTransition = () => {
       </div>
       <div className="flex gap-2">
         <button
+          type="button"
           onClick={() => setHasContent(!hasContent)}
           className="px-3 py-1 text-sm bg-primary text-primary-foreground rounded"
         >

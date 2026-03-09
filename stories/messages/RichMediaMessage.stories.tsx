@@ -116,9 +116,9 @@ export const MultipleCards = () => {
   return (
     <div className="p-4 bg-muted rounded-lg">
       <div className="flex flex-col gap-3">
-        {cards.map((card, index) => (
+        {cards.map((card) => (
           <RichMediaMessage
-            key={`card-${index}`}
+            key={card.url}
             content={{ text: JSON.stringify(card) }}
           />
         ))}

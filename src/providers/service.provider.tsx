@@ -1,8 +1,10 @@
 import type { ReactNode } from 'react';
 import { createContext, useContext, useMemo } from 'react';
+import { useHostNetworkSync } from '@/hooks/use-host-network-sync.hook';
 import { NotImplementedError } from '@/interfaces/error.interface';
 import type { IConversationService } from '@/services/conversation.service';
 import type { IMessageService } from '@/services/message.service';
+import type { INetworkService } from '@/services/network.service';
 import type { ITemplateService } from '@/services/template.service';
 
 /**
@@ -15,6 +17,8 @@ export interface ServiceContextValue {
   messageService: IMessageService;
   /** 模版服务 */
   templateService: ITemplateService;
+  /** Host 网络状态服务（可选） */
+  networkService?: INetworkService;
   /**
    * 离线消息队列服务（可选）
    * @description
@@ -63,6 +67,8 @@ export interface ServiceProviderProps {
    * 由宿主应用自行管理其生命周期
    */
   offlineMessageQueue?: import('@/services/offline-message-queue.service').OfflineMessageQueueService;
+  /** Host 网络状态服务（可选） */
+  networkService?: INetworkService;
 }
 
 /**
@@ -98,19 +104,24 @@ export function ServiceProvider({
   messageService,
   templateService,
   offlineMessageQueue,
+  networkService,
 }: ServiceProviderProps) {
+  useHostNetworkSync(networkService);
+
   const value: ServiceContextValue = useMemo(() => {
     return {
       conversationService,
       messageService,
       templateService,
       offlineMessageQueue,
+      networkService,
     };
   }, [
     conversationService,
     messageService,
     templateService,
     offlineMessageQueue,
+    networkService,
   ]);
 
   return (
@@ -140,5 +151,6 @@ export function createNotImplementedServices(): ServiceContextValue {
     messageService: createNotImplementedProxy<IMessageService>(),
     templateService: createNotImplementedProxy<ITemplateService>(),
     offlineMessageQueue: undefined,
+    networkService: undefined,
   };
 }

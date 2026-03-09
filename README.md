@@ -194,7 +194,11 @@ import {
   ChatContainer,
   ConfigProvider,
   DefaultChatLayout,
+  type INetworkService,
   LanguageCodeEnum,
+  NetworkQualityEnum,
+  NetworkReachabilityEnum,
+  NetworkStatusEnum,
   QueryProvider,
   ServiceProvider,
 } from '@feoe/bifrost-chat';
@@ -202,6 +206,15 @@ import {
 const conversationService = new MyConversationService();
 const messageService = new MyMessageService();
 const templateService = new MyTemplateService();
+const networkService: INetworkService = {
+  getSnapshot: () => ({
+    status: NetworkStatusEnum.Connected,
+    reachability: NetworkReachabilityEnum.Online,
+    quality: NetworkQualityEnum.Good,
+    enableStatusIndicator: true,
+  }),
+  subscribe: () => () => {},
+};
 
 export function App() {
   return (
@@ -219,6 +232,7 @@ export function App() {
           conversationService={conversationService}
           messageService={messageService}
           templateService={templateService}
+          networkService={networkService}
         >
           <ChatContainer>
             <DefaultChatLayout />
@@ -229,6 +243,26 @@ export function App() {
   );
 }
 ```
+
+### 3) Host 网络关系
+
+**当前已实现（As-Is）**
+
+- `ServiceProvider` 支持可选注入 `networkService`
+- SDK 通过 `networkService.getSnapshot()` 和 `subscribe()` 同步 Host
+  的网络事实到 Zustand `network` 与 React Query `onlineManager`
+- 未注入 `networkService` 时，SDK 默认显示为
+  `status: Unknown`、`reachability: Unknown`，且不显示网络状态指示器
+- 离线自动同步只依赖 `reachability === Online`
+- 发送失败时，只有 `errorType === Network` 或显式 `retryable === true`
+  才会进入离线队列
+
+**目标架构（To-Be）**
+
+- Host 继续负责聚合浏览器、HTTP、WebSocket/SSE、宿主生命周期等多源网络事实
+- SDK 不自行读取 `navigator.onLine` 作为最终真相
+- 后续可在 Host 侧补充更细粒度的网络原因与诊断字段，再通过
+  `networkService` 透传给 SDK
 
 ## 公开 API（以导出为准）
 

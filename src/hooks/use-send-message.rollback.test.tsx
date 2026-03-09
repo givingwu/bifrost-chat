@@ -4,10 +4,16 @@ import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useSendMessage } from '@/hooks/use-send-message.hook';
 import { AgentStatusEnum } from '@/interfaces/agent.interface';
+import { AuthorizationError } from '@/interfaces/error.interface';
 import {
   MessageFailureTypeEnum,
   MessageStatusEnum,
 } from '@/interfaces/message.interface';
+import {
+  NetworkQualityEnum,
+  NetworkReachabilityEnum,
+  NetworkStatusEnum,
+} from '@/interfaces/network.interface';
 import { queryKeys } from '@/providers/query.provider';
 import type { CurrentUser } from '@/store';
 
@@ -38,14 +44,27 @@ const mockCurrentUser: CurrentUser = {
   status: AgentStatusEnum.Online,
 };
 
-vi.mock('@/store', () => ({
-  useStrategy: () => ({
-    activeChannel: 'waba' as const,
-    allowedChannels: ['waba' as const],
-    currentUser: mockCurrentUser,
-  }),
-  useActiveConversationId: () => 'conv-1',
-}));
+let mockNetwork = {
+  status: NetworkStatusEnum.Connected,
+  reachability: NetworkReachabilityEnum.Online,
+  quality: NetworkQualityEnum.Good,
+  enableStatusIndicator: true,
+};
+
+vi.mock('@/store', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/store')>();
+
+  return {
+    ...actual,
+    useStrategy: () => ({
+      activeChannel: 'waba' as const,
+      allowedChannels: ['waba' as const],
+      currentUser: mockCurrentUser,
+    }),
+    useActiveConversationId: () => 'conv-1',
+    useNetwork: () => mockNetwork,
+  };
+});
 
 // Mock MessageBuilder
 vi.mock('@/services/message-builder.service', () => ({
@@ -79,6 +98,12 @@ describe('useSendMessage - 消息回滚与离线队列功能测试', () => {
   beforeEach(() => {
     // 清理所有 mock
     vi.clearAllMocks();
+    mockNetwork = {
+      status: NetworkStatusEnum.Connected,
+      reachability: NetworkReachabilityEnum.Online,
+      quality: NetworkQualityEnum.Good,
+      enableStatusIndicator: true,
+    };
 
     // 创建新的 QueryClient
     queryClient = new QueryClient({
@@ -111,6 +136,33 @@ describe('useSendMessage - 消息回滚与离线队列功能测试', () => {
   });
 
   describe('网络错误场景（onError - 离线队列）', () => {
+    it('当 Host 判定为 Offline 时应直接进入离线队列且不调用发送接口', async () => {
+      const conversationId = 'conv-1';
+      const content = '测试消息';
+
+      mockNetwork = {
+        status: NetworkStatusEnum.Disconnected,
+        reachability: NetworkReachabilityEnum.Offline,
+        quality: NetworkQualityEnum.Poor,
+        enableStatusIndicator: true,
+      };
+
+      const { result } = renderHook(() => useSendMessage(), { wrapper });
+
+      await act(async () => {
+        await expect(
+          result.current.mutateAsync({
+            conversationId,
+            content,
+          }),
+        ).rejects.toThrow('网络不可用');
+      });
+
+      expect(mockMessageService.send).not.toHaveBeenCalled();
+      expect(mockOfflineMessageQueue.createOfflineMessage).toHaveBeenCalled();
+      expect(mockOfflineMessageQueue.enqueue).toHaveBeenCalled();
+    });
+
     it('应该保存到离线队列并保留失败消息', async () => {
       const conversationId = 'conv-1';
       const content = '测试消息';
@@ -157,6 +209,7 @@ describe('useSendMessage - 消息回滚与离线队列功能测试', () => {
       expect(data?.pages[0].items[0].status).toBe(MessageStatusEnum.Failed);
       expect(data?.pages[0].items[0]._source).toBe('local');
       expect(data?.pages[0].items[0].error).toBe('网络连接失败');
+      expect(data?.pages[0].items[0]._offlineMessageId).toBe('offline-msg-1');
     });
   });
 
@@ -271,7 +324,7 @@ describe('useSendMessage - 消息回滚与离线队列功能测试', () => {
       expect(data?.pages[0].items).toHaveLength(0);
     });
 
-    it('即使标记为可重试也应该完全回滚', async () => {
+    it('显式标记 retryable=true 时应保留失败消息并进入离线队列', async () => {
       const conversationId = 'conv-1';
       const content = '测试消息';
       const errorMessage = '服务器错误';
@@ -319,19 +372,25 @@ describe('useSendMessage - 消息回滚与离线队列功能测试', () => {
         expect(mockMessageService.send).toHaveBeenCalled();
       });
 
-      // 验证：不应该调用离线队列
-      expect(
-        mockOfflineMessageQueue.createOfflineMessage,
-      ).not.toHaveBeenCalled();
-      expect(mockOfflineMessageQueue.enqueue).not.toHaveBeenCalled();
+      expect(mockOfflineMessageQueue.createOfflineMessage).toHaveBeenCalled();
+      expect(mockOfflineMessageQueue.enqueue).toHaveBeenCalled();
 
-      // 验证：缓存应该回滚到发送前状态
+      // 验证：缓存保留失败消息
       const data = queryClient.getQueryData<{
-        pages: Array<{ items: Array<{ id: string }> }>;
+        pages: Array<{
+          items: Array<{
+            id: string;
+            status: MessageStatusEnum;
+            _offlineMessageId?: string;
+          }>;
+        }>;
       }>(queryKeys.messages.list(conversationId, 'waba'));
 
-      expect(data?.pages[0].items).toHaveLength(1);
+      expect(data?.pages[0].items).toHaveLength(2);
       expect(data?.pages[0].items[0].id).toBe('existing-msg-1');
+      expect(data?.pages[0].items[1].id).toBe('temp-msg-1');
+      expect(data?.pages[0].items[1].status).toBe(MessageStatusEnum.Failed);
+      expect(data?.pages[0].items[1]._offlineMessageId).toBe('offline-msg-1');
     });
   });
 
@@ -414,6 +473,44 @@ describe('useSendMessage - 消息回滚与离线队列功能测试', () => {
 
       expect(data?.pages[0].items[0].id).toBe(messageId);
       expect(data?.pages[0].items[0].status).toBe(MessageStatusEnum.Sent);
+    });
+
+    it('权限错误不应进入离线队列且应回滚', async () => {
+      const conversationId = 'conv-1';
+      const content = '测试消息';
+
+      queryClient.setQueryData(
+        queryKeys.messages.list(conversationId, 'waba'),
+        {
+          pages: [{ items: [] }],
+        },
+      );
+
+      mockMessageService.send.mockRejectedValue(
+        new AuthorizationError('token expired'),
+      );
+
+      const { result } = renderHook(() => useSendMessage(), { wrapper });
+
+      await act(async () => {
+        await expect(
+          result.current.mutateAsync({
+            conversationId,
+            content,
+          }),
+        ).rejects.toThrow('token expired');
+      });
+
+      expect(
+        mockOfflineMessageQueue.createOfflineMessage,
+      ).not.toHaveBeenCalled();
+      expect(mockOfflineMessageQueue.enqueue).not.toHaveBeenCalled();
+
+      const data = queryClient.getQueryData<{
+        pages: Array<{ items: unknown[] }>;
+      }>(queryKeys.messages.list(conversationId, 'waba'));
+
+      expect(data?.pages[0].items).toHaveLength(0);
     });
   });
 });

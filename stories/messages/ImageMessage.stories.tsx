@@ -149,8 +149,8 @@ export const MultipleImages = () => {
 
   return (
     <div className="space-y-3">
-      {images.map((url, index) => (
-        <div key={index} className="flex justify-start">
+      {images.map((url) => (
+        <div key={url} className="flex justify-start">
           <div className="max-w-[70%] px-4 py-2 bg-card text-text rounded-2xl rounded-tl-sm">
             <ImageMessage
               content={{

@@ -87,7 +87,7 @@ export const InMessage = () => {
     <div className="space-y-3">
       {messages.map((msg, index) => (
         <div
-          key={index}
+          key={`${msg.time}-${msg.text}`}
           className={`flex ${index % 2 === 0 ? 'justify-start' : 'justify-end'}`}
         >
           <div
@@ -121,8 +121,8 @@ export const TimeSequence = () => {
 
   return (
     <div className="space-y-3">
-      {messages.map((msg, index) => (
-        <div key={index} className="flex justify-start">
+      {messages.map((msg) => (
+        <div key={`${msg.time}-${msg.text}`} className="flex justify-start">
           <div className="max-w-[70%] px-4 py-2 bg-card text-text rounded-2xl rounded-tl-sm">
             <p className="text-sm">{msg.text}</p>
             <MessageTimestamp timestamp={msg.time} />

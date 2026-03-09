@@ -2,6 +2,8 @@
  * 网络连接状态枚举
  */
 export enum NetworkStatusEnum {
+  /** 状态未知 */
+  Unknown = 'unknown',
   /** 连接成功 */
   Connected = 'connected',
   /** 连接断开 */
@@ -10,6 +12,18 @@ export enum NetworkStatusEnum {
   Connecting = 'connecting',
   /** 重连中 */
   Reconnecting = 'reconnecting',
+}
+
+/**
+ * 网络可达性枚举
+ */
+export enum NetworkReachabilityEnum {
+  /** 在线 */
+  Online = 'online',
+  /** 离线 */
+  Offline = 'offline',
+  /** 未知 */
+  Unknown = 'unknown',
 }
 
 /**
@@ -116,6 +130,8 @@ export interface NetworkQualityMetrics {
 export interface NetworkState {
   /** 连接状态 */
   status: NetworkStatusEnum;
+  /** 网络可达性 */
+  reachability: NetworkReachabilityEnum;
   /** 网络质量 */
   quality: NetworkQualityEnum;
   /** 网络质量指标 */
@@ -126,6 +142,12 @@ export interface NetworkState {
   lastConnectedAt?: number;
   /** 重连次数 */
   reconnectCount?: number;
+  /** Host 汇总的连接细节 */
+  details?: {
+    browserOnline?: boolean;
+    httpReachable?: boolean;
+    realtimeConnected?: boolean;
+  };
   /** 是否启用网络状态指示器 */
   enableStatusIndicator?: boolean;
 }

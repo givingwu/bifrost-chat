@@ -4,10 +4,16 @@ import type { ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AgentStatusEnum } from '@/interfaces/agent.interface';
 import {
+  MessageFailureTypeEnum,
   type MessageSendResult,
   MessageStatusEnum,
   type StandardMessage,
 } from '@/interfaces/message.interface';
+import {
+  NetworkQualityEnum,
+  NetworkReachabilityEnum,
+  NetworkStatusEnum,
+} from '@/interfaces/network.interface';
 import { queryKeys } from '@/providers/query.provider';
 import { ServiceProvider } from '@/providers/service.provider';
 import type { IConversationService } from '@/services/conversation.service';
@@ -25,14 +31,27 @@ const mockCurrentUser: CurrentUser = {
   status: AgentStatusEnum.Online,
 };
 
-vi.mock('@/store', () => ({
-  useStrategy: () => ({
-    activeChannel: 'waba' as const,
-    allowedChannels: ['waba' as const],
-    currentUser: mockCurrentUser,
-  }),
-  useActiveConversationId: () => 'conv-1',
-}));
+let mockNetwork = {
+  status: NetworkStatusEnum.Connected,
+  reachability: NetworkReachabilityEnum.Online,
+  quality: NetworkQualityEnum.Good,
+  enableStatusIndicator: true,
+};
+
+vi.mock('@/store', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/store')>();
+
+  return {
+    ...actual,
+    useStrategy: () => ({
+      activeChannel: 'waba' as const,
+      allowedChannels: ['waba' as const],
+      currentUser: mockCurrentUser,
+    }),
+    useActiveConversationId: () => 'conv-1',
+    useNetwork: () => mockNetwork,
+  };
+});
 
 const mockConversationService: IConversationService = {
   list: vi.fn(),
@@ -91,6 +110,13 @@ describe('useSendMessage Hook', () => {
     vi.clearAllMocks();
     pendingMessageTracker.clear();
     messageQueue.clear();
+    mockNetwork = {
+      status: NetworkStatusEnum.Connected,
+      reachability: NetworkReachabilityEnum.Online,
+      quality: NetworkQualityEnum.Good,
+      enableStatusIndicator: true,
+    };
+    vi.mocked(mockConversationService.list).mockResolvedValue([]);
   });
 
   afterEach(() => {
@@ -192,7 +218,7 @@ describe('useSendMessage Hook', () => {
     });
   });
 
-  it('应在服务返回失败状态时标记为失败、保留消息并显示 retry 按钮', async () => {
+  it('未提供离线队列时，服务返回失败状态应回滚临时消息', async () => {
     const queryClient = new QueryClient({
       defaultOptions: {
         queries: { retry: false },
@@ -255,15 +281,11 @@ describe('useSendMessage Hook', () => {
     });
 
     await waitFor(() => {
-      const failedMessage = getMessages(queryClient, conversationId)[0];
-      expect(failedMessage?.status).toBe(MessageStatusEnum.Failed);
-      expect(failedMessage?.error).toBe('template limit reached');
-      // 验证消息保留在列表中（而不是被删除）
-      expect(getMessages(queryClient, conversationId)).toHaveLength(1);
+      expect(getMessages(queryClient, conversationId)).toHaveLength(0);
     });
   });
 
-  it('应在服务返回 error 但状态非 Failed 时依旧标记失败、保留消息并显示 retry 按钮', async () => {
+  it('未提供离线队列时，服务返回 error 但状态非 Failed 也应回滚', async () => {
     const queryClient = new QueryClient({
       defaultOptions: {
         queries: { retry: false },
@@ -318,12 +340,65 @@ describe('useSendMessage Hook', () => {
     });
 
     await waitFor(() => {
-      const failedMessage = getMessages(queryClient, conversationId)[0];
-      expect(failedMessage?.status).toBe(MessageStatusEnum.Failed);
-      expect(failedMessage?.error).toBe('template limit reached');
-      // 验证消息保留在列表中（而不是被删除）
-      expect(getMessages(queryClient, conversationId)).toHaveLength(1);
+      expect(getMessages(queryClient, conversationId)).toHaveLength(0);
     });
+  });
+
+  it('当 status 为 Reconnecting 且 reachability 为 Online 时不应阻断发送', async () => {
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+      },
+    });
+    const conversationId = 'conv-reconnecting';
+
+    queryClient.setQueryData(
+      queryKeys.messages.list(conversationId, ACTIVE_CHANNEL),
+      {
+        pages: [{ items: [] }],
+        pageParams: [1],
+      },
+    );
+
+    mockNetwork = {
+      status: NetworkStatusEnum.Reconnecting,
+      reachability: NetworkReachabilityEnum.Online,
+      quality: NetworkQualityEnum.Good,
+      enableStatusIndicator: true,
+    };
+
+    vi.mocked(mockMessageService.send).mockResolvedValue({
+      tempId: 'server-temp-id',
+      messageId: 'message-reconnecting-1',
+      status: MessageStatusEnum.Sent,
+    });
+
+    const { result } = renderHook(() => useSendMessage(), {
+      wrapper: createTestWrapper(queryClient),
+    });
+
+    await act(async () => {
+      await result.current.mutateAsync({
+        conversationId,
+        content: 'reconnecting but reachable',
+      });
+    });
+
+    expect(mockMessageService.send).toHaveBeenCalledWith(conversationId, {
+      content: 'reconnecting but reachable',
+      channelType: 'waba',
+      receiver: {
+        app: 'test-app',
+        pin: '',
+        channelType: 'waba',
+        clientType: undefined,
+      },
+    });
+
+    expect(getMessages(queryClient, conversationId)[0]?.status).toBe(
+      MessageStatusEnum.Sent,
+    );
   });
 
   it('成功返回时应更新 messageId 且不保留 error', async () => {
@@ -391,6 +466,73 @@ describe('useSendMessage Hook', () => {
       expect(sentMessage?.id).toBe('message-2001');
       expect(sentMessage?.error).toBeUndefined();
     });
+  });
+
+  it('服务端返回网络失败结果时应保留失败消息并写入离线队列', async () => {
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+      },
+    });
+    const conversationId = 'conv-network-failed';
+    const mockOfflineMessageQueue = {
+      createOfflineMessage: vi.fn(() => ({
+        id: 'offline-msg-1',
+        message: {},
+        conversationId,
+        sendParams: {},
+        retryCount: 0,
+        maxRetries: 3,
+        createdAt: Date.now(),
+        priority: 'normal' as const,
+      })),
+      enqueue: vi.fn().mockResolvedValue(undefined),
+    };
+
+    queryClient.setQueryData(
+      queryKeys.messages.list(conversationId, ACTIVE_CHANNEL),
+      {
+        pages: [{ items: [] }],
+        pageParams: [1],
+      },
+    );
+
+    const wrapper = ({ children }: { children: ReactNode }) => (
+      <QueryClientProvider client={queryClient}>
+        <ServiceProvider
+          conversationService={mockConversationService}
+          messageService={mockMessageService}
+          templateService={mockTemplateService}
+          offlineMessageQueue={mockOfflineMessageQueue as never}
+        >
+          {children}
+        </ServiceProvider>
+      </QueryClientProvider>
+    );
+
+    vi.mocked(mockMessageService.send).mockResolvedValue({
+      tempId: 'server-temp-id',
+      status: MessageStatusEnum.Failed,
+      error: 'socket closed',
+      errorType: MessageFailureTypeEnum.Network,
+    });
+
+    const { result } = renderHook(() => useSendMessage(), { wrapper });
+
+    await act(async () => {
+      await result.current.mutateAsync({
+        conversationId,
+        content: 'retry me',
+      });
+    });
+
+    const message = getMessages(queryClient, conversationId)[0];
+    expect(message?.status).toBe(MessageStatusEnum.Failed);
+    expect(message?._source).toBe('local');
+    expect(message?._offlineMessageId).toBe('offline-msg-1');
+    expect(mockOfflineMessageQueue.createOfflineMessage).toHaveBeenCalled();
+    expect(mockOfflineMessageQueue.enqueue).toHaveBeenCalled();
   });
 
   it('应在挂载时订阅 subscribeToMessageStatus，收到 ack 回调后将消息状态更新为 sent', () => {
