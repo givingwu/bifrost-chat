@@ -426,17 +426,38 @@ export class WebSocketManager {
    * 发送上行已读 ACK 消息，ptype 为 `msg_read_ack`
    *
    * @param params 已读 ACK 参数
+   * @param options 选项
+   * @param options.requestId 请求 ID
+   * @param options.targetMessageId 目标消息 ID
+   * @param options.targetTempId 目标临时消息 ID
+   * @param options.channelType 渠道类型
    * @throws {SendFailedError} 发送失败
    */
   sendReadAck(
     params: AckPacketBody,
     options?: {
       requestId?: string;
+      targetMessageId?: string;
+      targetTempId?: string;
+      channelType?: StandardMessage['channelType'];
     },
   ): AckRawPacket {
     const packet = AckHandler.createReadAck(params, {
       requestId: options?.requestId,
     });
+
+    const targetMessageId =
+      options?.targetMessageId ?? String(params.mid ?? packet.id);
+    messageQueue.registerReceiptAck({
+      ackRequestId: packet.id,
+      conversationId: params.chatId,
+      targetMessageId,
+      targetTempId: options?.targetTempId,
+      channelType: options?.channelType,
+      targetStatus: MessageStatusEnum.Read,
+      ackKind: 'read',
+    });
+
     try {
       this.send(packet);
     } catch (error) {
