@@ -228,6 +228,74 @@ sequenceDiagram
     UI->>UI: 显示失败图标，提供重试
 ```
 
+## MessageStatus 流转
+
+```mermaid
+sequenceDiagram
+  autonumber
+  participant UI as UI / useSendMessage
+  participant MQ as MessageQueueService
+  participant WS as WebSocketManager
+  participant Server as Server
+  participant Ack as AckPacketHandler
+  participant Sync as MessageSyncService
+  participant Cache as React Query Cache
+
+  UI->>Cache: 写入 optimistic message(tempId, status=sending)
+  UI->>MQ: register(tempId, requestId, conversationId)
+  UI->>WS: send(chat_message)
+
+  WS->>Server: 发送 chat_message
+  Server-->>WS: ACK ptype=ack, body.type=chat_message
+  WS->>Ack: handle(packet)
+  Ack->>MQ: handleAck(chat_message ack)
+  MQ-->>Ack: statusEvent(status=sent, tempId, messageId=requestId)
+  Ack-->>WS: MessageStatus event(sent)
+  WS->>Sync: updateMessageStatus(sent)
+  Sync->>Cache: 按 messageId/tempId 更新 status=sent
+
+  opt 服务端返回真实 messageId
+    UI->>MQ: bindServerMessageId(tempId, serverMessageId)
+  end
+
+  rect rgb(240,248,255)
+    note over Server,WS: 新增状态回调格式
+    Server-->>WS: { type: "msg_read_ack", body: { id, chatId, status, errorInfo } }
+    WS->>WS: normalizeIncomingPacket()
+    WS->>Ack: handle(normalized ack packet)
+    Ack->>MQ: handleAck(body.status callback)
+    alt 命中 outgoing 消息
+      MQ->>MQ: resolveDeliveryStatus(status)
+      MQ-->>Ack: statusEvent(delivered/read/failed...)
+    else 先到状态，后到 serverMessageId
+      MQ->>MQ: storeOrphanStatusAck(messageId)
+      MQ-->>Ack: handled=false
+      note over UI,MQ: 后续 bindServerMessageId 时 replay
+      UI->>MQ: bindServerMessageId(tempId, serverMessageId)
+      MQ->>MQ: replayOrphanStatusAcks()
+      MQ-->>UI: replayed statusEvent
+      UI->>Sync: updateMessageStatus(replayedEvent)
+      Sync->>Cache: 更新消息状态
+    else 队列未命中，但 body.id/body.chatId 可兜底
+      Ack->>Ack: 用 body.id + body.chatId + body.status 直接构造状态事件
+    end
+    Ack-->>WS: MessageStatus event(status, error?)
+    WS->>Sync: updateMessageStatus(event)
+    Sync->>Cache: 更新 status / error
+  end
+
+  alt status = UN_READ
+    Cache-->>UI: 刷新为 delivered
+  else status = READ
+    Cache-->>UI: 刷新为 read
+  else status = SEND_FAIL or DELIVER_FAIL
+    Cache-->>UI: 刷新为 failed + errorInfo
+  else status = REVOKE or DELETE
+    Cache-->>UI: 刷新为 revoked / deleted
+  end
+
+```
+
 ## 心跳保活流程
 
 ```mermaid
@@ -311,6 +379,60 @@ sequenceDiagram
     WS-->>Hook: 状态更新确认
     Hook-->>UI: 状态已更新
     UI-->>User: 显示当前状态
+```
+
+## 整体流程
+
+```mermaid
+flowchart TD
+  subgraph Send["发送阶段"]
+    A["UI 调用 useSendMessage"] --> B["生成 tempId，写入 optimistic message(status=sending)"]
+    B --> C["messageQueue.register(tempId/requestId)"]
+    C --> D["发送 chat_message"]
+    D --> E["服务端返回 chat_message ACK"]
+    E --> F["messageQueue.handleOutgoingAck"]
+    F --> G["绑定 serverMessageId，消息状态=sent"]
+  end
+
+  subgraph Callback["服务端回调阶段"]
+    H["WebSocket 收到推送"] --> I{"是否是新格式<br/>type=msg_read_ack/msg_receive_ack?"}
+    I -- "是" --> I1["normalizeIncomingPacket<br/>归一化为 ACK Packet"]
+    I -- "否" --> I2["直接使用原始 Packet"]
+    I1 --> J["PacketValidator + PacketHandlerStrategy"]
+    I2 --> J
+    J --> K["AckPacketHandler.parseDownstream<br/>提取 id/body.id/chatId/status/errorInfo"]
+
+    K --> L{"messageQueue.handleAck<br/>能否命中队列?"}
+
+    L -- "命中 outgoing" --> M{"是否是状态回调<br/>body.status / fox status?"}
+    M -- "是" --> M1["resolveDeliveryStatus<br/>UN_SEND/SEND_FAIL/DELIVER_FAIL/UN_READ/READ/REVOKE/DELETE"]
+    M -- "否" --> M2{"ACK 类型"}
+    M2 -- "chat_message / msg_send_failed" --> M3["更新 sent/failed<br/>必要时继续绑定 serverMessageId"]
+    M2 -- "msg_receive_ack / msg_read_ack" --> M4["按 ackRequestId 回填原消息<br/>delivered/read"]
+
+    M1 --> N["生成 MessageStatusUpdatedEvent<br/>messageId/tempId/status/error"]
+    M3 --> N
+    M4 --> N
+
+    L -- "未命中，但有 body.status" --> O1["queue 先 storeOrphanStatusAck"]
+    O1 --> O2["后续 bindServerMessageId 时 replayOrphanStatusAcks"]
+    O2 --> N
+
+    L -- "未命中，但 handler 可用 body.id/body.chatId 兜底" --> O3["直接构造状态事件"]
+    O3 --> N
+
+    L -- "未命中，且只是 receipt ack" --> P["跳过<br/>避免把 ACK 自身 id 当消息 id"]
+  end
+
+  subgraph Cache["缓存与 UI"]
+    N --> Q["MessageSyncService.updateMessageStatus"]
+    Q --> R["MessageCacheHelper.updateMessageInCache"]
+    R --> S["React Query 缓存更新"]
+    S --> T["MessageList / StatusIndicator 刷新"]
+  end
+
+  G --> H
+
 ```
 
 ## 关键接口定义
