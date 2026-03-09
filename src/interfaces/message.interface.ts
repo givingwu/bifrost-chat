@@ -12,7 +12,7 @@ export enum MessageDirectionEnum {
 
 /**
  * 消息状态枚举，对应 ACK 协议中的 msg_receive_ack/msg_read_ack
- * 服务端状态映射: UN_SEND→Sending, SEND_FAIL→Failed, UN_READ→Delivered, READ→Read, REVOKE→Revoked, DELETE→Deleted
+ * 服务端状态映射: UN_SEND→Sending, SEND_FAIL/DELIVER_FAIL→Failed, UN_READ→Delivered, READ→Read, REVOKE→Revoked, DELETE→Deleted
  */
 export enum MessageStatusEnum {
   /** 消息创建（客户端生成临时消息） */

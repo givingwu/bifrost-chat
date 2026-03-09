@@ -32,7 +32,7 @@
    - 目标架构（To-Be）
 2. 命令、类型名、路径必须与仓库代码一致。
 3. 对外 API 口径以 `src/index.ts` 与 `src/components/index.ts` 为准。
-4. 与架构冲突时，以 `docs/final-architecture.md` 为准。
+4. 与架构冲突时，以 `design/final-architecture.md` 为准。
 
 ## 代码修改流程（强制）
 

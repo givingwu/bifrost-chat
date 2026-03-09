@@ -345,16 +345,36 @@ export function isAckPacketBody(body: unknown): body is AckPacketBody {
 }
 
 /**
+ * 服务端 MessageStatus 枚举值
+ * 对应文档: specs/bifrost-client-integration-guide.md 3.4.4
+ */
+export const SERVER_MESSAGE_STATUSES = [
+  'UN_SEND',
+  'SEND_FAIL',
+  'DELIVER_FAIL',
+  'UN_READ',
+  'READ',
+  'REVOKE',
+  'DELETE',
+] as const;
+
+/**
  * 服务端 MessageStatus 类型
  * 对应文档: specs/bifrost-client-integration-guide.md 3.4.4
  */
-export type ServerMessageStatus =
-  | 'UN_SEND'
-  | 'SEND_FAIL'
-  | 'UN_READ'
-  | 'READ'
-  | 'REVOKE'
-  | 'DELETE';
+export type ServerMessageStatus = (typeof SERVER_MESSAGE_STATUSES)[number];
+
+/**
+ * 判断是否为有效的服务端 MessageStatus
+ */
+export function isServerMessageStatus(
+  value: unknown,
+): value is ServerMessageStatus {
+  return (
+    typeof value === 'string' &&
+    SERVER_MESSAGE_STATUSES.includes(value as ServerMessageStatus)
+  );
+}
 
 /**
  * 服务端 MessageStatus → SDK MessageStatusEnum 映射
@@ -365,6 +385,7 @@ export function mapServerMessageStatusToLocal(
   const mapping: Record<ServerMessageStatus, MessageStatusEnum> = {
     UN_SEND: MessageStatusEnum.Sending,
     SEND_FAIL: MessageStatusEnum.Failed,
+    DELIVER_FAIL: MessageStatusEnum.Failed,
     UN_READ: MessageStatusEnum.Delivered,
     READ: MessageStatusEnum.Read,
     REVOKE: MessageStatusEnum.Revoked,

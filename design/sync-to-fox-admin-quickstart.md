@@ -156,7 +156,6 @@ rsync -av --delete \
 
 ## 相关文档
 
-- [详细设计方案](../plans/auto-sync-to-fox-admin-ui.md)
 - [Git Hook 文档](https://git-scm.com/docs/githooks)
 - [rsync 文档](https://linux.die.net/man/1/rsync)
 
@@ -164,5 +163,4 @@ rsync -av --delete \
 
 如有问题，请查看：
 1. 同步日志：`/tmp/bifrost-sync.log`
-2. 详细文档：[`plans/auto-sync-to-fox-admin-ui.md`](../plans/auto-sync-to-fox-admin-ui.md)
-3. 项目 Issues：[https://git.kuainiujinke.com/feoe/bifrost-chat/issues](https://git.kuainiujinke.com/feoe/bifrost-chat/issues)
+2. 项目 Issues：[https://git.kuainiujinke.com/feoe/bifrost-chat/issues](https://git.kuainiujinke.com/feoe/bifrost-chat/issues)

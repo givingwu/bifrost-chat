@@ -66,3 +66,36 @@
 - 文档冲突时，以 `final-architecture.md` 为准。
 - `Session` 仅允许出现在“禁用说明/迁移对照”语境。
 - 术语统一：`Conversation`、`Template`、`QueryProvider`。
+
+### 常见错误示例
+
+**❌ 错误**：
+```typescript
+interface Session {}
+interface ISessionService {}
+useSessions()
+```
+
+**✅ 正确**：
+```typescript
+interface Conversation {}
+interface IConversationService {}
+useConversations()
+```
+
+**❌ 错误**：
+```markdown
+参考 `docs/final-architecture.md`
+```
+
+**✅ 正确**：
+```markdown
+参考 `design/final-architecture.md`
+```
+
+## 相关资源
+
+- **技能文档**：`../skills/README.md`
+- **项目指导**：`../CLAUDE.md`
+- **版本历史**：`../CHANGELOG.md`
+- **待办事项**：`../TODO.md`

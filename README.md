@@ -9,10 +9,16 @@
 基于 React 与 Tailwind CSS 的可嵌入聊天 SDK。
 
 [更新日志](CHANGELOG.md)
+[文档索引](DOCUMENTATION_INDEX.md)
 
 </div>
 
 ## 文档
+
+- **📚 完整文档索引**：[DOCUMENTATION_INDEX.md](DOCUMENTATION_INDEX.md) ⭐
+- **🏗️ 架构总览**：`design/README.md`
+- **🎯 架构基线（SSOT）**：`design/final-architecture.md`
+- **📝 命名规范**：`design/naming-conventions.md`
 
 - 架构总览：`design/README.md`
 - 架构基线（SSOT）：`design/final-architecture.md`

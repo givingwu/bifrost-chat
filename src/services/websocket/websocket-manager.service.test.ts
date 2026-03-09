@@ -242,6 +242,36 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
       expect(data.status).toBe(MessageStatusEnum.Read);
     });
 
+    it('应兼容顶层 type 的新状态回调格式', () => {
+      const messageListener = vi.fn();
+      manager.onMessage(messageListener);
+
+      const callbackPayload = {
+        type: AckMessageTypeEnum.MsgReadAck,
+        body: {
+          id: 'msg-123',
+          chatId: 'conv-123',
+          status: 'UN_READ',
+          timestamp: Date.now(),
+        },
+      };
+
+      (manager as any).handleMessage(
+        new MessageEvent('message', {
+          data: JSON.stringify(callbackPayload),
+        }),
+      );
+
+      const event = messageListener.mock.calls[0][0];
+      expect(event.type).toBe(WebSocketEventTypeEnum.MessageStatus);
+      const data = event.data as {
+        messageId: string;
+        status: MessageStatusEnum;
+      };
+      expect(data.messageId).toBe('msg-123');
+      expect(data.status).toBe(MessageStatusEnum.Delivered);
+    });
+
     it('应该使用 isHeartbeatAck 判断心跳', () => {
       const messageListener = vi.fn();
       manager.onMessage(messageListener);

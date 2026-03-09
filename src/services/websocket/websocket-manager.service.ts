@@ -32,9 +32,11 @@ import {
   type StandardMessage,
 } from '@/interfaces/message.interface';
 import {
+  AckMessageTypeEnum,
   type AckPacketBody,
   type AckRawPacket,
   type HeartbeatParams,
+  isPacketBodyRecord,
   PacketMessageTypeEnum,
   type RawPacket,
 } from '@/interfaces/protocol.interface';
@@ -55,6 +57,7 @@ import {
   PacketConverter,
   PacketValidator,
 } from '@/services/protocol';
+import { extractMessageId, extractTimestamp } from '@/utils/packet.util';
 import { PacketHandlerStrategy } from './packet-handler.strategy';
 import {
   isValidStateTransition,
@@ -615,7 +618,8 @@ export class WebSocketManager {
    */
   private async handleMessage(event: MessageEvent<string>): Promise<void> {
     try {
-      const data: RawPacket | AckRawPacket = JSON.parse(event.data);
+      const rawData: RawPacket | AckRawPacket = JSON.parse(event.data);
+      const data = this.normalizeIncomingPacket(rawData);
 
       // 验证数据包格式（如果启用了协议转换）
       if (this.config.enableProtocolConversion) {
@@ -687,6 +691,65 @@ export class WebSocketManager {
       console.error('Failed to parse WebSocket message:', error);
       this.notifyError(parseError);
     }
+  }
+
+  /**
+   * 归一化服务端推送消息
+   *
+   * @description
+   * 兼容新增的 `{ type: 'msg_read_ack', body: { id, chatId, status } }`
+   * 结构，将其转换为现有 ACK handler 可消费的协议包。
+   */
+  private normalizeIncomingPacket(
+    data: RawPacket | AckRawPacket,
+  ): RawPacket | AckRawPacket {
+    if (
+      this.isRecord(data) &&
+      typeof data.ptype === 'string' &&
+      PacketValidator.hasValidPtype(data)
+    ) {
+      return data;
+    }
+
+    if (
+      !this.isRecord(data) ||
+      typeof data.type !== 'string' ||
+      !isPacketBodyRecord(data.body)
+    ) {
+      return data;
+    }
+
+    if (
+      data.type !== AckMessageTypeEnum.MsgReadAck &&
+      data.type !== AckMessageTypeEnum.MsgReceiveAck
+    ) {
+      return data;
+    }
+
+    const messageId =
+      extractMessageId(undefined, data.body.id, data.body.mid) ?? '';
+    const timestamp =
+      extractTimestamp(undefined, data.body.timestamp) ?? Date.now();
+
+    return {
+      id: messageId,
+      chatId: typeof data.body.chatId === 'string' ? data.body.chatId : '',
+      from: {
+        app: typeof data.body.app === 'string' ? data.body.app : '',
+        pin: typeof data.body.sender === 'string' ? data.body.sender : '',
+      },
+      to: {
+        app: '',
+        pin: '',
+      },
+      ptype: PacketMessageTypeEnum.Ack,
+      body: {
+        ...data.body,
+        type: data.type,
+      },
+      ver: '1.0',
+      timestamp,
+    };
   }
 
   /**

@@ -155,6 +155,30 @@ describe('AckHandler', () => {
       expect(ackData?.timestamp).toBe(1234567890);
     });
 
+    it('应该解析携带 body.status 的状态回调 ACK', () => {
+      const data = {
+        ptype: PacketMessageTypeEnum.Ack,
+        body: {
+          type: AckMessageTypeEnum.MsgReadAck,
+          id: 'msg-123',
+          chatId: 'conv-456',
+          status: 'DELIVER_FAIL',
+          errorInfo: 'channel callback failed',
+          timestamp: 1234567890,
+        },
+      };
+
+      const ackData = AckHandler.parseDownstream(data);
+
+      expect(ackData).toBeDefined();
+      expect(ackData?.id).toBe('msg-123');
+      expect(ackData?.body.id).toBe('msg-123');
+      expect(ackData?.body.chatId).toBe('conv-456');
+      expect(ackData?.body.status).toBe('DELIVER_FAIL');
+      expect(ackData?.body.errorInfo).toBe('channel callback failed');
+      expect(ackData?.timestamp).toBe(1234567890);
+    });
+
     it('应该拒绝非 ACK 类型的消息', () => {
       const data = {
         id: 'msg-123',
@@ -256,6 +280,44 @@ describe('AckHandler', () => {
       expect(AckHandler.ackTypeToMessageStatus('unknown_type')).toBe(
         MessageStatusEnum.Sent,
       );
+    });
+  });
+
+  describe('ackDataToMessageStatus', () => {
+    it('应优先使用 body.status 解析状态回调', () => {
+      const ackData = AckHandler.parseDownstream({
+        ptype: PacketMessageTypeEnum.Ack,
+        body: {
+          type: AckMessageTypeEnum.MsgReadAck,
+          id: 'msg-123',
+          status: 'UN_READ',
+        },
+      });
+
+      expect(ackData).toBeDefined();
+      expect(
+        AckHandler.ackDataToMessageStatus(
+          ackData as NonNullable<typeof ackData>,
+        ),
+      ).toBe(MessageStatusEnum.Delivered);
+    });
+
+    it('当 body.status 非法时应返回 undefined，而不是回退为已读', () => {
+      const ackData = AckHandler.parseDownstream({
+        ptype: PacketMessageTypeEnum.Ack,
+        body: {
+          type: AckMessageTypeEnum.MsgReadAck,
+          id: 'msg-123',
+          status: 'INVALID_STATUS',
+        },
+      });
+
+      expect(ackData).toBeDefined();
+      expect(
+        AckHandler.ackDataToMessageStatus(
+          ackData as NonNullable<typeof ackData>,
+        ),
+      ).toBeUndefined();
     });
   });
 
