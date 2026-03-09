@@ -228,7 +228,7 @@ sequenceDiagram
     UI->>UI: 显示失败图标，提供重试
 ```
 
-## MessageStatus 流转
+## MessageStatus 流转时序图
 
 ```mermaid
 sequenceDiagram
@@ -293,7 +293,55 @@ sequenceDiagram
   else status = REVOKE or DELETE
     Cache-->>UI: 刷新为 revoked / deleted
   end
+```
 
+## ACK <-> MessageStatus 双轨时序图
+
+```mermaid
+sequenceDiagram
+  autonumber
+  participant Server as 服务端
+  participant WS as WebSocketManager
+  participant Ack as AckPacketHandler
+  participant MQ as MessageQueueService
+  participant Sync as MessageSyncService
+  participant Cache as React Query Cache
+  participant UI as MessageList / StatusIndicator
+
+  Server-->>WS: 推送 { type: "msg_read_ack", body: { id, chatId, status, errorInfo } }
+
+  WS->>WS: normalizeIncomingPacket()
+  Note right of WS: 归一化成现有 ACK Packet<br/>ptype=ack, body.type=msg_read_ack
+
+  WS->>Ack: handle(packet)
+  Ack->>Ack: parseDownstream()<br/>提取 id/chatId/status/errorInfo
+  Ack->>MQ: handleAck(ackData)
+
+  alt 队列命中已发送消息
+    MQ->>MQ: resolveDeliveryStatus(body.status)
+    alt status = UN_READ
+      MQ-->>Ack: statusEvent(delivered)
+    else status = READ
+      MQ-->>Ack: statusEvent(read)
+    else status = SEND_FAIL / DELIVER_FAIL
+      MQ-->>Ack: statusEvent(failed, errorInfo)
+    else status = REVOKE / DELETE
+      MQ-->>Ack: statusEvent(revoked / deleted)
+    else status = UN_SEND
+      MQ-->>Ack: statusEvent(sending)
+    end
+  else 状态先到，serverMessageId 还没绑定
+    MQ->>MQ: storeOrphanStatusAck(messageId)
+    MQ-->>Ack: handled = false
+    Note over MQ: 后续 bindServerMessageId() 时 replay
+  else 队列未命中，但 body.id/chatId 完整
+    Ack->>Ack: fallback 直接构造 MessageStatus event
+  end
+
+  Ack-->>WS: MessageStatus event
+  WS->>Sync: updateMessageStatus(event)
+  Sync->>Cache: updateMessageInCache(id/tempId/status/error)
+  Cache-->>UI: 刷新消息状态
 ```
 
 ## 心跳保活流程
