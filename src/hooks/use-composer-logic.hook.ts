@@ -99,7 +99,6 @@ const MAX_LENGTH_MAP: Record<ChannelTypeEnum, number> = {
   [ChannelTypeEnum.SMS]: 160,
   [ChannelTypeEnum.Email]: Infinity,
   [ChannelTypeEnum.WhatsApp]: 4096,
-  [ChannelTypeEnum.Waba]: 4096,
   [ChannelTypeEnum.Viber]: 4096,
   [ChannelTypeEnum.IVR]: 2000,
 };
@@ -237,7 +236,6 @@ export const useComposerLogic = (
         [ChannelTypeEnum.SMS]: 'SMS',
         [ChannelTypeEnum.Email]: 'Email',
         [ChannelTypeEnum.WhatsApp]: 'WhatsApp',
-        [ChannelTypeEnum.Waba]: 'WhatsApp Business',
         [ChannelTypeEnum.Viber]: 'Viber',
         [ChannelTypeEnum.IVR]: 'Voice Call',
       };

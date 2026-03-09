@@ -37,7 +37,7 @@ vi.mock('@/store', () => ({
     allowTemplateEdit: false,
   }),
   useStrategy: () => ({
-    allowedChannels: ['sms', 'whatsapp', 'email', 'waba', 'viber', 'ivr'],
+    allowedChannels: ['sms', 'whatsapp', 'email', 'viber', 'ivr'],
     activeChannel: 'whatsapp',
   }),
   useActions: () => ({

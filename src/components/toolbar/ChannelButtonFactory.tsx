@@ -31,7 +31,6 @@ export const ChannelButtonFactory = ({
     [ChannelTypeEnum.SMS]: <Smartphone className="h-4 w-4" />,
     [ChannelTypeEnum.WhatsApp]: <MessageSquare className="h-4 w-4" />,
     [ChannelTypeEnum.Email]: <Mail className="h-4 w-4" />,
-    [ChannelTypeEnum.Waba]: <MessageSquare className="h-4 w-4" />,
     [ChannelTypeEnum.Viber]: <MessageSquare className="h-4 w-4" />,
     [ChannelTypeEnum.IVR]: <Phone className="h-4 w-4" />,
   };

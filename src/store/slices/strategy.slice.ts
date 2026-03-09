@@ -82,7 +82,9 @@ export const createStrategySlice: StateCreator<
       status: AgentStatusEnum.Offline,
       clientType: ClientTypeEnum.Web,
     },
-    allowedMessageTypes: getDefaultChannelMessageTypes(ChannelTypeEnum.Waba),
+    allowedMessageTypes: getDefaultChannelMessageTypes(
+      ChannelTypeEnum.WhatsApp,
+    ),
     messageDisplayStrategy: MessageTypeDisplayStrategy.ShowUnsupported,
   },
   actions: {

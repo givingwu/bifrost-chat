@@ -9,8 +9,7 @@
       "sms": "SMS",
       "whatsapp": "WhatsApp",
       "email": "Email",
-      "voip": "VoIP",
-      "waba": "WABA"
+      "voip": "VoIP"
     }
   },
   "composer": {

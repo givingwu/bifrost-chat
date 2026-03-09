@@ -12,8 +12,8 @@ describe('ConfigProvider', () => {
         config={{
           language: { code: LanguageCodeEnum.ZhCN },
           strategy: {
-            allowedChannels: [ChannelTypeEnum.Waba],
-            activeChannel: ChannelTypeEnum.Waba,
+            allowedChannels: [ChannelTypeEnum.WhatsApp],
+            activeChannel: ChannelTypeEnum.WhatsApp,
           },
         }}
       >
@@ -27,7 +27,7 @@ describe('ConfigProvider', () => {
       </ConfigProvider>,
     );
 
-    expect(screen.getByTestId('state').textContent).toBe('zh-CN|waba');
+    expect(screen.getByTestId('state').textContent).toBe('zh-CN|whatsapp');
   });
 
   it('配置应为静态初始化，后续更新 config 不应覆盖', () => {

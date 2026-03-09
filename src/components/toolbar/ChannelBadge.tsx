@@ -18,11 +18,6 @@ const channelComponents: Record<ChannelTypeEnum, () => ReactNode> = {
       <Mail className="h-3 w-3 text-white" />
     </div>
   ),
-  [ChannelTypeEnum.Waba]: () => (
-    <div className="rounded-full bg-success p-0.5">
-      <MessageSquare className="h-3 w-3 text-white" />
-    </div>
-  ),
   [ChannelTypeEnum.Viber]: () => (
     <div className="rounded-full bg-purple-500 p-0.5">
       <MessageSquare className="h-3 w-3 text-white" />

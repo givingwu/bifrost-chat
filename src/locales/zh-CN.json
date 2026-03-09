@@ -9,8 +9,7 @@
       "sms": "短信",
       "whatsapp": "WhatsApp",
       "email": "邮件",
-      "voip": "语音",
-      "waba": "WABA"
+      "voip": "语音"
     }
   },
   "composer": {

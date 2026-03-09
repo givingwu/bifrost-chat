@@ -75,8 +75,8 @@ export const StaticInitialization: Story = {
     renderWithSnapshot({
       language: { code: LanguageCodeEnum.ZhCN },
       strategy: {
-        allowedChannels: [ChannelTypeEnum.Waba, ChannelTypeEnum.SMS],
-        activeChannel: ChannelTypeEnum.Waba,
+        allowedChannels: [ChannelTypeEnum.WhatsApp, ChannelTypeEnum.SMS],
+        activeChannel: ChannelTypeEnum.WhatsApp,
       },
       theme: { mode: ThemeModeEnum.Light },
     }),
@@ -150,7 +150,7 @@ export const MessageTypeConfigBasic: Story = {
   render: () =>
     renderWithSnapshot({
       strategy: {
-        activeChannel: ChannelTypeEnum.Waba,
+        activeChannel: ChannelTypeEnum.WhatsApp,
         allowedMessageTypes: [
           MessageTypeEnum.Text,
           MessageTypeEnum.Image,
@@ -222,11 +222,11 @@ export const MessageTypeConfigCombined: Story = {
   render: () =>
     renderWithSnapshot({
       strategy: {
-        activeChannel: ChannelTypeEnum.Waba,
+        activeChannel: ChannelTypeEnum.WhatsApp,
         allowedChannels: [
           ChannelTypeEnum.SMS,
           ChannelTypeEnum.WhatsApp,
-          ChannelTypeEnum.Waba,
+          ChannelTypeEnum.WhatsApp,
         ],
         allowedMessageTypes: [
           MessageTypeEnum.Text,
