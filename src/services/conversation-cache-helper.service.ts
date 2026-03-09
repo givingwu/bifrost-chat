@@ -164,6 +164,9 @@ function mergeSupportedChannels(
 function mergeConversation(
   existingConversation: Conversation,
   incomingConversation: Conversation,
+  options?: {
+    preserveUnreadCount?: boolean;
+  },
 ): Conversation {
   const existingMetadata = existingConversation.metadata;
   const mergedMetadata =
@@ -180,8 +183,9 @@ function mergeConversation(
     ...existingConversation,
     ...incomingConversation,
     user: mergeUser(existingConversation.user, incomingConversation.user),
-    unreadCount:
-      existingConversation.unreadCount ?? incomingConversation.unreadCount,
+    unreadCount: options?.preserveUnreadCount
+      ? (existingConversation.unreadCount ?? incomingConversation.unreadCount)
+      : incomingConversation.unreadCount,
     isActive: existingConversation.isActive,
     status: existingConversation.status ?? incomingConversation.status,
     priority: existingConversation.priority ?? incomingConversation.priority,
@@ -197,6 +201,14 @@ function mergeConversation(
 
 // biome-ignore lint/complexity/noStaticOnlyClass: cache helper uses a static utility style
 export class ConversationCacheHelper {
+  static getConversations(queryClient: QueryClient): Conversation[] {
+    return (
+      queryClient.getQueryData<Conversation[]>(
+        queryKeys.conversations.list(),
+      ) ?? []
+    );
+  }
+
   static buildSyntheticConversation(message: StandardMessage): Conversation {
     const peer = getPeerParticipant(message);
     const isoTimestamp = new Date(message.timestamp).toISOString();
@@ -226,6 +238,9 @@ export class ConversationCacheHelper {
   static upsertConversation(
     queryClient: QueryClient,
     conversation: Conversation,
+    options?: {
+      preserveUnreadCount?: boolean;
+    },
   ): Conversation {
     let nextConversation = conversation;
 
@@ -238,7 +253,7 @@ export class ConversationCacheHelper {
         );
 
         nextConversation = existingConversation
-          ? mergeConversation(existingConversation, conversation)
+          ? mergeConversation(existingConversation, conversation, options)
           : conversation;
 
         const restConversations = conversations.filter(
@@ -255,6 +270,9 @@ export class ConversationCacheHelper {
   static upsertConversationFromMessage(
     queryClient: QueryClient,
     message: StandardMessage,
+    options?: {
+      preserveUnreadCount?: boolean;
+    },
   ): Conversation {
     const syntheticConversation =
       ConversationCacheHelper.buildSyntheticConversation(message);
@@ -262,6 +280,84 @@ export class ConversationCacheHelper {
     return ConversationCacheHelper.upsertConversation(
       queryClient,
       syntheticConversation,
+      {
+        preserveUnreadCount: options?.preserveUnreadCount ?? true,
+      },
+    );
+  }
+
+  static replaceConversationList(
+    queryClient: QueryClient,
+    conversations: Conversation[],
+  ): Conversation[] {
+    queryClient.setQueryData(queryKeys.conversations.list(), conversations);
+    return conversations;
+  }
+
+  static replaceConversation(
+    queryClient: QueryClient,
+    conversation: Conversation,
+  ): Conversation {
+    return ConversationCacheHelper.upsertConversation(
+      queryClient,
+      conversation,
+    );
+  }
+
+  static incrementUnread(
+    queryClient: QueryClient,
+    conversationId: string,
+  ): Conversation | undefined {
+    let nextConversation: Conversation | undefined;
+
+    queryClient.setQueryData<Conversation[]>(
+      queryKeys.conversations.list(),
+      (old) =>
+        (old ?? []).map((conversation) => {
+          if (conversation.id !== conversationId) {
+            return conversation;
+          }
+
+          nextConversation = {
+            ...conversation,
+            unreadCount: conversation.unreadCount + 1,
+          };
+          return nextConversation;
+        }),
+    );
+
+    return nextConversation;
+  }
+
+  static clearUnread(
+    queryClient: QueryClient,
+    conversationId: string,
+  ): Conversation | undefined {
+    let nextConversation: Conversation | undefined;
+
+    queryClient.setQueryData<Conversation[]>(
+      queryKeys.conversations.list(),
+      (old) =>
+        (old ?? []).map((conversation) => {
+          if (conversation.id !== conversationId) {
+            return conversation;
+          }
+
+          nextConversation = {
+            ...conversation,
+            unreadCount: 0,
+          };
+          return nextConversation;
+        }),
+    );
+
+    return nextConversation;
+  }
+
+  static sumTotalUnread(conversations: Conversation[]): number {
+    return conversations.reduce(
+      (sum, conversation) => sum + Math.max(0, conversation.unreadCount),
+      0,
     );
   }
 }

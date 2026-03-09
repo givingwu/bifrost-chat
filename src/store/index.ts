@@ -21,14 +21,11 @@ import type { StrategySlice, StrategyState } from './slices/strategy.slice';
 import { createStrategySlice } from './slices/strategy.slice';
 import type { ThemeSlice } from './slices/theme.slice';
 import { createThemeSlice } from './slices/theme.slice';
-import type { UnreadSlice, UnreadState } from './slices/unread.slice';
-import { createUnreadSlice } from './slices/unread.slice';
 
 export type { ComposerState } from './slices/composer.slice';
 export type { ConversationState } from './slices/conversation.slice';
 export type { ProfileState } from './slices/profile.slice';
 export type { CurrentUser, StrategyState } from './slices/strategy.slice';
-export type { UnreadState } from './slices/unread.slice';
 
 /**
  * Chat Store 状态类型
@@ -40,8 +37,7 @@ export type ChatStoreState = StrategySlice &
   LanguageSlice &
   ConversationSlice &
   ProfileSlice &
-  ComposerSlice &
-  UnreadSlice;
+  ComposerSlice;
 
 export type ChatStoreConfigState = {
   activeConversationId: ConversationState['activeConversationId'];
@@ -96,7 +92,6 @@ const createDefaultState: StateCreator<
   const conversationSlice = createConversationSlice(...args);
   const profileSlice = createProfileSlice(...args);
   const composerConfigSlice = createComposerSlice(...args);
-  const unreadSlice = createUnreadSlice(...args);
 
   return {
     ...strategySlice,
@@ -106,7 +101,6 @@ const createDefaultState: StateCreator<
     ...conversationSlice,
     ...profileSlice,
     ...composerConfigSlice,
-    ...unreadSlice,
     actions: {
       ...strategySlice.actions,
       ...networkSlice.actions,
@@ -115,7 +109,6 @@ const createDefaultState: StateCreator<
       ...conversationSlice.actions,
       ...profileSlice.actions,
       ...composerConfigSlice.actions,
-      ...unreadSlice.actions,
     },
   };
 };
@@ -264,17 +257,6 @@ export const useComposerConfig = () => useChatStore((state) => state.composer);
 export const useActions = () => useChatStore((state) => state.actions);
 
 /**
- * 未读增量选择器
- * 返回各会话的未读增量（与订阅方提供的 unreadCount 相加后为展示未读）
- *
- * @example
- * const delta = useUnreadDeltaByConversation();
- * const displayUnread = (conv.unreadCount ?? 0) + (delta[conv.id] ?? 0);
- */
-export const useUnreadDeltaByConversation = () =>
-  useChatStore((state) => state.unread.unreadDeltaByConversation);
-
-/**
  * 重置 Chat Store 到初始状态
  *
  * @description
@@ -283,7 +265,6 @@ export const useUnreadDeltaByConversation = () =>
  * - activeConversationId → null
  * - searchQuery → ''
  * - profile → null
- * - unread 增量 → {}
  * - composer → 保持初始配置
  *
  * @example
@@ -312,17 +293,11 @@ export const resetChatStore = () => {
     // 重置 composer 状态（保持初始配置）
     const composer: ComposerState = state.composer;
 
-    // 重置未读增量
-    const unread: UnreadState = {
-      unreadDeltaByConversation: {},
-    };
-
     return {
       ...state,
       conversation,
       profile,
       composer,
-      unread,
     };
   });
 };

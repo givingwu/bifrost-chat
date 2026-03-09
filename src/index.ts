@@ -20,10 +20,7 @@ export { useSendMessage } from '@/hooks/use-send-message.hook';
 // 模板相关 Hooks
 export { useTemplates } from '@/hooks/use-templates.hook';
 // 未读相关 Hooks
-export {
-  getMergedUnreadCount,
-  useTotalUnread,
-} from '@/hooks/use-total-unread.hook';
+export { useTotalUnread } from '@/hooks/use-total-unread.hook';
 export { useUnreadSync } from '@/hooks/use-unread-sync.hook';
 
 // Types

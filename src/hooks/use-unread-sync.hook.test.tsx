@@ -22,6 +22,7 @@ import { resetChatStore, useChatStore } from '@/store';
 import { useUnreadSync } from './use-unread-sync.hook';
 
 let messageCallback: ((event: MessageReceivedEvent) => void) | undefined;
+let statusCallback: ((event: MessageStatusUpdatedEvent) => void) | undefined;
 
 const mockConversationService: IConversationService = {
   list: vi.fn().mockResolvedValue([]),
@@ -38,9 +39,10 @@ const mockMessageService: IMessageService = {
     messageCallback = callback;
     return vi.fn();
   }),
-  subscribeToMessageStatus: vi.fn(
-    (_callback: (event: MessageStatusUpdatedEvent) => void) => vi.fn(),
-  ),
+  subscribeToMessageStatus: vi.fn((callback) => {
+    statusCallback = callback;
+    return vi.fn();
+  }),
   sendAttachment: vi.fn(),
   sendAudio: vi.fn(),
 };
@@ -85,6 +87,7 @@ describe('useUnreadSync', () => {
     vi.clearAllMocks();
     resetChatStore();
     messageCallback = undefined;
+    statusCallback = undefined;
   });
 
   it('收到陌生会话的新消息时应同步消息缓存、创建临时会话并累加未读', () => {
@@ -125,7 +128,7 @@ describe('useUnreadSync', () => {
     expect(conversations?.[0]).toMatchObject({
       id: 'conv-new',
       lastMessage: '来自陌生会话的新消息',
-      unreadCount: 0,
+      unreadCount: 1,
       channel: ChannelTypeEnum.WhatsApp,
       status: 'active',
       user: {
@@ -135,9 +138,6 @@ describe('useUnreadSync', () => {
       },
     });
     expect(messages?.pages[0]?.items).toEqual([message]);
-    expect(useChatStore.getState().unread.unreadDeltaByConversation).toEqual({
-      'conv-new': 1,
-    });
   });
 
   it('重复推送同一消息时不应重复增加未读', () => {
@@ -169,8 +169,129 @@ describe('useUnreadSync', () => {
       });
     });
 
-    expect(useChatStore.getState().unread.unreadDeltaByConversation).toEqual({
-      'conv-dup': 1,
+    const conversations = queryClient.getQueryData<Conversation[]>(
+      queryKeys.conversations.list(),
+    );
+
+    expect(conversations?.[0]?.unreadCount).toBe(1);
+  });
+
+  it('当前激活会话收到 incoming 消息时不应增加未读', () => {
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: {
+          retry: false,
+        },
+      },
     });
+
+    queryClient.setQueryData<Conversation[]>(queryKeys.conversations.list(), [
+      {
+        id: 'conv-active',
+        user: {
+          id: 'active-user',
+          name: '当前会话',
+          status: AgentStatusEnum.Online,
+        },
+        lastMessage: '历史消息',
+        lastMessageTime: new Date(1_770_000_000_000).toISOString(),
+        unreadCount: 0,
+        channel: ChannelTypeEnum.WhatsApp,
+      },
+    ]);
+
+    act(() => {
+      useChatStore.getState().actions.setActiveConversationId('conv-active');
+    });
+
+    renderHook(() => useUnreadSync(), {
+      wrapper: createWrapper(queryClient),
+    });
+
+    act(() => {
+      messageCallback?.({
+        conversationId: 'conv-active',
+        message: createMessage('msg-active', {
+          conversationId: 'conv-active',
+          content: { text: '当前会话新消息' },
+        }),
+      });
+    });
+
+    const conversations = queryClient.getQueryData<Conversation[]>(
+      queryKeys.conversations.list(),
+    );
+
+    expect(conversations?.[0]).toMatchObject({
+      id: 'conv-active',
+      lastMessage: '当前会话新消息',
+      unreadCount: 0,
+    });
+  });
+
+  it('收到 Read 状态事件时只更新消息状态，不应减少会话未读', () => {
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: {
+          retry: false,
+        },
+      },
+    });
+
+    const message = createMessage('msg-read', {
+      conversationId: 'conv-status',
+      status: MessageStatusEnum.Delivered,
+    });
+
+    queryClient.setQueryData<Conversation[]>(queryKeys.conversations.list(), [
+      {
+        id: 'conv-status',
+        user: {
+          id: 'status-user',
+          name: '状态会话',
+          status: AgentStatusEnum.Online,
+        },
+        lastMessage: '消息状态测试',
+        lastMessageTime: new Date(1_770_000_000_000).toISOString(),
+        unreadCount: 3,
+        channel: ChannelTypeEnum.WhatsApp,
+      },
+    ]);
+    queryClient.setQueryData(queryKeys.messages.list('conv-status'), {
+      pages: [{ items: [message] }],
+      pageParams: [1],
+    });
+    queryClient.setQueryData(
+      queryKeys.messages.list('conv-status', ChannelTypeEnum.WhatsApp),
+      {
+        pages: [{ items: [message] }],
+        pageParams: [1],
+      },
+    );
+
+    renderHook(() => useUnreadSync(), {
+      wrapper: createWrapper(queryClient),
+    });
+
+    act(() => {
+      statusCallback?.({
+        conversationId: 'conv-status',
+        messageId: 'msg-read',
+        tempId: message.tempId,
+        channelType: ChannelTypeEnum.WhatsApp,
+        status: MessageStatusEnum.Read,
+        timestamp: 1_770_000_004_000,
+      });
+    });
+
+    const conversations = queryClient.getQueryData<Conversation[]>(
+      queryKeys.conversations.list(),
+    );
+    const messages = queryClient.getQueryData<{
+      pages: Array<{ items: StandardMessage[] }>;
+    }>(queryKeys.messages.list('conv-status', ChannelTypeEnum.WhatsApp));
+
+    expect(conversations?.[0]?.unreadCount).toBe(3);
+    expect(messages?.pages[0]?.items[0]?.status).toBe(MessageStatusEnum.Read);
   });
 });

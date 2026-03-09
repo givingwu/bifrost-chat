@@ -183,4 +183,74 @@ describe('ConversationCacheHelper', () => {
       owner: 'agent-1',
     });
   });
+
+  it('应支持直接增加和清空会话未读数', () => {
+    const queryClient = new QueryClient();
+
+    queryClient.setQueryData<Conversation[]>(queryKeys.conversations.list(), [
+      {
+        id: 'conv-unread',
+        user: {
+          id: 'user-unread',
+          name: '未读会话',
+          status: AgentStatusEnum.Offline,
+        },
+        lastMessage: '未读消息',
+        lastMessageTime: new Date(1_770_000_000_000).toISOString(),
+        unreadCount: 2,
+        channel: ChannelTypeEnum.WhatsApp,
+      },
+    ]);
+
+    ConversationCacheHelper.incrementUnread(queryClient, 'conv-unread');
+    expect(
+      ConversationCacheHelper.getConversations(queryClient)[0]?.unreadCount,
+    ).toBe(3);
+
+    ConversationCacheHelper.clearUnread(queryClient, 'conv-unread');
+    expect(
+      ConversationCacheHelper.getConversations(queryClient)[0]?.unreadCount,
+    ).toBe(0);
+  });
+
+  it('权威单会话更新应覆盖现有 unreadCount', () => {
+    const queryClient = new QueryClient();
+
+    queryClient.setQueryData<Conversation[]>(queryKeys.conversations.list(), [
+      {
+        id: 'conv-authoritative',
+        user: {
+          id: 'authoritative-user',
+          name: '原会话',
+          status: AgentStatusEnum.Offline,
+        },
+        lastMessage: '旧摘要',
+        lastMessageTime: new Date(1_770_000_000_000).toISOString(),
+        unreadCount: 6,
+        channel: ChannelTypeEnum.WhatsApp,
+      },
+    ]);
+
+    ConversationCacheHelper.replaceConversation(queryClient, {
+      id: 'conv-authoritative',
+      user: {
+        id: 'authoritative-user',
+        name: '原会话',
+        status: AgentStatusEnum.Online,
+      },
+      lastMessage: '新摘要',
+      lastMessageTime: new Date(1_770_000_100_000).toISOString(),
+      unreadCount: 1,
+      channel: ChannelTypeEnum.Email,
+    });
+
+    expect(
+      ConversationCacheHelper.getConversations(queryClient)[0],
+    ).toMatchObject({
+      id: 'conv-authoritative',
+      unreadCount: 1,
+      lastMessage: '新摘要',
+      channel: ChannelTypeEnum.Email,
+    });
+  });
 });

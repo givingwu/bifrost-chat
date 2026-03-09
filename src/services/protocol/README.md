@@ -388,7 +388,7 @@ enum AckMessageTypeEnum {
 
 ## 相关文档
 
-- [通用型架构设计](../../../docs/generic-architecture-design.md)
-- [集成示例](../../../docs/integration-demo.md)
-- [最终架构](../../../docs/final-architecture.md)
-- [协议集成架构](../../../docs/protocol-integration-architecture.md)
+- [通用型架构设计](../../../design/generic-architecture-design.md)
+- [集成示例](../../../design/integration-demo.md)
+- [最终架构](../../../design/final-architecture.md)
+- [协议集成架构](../../../design/protocol-integration-architecture.md)

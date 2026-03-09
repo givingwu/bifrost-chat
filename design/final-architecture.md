@@ -6,7 +6,7 @@
 
 - 版本：3.1.0
 - 状态：生效中
-- 更新日期：2026-02-07
+- 更新日期：2026-03-09
 
 ## 1. 不可变决策
 
@@ -26,7 +26,7 @@
 - 对外公开 Hooks：
   `useComposerDraft`、`useComposerShortcuts`、`useConversations`、
   `useCreateConversation`、`useMarkAsRead`、`useMessages`、
-  `useSendMessage`、`useTemplates`。
+  `useSendMessage`、`useTemplates`、`useTotalUnread`、`useUnreadSync`。
 - 对外公开 Providers：
   `ConfigProvider`、`I18nProvider`、`QueryProvider`、`ServiceProvider`。
 - 对外公开服务接口：
@@ -48,8 +48,24 @@
 | 主题/语言/网络 | Zustand | `theme/language/network` slices |
 | Composer 功能配置 | Zustand | `composer.slice.ts` |
 | 客户画像上下文 | Zustand | `profile.slice.ts` |
+| 会话未读展示数 | React Query | 单一事实源为 `Conversation.unreadCount` |
 
-### 2.3 模板发送路径
+### 2.3 未读数量路径
+
+当前默认布局与公开 Hook 中：
+
+- `Conversation.unreadCount` 是唯一展示值。
+- `useUnreadSync` 负责把实时消息事件回灌到 React Query 会话缓存。
+- 进入会话时立即把对应会话 `unreadCount` 置为 `0`。
+- 若宿主实现 `subscribeToListUpdates` / `subscribeToConversationUpdates`，
+  SDK 会将其作为权威回灌源覆盖本地 optimistic unread。
+
+说明：
+
+- 这是当前已实现（As-Is）。
+- 未读不再由 Zustand 维护，也不再做 UI 层 merge。
+
+### 2.4 模板发送路径
 
 当前默认布局中：
 
@@ -62,7 +78,7 @@
 - 这是当前可运行实现。
 - 独立的 template mutation 是目标演进项，不是当前公开 API。
 
-### 2.4 QueryKey 事实
+### 2.5 QueryKey 事实
 
 当前统一通过 `queryKeys` 生成：
 
@@ -72,7 +88,7 @@
 
 禁止公开出现 `sessions` 键前缀。
 
-### 2.5 错误模型事实
+### 2.6 错误模型事实
 
 当前错误类型（`src/interfaces/error.interface.ts`）：
 
@@ -91,6 +107,7 @@
 1. 模板链路独立 mutation（`useSendTemplateMessage`）与预览 query。
 2. 更完善的实时回灌标准（统一事件入缓存策略）。
 3. 渠道策略矩阵（不同渠道输入能力差异）完整化。
+4. 未读的权威来源进一步标准化，优先由宿主会话实时订阅统一提供。
 
 落地约束：
 

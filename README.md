@@ -14,10 +14,10 @@
 
 ## 文档
 
-- 架构总览：`docs/architecture-overview.md`
-- 架构基线（SSOT）：`docs/final-architecture.md`
-- 文档导航：`docs/README.md`
-- 命名规范：`docs/naming-conventions.md`
+- 架构总览：`design/README.md`
+- 架构基线（SSOT）：`design/final-architecture.md`
+- 文档导航：`design/README.md`
+- 命名规范：`design/naming-conventions.md`
 
 ## 特性
 
@@ -262,7 +262,9 @@ export function App() {
 - `useMarkAsRead`
 - `useMessages`
 - `useSendMessage`
+- `useTotalUnread`
 - `useTemplates`
+- `useUnreadSync`
 
 ### Providers
 
@@ -294,7 +296,7 @@ export function App() {
 - `createWebSocketMessageHandler`
 - `useTranslation`
 
-如需对外开放，建议先在 `docs/final-architecture.md` 中完成设计评审。
+如需对外开放，建议先在 `design/final-architecture.md` 中完成设计评审。
 
 ## 样式
 
@@ -320,7 +322,7 @@ pnpm run storybook
 ## 反馈
 
 - 需求与问题：仓库 issue（见 package.json 中 `bugs.url`）
-- 架构口径冲突：请先对齐 `docs/final-architecture.md`
+- 架构口径冲突：请先对齐 `design/final-architecture.md`
 
 ## 许可证
 
