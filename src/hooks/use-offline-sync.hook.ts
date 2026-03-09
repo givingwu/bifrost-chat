@@ -1,6 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useState } from 'react';
-import { NetworkStatusEnum } from '@/interfaces/network.interface';
+import { NetworkReachabilityEnum } from '@/interfaces/network.interface';
 import { queryKeys } from '@/providers/query.provider';
 import { useServices } from '@/providers/service.provider';
 import { useNetwork } from '@/store';
@@ -35,11 +35,11 @@ import { useNetwork } from '@/store';
 export function useOfflineSync() {
   const { offlineMessageQueue, messageService } = useServices();
   const queryClient = useQueryClient();
-  const networkStatus = useNetwork().status;
+  const reachability = useNetwork().reachability;
   const [isSyncing, setIsSyncing] = useState(false);
   const [lastSyncAt, setLastSyncAt] = useState<number | null>(null);
   // 跟踪上一次的网络状态，避免重复触发
-  const [prevNetworkStatus, setPrevNetworkStatus] = useState(networkStatus);
+  const [prevReachability, setPrevReachability] = useState(reachability);
 
   /**
    * 同步离线消息队列
@@ -52,7 +52,7 @@ export function useOfflineSync() {
     }
 
     // 检查网络是否已连接
-    if (networkStatus !== NetworkStatusEnum.Connected) {
+    if (reachability !== NetworkReachabilityEnum.Online) {
       console.info('[useOfflineSync] 网络未连接，跳过同步');
       return;
     }
@@ -140,7 +140,7 @@ export function useOfflineSync() {
   }, [
     offlineMessageQueue,
     messageService,
-    networkStatus,
+    reachability,
     isSyncing,
     queryClient,
   ]);
@@ -149,8 +149,8 @@ export function useOfflineSync() {
   useEffect(() => {
     // 只在从非连接状态切换到连接状态时触发同步
     if (
-      prevNetworkStatus !== NetworkStatusEnum.Connected &&
-      networkStatus === NetworkStatusEnum.Connected
+      prevReachability !== NetworkReachabilityEnum.Online &&
+      reachability === NetworkReachabilityEnum.Online
     ) {
       console.info('[useOfflineSync] 网络已连接，触发自动同步');
       // 使用 setTimeout 避免阻塞 UI
@@ -162,8 +162,8 @@ export function useOfflineSync() {
     }
 
     // 更新上一次的网络状态
-    setPrevNetworkStatus(networkStatus);
-  }, [networkStatus, sync, prevNetworkStatus]);
+    setPrevReachability(reachability);
+  }, [reachability, sync, prevReachability]);
 
   return {
     sync,

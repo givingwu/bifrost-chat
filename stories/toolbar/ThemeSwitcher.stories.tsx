@@ -156,7 +156,10 @@ export const ThemePreview = () => {
           <ThemeSwitcher value={theme} onChange={setTheme} />
         </div>
         <p className="text-sm mb-2">这是一段示例文本</p>
-        <button className="px-3 py-1 text-sm bg-blue-500 text-white rounded">
+        <button
+          type="button"
+          className="px-3 py-1 text-sm bg-blue-500 text-white rounded"
+        >
           示例按钮
         </button>
       </div>

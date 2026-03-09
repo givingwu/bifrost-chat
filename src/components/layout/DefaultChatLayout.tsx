@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query';
 import {
   useCallback,
   useEffect,
@@ -20,14 +21,12 @@ import { useActiveConversationMetadata } from '@/hooks/use-active-conversation-m
 import { useConversations } from '@/hooks/use-conversations.hook';
 import { useSendMessage } from '@/hooks/use-send-message.hook';
 import { useTemplatePreview } from '@/hooks/use-template-preview.hook';
+import { useTotalUnread } from '@/hooks/use-total-unread.hook';
 import { useUnreadSync } from '@/hooks/use-unread-sync.hook';
-import {
-  getMergedUnreadCount,
-  useTotalUnread,
-} from '@/hooks/use-total-unread.hook';
 import type { Conversation } from '@/interfaces/conversation.interface';
 import type { Template } from '@/interfaces/template.interface';
 import { useTranslation } from '@/providers/I18n.provider';
+import { ConversationCacheHelper } from '@/services/conversation-cache-helper.service';
 import type { TemplatePreviewResult } from '@/services/template.service';
 import {
   useActions,
@@ -35,7 +34,6 @@ import {
   useConversation,
   useProfile,
   useStrategy,
-  useUnreadDeltaByConversation,
 } from '@/store';
 import { cn } from '@/utils/class.util';
 import { ChatLayout } from './ChatLayout';
@@ -101,6 +99,7 @@ export function DefaultChatLayout({
   style,
   onTotalUnreadChange,
 }: DefaultChatLayoutProps) {
+  const queryClient = useQueryClient();
   const { t } = useTranslation();
   const actions = useActions();
   const { profile } = useProfile();
@@ -108,7 +107,6 @@ export function DefaultChatLayout({
   const { data: conversations = [] } = useConversations();
   const { activeChannel } = useStrategy();
   const { activeConversationId, searchQuery } = useConversation();
-  const unreadDeltaByConversation = useUnreadDeltaByConversation();
 
   // 库内订阅 messageService 实时消息/状态，自动维护未读增量（无需订阅方注册）
   useUnreadSync();
@@ -178,29 +176,20 @@ export function DefaultChatLayout({
     });
   }, [conversations, searchQuery]);
 
-  // 合并未读：展示未读 = 订阅方 unreadCount + 库内增量
-  const conversationsWithMergedUnread = useMemo(() => {
-    return (filteredConversations ?? []).map((conv) => {
-      const delta = unreadDeltaByConversation[conv.id] ?? 0;
-      const mergedUnread = getMergedUnreadCount(conv.unreadCount ?? 0, delta);
-      return { ...conv, unreadCount: mergedUnread };
-    });
-  }, [filteredConversations, unreadDeltaByConversation]);
-
-  // 全量未读总数（基于完整会话列表 + 库内增量，不随搜索筛选变化）
+  // 全量未读总数（基于完整会话列表，不随搜索筛选变化）
   const { totalUnread } = useTotalUnread(conversations ?? null);
 
   useEffect(() => {
     onTotalUnreadChange?.(totalUnread);
   }, [totalUnread, onTotalUnreadChange]);
 
-  // 选会话时：设置激活 ID 并清除该会话未读增量（读会话即全量已读）
+  // 选会话时：设置激活 ID 并立即清空该会话未读数
   const handleSelectConversation = useCallback(
     (conversationId: string) => {
       actions.setActiveConversationId(conversationId);
-      actions.clearUnread(conversationId);
+      ConversationCacheHelper.clearUnread(queryClient, conversationId);
     },
-    [actions],
+    [actions, queryClient],
   );
 
   // 搜索回调（使用 startTransition 标记为过渡更新）
@@ -352,7 +341,7 @@ export function DefaultChatLayout({
               'transition',
               isPending ? 'opacity-80' : 'opacity-100',
             )}
-            conversations={conversationsWithMergedUnread}
+            conversations={filteredConversations}
             onSelect={handleSelectConversation}
           />
         </ConversationPanel>

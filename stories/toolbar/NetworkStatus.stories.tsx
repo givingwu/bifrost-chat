@@ -22,9 +22,11 @@ const meta: Meta<typeof NetworkStatus> = {
     status: {
       control: 'select',
       options: [
+        NetworkStatusEnum.Unknown,
         NetworkStatusEnum.Connected,
         NetworkStatusEnum.Connecting,
         NetworkStatusEnum.Disconnected,
+        NetworkStatusEnum.Reconnecting,
       ],
       description: '网络状态',
     },
@@ -50,6 +52,12 @@ export const Default = () => {
  */
 export const AllStatuses = () => {
   const statuses = [
+    {
+      status: NetworkStatusEnum.Unknown,
+      label: '未知',
+      desc: 'Host 尚未注入网络事实源',
+      color: 'text-gray-500',
+    },
     {
       status: NetworkStatusEnum.Connected,
       label: '已连接',
@@ -106,6 +114,7 @@ export const InToolbar = () => {
   const [status, setStatus] = useState(NetworkStatusEnum.Connected);
 
   const statusLabels = {
+    [NetworkStatusEnum.Unknown]: '未知',
     [NetworkStatusEnum.Connected]: '在线',
     [NetworkStatusEnum.Connecting]: '连接中...',
     [NetworkStatusEnum.Disconnected]: '离线',
@@ -120,6 +129,13 @@ export const InToolbar = () => {
           <span className="text-sm font-medium">{statusLabels[status]}</span>
         </div>
         <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => setStatus(NetworkStatusEnum.Unknown)}
+            className="px-3 py-1 text-xs bg-gray-500 text-white rounded"
+          >
+            未知
+          </button>
           <button
             type="button"
             onClick={() => setStatus(NetworkStatusEnum.Connected)}
@@ -171,9 +187,11 @@ export const StatusTransition = () => {
         <div className="flex items-center gap-3">
           <NetworkStatus status={status} />
           <span className="text-sm font-medium">
+            {status === NetworkStatusEnum.Unknown && '状态未知'}
             {status === NetworkStatusEnum.Connected && '已连接'}
             {status === NetworkStatusEnum.Connecting && '连接中...'}
             {status === NetworkStatusEnum.Disconnected && '已断开'}
+            {status === NetworkStatusEnum.Reconnecting && '重连中...'}
           </span>
         </div>
       </div>

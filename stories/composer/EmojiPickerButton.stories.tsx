@@ -120,8 +120,8 @@ export const WithCallbacks = () => {
       </div>
       <p className="text-sm text-text-muted">已选择：{value}</p>
       <div className="w-96 h-32 overflow-y-auto p-2 bg-muted rounded text-xs font-mono">
-        {logs.map((log, index) => (
-          <div key={`log-${index}`}>{log}</div>
+        {logs.map((log) => (
+          <div key={log}>{log}</div>
         ))}
       </div>
     </div>

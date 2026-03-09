@@ -37,6 +37,12 @@ export const NETWORK_STATUS_CONFIG_MAP: Record<
   NetworkStatusEnum,
   NetworkStatusConfig
 > = {
+  [NetworkStatusEnum.Unknown]: {
+    label: 'Unknown',
+    containerClass: 'bg-muted text-text-muted',
+    dotClass: 'bg-text-muted',
+    ariaLabel: '网络状态未知',
+  },
   [NetworkStatusEnum.Connected]: {
     label: 'Connected',
     containerClass: 'bg-success/10 text-success',

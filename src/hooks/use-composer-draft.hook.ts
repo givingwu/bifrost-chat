@@ -103,6 +103,7 @@ function parseDraftData(raw: string): DraftData {
           messageType: parsed.messageType,
           templateCode: parsed.templateCode,
           templateParams: parsed.templateParams,
+          templateMetadata: parsed.templateMetadata,
         };
       }
     } catch {
@@ -288,6 +289,7 @@ export function useComposerDraft({
       setMessageType(undefined);
       setTemplateCode(undefined);
       setTemplateParams(undefined);
+      setTemplateMetadata(undefined);
 
       return;
     }
@@ -303,6 +305,7 @@ export function useComposerDraft({
     setMessageType(draftData.messageType);
     setTemplateCode(draftData.templateCode);
     setTemplateParams(draftData.templateParams);
+    setTemplateMetadata(draftData.templateMetadata);
 
     loadedDraftKeyRef.current = draftStorageKey;
   }, [draftStorageKey, enableDraft, loadDraftData, templateLocked]);
@@ -325,6 +328,7 @@ export function useComposerDraft({
       messageType,
       templateCode,
       templateParams,
+      templateMetadata,
     };
 
     saveTimeoutRef.current = window.setTimeout(() => {
@@ -345,6 +349,7 @@ export function useComposerDraft({
     saveDraftData,
     templateCode,
     templateParams,
+    templateMetadata,
     value,
   ]);
 
@@ -356,6 +361,7 @@ export function useComposerDraft({
       setMessageType(undefined);
       setTemplateCode(undefined);
       setTemplateParams(undefined);
+      setTemplateMetadata(undefined);
 
       if (clearDraftOnSend) {
         clearDraft();

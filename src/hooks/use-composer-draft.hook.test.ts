@@ -130,6 +130,10 @@ describe('useComposerDraft', () => {
         result.current.setMessageType(MessageTypeEnum.Template);
         result.current.setTemplateCode('template-123');
         result.current.setTemplateParams({ name: 'John' });
+        result.current.setTemplateMetadata({
+          templateId: 'template-123',
+          previewContent: 'template content',
+        });
       });
 
       act(() => {
@@ -145,6 +149,10 @@ describe('useComposerDraft', () => {
       expect(parsed.messageType).toBe(MessageTypeEnum.Template);
       expect(parsed.templateCode).toBe('template-123');
       expect(parsed.templateParams).toEqual({ name: 'John' });
+      expect(parsed.templateMetadata).toEqual({
+        templateId: 'template-123',
+        previewContent: 'template content',
+      });
     });
 
     it('应支持 setDraftData 批量设置', async () => {
@@ -187,17 +195,22 @@ describe('useComposerDraft', () => {
       expect(data).toEqual({
         content: 'test',
         messageType: MessageTypeEnum.Text,
-        templateId: undefined,
+        templateCode: undefined,
         templateParams: undefined,
+        templateMetadata: undefined,
       });
     });
 
-    it('应在挂载时恢复 messageType', async () => {
+    it('应在挂载时恢复 messageType 和 templateMetadata', async () => {
       const draftData: DraftData = {
         content: 'restored template',
         messageType: MessageTypeEnum.Template,
         templateCode: 'template-restore',
         templateParams: { param1: 'value1' },
+        templateMetadata: {
+          templateId: 'template-restore',
+          previewContent: 'restored template',
+        },
       };
       localStorage.setItem(
         'bifrost-chat-draft-conversation-conv-restore',
@@ -215,10 +228,14 @@ describe('useComposerDraft', () => {
         expect(result.current.messageType).toBe(MessageTypeEnum.Template);
         expect(result.current.templateCode).toBe('template-restore');
         expect(result.current.templateParams).toEqual({ param1: 'value1' });
+        expect(result.current.templateMetadata).toEqual({
+          templateId: 'template-restore',
+          previewContent: 'restored template',
+        });
       });
     });
 
-    it('发送成功后应清空 messageType', async () => {
+    it('发送成功后应清空 messageType 和 templateMetadata', async () => {
       vi.useFakeTimers();
       const onSend = vi.fn().mockResolvedValue(undefined);
 
@@ -234,6 +251,7 @@ describe('useComposerDraft', () => {
         result.current.setValue('will send');
         result.current.setMessageType(MessageTypeEnum.Template);
         result.current.setTemplateCode('template-clear');
+        result.current.setTemplateMetadata({ templateId: 'template-clear' });
       });
 
       act(() => {
@@ -247,6 +265,7 @@ describe('useComposerDraft', () => {
       expect(result.current.messageType).toBeUndefined();
       expect(result.current.templateCode).toBeUndefined();
       expect(result.current.templateParams).toBeUndefined();
+      expect(result.current.templateMetadata).toBeUndefined();
     });
 
     it('应兼容旧格式（纯文本）草稿', async () => {

@@ -182,8 +182,8 @@ export const WithEventHandlers = () => {
         />
       </div>
       <div className="w-96 h-32 overflow-y-auto p-2 bg-muted rounded text-xs font-mono">
-        {logs.map((log, index) => (
-          <div key={index}>{log}</div>
+        {logs.map((log) => (
+          <div key={log}>{log}</div>
         ))}
       </div>
     </div>
@@ -347,8 +347,8 @@ export const CompleteExample = () => {
         {messages.length === 0 ? (
           <p className="text-text-muted text-sm">暂无消息</p>
         ) : (
-          messages.map((msg, index) => (
-            <div key={index} className="p-2 mb-2 bg-card rounded text-sm">
+          messages.map((msg) => (
+            <div key={msg} className="p-2 mb-2 bg-card rounded text-sm">
               {msg}
             </div>
           ))

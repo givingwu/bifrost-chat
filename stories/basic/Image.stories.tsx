@@ -142,7 +142,7 @@ export const ImageGrid = () => {
   return (
     <div className="grid grid-cols-2 gap-4 w-80">
       {images.map((src, index) => (
-        <div key={index} className="aspect-square">
+        <div key={src} className="aspect-square">
           <Image
             src={src}
             alt={`图片 ${index + 1}`}
@@ -233,7 +233,7 @@ export const ImageGallery = () => {
   return (
     <div className="flex gap-4 overflow-x-auto w-96 pb-2">
       {images.map((src, index) => (
-        <div key={index} className="shrink-0 w-48 h-36">
+        <div key={src} className="shrink-0 w-48 h-36">
           <Image
             src={src}
             alt={`图片 ${index + 1}`}

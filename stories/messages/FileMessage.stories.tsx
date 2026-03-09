@@ -69,8 +69,8 @@ export const DifferentTypes = () => {
 
   return (
     <div className="space-y-3">
-      {files.map((file, index) => (
-        <div key={index} className="flex justify-start">
+      {files.map((file) => (
+        <div key={file.name} className="flex justify-start">
           <div className="max-w-[70%] px-4 py-2 bg-card text-text rounded-2xl rounded-tl-sm">
             <p className="text-xs text-text-muted mb-2">{file.name}</p>
             <FileMessage
