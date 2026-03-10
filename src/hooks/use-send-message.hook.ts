@@ -32,6 +32,7 @@ import { messageQueue } from '@/services/message-queue.service';
 import { MessageSyncService } from '@/services/message-sync.service';
 import { pendingMessageTracker } from '@/services/pending-message-tracker.service';
 import { useActiveConversationId, useNetwork, useStrategy } from '@/store';
+import { logger } from '@/utils/logger.util';
 import { useConversations } from './use-conversations.hook';
 
 /**
@@ -60,7 +61,7 @@ import { useConversations } from './use-conversations.hook';
  *       });
  *       setText('');
  *     } catch (error) {
- *       console.error('发送失败:', error);
+ *       logger.error('发送失败:', error);
  *     }
  *   };
  *
@@ -96,7 +97,7 @@ function registerPendingAckMappings(
   }
 
   if (uniqueIds.length > 0) {
-    console.info('[useSendMessage] 已注册消息映射', {
+    logger.info('[useSendMessage] 已注册消息映射', {
       conversationId,
       messageIds: uniqueIds,
     });
@@ -169,7 +170,7 @@ export function useSendMessage<
       queryKey,
       context?.previousMessages ?? DEFAULT_EMPTY_DATA,
     );
-    console.info('[useSendMessage] 已回滚到发送前的状态');
+    logger.info('[useSendMessage] 已回滚到发送前的状态');
   };
 
   const persistOfflineMessage = async (
@@ -301,7 +302,7 @@ export function useSendMessage<
     // 网络错误：保存到离线队列（如果未实现则提示）
     onError: async (error, variables, context) => {
       if (error) {
-        console.error('[useSendMessage] 消息发送失败:', error);
+        logger.error('[useSendMessage] 消息发送失败:', error);
       }
 
       const errorMessage =
@@ -312,7 +313,7 @@ export function useSendMessage<
 
       if (!context?.tempMessage || !shouldPersist || !offlineMessageQueue) {
         if (shouldPersist && !offlineMessageQueue) {
-          console.warn(
+          logger.warn(
             '[useSendMessage] 离线队列未实现，可重试消息将回滚。请实现 OfflineMessageQueueService。',
           );
         }
@@ -351,12 +352,12 @@ export function useSendMessage<
           { channel: activeChannel ?? undefined },
         );
 
-        console.info(
+        logger.info(
           '[useSendMessage] 消息已保存到离线队列:',
           offlineMessageId,
         );
       } catch (queueError) {
-        console.error('[useSendMessage] 保存到离线队列失败:', queueError);
+        logger.error('[useSendMessage] 保存到离线队列失败:', queueError);
         if (tempId) {
           messageQueue.remove(tempId);
         }
@@ -385,7 +386,7 @@ export function useSendMessage<
 
       if (isFailed && shouldPersist) {
         if (!offlineMessageQueue) {
-          console.warn(
+          logger.warn(
             '[useSendMessage] 离线队列未实现，可重试消息将回滚。请实现 OfflineMessageQueueService。',
           );
           rollbackMessage(variables.conversationId, context);
@@ -420,7 +421,7 @@ export function useSendMessage<
           messageQueue.remove(tempId);
           return;
         } catch (queueError) {
-          console.error('[useSendMessage] 保存到离线队列失败:', queueError);
+          logger.error('[useSendMessage] 保存到离线队列失败:', queueError);
           rollbackMessage(variables.conversationId, context);
           messageQueue.remove(tempId);
           return;
@@ -429,7 +430,7 @@ export function useSendMessage<
 
       if (shouldRollback) {
         // 业务逻辑/状态失败：完全回滚到之前的状态（移除临时消息）
-        console.error(
+        logger.error(
           '[useSendMessage] 发送结果状态为失败，执行回滚:',
           data.error,
         );

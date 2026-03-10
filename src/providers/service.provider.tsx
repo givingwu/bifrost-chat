@@ -5,6 +5,7 @@ import { NotImplementedError } from '@/interfaces/error.interface';
 import type { IConversationService } from '@/services/conversation.service';
 import type { IMessageService } from '@/services/message.service';
 import type { INetworkService } from '@/services/network.service';
+import type { OfflineMessageQueueService } from '@/services/offline-message-queue.service';
 import type { ITemplateService } from '@/services/template.service';
 
 /**
@@ -25,7 +26,7 @@ export interface ServiceContextValue {
    * 由调用方通过 ServiceProvider 注入
    * 不提供时为 undefined，需要手动处理离线消息
    */
-  offlineMessageQueue?: import('@/services/offline-message-queue.service').OfflineMessageQueueService;
+  offlineMessageQueue?: OfflineMessageQueueService;
 }
 
 /**
@@ -43,7 +44,7 @@ export function useServices(): ServiceContextValue {
   if (!context) {
     throw new Error(
       'useServices must be used within a ServiceProvider. ' +
-        'Wrap your component tree with <ServiceProvider>.',
+      'Wrap your component tree with <ServiceProvider>.',
     );
   }
   return context;
@@ -66,7 +67,7 @@ export interface ServiceProviderProps {
    * 如果提供，将注入到服务上下文中
    * 由宿主应用自行管理其生命周期
    */
-  offlineMessageQueue?: import('@/services/offline-message-queue.service').OfflineMessageQueueService;
+  offlineMessageQueue?: OfflineMessageQueueService;
   /** Host 网络状态服务（可选） */
   networkService?: INetworkService;
 }
@@ -107,6 +108,18 @@ export function ServiceProvider({
   networkService,
 }: ServiceProviderProps) {
   useHostNetworkSync(networkService);
+
+  // [P2-1 To-Be] 当前不支持同页多实例。
+  // Zustand store 和 QueryClient 均为模块级单例，多个 ServiceProvider 会共享状态。
+  // 如页面需要同时渲染多个独立的 SDK 实例，请参阅 AGENTS.md 的 To-Be 架构规划。
+  const parentContext = useContext(ServiceContext);
+  if (process.env.NODE_ENV === 'development' && parentContext !== null) {
+    console.warn(
+      '[Bifrost SDK] ⚠️ 检测到嵌套 ServiceProvider 实例。' +
+      '当前版本不支持多实例隔离，多个实例会共享 store 和缓存状态。' +
+      '如需支持多实例，请参阅 AGENTS.md 中的 P2-1 To-Be 规划。',
+    );
+  }
 
   const value: ServiceContextValue = useMemo(() => {
     return {

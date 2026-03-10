@@ -4,6 +4,7 @@ import {
   type StandardMessage,
 } from '@/interfaces/message.interface';
 import { queryKeys } from '@/providers/query.provider';
+import { logger } from '@/utils/logger.util';
 
 function normalizeComparableValue(value: unknown): unknown {
   if (Array.isArray(value)) {
@@ -223,7 +224,7 @@ export class MessageCacheHelper {
     messages: StandardMessage[],
     message: StandardMessage,
   ): boolean {
-    console.log('[MessageCacheHelper.messageExists] 开始检查消息是否存在', {
+    logger.info('[MessageCacheHelper.messageExists] 开始检查消息是否存在', {
       newMessageId: message.id,
       newTempId: message.tempId,
       totalMessages: messages.length,
@@ -239,7 +240,7 @@ export class MessageCacheHelper {
 
     if (matchedMessage && duplicateMatch) {
       if (duplicateMatch.reason === 'id' && !duplicateMatch.isSameContent) {
-        console.warn(
+        logger.warn(
           '[MessageCacheHelper.messageExists] 发现相同 id 但内容不一致，按幂等消息处理',
           {
             id: message.id,
@@ -250,7 +251,7 @@ export class MessageCacheHelper {
       }
 
       if (duplicateMatch.reason === 'id') {
-        console.warn('[MessageCacheHelper.messageExists] 发现相同的 id', {
+        logger.warn('[MessageCacheHelper.messageExists] 发现相同的 id', {
           id: message.id,
           isSameContent: duplicateMatch.isSameContent,
           existingMessage: matchedMessage,
@@ -258,14 +259,14 @@ export class MessageCacheHelper {
       }
 
       if (duplicateMatch.reason === 'tempId') {
-        console.warn('[MessageCacheHelper.messageExists] 发现相同的 tempId', {
+        logger.warn('[MessageCacheHelper.messageExists] 发现相同的 tempId', {
           tempId: message.tempId,
           existingMessage: matchedMessage,
         });
       }
 
       if (duplicateMatch.reason === 'id_tempId') {
-        console.warn(
+        logger.warn(
           '[MessageCacheHelper.messageExists] 发现 id 与 tempId 交叉重复',
           {
             messageId: message.id,
@@ -276,7 +277,7 @@ export class MessageCacheHelper {
       }
     }
 
-    console.log('[MessageCacheHelper.messageExists] 检查结果:', exists);
+    logger.info('[MessageCacheHelper.messageExists] 检查结果:', exists);
     return exists;
   }
 
@@ -361,7 +362,7 @@ export class MessageCacheHelper {
   ): void {
     const queryKey = queryKeys.messages.list(conversationId, options?.channel);
 
-    console.log('[MessageCacheHelper.addMessageToCache] 开始添加消息', {
+    logger.info('[MessageCacheHelper.addMessageToCache] 开始添加消息', {
       conversationId,
       messageId: message.id,
       tempId: message.tempId,
@@ -370,7 +371,7 @@ export class MessageCacheHelper {
 
     queryClient.setQueryData<InfiniteQueryData>(queryKey, (old) => {
       if (!old) {
-        console.log(
+        logger.info(
           '[MessageCacheHelper.addMessageToCache] 没有旧数据，创建新页面',
         );
         // 如果没有旧数据，创建新页面
@@ -380,24 +381,24 @@ export class MessageCacheHelper {
         };
       }
 
-      console.log(
+      logger.info(
         '[MessageCacheHelper.addMessageToCache] 当前页面数:',
         old.pages.length,
       );
-      console.log(
+      logger.info(
         '[MessageCacheHelper.addMessageToCache] 各页面消息数:',
         old.pages.map((p) => p.items.length),
       );
 
       // 检查消息是否已存在
       const allMessages = old.pages.flatMap((page) => page.items);
-      console.log(
+      logger.info(
         '[MessageCacheHelper.addMessageToCache] 总消息数:',
         allMessages.length,
       );
 
       if (MessageCacheHelper.messageExists(allMessages, message)) {
-        console.warn(
+        logger.warn(
           '[MessageCacheHelper.addMessageToCache] 消息已存在，跳过添加',
           {
             messageId: message.id,
@@ -409,12 +410,12 @@ export class MessageCacheHelper {
       }
 
       // pages[0] 始终是最新页；fetchNextPage 追加的是更旧的历史页
-      console.log('[MessageCacheHelper.addMessageToCache] 添加到最新页的末尾');
+      logger.info('[MessageCacheHelper.addMessageToCache] 添加到最新页的末尾');
       const newPages = old.pages.map((page, index) =>
         index === 0 ? { ...page, items: [...page.items, message] } : page,
       );
 
-      console.log(
+      logger.info(
         '[MessageCacheHelper.addMessageToCache] 添加后的页面消息数:',
         newPages.map((p) => p.items.length),
       );
@@ -422,7 +423,7 @@ export class MessageCacheHelper {
       return { ...old, pages: newPages };
     });
 
-    console.log('[MessageCacheHelper.addMessageToCache] 缓存更新完成');
+    logger.info('[MessageCacheHelper.addMessageToCache] 缓存更新完成');
   }
 
   /**

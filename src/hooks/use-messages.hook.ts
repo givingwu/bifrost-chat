@@ -4,6 +4,7 @@ import { queryKeys } from '@/providers/query.provider';
 import { useServices } from '@/providers/service.provider';
 import type { IMessageListParams } from '@/services/message.service';
 import { MessageMerger } from '@/services/message-merger.service';
+import { logger } from '@/utils/logger.util';
 
 /**
  * 消息分页数据
@@ -99,7 +100,7 @@ export function useMessages<TParams extends UseMessagesParams>(
           conversationId,
         );
       } catch (error) {
-        console.error('[useMessages] 获取离线消息失败:', error);
+        logger.error('[useMessages] 获取离线消息失败:', error);
         return [];
       }
     },

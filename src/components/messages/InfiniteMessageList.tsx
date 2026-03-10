@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { ErrorState } from '@/components/ErrorState';
 import { useMessages } from '@/hooks/use-messages.hook';
 import { MessageCacheHelper } from '@/services/message-cache-helper.service';
+import { logger } from '@/utils/logger.util';
 import { MessageList } from './MessageList';
 
 export interface InfiniteMessageListProps {
@@ -87,8 +88,8 @@ export function InfiniteMessageList({
   // 期望显示顺序：[60,...,31,30,...,1]（更旧的在上，更新的在下）
   const messages = useMemo(() => {
     const pages = data?.pages || [];
-    console.log('[InfiniteMessageList] 当前页面数:', pages.length);
-    console.log(
+    logger.info('[InfiniteMessageList] 当前页面数:', pages.length);
+    logger.info(
       '[InfiniteMessageList] 各页面消息数:',
       pages.map((p) => p.items.length),
     );
@@ -96,7 +97,7 @@ export function InfiniteMessageList({
     // 打印第一页（最新消息）的前3条和后3条
     if (pages.length > 0) {
       const firstPage = pages[0];
-      console.log(
+      logger.info(
         '[InfiniteMessageList] 第一页（page 0）的前3条消息:',
         firstPage.items.slice(0, 3).map((m) => ({
           id: m.id,
@@ -105,7 +106,7 @@ export function InfiniteMessageList({
           status: m.status,
         })),
       );
-      console.log(
+      logger.info(
         '[InfiniteMessageList] 第一页（page 0）的后3条消息:',
         firstPage.items.slice(-3).map((m) => ({
           id: m.id,
@@ -119,11 +120,11 @@ export function InfiniteMessageList({
     const reversedMessages = MessageCacheHelper.dedupeMessages(
       [...pages].reverse().flatMap((page) => page.items) || [],
     );
-    console.log(
+    logger.info(
       '[InfiniteMessageList] 反转后的总消息数:',
       reversedMessages.length,
     );
-    console.log(
+    logger.info(
       '[InfiniteMessageList] 反转后的前3条消息:',
       reversedMessages.slice(0, 3).map((m) => ({
         id: m.id,
@@ -132,7 +133,7 @@ export function InfiniteMessageList({
         status: m.status,
       })),
     );
-    console.log(
+    logger.info(
       '[InfiniteMessageList] 反转后的后3条消息:',
       reversedMessages.slice(-3).map((m) => ({
         id: m.id,
@@ -220,7 +221,7 @@ export function InfiniteMessageList({
 
   // 错误状态
   if (error) {
-    console.error('Failed to load messages:', error);
+    logger.error('Failed to load messages:', error);
 
     return (
       <ErrorState

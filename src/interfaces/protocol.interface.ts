@@ -81,15 +81,6 @@ export enum PacketMessageTypeEnum {
   MessageStatusAck = 'message_status_ack',
 }
 
-/**
- * Ack 协议枚举
- */
-export enum AckMessageStatusEnum {
-  /** 客户端已收 */
-  MsgReceiveAck = 'msg_receive_ack',
-  /** 客户端已读 */
-  MsgReadAck = 'msg_read_ack',
-}
 
 /**
  * Packet 协议消息体（body）结构，用于类型安全的 Packet body 转换
@@ -120,7 +111,7 @@ export type PacketBody =
   | DeleteChatBody
   | PacketBodyBase;
 
-export interface AuthPacketBody extends IAuthMessage {}
+export interface AuthPacketBody extends IAuthMessage { }
 
 export interface PacketBodyBase {
   type?: MessageTypeEnum | PacketMessageTypeEnum | AckMessageTypeEnum;
@@ -135,10 +126,10 @@ export interface TextPacketBody extends PacketBodyBase {
 
 export interface MediaPacketBody extends PacketBodyBase {
   type:
-    | MessageTypeEnum.Image
-    | MessageTypeEnum.Audio
-    | MessageTypeEnum.Video
-    | MessageTypeEnum.File;
+  | MessageTypeEnum.Image
+  | MessageTypeEnum.Audio
+  | MessageTypeEnum.Video
+  | MessageTypeEnum.File;
   content: IMediaMessage;
 }
 
