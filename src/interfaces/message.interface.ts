@@ -64,7 +64,7 @@ export interface IStringMessage {
   text: string;
 }
 
-/** 多媒体消息 */
+/** 多媒体消息：包括图片、语音、视频、文件 */
 export interface IMediaMessage {
   /** 多媒体资源 URL */
   url: string;
@@ -92,7 +92,7 @@ export interface ILocationMessage {
 }
 
 /** 富媒体消息 */
-export interface IRichMediaMessage {
+export interface IRichMediaMessage extends IStringMessage, IMediaMessage {
   /** 描述文本 */
   desc: string;
 }
