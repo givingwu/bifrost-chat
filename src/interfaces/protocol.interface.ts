@@ -383,7 +383,8 @@ export function mapServerMessageStatusToLocal(
   serverStatus: ServerMessageStatus,
 ): MessageStatusEnum {
   const mapping: Record<ServerMessageStatus, MessageStatusEnum> = {
-    UN_SEND: MessageStatusEnum.Sending,
+    // UN_SEND = Fox 后台已入队，WA 尚未确认投递 = WhatsApp 一√灰色 = Sent
+    UN_SEND: MessageStatusEnum.Sent,
     SEND_FAIL: MessageStatusEnum.Failed,
     DELIVER_FAIL: MessageStatusEnum.Failed,
     UN_READ: MessageStatusEnum.Delivered,
