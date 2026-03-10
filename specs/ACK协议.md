@@ -105,3 +105,46 @@ export enum AckMessageTypeEnum {
     "timestamp": 1769063279192
 }
 ```
+
+## 消息状态更新（仅下行）
+
+```json
+{
+  "id": "bced3b54-1d08-cd89-c596-c85c517fb65f", // 和上行协议ID一致
+  "ptype": "message_status_ack",
+  "body": {
+    "sender": "xjjsx888",  // 发送者
+    "id": "380406782",  // 消息id
+    "chatId": "大头鹅712:im.customer:14695971", // 会话id
+    "status": "sent",  //消息发送状态
+    "timestamp": 1769063160893,
+    "errorInfo": "消息发送失败" // 消息发送错误描述
+  },
+  "ver": "1.0",
+  "timestamp": 1769063279192
+}
+```
+
+### body 数据结构
+
+```java
+{
+    String sender;  // 发送者
+    String id;  // 消息id
+    String chatId; // 会话id
+    String status;  //消息发送状态
+    Long timestamp;
+    String errorInfo; // 消息发送错误描述
+}
+```
+
+### Status 枚举值
+```java
+    UN_SEND("un_send", "un send"),
+    SEND_FAIL("send_fail", "send wa fail"),
+    DELIVER_FAIL("deliver_fail", "wa deliver customer fail"),
+    UN_READ("un_read", "un read"),
+    READ("read", "read"),
+    REVOKE("revoke", "revoke"),
+    DELETE("delete", "delete"),
+```
