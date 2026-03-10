@@ -435,7 +435,7 @@ sequenceDiagram
 flowchart TD
   subgraph Send["发送阶段"]
     A["UI 调用 useSendMessage"] --> B["生成 tempId，写入 optimistic message(status=sending)"]
-    B --> C["messageQueue.register(tempId/requestId)"]
+    B --> C["messageQueue.enqueue(tempId/requestId)"]
     C --> D["发送 chat_message"]
     D --> E["服务端返回 chat_message ACK"]
     E --> F["messageQueue.handleOutgoingAck"]

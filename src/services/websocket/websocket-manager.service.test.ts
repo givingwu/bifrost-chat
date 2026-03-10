@@ -110,7 +110,7 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
       ackRequestId: string,
       status: MessageStatusEnum.Delivered | MessageStatusEnum.Read,
     ) => {
-      messageQueue.registerReceiptAck({
+      messageQueue.enqueueReceiptAck({
         ackRequestId,
         conversationId: 'conv-123',
         targetMessageId: 'msg-origin-1',

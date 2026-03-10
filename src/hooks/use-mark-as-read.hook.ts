@@ -239,7 +239,7 @@ export function useMarkAsRead() {
           channelType: message.channelType,
         };
 
-        messageQueue.registerReceiptAck({
+        messageQueue.enqueueReceiptAck({
           ackRequestId: requestId,
           conversationId,
           targetMessageId: messageId,
@@ -258,13 +258,13 @@ export function useMarkAsRead() {
             continue;
           }
 
-          messageQueue.remove(requestId);
+          messageQueue.dequeue(requestId);
 
           if (supportsStrictAck) {
             fallbackMessageIds.push(messageId);
           }
         } catch (error) {
-          messageQueue.remove(requestId);
+          messageQueue.dequeue(requestId);
           errors.push({ messageId, error });
         }
       }

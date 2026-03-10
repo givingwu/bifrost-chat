@@ -79,7 +79,7 @@ describe('AckPacketHandler', () => {
     });
 
     it('当 chatId 和映射表都不存在时应该返回 null', () => {
-      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => { });
 
       const packet: RawPacket = {
         id: 'msg-123',
@@ -126,7 +126,7 @@ describe('AckPacketHandler', () => {
     });
 
     it('应优先使用队列将 msg_receive_ack 更新到原消息', () => {
-      messageQueue.registerReceiptAck({
+      messageQueue.enqueueReceiptAck({
         ackRequestId: 'ack-123',
         conversationId: 'conv-456',
         targetMessageId: 'msg-origin-1',
@@ -159,7 +159,7 @@ describe('AckPacketHandler', () => {
     });
 
     it('应优先使用队列将 msg_read_ack 更新到原消息', () => {
-      messageQueue.registerReceiptAck({
+      messageQueue.enqueueReceiptAck({
         ackRequestId: 'ack-read-1',
         conversationId: 'conv-456',
         targetMessageId: 'msg-origin-1',
@@ -275,7 +275,7 @@ describe('AckPacketHandler', () => {
     it('当 ACK 类型无效时应该返回 null', () => {
       const consoleSpy = vi
         .spyOn(console, 'error')
-        .mockImplementation(() => {});
+        .mockImplementation(() => { });
 
       const packet: RawPacket = {
         id: 'msg-123',

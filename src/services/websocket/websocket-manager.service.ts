@@ -451,7 +451,7 @@ export class WebSocketManager {
 
     const targetMessageId =
       options?.targetMessageId ?? String(params.mid ?? packet.id);
-    messageQueue.registerReceiptAck({
+    messageQueue.enqueueReceiptAck({
       ackRequestId: packet.id,
       conversationId: params.chatId,
       targetMessageId,
@@ -464,7 +464,7 @@ export class WebSocketManager {
     try {
       this.send(packet);
     } catch (error) {
-      messageQueue.remove(packet.id);
+      messageQueue.dequeue(packet.id);
       throw error;
     }
     return packet;
@@ -494,7 +494,7 @@ export class WebSocketManager {
 
     const targetMessageId =
       options?.targetMessageId ?? String(params.mid ?? packet.id);
-    messageQueue.registerReceiptAck({
+    messageQueue.enqueueReceiptAck({
       ackRequestId: packet.id,
       conversationId: params.chatId,
       targetMessageId,
@@ -507,7 +507,7 @@ export class WebSocketManager {
     try {
       this.send(packet);
     } catch (error) {
-      messageQueue.remove(packet.id);
+      messageQueue.dequeue(packet.id);
       throw error;
     }
     return packet;

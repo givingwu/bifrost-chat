@@ -17,7 +17,7 @@ describe('FoxMessageAckHandler', () => {
   });
 
   it('应保留原始 fox_message_ack 事件，并追加状态事件', () => {
-    messageQueue.register({
+    messageQueue.enqueue({
       requestId: 'req-123',
       tempId: 'temp-123',
       conversationId: 'conv-456',
