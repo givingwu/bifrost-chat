@@ -61,7 +61,7 @@ export enum PacketMessageTypeEnum {
   AuthFail = 'auth_fail',
   /** 聊天消息 */
   ChatMessage = 'chat_message',
-  /** ACK 确认（下行协议） */
+  /** ACK 确认（下行协议，旧格式） */
   Ack = 'ack',
   /** 心跳 */
   ClientHeartbeat = 'client_heartbeat',
@@ -71,6 +71,14 @@ export enum PacketMessageTypeEnum {
   FoxMessageAck = 'fox_message_ack',
   /** 删除会话指令 */
   DeleteChat = 'delete_chat',
+  /**
+   * 消息状态更新（下行协议，新格式）
+   *
+   * @description
+   * 服务端推送消息状态变化时使用，body 包含 id / chatId / status / errorInfo 等字段。
+   * 与旧 ptype=ack 并存，不做替换。
+   */
+  MessageStatusAck = 'message_status_ack',
 }
 
 /**
@@ -112,7 +120,7 @@ export type PacketBody =
   | DeleteChatBody
   | PacketBodyBase;
 
-export interface AuthPacketBody extends IAuthMessage {}
+export interface AuthPacketBody extends IAuthMessage { }
 
 export interface PacketBodyBase {
   type?: MessageTypeEnum | PacketMessageTypeEnum | AckMessageTypeEnum;
@@ -127,10 +135,10 @@ export interface TextPacketBody extends PacketBodyBase {
 
 export interface MediaPacketBody extends PacketBodyBase {
   type:
-    | MessageTypeEnum.Image
-    | MessageTypeEnum.Audio
-    | MessageTypeEnum.Video
-    | MessageTypeEnum.File;
+  | MessageTypeEnum.Image
+  | MessageTypeEnum.Audio
+  | MessageTypeEnum.Video
+  | MessageTypeEnum.File;
   content: IMediaMessage;
 }
 
@@ -324,6 +332,7 @@ export interface DeleteChatBody {
 export function isAckRawPacket(packet: BaseRawPacket): packet is AckRawPacket {
   return (
     packet.ptype === PacketMessageTypeEnum.Ack ||
+    packet.ptype === PacketMessageTypeEnum.MessageStatusAck ||
     packet.ptype === AckMessageTypeEnum.MsgReceiveAck ||
     packet.ptype === AckMessageTypeEnum.MsgReadAck ||
     packet.ptype === AckMessageTypeEnum.MsgSendFailed

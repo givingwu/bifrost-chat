@@ -40,6 +40,10 @@ describe('AckPacketHandler', () => {
       expect(handler.canHandle(PacketMessageTypeEnum.Ack)).toBe(true);
     });
 
+    it('应该处理 ptype 为 message_status_ack 的数据包', () => {
+      expect(handler.canHandle(PacketMessageTypeEnum.MessageStatusAck)).toBe(true);
+    });
+
     it('不应该处理其他类型的 ptype', () => {
       expect(handler.canHandle(PacketMessageTypeEnum.ChatMessage)).toBe(false);
       expect(handler.canHandle(PacketMessageTypeEnum.ClientHeartbeat)).toBe(
@@ -73,7 +77,7 @@ describe('AckPacketHandler', () => {
     });
 
     it('当 chatId 和映射表都不存在时应该返回 null', () => {
-      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => { });
 
       const packet: RawPacket = {
         id: 'msg-123',
@@ -269,7 +273,7 @@ describe('AckPacketHandler', () => {
     it('当 ACK 类型无效时应该返回 null', () => {
       const consoleSpy = vi
         .spyOn(console, 'error')
-        .mockImplementation(() => {});
+        .mockImplementation(() => { });
 
       const packet: RawPacket = {
         id: 'msg-123',
@@ -292,6 +296,103 @@ describe('AckPacketHandler', () => {
       );
 
       consoleSpy.mockRestore();
+    });
+
+    it('应处理 message_status_ack 类型并映射到正确消息状态（UN_READ → Delivered）', () => {
+      const packet = {
+        id: 'packet-wrapper-id',
+        chatId: null as unknown as string,
+        ptype: PacketMessageTypeEnum.MessageStatusAck,
+        from: { app: 'test', pin: 'server' },
+        to: { app: 'test', pin: 'user' },
+        body: {
+          id: 'msg-real-123',
+          chatId: 'conv-456',
+          sender: 'agent-001',
+          status: 'UN_READ',
+          timestamp: Date.now(),
+        },
+        ver: '1.0',
+        timestamp: Date.now(),
+      } as unknown as RawPacket;
+
+      const result = handler.handle({ packet });
+
+      expect(result.eventData).not.toBeNull();
+      expect(getStatusEventData(result).messageId).toBe('msg-real-123');
+      expect(getStatusEventData(result).conversationId).toBe('conv-456');
+      expect(getStatusEventData(result).status).toBe(MessageStatusEnum.Delivered);
+    });
+
+    it('应处理 message_status_ack（READ → Read）', () => {
+      const packet = {
+        id: 'packet-wrapper-id',
+        chatId: null as unknown as string,
+        ptype: PacketMessageTypeEnum.MessageStatusAck,
+        from: { app: 'test', pin: 'server' },
+        to: { app: 'test', pin: 'user' },
+        body: {
+          id: 'msg-read-1',
+          chatId: 'conv-789',
+          status: 'READ',
+          timestamp: Date.now(),
+        },
+        ver: '1.0',
+        timestamp: Date.now(),
+      } as unknown as RawPacket;
+
+      const result = handler.handle({ packet });
+
+      expect(getStatusEventData(result).status).toBe(MessageStatusEnum.Read);
+    });
+
+    it('应处理 message_status_ack（SEND_FAIL + errorInfo → Failed + error）', () => {
+      const packet = {
+        id: 'packet-wrapper-id',
+        chatId: null as unknown as string,
+        ptype: PacketMessageTypeEnum.MessageStatusAck,
+        from: { app: 'test', pin: 'server' },
+        to: { app: 'test', pin: 'user' },
+        body: {
+          id: 'msg-fail-1',
+          chatId: 'conv-fail',
+          status: 'SEND_FAIL',
+          errorInfo: 'provider rejected',
+          timestamp: Date.now(),
+        },
+        ver: '1.0',
+        timestamp: Date.now(),
+      } as unknown as RawPacket;
+
+      const result = handler.handle({ packet });
+
+      expect(getStatusEventData(result).status).toBe(MessageStatusEnum.Failed);
+      expect((result.eventData?.data as MessageStatusUpdatedEvent).error).toBe(
+        'provider rejected',
+      );
+    });
+
+    it('应处理 message_status_ack（DELIVER_FAIL → Failed）', () => {
+      const packet = {
+        id: 'packet-wrapper-id',
+        chatId: null as unknown as string,
+        ptype: PacketMessageTypeEnum.MessageStatusAck,
+        from: { app: 'test', pin: 'server' },
+        to: { app: 'test', pin: 'user' },
+        body: {
+          id: 'msg-fail-2',
+          chatId: 'conv-fail',
+          status: 'DELIVER_FAIL',
+          errorInfo: 'wa deliver customer fail',
+          timestamp: Date.now(),
+        },
+        ver: '1.0',
+        timestamp: Date.now(),
+      } as unknown as RawPacket;
+
+      const result = handler.handle({ packet });
+
+      expect(getStatusEventData(result).status).toBe(MessageStatusEnum.Failed);
     });
   });
 });

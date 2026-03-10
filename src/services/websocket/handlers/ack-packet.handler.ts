@@ -39,7 +39,10 @@ export class AckPacketHandler extends BasePacketHandler {
    * 判断是否可以处理该数据包
    */
   canHandle(packetType: string): boolean {
-    return packetType === PacketMessageTypeEnum.Ack;
+    return (
+      packetType === PacketMessageTypeEnum.Ack ||
+      packetType === PacketMessageTypeEnum.MessageStatusAck
+    );
   }
 
   /**
@@ -69,12 +72,12 @@ export class AckPacketHandler extends BasePacketHandler {
       timestamp: ackData.timestamp ?? packet.timestamp,
       body: isPacketBodyRecord(packet.body)
         ? {
-            ...packet.body,
-            type: ackData.body.type,
-          }
+          ...packet.body,
+          type: ackData.body.type,
+        }
         : {
-            type: ackData.body.type,
-          },
+          type: ackData.body.type,
+        },
     });
 
     if (queueResult.handled) {
@@ -155,7 +158,7 @@ export class AckPacketHandler extends BasePacketHandler {
         ...ackEventData,
         status: resolvedStatus,
         ...(resolvedStatus === MessageStatusEnum.Failed &&
-        ackData.body.errorInfo
+          ackData.body.errorInfo
           ? { error: ackData.body.errorInfo }
           : {}),
       }),

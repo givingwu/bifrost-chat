@@ -173,7 +173,12 @@ export class AckHandler {
 
     const packet = data as Record<string, unknown>;
 
-    // 检查是否为 ACK 类型
+    // 处理新格式： message_status_ack
+    if (packet.ptype === PacketMessageTypeEnum.MessageStatusAck) {
+      return AckHandler.parseMessageStatusAck(packet);
+    }
+
+    // 处理旧格式： ptype = ack
     if (packet.ptype !== PacketMessageTypeEnum.Ack) {
       return null;
     }
@@ -219,6 +224,61 @@ export class AckHandler {
   }
 
   /**
+   * 解析新格式 message_status_ack 下行包
+   *
+   * @description
+   * 新协议结构：
+   * - ptype: 'message_status_ack'
+   * - body.id: 消息 ID（必填）
+   * - body.chatId: 会话 ID
+   * - body.status: 状态枚举（UN_SEND/SEND_FAIL/DELIVER_FAIL/UN_READ/READ/REVOKE/DELETE）
+   * - body.sender: 发送者
+   * - body.timestamp: 时间戳
+   * - body.errorInfo: 错误描述（可选）
+   */
+  private static parseMessageStatusAck(
+    packet: Record<string, unknown>,
+  ): AckData | null {
+    if (!isPacketBodyRecord(packet.body)) {
+      return null;
+    }
+
+    // 新协议 message_status_ack 的消息 ID 在 body.id，不使用 packet.id
+    const messageId = extractMessageId(
+      undefined,
+      packet.body.id,
+      packet.body.mid,
+    );
+
+    if (!messageId) {
+      return null;
+    }
+
+    const timestamp = extractTimestamp(
+      packet.body.timestamp,
+      packet.timestamp,
+    );
+
+    return {
+      id: messageId,
+      ptype: PacketMessageTypeEnum.MessageStatusAck,
+      body: {
+        // type 设为 ptype 本身，因为新协议的 body 中没有独立的 type 字段
+        type: PacketMessageTypeEnum.MessageStatusAck,
+        ...buildOptionalFields({
+          id: packet.body.id,
+          chatId: packet.body.chatId,
+          sender: packet.body.sender,
+          status: packet.body.status,
+          errorInfo: packet.body.errorInfo,
+        }),
+      },
+      timestamp,
+    };
+  }
+
+
+  /**
    * 验证 ACK 类型是否有效
    *
    * @param type ACK 类型
@@ -249,6 +309,10 @@ export class AckHandler {
         return MessageStatusEnum.Failed;
       case PacketMessageTypeEnum.ClientHeartbeat:
         // 心跳 ACK 不对应消息状态
+        return MessageStatusEnum.Sent;
+      case PacketMessageTypeEnum.MessageStatusAck:
+        // 新格式的状态由 body.status 决定，这里返回 Sent 作为默认占位符
+        // 实际状态将经由 ackDataToMessageStatus() 中的 body.status 路径解析
         return MessageStatusEnum.Sent;
       default:
         return MessageStatusEnum.Sent;

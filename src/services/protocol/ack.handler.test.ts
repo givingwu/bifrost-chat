@@ -7,6 +7,7 @@ import {
 } from '@/interfaces/protocol.interface';
 import { AckHandler } from '@/services/protocol/ack.handler';
 
+
 describe('AckHandler', () => {
   describe('createReadAck', () => {
     it('应该创建正确的已读 ACK 消息', () => {
@@ -234,6 +235,81 @@ describe('AckHandler', () => {
         }),
       ).toBeNull();
     });
+
+    it('应该正确解析 message_status_ack 格式', () => {
+      const data = {
+        ptype: PacketMessageTypeEnum.MessageStatusAck,
+        body: {
+          id: 'msg-real-123',
+          chatId: 'conv-456',
+          sender: 'agent-001',
+          status: 'UN_READ',
+          timestamp: 1769063279192,
+        },
+      };
+
+      const ackData = AckHandler.parseDownstream(data);
+
+      expect(ackData).not.toBeNull();
+      expect(ackData?.id).toBe('msg-real-123');
+      expect(ackData?.ptype).toBe(PacketMessageTypeEnum.MessageStatusAck);
+      expect(ackData?.body.type).toBe(PacketMessageTypeEnum.MessageStatusAck);
+      expect(ackData?.body.id).toBe('msg-real-123');
+      expect(ackData?.body.chatId).toBe('conv-456');
+      expect(ackData?.body.sender).toBe('agent-001');
+      expect(ackData?.body.status).toBe('UN_READ');
+      expect(ackData?.timestamp).toBe(1769063279192);
+    });
+
+    it('message_status_ack 应透过 packet.id 使用 body.id 作为消息 ID', () => {
+      const data = {
+        id: 'packet-wrapper-id',  // 包装层 id，不是真实消息 id
+        ptype: PacketMessageTypeEnum.MessageStatusAck,
+        body: {
+          id: 'real-msg-id',
+          chatId: 'conv-456',
+          status: 'READ',
+          timestamp: 1769063279192,
+        },
+      };
+
+      const ackData = AckHandler.parseDownstream(data);
+
+      // 应使用 body.id，而不是 packet.id
+      expect(ackData?.id).toBe('real-msg-id');
+    });
+
+    it('message_status_ack 缺少 body.id 时应返回 null', () => {
+      const data = {
+        ptype: PacketMessageTypeEnum.MessageStatusAck,
+        body: {
+          chatId: 'conv-456',
+          status: 'READ',
+        },
+      };
+
+      const ackData = AckHandler.parseDownstream(data);
+
+      expect(ackData).toBeNull();
+    });
+
+    it('message_status_ack 应包含 errorInfo 字段', () => {
+      const data = {
+        ptype: PacketMessageTypeEnum.MessageStatusAck,
+        body: {
+          id: 'msg-fail-1',
+          chatId: 'conv-456',
+          status: 'SEND_FAIL',
+          errorInfo: 'provider rejected',
+          timestamp: 1769063279192,
+        },
+      };
+
+      const ackData = AckHandler.parseDownstream(data);
+
+      expect(ackData?.body.status).toBe('SEND_FAIL');
+      expect(ackData?.body.errorInfo).toBe('provider rejected');
+    });
   });
 
   describe('isValidAckType', () => {
@@ -249,6 +325,9 @@ describe('AckHandler', () => {
       );
       expect(
         AckHandler.isValidAckType(PacketMessageTypeEnum.ClientHeartbeat),
+      ).toBe(true);
+      expect(
+        AckHandler.isValidAckType(PacketMessageTypeEnum.MessageStatusAck),
       ).toBe(true);
     });
 
@@ -272,6 +351,12 @@ describe('AckHandler', () => {
       expect(
         AckHandler.ackTypeToMessageStatus(
           PacketMessageTypeEnum.ClientHeartbeat,
+        ),
+      ).toBe(MessageStatusEnum.Sent);
+      // message_status_ack 状态由 body.status 决定，这里返回 Sent 作为占位符
+      expect(
+        AckHandler.ackTypeToMessageStatus(
+          PacketMessageTypeEnum.MessageStatusAck,
         ),
       ).toBe(MessageStatusEnum.Sent);
     });

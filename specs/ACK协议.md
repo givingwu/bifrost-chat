@@ -1,6 +1,16 @@
 # ACK 协议
 
-实时文档见 https://kylith.atlassian.net/wiki/spaces/m78rqGL1Q4UV/pages/389939787/ACK
+实时文档见 https://kylith.atlassian.net/wiki/spaces/m78rqGL1Q4UV/pages/463505994/ACK
+
+## ACK 消息类型总览
+
+目前共有 3 类 ACK：
+
+| 类型 | 方向 | 说明 |
+|------|------|------|
+| `msg_receive_ack` | 上行（客户端 → 服务端） | 客户端收到消息后通知服务端 |
+| `msg_read_ack` | 上行（客户端 → 服务端） | 用户已读消息后通知服务端 |
+| `message_status_ack` | 下行（服务端 → 客户端） | 服务端主动推送消息状态变化 |
 
 ## 上行协议
 
