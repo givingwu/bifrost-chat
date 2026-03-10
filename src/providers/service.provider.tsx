@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { createContext, useContext, useMemo } from 'react';
 import { useHostNetworkSync } from '@/hooks/use-host-network-sync.hook';
-import { NotImplementedError } from '@/interfaces/error.interface';
+import { NotImplementedError } from '@/errors/sdk.errors';
 import type { IConversationService } from '@/services/conversation.service';
 import type { IMessageService } from '@/services/message.service';
 import type { INetworkService } from '@/services/network.service';

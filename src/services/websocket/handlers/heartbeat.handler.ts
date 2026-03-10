@@ -8,10 +8,10 @@
  */
 
 import { PacketMessageTypeEnum } from '@/interfaces/protocol.interface';
-import {
-  BasePacketHandler,
-  type PacketHandlerContext,
-  type PacketHandlerResult,
+import { BasePacketHandler } from './base-packet.handler';
+import type {
+  PacketHandlerContext,
+  PacketHandlerResult,
 } from '@/interfaces/websocket.interface';
 
 /**

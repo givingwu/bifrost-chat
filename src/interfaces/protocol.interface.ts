@@ -6,9 +6,9 @@ import {
   type IStringMessage,
   type ITemplateMessage,
   type MessageParticipant,
-  MessageStatusEnum,
   type MessageTypeEnum,
 } from './message.interface';
+import type { ServerMessageStatus } from '@/services/protocol/status.mapper';
 
 /**
  * ACK 类型枚举
@@ -315,104 +315,4 @@ export interface StatusSwitchBody {
 export interface DeleteChatBody {
   /** 会话 ID */
   chatId: string;
-}
-
-/**
- * 类型守卫：判断是否为 ACK RawPacket
- */
-export function isAckRawPacket(packet: BaseRawPacket): packet is AckRawPacket {
-  return (
-    packet.ptype === PacketMessageTypeEnum.Ack ||
-    packet.ptype === PacketMessageTypeEnum.MessageStatusAck ||
-    packet.ptype === AckMessageTypeEnum.MsgReceiveAck ||
-    packet.ptype === AckMessageTypeEnum.MsgReadAck ||
-    packet.ptype === AckMessageTypeEnum.MsgSendFailed
-  );
-}
-
-/**
- * 类型守卫：判断 Packet body 是否为 AckPacketBody
- */
-export function isAckPacketBody(body: unknown): body is AckPacketBody {
-  return (
-    typeof body === 'object' &&
-    body !== null &&
-    'sender' in body &&
-    'app' in body &&
-    'mid' in body &&
-    'timestamp' in body
-  );
-}
-
-/**
- * 服务端 MessageStatus 枚举值
- * 对应文档: specs/bifrost-client-integration-guide.md 3.4.4
- */
-export const SERVER_MESSAGE_STATUSES = [
-  'UN_SEND',
-  'SEND_FAIL',
-  'DELIVER_FAIL',
-  'UN_READ',
-  'READ',
-  'REVOKE',
-  'DELETE',
-] as const;
-
-/**
- * 服务端 MessageStatus 类型
- * 对应文档: specs/bifrost-client-integration-guide.md 3.4.4
- */
-export type ServerMessageStatus = (typeof SERVER_MESSAGE_STATUSES)[number];
-
-/**
- * 判断是否为有效的服务端 MessageStatus
- */
-export function isServerMessageStatus(
-  value: unknown,
-): value is ServerMessageStatus {
-  return (
-    typeof value === 'string' &&
-    SERVER_MESSAGE_STATUSES.includes(value as ServerMessageStatus)
-  );
-}
-
-/**
- * 服务端 MessageStatus → SDK MessageStatusEnum 映射
- */
-export function mapServerMessageStatusToLocal(
-  serverStatus: ServerMessageStatus,
-): MessageStatusEnum {
-  const mapping: Record<ServerMessageStatus, MessageStatusEnum> = {
-    // UN_SEND = Fox 后台已入队，WA 尚未确认投递 = WhatsApp 一√灰色 = Sent
-    UN_SEND: MessageStatusEnum.Sent,
-    SEND_FAIL: MessageStatusEnum.Failed,
-    DELIVER_FAIL: MessageStatusEnum.Failed,
-    UN_READ: MessageStatusEnum.Delivered,
-    READ: MessageStatusEnum.Read,
-    REVOKE: MessageStatusEnum.Revoked,
-    DELETE: MessageStatusEnum.Deleted,
-  };
-
-  return mapping[serverStatus] ?? MessageStatusEnum.Sending;
-}
-
-/**
- * SDK MessageStatusEnum → 服务端 MessageStatus 映射
- */
-export function mapLocalMessageStatusToServer(
-  localStatus: MessageStatusEnum,
-): ServerMessageStatus | null {
-  const mapping: Record<MessageStatusEnum, ServerMessageStatus | null> = {
-    [MessageStatusEnum.Created]: 'UN_SEND',
-    [MessageStatusEnum.Sending]: 'UN_SEND',
-    [MessageStatusEnum.Sent]: 'UN_SEND',
-    [MessageStatusEnum.Delivered]: 'UN_READ',
-    [MessageStatusEnum.Read]: 'READ',
-    [MessageStatusEnum.Failed]: 'SEND_FAIL',
-    [MessageStatusEnum.Queued]: 'UN_SEND',
-    [MessageStatusEnum.Revoked]: 'REVOKE',
-    [MessageStatusEnum.Deleted]: 'DELETE',
-  };
-
-  return mapping[localStatus] ?? null;
 }

@@ -279,3 +279,29 @@ export interface MessageSendResult {
   /** 是否需要回滚消息 */
   needRollback?: boolean;
 }
+
+/**
+ * 消息状态更新
+ */
+export interface MessageStatusUpdate {
+  /** 消息 ID */
+  messageId: string;
+  /** 临时消息 ID */
+  tempId?: string;
+  /** 渠道类型（可选，用于更新按渠道分片的缓存） */
+  channelType?: StandardMessage['channelType'];
+  /** 新状态 */
+  status: StandardMessage['status'];
+  /** 错误信息（可选，常用于失败回调） */
+  error?: StandardMessage['error'];
+  /** 更新时间戳 */
+  timestamp: number;
+}
+
+/**
+ * 消息状态更新事件
+ */
+export interface MessageStatusUpdatedEvent extends MessageStatusUpdate {
+  /** 会话 ID */
+  conversationId: string;
+}

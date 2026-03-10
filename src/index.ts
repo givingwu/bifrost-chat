@@ -23,6 +23,16 @@ export { useTemplates } from '@/hooks/use-templates.hook';
 export { useTotalUnread } from '@/hooks/use-total-unread.hook';
 export { useUnreadSync } from '@/hooks/use-unread-sync.hook';
 
+/**
+ * SDK 错误模块
+ *
+ * @description
+ * 统一导出所有 SDK 错误类和工具
+ */
+export * from '@/errors/sdk.errors';
+export * from '@/errors/websocket.errors';
+export * from '@/errors/network.error';
+
 // Types
 export * from '@/interfaces/agent.interface';
 export * from '@/interfaces/attachment.interface';
@@ -31,7 +41,6 @@ export * from '@/interfaces/channel.interface';
 export * from '@/interfaces/composer.interface';
 export * from '@/interfaces/connection.interface';
 export * from '@/interfaces/conversation.interface';
-export * from '@/interfaces/error.interface';
 export * from '@/interfaces/language.interface';
 export * from '@/interfaces/message.interface';
 export * from '@/interfaces/message-type-config.interface';
@@ -65,6 +74,17 @@ export * from '@/services/network.service';
 export * from '@/services/protocol';
 export * from '@/services/template.service';
 export * from '@/services/websocket';
+
+// Errors
+/**
+ * SDK 错误模块
+ *
+ * @description
+ * 统一导出所有 SDK 错误类和工具
+ */
+export * from '@/errors/sdk.errors';
+export * from '@/errors/websocket.errors';
+export * from '@/errors/network.error';
 
 // Store
 export * from '@/store';

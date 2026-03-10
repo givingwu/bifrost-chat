@@ -76,21 +76,3 @@ export interface OfflineQueueConfig {
   /** 指数退避最大延迟（毫秒） */
   maxRetryDelay?: number;
 }
-
-/**
- * 默认离线队列配置
- */
-export const DEFAULT_OFFLINE_QUEUE_CONFIG: OfflineQueueConfig = {
-  enabled: true,
-  dbName: 'bifrost-offline-queue',
-  dbVersion: 1,
-  maxQueueSize: 1000,
-  messageExpiration: 7 * 24 * 60 * 60 * 1000, // 7 天
-  defaultMaxRetries: 3,
-  retryStrategy: 'exponential',
-  autoRetryOnReconnect: true,
-  batchSize: 10,
-  fixedRetryDelay: 5000,
-  linearRetryDelay: 2000,
-  maxRetryDelay: 30000,
-} as const;

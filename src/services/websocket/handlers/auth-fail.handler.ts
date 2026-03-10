@@ -8,12 +8,12 @@
  */
 
 import { PacketMessageTypeEnum } from '@/interfaces/protocol.interface';
-import {
-  BasePacketHandler,
-  type PacketHandlerContext,
-  type PacketHandlerResult,
-  WebSocketEventTypeEnum,
+import { BasePacketHandler } from './base-packet.handler';
+import type {
+  PacketHandlerContext,
+  PacketHandlerResult,
 } from '@/interfaces/websocket.interface';
+import { WebSocketEventTypeEnum } from '@/interfaces/websocket.interface';
 
 /**
  * 登录失败处理器

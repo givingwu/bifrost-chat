@@ -1,7 +1,7 @@
 import type { ChannelTypeEnum } from './channel.interface';
 import type { ConnectionStateEnum } from './connection.interface';
 import type { User } from './conversation.interface';
-import type { SDKError } from './error.interface';
+import type { SDKError } from '@/errors/sdk.errors';
 import type { StandardMessage } from './message.interface';
 import type { MessageTypeConfig } from './message-type-config.interface';
 import type { ThemeModeEnum } from './theme.interface';

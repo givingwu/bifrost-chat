@@ -7,8 +7,8 @@
  * @module services/websocket
  */
 
+import type { BasePacketHandler } from './handlers/base-packet.handler';
 import type {
-  BasePacketHandler,
   PacketHandlerContext,
   PacketHandlerResult,
 } from '@/interfaces/websocket.interface';

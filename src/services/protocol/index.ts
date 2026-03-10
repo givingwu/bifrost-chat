@@ -17,3 +17,6 @@ export { PacketConverter } from './packet.converter';
 
 // PacketValidator - 数据包验证器
 export { PacketValidator } from './packet.validator';
+
+// StatusMapper - 服务端状态映射
+export * from './status.mapper';

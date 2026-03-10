@@ -18,14 +18,13 @@
  * @version 2.0.0
  */
 
+import { ConfigurationError, ValidationError } from '@/errors/sdk.errors';
 import {
-  ConfigurationError,
   ConnectionTimeoutError,
   ErrorHandler,
   ParseError,
   SendFailedError,
-  ValidationError,
-} from '@/interfaces/error.interface';
+} from '@/errors/websocket.errors';
 import {
   ClientTypeEnum,
   MessageStatusEnum,
@@ -64,6 +63,7 @@ import {
   WEBSOCKET_DEFAULT_CONFIG,
   type WebSocketStatus,
 } from './websocket.constants';
+
 
 /**
  * WebSocketManager：WebSocket 连接管理器（改进版）

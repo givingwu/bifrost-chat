@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useSendMessage } from '@/hooks/use-send-message.hook';
 import { AgentStatusEnum } from '@/interfaces/agent.interface';
-import { AuthorizationError } from '@/interfaces/error.interface';
+import { AuthorizationError } from '@/errors/sdk.errors';
 import {
   MessageFailureTypeEnum,
   MessageStatusEnum,
@@ -26,7 +26,7 @@ const mockOfflineMessageQueue = {
 
 const mockMessageService = {
   send: vi.fn(),
-  subscribeToMessageStatus: vi.fn(() => () => {}),
+  subscribeToMessageStatus: vi.fn(() => () => { }),
 };
 
 // Mock ServiceProvider

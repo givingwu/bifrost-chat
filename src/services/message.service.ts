@@ -8,6 +8,7 @@ import type {
 } from '@/interfaces/audio.interface';
 import type {
   MessageSendResult,
+  MessageStatusUpdatedEvent,
   SendMessageOptions,
   StandardMessage,
 } from '@/interfaces/message.interface';
@@ -30,24 +31,6 @@ export interface IMessageListParams {
 }
 
 /**
- * 消息状态更新
- */
-export interface MessageStatusUpdate {
-  /** 消息 ID */
-  messageId: string;
-  /** 临时消息 ID */
-  tempId?: string;
-  /** 渠道类型（可选，用于更新按渠道分片的缓存） */
-  channelType?: StandardMessage['channelType'];
-  /** 新状态 */
-  status: StandardMessage['status'];
-  /** 错误信息（可选，常用于失败回调） */
-  error?: StandardMessage['error'];
-  /** 更新时间戳 */
-  timestamp: number;
-}
-
-/**
  * 实时消息事件
  */
 export interface MessageReceivedEvent {
@@ -55,14 +38,6 @@ export interface MessageReceivedEvent {
   conversationId: string;
   /** 消息内容 */
   message: StandardMessage;
-}
-
-/**
- * 消息状态更新事件
- */
-export interface MessageStatusUpdatedEvent extends MessageStatusUpdate {
-  /** 会话 ID */
-  conversationId: string;
 }
 
 /**

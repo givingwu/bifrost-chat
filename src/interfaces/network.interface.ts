@@ -1,5 +1,3 @@
-import { SDKError } from './error.interface';
-
 /**
  * 网络连接状态枚举
  */
@@ -74,22 +72,6 @@ export enum NetworkErrorCodeEnum {
   ServerError = 'SERVER_ERROR',
   /** 客户端错误 */
   ClientError = 'CLIENT_ERROR',
-}
-
-/**
- * 网络错误
- */
-export class NetworkError extends SDKError {
-  constructor(
-    message: string,
-    public readonly errorCode: NetworkErrorCodeEnum,
-    public readonly statusCode?: number,
-    details?: Record<string, unknown>,
-  ) {
-    super(message, 'NETWORK_ERROR', { errorCode, statusCode, ...details });
-    this.name = 'NetworkError';
-    Object.setPrototypeOf(this, NetworkError.prototype);
-  }
 }
 
 /**

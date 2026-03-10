@@ -9,10 +9,12 @@ import type {
 import {
   AckMessageTypeEnum,
   isPacketBodyRecord,
-  isServerMessageStatus,
-  mapServerMessageStatusToLocal,
   PacketMessageTypeEnum,
 } from '@/interfaces/protocol.interface';
+import {
+  isServerMessageStatus,
+  mapServerMessageStatusToLocal,
+} from '@/services/protocol/status.mapper';
 import { MessageBuilder } from '@/services/message-builder.service';
 import {
   buildOptionalFields,

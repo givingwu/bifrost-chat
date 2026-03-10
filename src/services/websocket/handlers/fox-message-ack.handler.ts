@@ -11,12 +11,12 @@ import {
   isPacketBodyRecord,
   PacketMessageTypeEnum,
 } from '@/interfaces/protocol.interface';
-import {
-  BasePacketHandler,
-  type PacketHandlerContext,
-  type PacketHandlerResult,
-  WebSocketEventTypeEnum,
+import { BasePacketHandler } from './base-packet.handler';
+import type {
+  PacketHandlerContext,
+  PacketHandlerResult,
 } from '@/interfaces/websocket.interface';
+import { WebSocketEventTypeEnum } from '@/interfaces/websocket.interface';
 import { messageQueue } from '@/services/message-queue.service';
 
 /**
@@ -47,24 +47,24 @@ export class FoxMessageAckHandler extends BasePacketHandler {
       timestamp: packet.timestamp,
       body: isPacketBodyRecord(packet.body)
         ? {
-            ...packet.body,
-            type:
-              typeof packet.body.type === 'string'
-                ? packet.body.type
-                : PacketMessageTypeEnum.FoxMessageAck,
-          }
+          ...packet.body,
+          type:
+            typeof packet.body.type === 'string'
+              ? packet.body.type
+              : PacketMessageTypeEnum.FoxMessageAck,
+        }
         : {
-            type: PacketMessageTypeEnum.FoxMessageAck,
-          },
+          type: PacketMessageTypeEnum.FoxMessageAck,
+        },
     });
 
     const extraEvents = queueResult.statusEvent
       ? [
-          this.createEventData(
-            WebSocketEventTypeEnum.MessageStatus,
-            queueResult.statusEvent,
-          ),
-        ]
+        this.createEventData(
+          WebSocketEventTypeEnum.MessageStatus,
+          queueResult.statusEvent,
+        ),
+      ]
       : undefined;
 
     return {

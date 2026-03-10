@@ -2,13 +2,16 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import {
   AuthorizationError,
-  ConnectionFailedError,
-  ConnectionTimeoutError,
   HTTPError,
   SDKError,
-  SendFailedError,
   ValidationError,
-} from '@/interfaces/error.interface';
+} from '@/errors/sdk.errors';
+import {
+  ConnectionFailedError,
+  ConnectionTimeoutError,
+  SendFailedError,
+} from '@/errors/websocket.errors';
+import { NetworkError } from '@/errors/network.error';
 import type {
   MessageSendResult,
   SendMessageOptions,
@@ -20,7 +23,6 @@ import {
   MessageStatusEnum,
 } from '@/interfaces/message.interface';
 import {
-  NetworkError,
   NetworkErrorCodeEnum,
   NetworkReachabilityEnum,
 } from '@/interfaces/network.interface';

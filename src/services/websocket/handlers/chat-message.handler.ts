@@ -9,12 +9,12 @@
 
 import type { RawPacket } from '@/interfaces/protocol.interface';
 import { PacketMessageTypeEnum } from '@/interfaces/protocol.interface';
-import {
-  BasePacketHandler,
-  type PacketHandlerContext,
-  type PacketHandlerResult,
-  WebSocketEventTypeEnum,
+import { BasePacketHandler } from './base-packet.handler';
+import type {
+  PacketHandlerContext,
+  PacketHandlerResult,
 } from '@/interfaces/websocket.interface';
+import { WebSocketEventTypeEnum } from '@/interfaces/websocket.interface';
 import { MessageBuilder } from '@/services/message-builder.service';
 import { PacketConverter } from '@/services/protocol';
 import type { WebSocketManager } from '../websocket-manager.service';

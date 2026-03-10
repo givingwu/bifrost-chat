@@ -2,9 +2,9 @@ import type { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import type {
   MessageDirectionEnum,
   MessageStatusEnum,
+  MessageStatusUpdatedEvent,
   StandardMessage,
 } from '@/interfaces/message.interface';
-import type { MessageStatusUpdatedEvent } from '@/services/message.service';
 
 /**
  * 消息队列阶段
@@ -41,12 +41,12 @@ export interface OutgoingMessageQueueItem extends BaseMessageQueueItem {
   mid?: number;
   direction: MessageDirectionEnum.Outgoing;
   stage:
-    | MessageQueueStageEnum.PendingSendAck
-    | MessageQueueStageEnum.PendingChannelReceipt
-    | MessageQueueStageEnum.Delivered
-    | MessageQueueStageEnum.Completed
-    | MessageQueueStageEnum.Failed
-    | MessageQueueStageEnum.TimedOut;
+  | MessageQueueStageEnum.PendingSendAck
+  | MessageQueueStageEnum.PendingChannelReceipt
+  | MessageQueueStageEnum.Delivered
+  | MessageQueueStageEnum.Completed
+  | MessageQueueStageEnum.Failed
+  | MessageQueueStageEnum.TimedOut;
   rawMessage?: StandardMessage;
 }
 
@@ -58,10 +58,10 @@ export interface ReceiptAckQueueItem extends BaseMessageQueueItem {
   targetTempId?: string;
   targetStatus: MessageStatusEnum.Delivered | MessageStatusEnum.Read;
   stage:
-    | MessageQueueStageEnum.PendingServerAck
-    | MessageQueueStageEnum.Completed
-    | MessageQueueStageEnum.Failed
-    | MessageQueueStageEnum.TimedOut;
+  | MessageQueueStageEnum.PendingServerAck
+  | MessageQueueStageEnum.Completed
+  | MessageQueueStageEnum.Failed
+  | MessageQueueStageEnum.TimedOut;
 }
 
 export type MessageQueueItem = OutgoingMessageQueueItem | ReceiptAckQueueItem;

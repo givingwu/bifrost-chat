@@ -1,6 +1,7 @@
 import {
   MessageDirectionEnum,
   MessageStatusEnum,
+  MessageStatusUpdatedEvent,
 } from '@/interfaces/message.interface';
 import {
   type AckData,
@@ -18,11 +19,12 @@ import {
 } from '@/interfaces/message-queue.interface';
 import {
   AckMessageTypeEnum,
-  isServerMessageStatus,
-  mapServerMessageStatusToLocal,
   PacketMessageTypeEnum,
 } from '@/interfaces/protocol.interface';
-import type { MessageStatusUpdatedEvent } from '@/services/message.service';
+import {
+  isServerMessageStatus,
+  mapServerMessageStatusToLocal,
+} from '@/services/protocol/status.mapper';
 
 const DEFAULT_CONFIG: Required<MessageQueueConfig> = {
   defaultTimeout: 10000,

@@ -10,9 +10,9 @@ import {
 } from '@/interfaces/message.interface';
 import {
   type ChannelMessageTypeConfig,
-  getDefaultChannelMessageTypes,
   MessageTypeDisplayStrategy,
 } from '@/interfaces/message-type-config.interface';
+import { getDefaultChannelMessageTypes } from '@/utils/channel.utils';
 
 /**
  * 当前用户信息（坐席）

@@ -13,12 +13,12 @@ import {
   isPacketBodyRecord,
   PacketMessageTypeEnum,
 } from '@/interfaces/protocol.interface';
-import {
-  BasePacketHandler,
-  type PacketHandlerContext,
-  type PacketHandlerResult,
-  WebSocketEventTypeEnum,
+import { BasePacketHandler } from './base-packet.handler';
+import type {
+  PacketHandlerContext,
+  PacketHandlerResult,
 } from '@/interfaces/websocket.interface';
+import { WebSocketEventTypeEnum } from '@/interfaces/websocket.interface';
 import { messageQueue } from '@/services/message-queue.service';
 import { pendingMessageTracker } from '@/services/pending-message-tracker.service';
 import { AckHandler } from '@/services/protocol';
@@ -72,12 +72,12 @@ export class AckPacketHandler extends BasePacketHandler {
       timestamp: ackData.timestamp ?? packet.timestamp,
       body: isPacketBodyRecord(packet.body)
         ? {
-            ...packet.body,
-            type: ackData.body.type,
-          }
+          ...packet.body,
+          type: ackData.body.type,
+        }
         : {
-            type: ackData.body.type,
-          },
+          type: ackData.body.type,
+        },
     });
 
     if (queueResult.handled) {
@@ -158,7 +158,7 @@ export class AckPacketHandler extends BasePacketHandler {
         ...ackEventData,
         status: resolvedStatus,
         ...(resolvedStatus === MessageStatusEnum.Failed &&
-        ackData.body.errorInfo
+          ackData.body.errorInfo
           ? { error: ackData.body.errorInfo }
           : {}),
       }),

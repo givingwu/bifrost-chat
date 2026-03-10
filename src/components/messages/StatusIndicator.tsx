@@ -2,7 +2,6 @@ import {
   AlertCircle,
   Check,
   CheckCheck,
-  CheckLine,
   Loader,
   Loader2,
   type LucideIcon,
@@ -11,6 +10,7 @@ import {
 import { memo, useMemo } from 'react';
 import { MessageStatusEnum } from '@/interfaces/message.interface';
 import { useTranslation } from '@/providers/I18n.provider';
+import { logger } from '@/utils/logger.util';
 
 export interface StatusIndicatorProps {
   /** 消息状态 */
@@ -47,6 +47,14 @@ interface StatusConfig {
  * - 使用配置对象模式，便于统一管理和扩展状态样式。
  * - 使用 memo 优化性能，避免不必要的重新渲染。
  * - 支持无障碍访问（ARIA 标签）。
+ *
+ * 图标与颜色对应 WhatsApp 语义：
+ *   Created / Sending / Queued → 转圈动画（灰色）
+ *   Sent      → 一√ 灰色（Fox 已入队，WA 尚未确认）
+ *   Delivered → 两√ 灰色（客户手机已收，未读）
+ *   Read      → 两√ 蓝色（客户已读）
+ *   Failed    → 红色感叹号
+ *   Revoked / Deleted → 灰色感叹号
  */
 export const StatusIndicator = memo(
   ({
@@ -68,39 +76,44 @@ export const StatusIndicator = memo(
         MessageStatusEnum,
         Omit<StatusConfig, 'label' | 'tooltip'>
       > = {
+        // ── 发送前 / 排队 ──────────────────────────────────────────────
         [MessageStatusEnum.Queued]: {
           icon: RefreshCcw,
           size: 'h-4 w-4',
-          colorClass: 'text-primary/40',
+          colorClass: 'text-gray-400',
           animate: true,
         },
         [MessageStatusEnum.Created]: {
           icon: Loader,
           size: 'h-4 w-4',
-          colorClass: 'text-primary/60',
+          colorClass: 'text-gray-400',
           animate: true,
         },
         [MessageStatusEnum.Sending]: {
           icon: Loader2,
           size: 'h-4 w-4',
-          colorClass: 'text-primary/60',
+          colorClass: 'text-gray-400',
           animate: true,
         },
+        // ── 一√ 灰色：Fox 入队，WA 尚未确认（WhatsApp 一√灰） ──────────
         [MessageStatusEnum.Sent]: {
           icon: Check,
           size: 'h-4 w-4',
-          colorClass: 'text-primary/60',
+          colorClass: 'text-gray-400',
         },
+        // ── 两√ 灰色：客户手机已收，未读（WhatsApp 两√灰） ──────────────
         [MessageStatusEnum.Delivered]: {
-          icon: CheckLine,
+          icon: CheckCheck,
           size: 'h-4 w-4',
-          colorClass: 'text-primary/60',
+          colorClass: 'text-gray-400',
         },
+        // ── 两√ 蓝色：客户已读（WhatsApp 两√蓝） ─────────────────────
         [MessageStatusEnum.Read]: {
           icon: CheckCheck,
           size: 'h-4 w-4',
-          colorClass: 'text-green-500/60',
+          colorClass: 'text-blue-500',
         },
+        // ── 错误态 ────────────────────────────────────────────────────
         [MessageStatusEnum.Failed]: {
           icon: AlertCircle,
           size: 'h-4 w-4',
@@ -120,7 +133,7 @@ export const StatusIndicator = memo(
 
       const baseConfig = statusConfigMap[status];
       if (!baseConfig) {
-        console.warn(`[StatusIndicator] Unknown message status: ${status}`);
+        logger.warn(`[StatusIndicator] Unknown message status: ${status}`);
         return null;
       }
 
@@ -153,9 +166,8 @@ export const StatusIndicator = memo(
     } = config;
 
     // 构建类名
-    const iconClassName = `${size} ${colorClass} ${
-      shouldAnimate && animate ? 'animate-spin' : ''
-    } ${className}`.trim();
+    const iconClassName = `${size} ${colorClass} ${shouldAnimate && animate ? 'animate-spin' : ''
+      } ${className}`.trim();
 
     return (
       <span title={showTooltip ? tooltip : undefined}>
