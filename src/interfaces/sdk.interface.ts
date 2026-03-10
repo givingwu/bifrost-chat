@@ -4,6 +4,8 @@ import type { User } from './conversation.interface';
 import type { SDKError } from './error.interface';
 import type { StandardMessage } from './message.interface';
 import type { MessageTypeConfig } from './message-type-config.interface';
+import type { ThemeModeEnum } from './theme.interface';
+import type { LanguageCodeEnum } from './language.interface';
 
 /**
  * SDK 配置接口
@@ -24,12 +26,12 @@ export interface SDKConfig {
   };
   /** 主题配置 */
   theme?: {
-    defaultMode?: 'light' | 'dark' | 'system';
+    defaultMode?: ThemeModeEnum;
     primaryColor?: string;
   };
   /** 语言配置 */
   language?: {
-    defaultCode?: 'en-US' | 'zh-CN';
+    defaultCode?: LanguageCodeEnum;
   };
   /** 是否启用 DevTools */
   enableDevTools?: boolean;
@@ -124,34 +126,6 @@ export interface SDKActionParams {
     channelType?: ChannelTypeEnum;
   };
   [SDKActionTypeEnum.SwitchChannel]: { channelType: ChannelTypeEnum };
-}
-
-/**
- * SDK 对宿主系统的统一入口（Facade）。
- */
-export interface ChatSDK {
-  /** 初始化 SDK 实例 */
-  init(config: SDKConfig): Promise<boolean>;
-  /** 销毁 SDK 实例 */
-  destroy(): void;
-  /** 打开会话上下文 */
-  openContext(context: SDKContext): Promise<void>;
-  /** 关闭会话上下文 */
-  closeContext(): void;
-  /** 获取 SDK 版本 */
-  getVersion(): string;
-  /** 获取 SDK 状态 */
-  getStatus(): SDKStatus;
-  /** 监听 SDK 事件 */
-  on<K extends keyof SDKEventHandlers>(
-    event: K,
-    callback: SDKEventHandlers[K],
-  ): () => void;
-  /** 触发 SDK 动作 */
-  emit<K extends keyof SDKActionParams>(
-    action: K,
-    params: SDKActionParams[K],
-  ): void;
 }
 
 /**

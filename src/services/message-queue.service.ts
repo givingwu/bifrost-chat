@@ -136,12 +136,6 @@ export class MessageQueueService {
     }
   }
 
-  register(
-    params: RegisterMessageParams,
-  ): OutgoingMessageQueueItem | undefined {
-    return this.enqueue(params);
-  }
-
   enqueue(params: RegisterMessageParams): OutgoingMessageQueueItem | undefined {
     if (!params.tempId || !params.conversationId) {
       console.warn(
@@ -181,7 +175,7 @@ export class MessageQueueService {
     return item;
   }
 
-  registerReceiptAck(
+  enqueueReceiptAck(
     params: RegisterReceiptAckParams,
   ): ReceiptAckQueueItem | undefined {
     if (
@@ -439,10 +433,6 @@ export class MessageQueueService {
     return undefined;
   }
 
-  remove(identifier: string): boolean {
-    return this.dequeue(identifier) !== undefined;
-  }
-
   clear(): void {
     this.outgoingByTempId.clear();
     this.requestIdToTempId.clear();
@@ -587,13 +577,13 @@ export class MessageQueueService {
 
     const nextStage =
       nextStatus === MessageStatusEnum.Sending ||
-      nextStatus === MessageStatusEnum.Sent
+        nextStatus === MessageStatusEnum.Sent
         ? MessageQueueStageEnum.PendingChannelReceipt
         : nextStatus === MessageStatusEnum.Delivered
           ? MessageQueueStageEnum.Delivered
           : nextStatus === MessageStatusEnum.Read ||
-              nextStatus === MessageStatusEnum.Revoked ||
-              nextStatus === MessageStatusEnum.Deleted
+            nextStatus === MessageStatusEnum.Revoked ||
+            nextStatus === MessageStatusEnum.Deleted
             ? MessageQueueStageEnum.Completed
             : MessageQueueStageEnum.Failed;
 

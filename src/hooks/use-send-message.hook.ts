@@ -288,7 +288,7 @@ export function useSendMessage<
         tempMessage.id,
         tempMessage.tempId,
       ]);
-      messageQueue.register({
+      messageQueue.enqueue({
         requestId: tempMessage.id,
         tempId: tempMessage.tempId ?? tempMessage.id,
         conversationId: params.conversationId,
@@ -319,7 +319,7 @@ export function useSendMessage<
         }
 
         if (tempId) {
-          messageQueue.remove(tempId);
+          messageQueue.dequeue(tempId);
         }
         rollbackMessage(variables.conversationId, context);
         return;
@@ -335,7 +335,7 @@ export function useSendMessage<
         );
 
         if (tempId) {
-          messageQueue.remove(tempId);
+          messageQueue.dequeue(tempId);
         }
 
         MessageCacheHelper.updateMessageInCache(
@@ -359,7 +359,7 @@ export function useSendMessage<
       } catch (queueError) {
         logger.error('[useSendMessage] 保存到离线队列失败:', queueError);
         if (tempId) {
-          messageQueue.remove(tempId);
+          messageQueue.dequeue(tempId);
         }
         rollbackMessage(variables.conversationId, context);
       }
@@ -390,7 +390,7 @@ export function useSendMessage<
             '[useSendMessage] 离线队列未实现，可重试消息将回滚。请实现 OfflineMessageQueueService。',
           );
           rollbackMessage(variables.conversationId, context);
-          messageQueue.remove(tempId);
+          messageQueue.dequeue(tempId);
           return;
         }
 
@@ -418,12 +418,12 @@ export function useSendMessage<
             { channel: activeChannel ?? undefined },
           );
 
-          messageQueue.remove(tempId);
+          messageQueue.dequeue(tempId);
           return;
         } catch (queueError) {
           logger.error('[useSendMessage] 保存到离线队列失败:', queueError);
           rollbackMessage(variables.conversationId, context);
-          messageQueue.remove(tempId);
+          messageQueue.dequeue(tempId);
           return;
         }
       }
@@ -436,7 +436,7 @@ export function useSendMessage<
         );
 
         rollbackMessage(variables.conversationId, context);
-        messageQueue.remove(tempId);
+        messageQueue.dequeue(tempId);
         return;
       }
 
@@ -471,7 +471,7 @@ export function useSendMessage<
       ]);
 
       if (isFailed) {
-        messageQueue.remove(tempId);
+        messageQueue.dequeue(tempId);
         return;
       }
 

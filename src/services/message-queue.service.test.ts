@@ -28,7 +28,7 @@ describe('MessageQueueService', () => {
       conversationId: 'conv-456',
     };
 
-    const item = queue.register(params);
+    const item = queue.enqueue(params);
 
     expect(item).toBeDefined();
     expect(queue.size()).toBe(1);
@@ -39,7 +39,7 @@ describe('MessageQueueService', () => {
   });
 
   it('应处理 chat_message ACK 并绑定服务端消息 ID', () => {
-    queue.register({
+    queue.enqueue({
       requestId: 'req-123',
       tempId: 'temp-123',
       conversationId: 'conv-456',
@@ -71,7 +71,7 @@ describe('MessageQueueService', () => {
   });
 
   it('应通过 receipt ack 把原消息推进为 delivered/read', () => {
-    queue.registerReceiptAck({
+    queue.enqueueReceiptAck({
       ackRequestId: 'receive-ack-1',
       conversationId: 'conv-456',
       targetMessageId: 'msg-123',
@@ -100,7 +100,7 @@ describe('MessageQueueService', () => {
     });
     expect(queue.findById('receive-ack-1')).toBeUndefined();
 
-    queue.registerReceiptAck({
+    queue.enqueueReceiptAck({
       ackRequestId: 'read-ack-1',
       conversationId: 'conv-456',
       targetMessageId: 'msg-123',
@@ -124,7 +124,7 @@ describe('MessageQueueService', () => {
   });
 
   it('应支持重置 receipt ack requestId', () => {
-    queue.registerReceiptAck({
+    queue.enqueueReceiptAck({
       ackRequestId: 'read-ack-old',
       conversationId: 'conv-456',
       targetMessageId: 'msg-123',
@@ -137,7 +137,7 @@ describe('MessageQueueService', () => {
   });
 
   it('应缓存并回放乱序到达的 fox_message_ack', () => {
-    queue.register({
+    queue.enqueue({
       requestId: 'req-123',
       tempId: 'temp-123',
       conversationId: 'conv-456',
@@ -171,7 +171,7 @@ describe('MessageQueueService', () => {
   });
 
   it('应处理 msg_read_ack 状态回调并将消息更新为 delivered', () => {
-    queue.register({
+    queue.enqueue({
       requestId: 'req-123',
       tempId: 'temp-123',
       conversationId: 'conv-456',
@@ -204,7 +204,7 @@ describe('MessageQueueService', () => {
   });
 
   it('应缓存并回放乱序到达的 msg_read_ack 状态回调', () => {
-    queue.register({
+    queue.enqueue({
       requestId: 'req-123',
       tempId: 'temp-123',
       conversationId: 'conv-456',
@@ -237,7 +237,7 @@ describe('MessageQueueService', () => {
   });
 
   it('应将 DELIVER_FAIL 状态回调映射为 failed，并透传错误信息', () => {
-    queue.register({
+    queue.enqueue({
       requestId: 'req-123',
       tempId: 'temp-123',
       conversationId: 'conv-456',
@@ -270,13 +270,13 @@ describe('MessageQueueService', () => {
   });
 
   it('应返回超时的 outgoing 与 receipt 项', () => {
-    queue.register({
+    queue.enqueue({
       requestId: 'req-123',
       tempId: 'temp-123',
       conversationId: 'conv-456',
       timeout: 10,
     });
-    queue.registerReceiptAck({
+    queue.enqueueReceiptAck({
       ackRequestId: 'read-ack-1',
       conversationId: 'conv-456',
       targetMessageId: 'msg-123',

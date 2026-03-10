@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { logger } from '@/utils/logger.util';
 import { PendingMessageTracker } from './pending-message-tracker.service';
 
 describe('PendingMessageTracker', () => {
@@ -31,25 +32,25 @@ describe('PendingMessageTracker', () => {
     });
 
     it('当 messageId 为空时不应该注册', () => {
-      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const warnSpy = vi.spyOn(logger, 'warn').mockImplementation(() => { });
 
       tracker.register('', 'conv-1');
 
       expect(tracker.get('')).toBeUndefined();
-      expect(consoleSpy).toHaveBeenCalled();
+      expect(warnSpy).toHaveBeenCalled();
 
-      consoleSpy.mockRestore();
+      warnSpy.mockRestore();
     });
 
     it('当 conversationId 为空时不应该注册', () => {
-      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const warnSpy = vi.spyOn(logger, 'warn').mockImplementation(() => { });
 
       tracker.register('msg-1', '');
 
       expect(tracker.get('msg-1')).toBeUndefined();
-      expect(consoleSpy).toHaveBeenCalled();
+      expect(warnSpy).toHaveBeenCalled();
 
-      consoleSpy.mockRestore();
+      warnSpy.mockRestore();
     });
   });
 

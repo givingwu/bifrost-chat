@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logger.util';
+
 /**
  * 待处理消息追踪器
  *
@@ -91,7 +93,7 @@ export class PendingMessageTracker {
    */
   register(messageId: string, conversationId: string): void {
     if (!messageId || !conversationId) {
-      console.warn(
+      logger.warn(
         '[PendingMessageTracker] register: messageId 和 conversationId 不能为空',
         { messageId, conversationId },
       );
@@ -172,7 +174,7 @@ export class PendingMessageTracker {
     }
 
     if (cleanedCount > 0) {
-      console.info(`[PendingMessageTracker] 清理了 ${cleanedCount} 个过期映射`);
+      logger.info(`[PendingMessageTracker] 清理了 ${cleanedCount} 个过期映射`);
     }
 
     return cleanedCount;
