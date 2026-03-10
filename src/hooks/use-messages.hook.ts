@@ -2,6 +2,7 @@ import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import type { StandardMessage } from '@/interfaces/message.interface';
 import { queryKeys } from '@/providers/query.provider';
 import { useServices } from '@/providers/service.provider';
+import type { IMessageListParams } from '@/services/message.service';
 import { MessageMerger } from '@/services/message-merger.service';
 
 /**
@@ -75,11 +76,9 @@ export interface MessagesPage {
  * }
  * ```
  */
-export interface UseMessagesParams {
+export interface UseMessagesParams extends IMessageListParams {
   /** 会话 ID */
   conversationId: string;
-  /** 当前渠道（可选，用于渠道切换时刷新） */
-  currentChannel?: string;
 }
 
 export function useMessages<TParams extends UseMessagesParams>(
@@ -126,20 +125,34 @@ export function useMessages<TParams extends UseMessagesParams>(
         } as TParams,
       );
 
-      // 合并服务端消息和失败消息
-      const mergedMessages = MessageMerger.merge(
-        serverMessages,
-        offlineMessages,
-      );
-
       return {
-        items: mergedMessages,
-        nextCursor: mergedMessages.length >= 20 ? pageParam + 1 : undefined,
+        items: serverMessages,
+        nextCursor: serverMessages.length >= 20 ? pageParam + 1 : undefined,
       } as MessagesPage;
     },
     initialPageParam: 1,
     getNextPageParam: (lastPage) => lastPage.nextCursor,
     staleTime: 1000 * 60 * 5, // 5 分钟
+    select: (data) => {
+      if (offlineMessages.length === 0 || data.pages.length === 0) {
+        return data;
+      }
+
+      const lastIndex = data.pages.length - 1;
+
+      return {
+        ...data,
+        pages: data.pages.map((page, index) => {
+          // 只在最后一页（最新消息页）追加离线失败消息
+          if (index !== lastIndex) return page;
+
+          return {
+            ...page,
+            items: MessageMerger.merge(page.items, offlineMessages),
+          };
+        }),
+      };
+    },
     enabled: !!conversationId && !!services?.messageService, // 只有当 conversationId 和服务都存在时才执行查询
   });
 }

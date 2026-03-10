@@ -76,9 +76,11 @@ export const createStrategySlice: StateCreator<
   strategy: {
     allowedChannels: AvailableChannelTypes,
     activeChannel: ChannelTypeEnum.SMS,
+    // currentUser 在宿主调用 configureChatStore / setCurrentUser 之前为空默认值。
+    // 注意：pin 为空字符串时 SDK 不应发送协议消息，宿主需在使用前完成初始化。
     currentUser: {
-      app: 'Bifrost Chat',
-      pin: 'Pin is required',
+      app: '',
+      pin: '',
       status: AgentStatusEnum.Offline,
       clientType: ClientTypeEnum.Web,
     },
