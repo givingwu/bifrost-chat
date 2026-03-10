@@ -254,10 +254,7 @@ export class AckHandler {
       return null;
     }
 
-    const timestamp = extractTimestamp(
-      packet.body.timestamp,
-      packet.timestamp,
-    );
+    const timestamp = extractTimestamp(packet.body.timestamp, packet.timestamp);
 
     return {
       id: messageId,
@@ -276,7 +273,6 @@ export class AckHandler {
       timestamp,
     };
   }
-
 
   /**
    * 验证 ACK 类型是否有效

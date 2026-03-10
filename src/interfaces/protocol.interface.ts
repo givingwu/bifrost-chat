@@ -120,7 +120,7 @@ export type PacketBody =
   | DeleteChatBody
   | PacketBodyBase;
 
-export interface AuthPacketBody extends IAuthMessage { }
+export interface AuthPacketBody extends IAuthMessage {}
 
 export interface PacketBodyBase {
   type?: MessageTypeEnum | PacketMessageTypeEnum | AckMessageTypeEnum;
@@ -135,10 +135,10 @@ export interface TextPacketBody extends PacketBodyBase {
 
 export interface MediaPacketBody extends PacketBodyBase {
   type:
-  | MessageTypeEnum.Image
-  | MessageTypeEnum.Audio
-  | MessageTypeEnum.Video
-  | MessageTypeEnum.File;
+    | MessageTypeEnum.Image
+    | MessageTypeEnum.Audio
+    | MessageTypeEnum.Video
+    | MessageTypeEnum.File;
   content: IMediaMessage;
 }
 

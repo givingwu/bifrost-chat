@@ -107,8 +107,10 @@ export type ThemeChangeCallback = (newMode: ThemeModeEnum) => void;
  * Theme Slice：主题切换状态
  */
 export interface ThemeState {
-  /** 主题模式 */
+  /** 用户设置的主题偏好（含 system 语义） */
   mode: ThemeModeEnum;
+  /** 计算后的实际渲染模式（只有 light/dark，供 CSS class 使用） */
+  resolvedMode: ThemeModeEnum.Light | ThemeModeEnum.Dark;
   /** 系统是否偏好深色 */
   systemPrefersDark: boolean;
   /** 自定义主题配置 */

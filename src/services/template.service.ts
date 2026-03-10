@@ -1,10 +1,23 @@
-import type { UseTemplatesParams } from '@/hooks/use-templates.hook';
 import type { Template } from '@/interfaces/template.interface';
+
+/**
+ * 模板列表查询参数（服务层定义）
+ *
+ * @description
+ * 定义在服务契约层，hooks 层的 UseTemplatesParams 应 extends 此接口，
+ * 保持正确的依赖方向：hooks → service contract。
+ */
+export interface ITemplateListParams {
+  /** 会话 ID */
+  conversationId?: string;
+  /** 当前渠道 */
+  currentChannel?: string;
+}
 
 /**
  * 模板预览参数
  */
-export interface TemplatePreviewParams extends Required<UseTemplatesParams> {
+export interface TemplatePreviewParams extends Required<ITemplateListParams> {
   /** 模板 code */
   templateCode: Template['code'];
 }
@@ -36,7 +49,7 @@ export type TemplatePreviewResult = Template &
  * ```
  */
 export interface ITemplateService<
-  TListParams = UseTemplatesParams,
+  TListParams = ITemplateListParams,
   TPreviewParams = TemplatePreviewParams,
 > {
   /**

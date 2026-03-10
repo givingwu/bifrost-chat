@@ -41,7 +41,9 @@ describe('AckPacketHandler', () => {
     });
 
     it('应该处理 ptype 为 message_status_ack 的数据包', () => {
-      expect(handler.canHandle(PacketMessageTypeEnum.MessageStatusAck)).toBe(true);
+      expect(handler.canHandle(PacketMessageTypeEnum.MessageStatusAck)).toBe(
+        true,
+      );
     });
 
     it('不应该处理其他类型的 ptype', () => {
@@ -77,7 +79,7 @@ describe('AckPacketHandler', () => {
     });
 
     it('当 chatId 和映射表都不存在时应该返回 null', () => {
-      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => { });
+      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
       const packet: RawPacket = {
         id: 'msg-123',
@@ -273,7 +275,7 @@ describe('AckPacketHandler', () => {
     it('当 ACK 类型无效时应该返回 null', () => {
       const consoleSpy = vi
         .spyOn(console, 'error')
-        .mockImplementation(() => { });
+        .mockImplementation(() => {});
 
       const packet: RawPacket = {
         id: 'msg-123',
@@ -321,7 +323,9 @@ describe('AckPacketHandler', () => {
       expect(result.eventData).not.toBeNull();
       expect(getStatusEventData(result).messageId).toBe('msg-real-123');
       expect(getStatusEventData(result).conversationId).toBe('conv-456');
-      expect(getStatusEventData(result).status).toBe(MessageStatusEnum.Delivered);
+      expect(getStatusEventData(result).status).toBe(
+        MessageStatusEnum.Delivered,
+      );
     });
 
     it('应处理 message_status_ack（READ → Read）', () => {

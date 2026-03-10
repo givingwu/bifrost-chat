@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { queryKeys } from '@/providers/query.provider';
 import { useServices } from '@/providers/service.provider';
+import type { ITemplateListParams } from '@/services/template.service';
 
 /**
  * 使用模板列表的 Hook
@@ -35,12 +36,7 @@ import { useServices } from '@/providers/service.provider';
  * }
  * ```
  */
-export interface UseTemplatesParams {
-  /** 会话 ID */
-  conversationId?: string;
-  /** 当前渠道 */
-  currentChannel?: string;
-}
+export interface UseTemplatesParams extends ITemplateListParams {}
 
 export function useTemplates(params?: UseTemplatesParams) {
   const { templateService } = useServices();

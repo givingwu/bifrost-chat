@@ -1,4 +1,3 @@
-import type { UseMessagesParams } from '@/hooks/use-messages.hook';
 import type {
   SendAttachmentParams,
   SendAttachmentResult,
@@ -13,6 +12,22 @@ import type {
   StandardMessage,
 } from '@/interfaces/message.interface';
 import type { AckPacketBody } from '@/interfaces/protocol.interface';
+
+/**
+ * 消息列表查询参数（服务层定义）
+ *
+ * @description
+ * 定义在服务契约层，hooks 层的 UseMessagesParams 应 extends 此接口，
+ * 保持正确的依赖方向：hooks → service contract。
+ */
+export interface IMessageListParams {
+  /** 分页参数 */
+  page?: number;
+  /** 当前渠道（可选，用于渠道切换时刷新） */
+  currentChannel?: string;
+  /** 每页条数 */
+  pageSize?: number;
+}
 
 /**
  * 消息状态更新
@@ -114,7 +129,7 @@ export interface MarkAsReadResult {
  * ```
  */
 export interface IMessageService<
-  TListParams = UseMessagesParams,
+  TListParams = IMessageListParams,
   TSendParams = SendMessageOptions,
   TReadParams = AckPacketBody,
   TAttachmentParams = SendAttachmentParams,

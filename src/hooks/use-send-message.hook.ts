@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import {
   AuthorizationError,
   ConnectionFailedError,
@@ -154,16 +154,6 @@ export function useSendMessage<
   const activeConversation = conversations?.find(
     (conversation) => conversation.id === activeConversationId,
   );
-
-  useEffect(() => {
-    const unsubscribe = messageService.subscribeToMessageStatus((event) => {
-      messageSyncService.updateMessageStatus(event);
-    });
-
-    return () => {
-      unsubscribe?.();
-    };
-  }, [messageService, messageSyncService]);
 
   const rollbackMessage = (
     conversationId: string,

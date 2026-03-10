@@ -19,6 +19,7 @@ import { Topbar } from '@/components/toolbar/Topbar';
 import { TopbarTools } from '@/components/toolbar/TopbarTools';
 import { useActiveConversationMetadata } from '@/hooks/use-active-conversation-metadata.hook';
 import { useConversations } from '@/hooks/use-conversations.hook';
+import { useMessageStatusSync } from '@/hooks/use-message-status-sync.hook';
 import { useSendMessage } from '@/hooks/use-send-message.hook';
 import { useTemplatePreview } from '@/hooks/use-template-preview.hook';
 import { useTotalUnread } from '@/hooks/use-total-unread.hook';
@@ -108,9 +109,6 @@ export function DefaultChatLayout({
   const { activeChannel } = useStrategy();
   const { activeConversationId, searchQuery } = useConversation();
 
-  // 库内订阅 messageService 实时消息/状态，自动维护未读增量（无需订阅方注册）
-  useUnreadSync();
-
   // Composer ref，用于外部控制输入框
   const composerRef = useRef<ComposerRef>(null);
   // 使用 useTransition 标记搜索过滤为过渡更新（低优先级）
@@ -126,6 +124,11 @@ export function DefaultChatLayout({
   const { metadata: conversationMetadata } = useActiveConversationMetadata();
   // 初始化 useSendMessage 时传入 conversationMetadata
   const sendMessage = useSendMessage({ conversationMetadata });
+
+  // 库内订阅 messageService 实时消息/状态，自动维护未读增量（无需订阅方注册）
+  useUnreadSync();
+  // 消息状态实时同步（ACK/已读），在布局顶层调用一次，避免多实例重复订阅
+  useMessageStatusSync();
 
   // 自动选中第一个会话
   useEffect(() => {

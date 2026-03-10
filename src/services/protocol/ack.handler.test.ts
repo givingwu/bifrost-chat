@@ -7,7 +7,6 @@ import {
 } from '@/interfaces/protocol.interface';
 import { AckHandler } from '@/services/protocol/ack.handler';
 
-
 describe('AckHandler', () => {
   describe('createReadAck', () => {
     it('应该创建正确的已读 ACK 消息', () => {
@@ -263,7 +262,7 @@ describe('AckHandler', () => {
 
     it('message_status_ack 应透过 packet.id 使用 body.id 作为消息 ID', () => {
       const data = {
-        id: 'packet-wrapper-id',  // 包装层 id，不是真实消息 id
+        id: 'packet-wrapper-id', // 包装层 id，不是真实消息 id
         ptype: PacketMessageTypeEnum.MessageStatusAck,
         body: {
           id: 'real-msg-id',
