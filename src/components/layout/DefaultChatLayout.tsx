@@ -1,4 +1,3 @@
-import { useQueryClient } from '@tanstack/react-query';
 import {
   useCallback,
   useEffect,
@@ -28,7 +27,6 @@ import { useUnreadSync } from '@/hooks/use-unread-sync.hook';
 import type { Conversation } from '@/interfaces/conversation.interface';
 import type { Template } from '@/interfaces/template.interface';
 import { useTranslation } from '@/providers/I18n.provider';
-import { ConversationCacheHelper } from '@/services/cache/conversation-cache-helper.service';
 import type { TemplatePreviewResult } from '@/services/core/template.service';
 import {
   useActions,
@@ -115,7 +113,6 @@ export function DefaultChatLayout({
   onTotalUnreadChange,
   profileActions,
 }: DefaultChatLayoutProps) {
-  const queryClient = useQueryClient();
   const { t } = useTranslation();
   const actions = useActions();
   const { profile } = useProfile();
@@ -210,13 +207,12 @@ export function DefaultChatLayout({
     onTotalUnreadChange?.(totalUnread);
   }, [totalUnread, onTotalUnreadChange]);
 
-  // 选会话时：设置激活 ID 并立即清空该会话未读数
+  // 选会话时：仅设置激活 ID；未读数完全由 socket ACK 驱动（msg_receive_ack +1 / msg_read_ack -1）
   const handleSelectConversation = useCallback(
     (conversationId: string) => {
       actions.setActiveConversationId(conversationId);
-      ConversationCacheHelper.clearUnread(queryClient, conversationId, activeChannel);
     },
-    [actions, activeChannel, queryClient],
+    [actions],
   );
 
   // 搜索回调（使用 startTransition 标记为过渡更新）

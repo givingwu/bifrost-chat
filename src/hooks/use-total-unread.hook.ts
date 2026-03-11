@@ -1,49 +1,50 @@
 import { useMemo } from 'react';
-import { useConversations } from '@/hooks/use-conversations.hook';
-import { useUnreadCount } from '@/hooks/use-unread-count.hook';
+import { useQueryClient } from '@tanstack/react-query';
 import type { Conversation } from '@/interfaces/conversation.interface';
-import { ConversationCacheHelper } from '@/services/cache/conversation-cache-helper.service';
-import { useServices } from '@/providers/service.provider';
+import { queryKeys } from '@/providers/query.provider';
+import { useStrategy } from '@/store';
 
 /**
- * 使用全量未读总数的 Hook
+ * useTotalUnread：全局总未读数
  *
  * @description
- * - 若 `conversationService` 实现了 `getUnreadCount`，优先使用服务端返回的 `total`（精确值）
- * - 否则回退到本地 `Conversation.unreadCount` 字段求和（兼容旧实现）
+ * 遍历所有 `allowedChannels` 的 conversation list 缓存求和。
+ * 与 `Conversation.unreadCount` 始终保持一致，无需单独维护。
  *
- * @param conversations 可选，若不传则内部使用 useConversations() 的数据
+ * @param conversations 可选，直接传入会话列表（优先于缓存读取）
  * @returns 全量未读总数
- *
- * @example
- * ```tsx
- * const { totalUnread } = useTotalUnread();
- * return <Badge>{totalUnread}</Badge>;
- * ```
  */
 export function useTotalUnread(conversations?: Conversation[] | null): {
   totalUnread: number;
 } {
-  const { conversationService } = useServices();
-  const { data: fetchedConversations = [] } = useConversations();
-  const list = conversations ?? fetchedConversations;
-
-  // 服务端精确未读数（若服务未实现则 data 为 undefined）
-  const { data: serverUnread } = useUnreadCount();
+  const queryClient = useQueryClient();
+  const { allowedChannels } = useStrategy();
 
   const totalUnread = useMemo(() => {
-    // 优先使用服务端精确值（按渠道求和得到全局总数）
-    if (conversationService?.getUnreadCount && serverUnread) {
-      const serverTotal = Object.values(serverUnread).reduce(
-        (sum, count) => sum + (count ?? 0),
+    // 若调用方直接传入 conversations（如 DefaultChatLayout），直接求和
+    if (conversations !== undefined) {
+      return (conversations ?? []).reduce(
+        (sum, conv) => sum + Math.max(0, conv.unreadCount),
         0,
       );
-      return serverTotal;
     }
-    // 降级：本地会话列表累加
-    return ConversationCacheHelper.sumTotalUnread(list);
-  }, [conversationService, serverUnread, list]);
+
+    // 否则遍历所有渠道的缓存列表求和（全局模式）
+    let total = 0;
+
+    for (const channel of allowedChannels) {
+      const list =
+        queryClient.getQueryData<Conversation[]>(
+          queryKeys.conversations.list(channel),
+        ) ?? [];
+      for (const conv of list) {
+        total += Math.max(0, conv.unreadCount);
+      }
+    }
+
+    return total;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [conversations, queryClient, allowedChannels]);
 
   return { totalUnread };
 }
-

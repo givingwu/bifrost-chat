@@ -337,6 +337,36 @@ export class ConversationCacheHelper {
     return nextConversation;
   }
 
+  /**
+   * 单个会话未读数 -amount，最小为 0
+   */
+  static decrementUnread(
+    queryClient: QueryClient,
+    conversationId: string,
+    channel: ChannelTypeEnum,
+    amount = 1,
+  ): Conversation | undefined {
+    let nextConversation: Conversation | undefined;
+
+    queryClient.setQueryData<Conversation[]>(
+      queryKeys.conversations.list(channel),
+      (old) =>
+        (old ?? []).map((conversation) => {
+          if (conversation.id !== conversationId) {
+            return conversation;
+          }
+
+          nextConversation = {
+            ...conversation,
+            unreadCount: Math.max(0, conversation.unreadCount - amount),
+          };
+          return nextConversation;
+        }),
+    );
+
+    return nextConversation;
+  }
+
   static clearUnread(
     queryClient: QueryClient,
     conversationId: string,
@@ -370,44 +400,6 @@ export class ConversationCacheHelper {
     );
   }
 
-  /**
-   * 不再使用 applyExactUnreadCounts：改为通过 incrementChannelUnread /
-   * decrementChannelUnread 直接操作 UnreadCountResult 缓存。
-   */
-
-  /**
-   * 将 conversations.unread 缓存中指定渠道的未读数 +1
-   */
-  static incrementChannelUnread(
-    queryClient: QueryClient,
-    channel: ChannelTypeEnum,
-  ): void {
-    queryClient.setQueryData<UnreadCountResult>(
-      queryKeys.conversations.unread(),
-      (old = {}) => ({
-        ...old,
-        [channel]: (old[channel] ?? 0) + 1,
-      }),
-    );
-  }
-
-  /**
-   * 将 conversations.unread 缓存中指定渠道的未读数 -delta，最小为 0
-   */
-  static decrementChannelUnread(
-    queryClient: QueryClient,
-    channel: ChannelTypeEnum,
-    delta: number,
-  ): void {
-    if (delta <= 0) return;
-    queryClient.setQueryData<UnreadCountResult>(
-      queryKeys.conversations.unread(),
-      (old = {}) => ({
-        ...old,
-        [channel]: Math.max(0, (old[channel] ?? 0) - delta),
-      }),
-    );
-  }
 
   /**
    * 设置单个会话的精确未读数

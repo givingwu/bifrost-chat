@@ -66,41 +66,26 @@ export function useUnreadSync(): void {
         ) {
           const channel = event.message.channelType;
 
-          // 1) 会话级 +1
+          // 会话级 +1（全局/渠道级从 conversation list 派生，自动跟进）
           ConversationCacheHelper.incrementUnread(
             queryClient,
             event.conversationId,
             channel,
           );
-          // 2) 渠道级 +1（乐观更新 UnreadCountResult 缓存）
-          ConversationCacheHelper.incrementChannelUnread(queryClient, channel);
         }
       },
     );
 
     const unsubscribeStatus = messageService?.subscribeToMessageStatus?.(
       (event) => {
-        messageSyncService.updateMessageStatus(event);
-
-        // 当 socket 推送 Read 状态时，同步减少未读数
+        // useMessageStatusSync 负责更新消息缓存；
+        // 此处只处理未读计数：Read ACK → 会话级 -1
         if (event.status === MessageStatusEnum.Read && event.channelType) {
           const channel = event.channelType;
           const conversationId = event.conversationId;
 
-          // 读取当前会话 unreadCount 作为 delta
-          const conversations = ConversationCacheHelper.getConversations(
-            queryClient,
-            channel,
-          );
-          const conversation = conversations.find((c) => c.id === conversationId);
-          const delta = conversation?.unreadCount ?? 0;
-
-          if (delta > 0) {
-            // 会话级归零
-            ConversationCacheHelper.clearUnread(queryClient, conversationId, channel);
-            // 渠道级 -delta
-            ConversationCacheHelper.decrementChannelUnread(queryClient, channel, delta);
-          }
+          // 会话级 -1（全局/渠道级派生）
+          ConversationCacheHelper.decrementUnread(queryClient, conversationId, channel, 1);
         }
       },
     );
