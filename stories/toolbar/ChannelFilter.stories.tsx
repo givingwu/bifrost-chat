@@ -21,7 +21,7 @@ export const SingleChannel: Story = {
   args: {
     channels: [ChannelTypeEnum.SMS],
     activeChannel: ChannelTypeEnum.SMS,
-    onChannelClick: () => {},
+    onChannelClick: () => { },
     compact: true,
     showTooltip: true,
   },
@@ -38,7 +38,7 @@ export const MultipleChannels: Story = {
       ChannelTypeEnum.Email,
     ],
     activeChannel: ChannelTypeEnum.WhatsApp,
-    onChannelClick: () => {},
+    onChannelClick: () => { },
     compact: true,
     showTooltip: true,
   },
@@ -57,7 +57,7 @@ export const AllChannels: Story = {
       ChannelTypeEnum.IVR,
     ],
     activeChannel: ChannelTypeEnum.WhatsApp,
-    onChannelClick: () => {},
+    onChannelClick: () => { },
     compact: true,
     showTooltip: true,
   },
@@ -74,7 +74,12 @@ export const NonCompact: Story = {
       ChannelTypeEnum.Email,
     ],
     activeChannel: ChannelTypeEnum.SMS,
-    onChannelClick: () => {},
+    onChannelClick: () => { },
+    unreadByChannel: {
+      [ChannelTypeEnum.SMS]: 9,
+      [ChannelTypeEnum.WhatsApp]: 99,
+      [ChannelTypeEnum.Email]: 999,
+    },
     compact: false,
     showTooltip: true,
   },
@@ -91,7 +96,7 @@ export const WithoutTooltip: Story = {
       ChannelTypeEnum.Email,
     ],
     activeChannel: ChannelTypeEnum.WhatsApp,
-    onChannelClick: () => {},
+    onChannelClick: () => { },
     compact: true,
     showTooltip: false,
   },
@@ -108,7 +113,7 @@ export const DarkMode: Story = {
       ChannelTypeEnum.Email,
     ],
     activeChannel: ChannelTypeEnum.Email,
-    onChannelClick: () => {},
+    onChannelClick: () => { },
     compact: true,
     showTooltip: true,
   },
@@ -130,8 +135,71 @@ export const NoActiveChannel: Story = {
       ChannelTypeEnum.Email,
     ],
     activeChannel: undefined,
-    onChannelClick: () => {},
+    onChannelClick: () => { },
     compact: true,
     showTooltip: true,
+  },
+};
+
+/**
+ * 渠道未读 Badge 示例
+ *
+ * 各渠道右上角显示未读数字徽标。
+ * 通过 `unreadByChannel` prop 直接传入数据，ChannelFilter 为纯受控组件。
+ */
+export const WithUnreadBadge: Story = {
+  args: {
+    channels: [
+      ChannelTypeEnum.SMS,
+      ChannelTypeEnum.WhatsApp,
+      ChannelTypeEnum.Email,
+    ],
+    activeChannel: ChannelTypeEnum.WhatsApp,
+    onChannelClick: () => { },
+    compact: true,
+    showTooltip: true,
+    unreadByChannel: {
+      [ChannelTypeEnum.SMS]: 3,
+      [ChannelTypeEnum.WhatsApp]: 10,
+      // Email 无未读，不传
+    },
+  },
+};
+
+/**
+ * 不传 unreadByChannel → 不显示 Badge
+ */
+export const WithoutUnreadBadge: Story = {
+  args: {
+    channels: [
+      ChannelTypeEnum.SMS,
+      ChannelTypeEnum.WhatsApp,
+      ChannelTypeEnum.Email,
+    ],
+    activeChannel: ChannelTypeEnum.WhatsApp,
+    onChannelClick: () => { },
+    compact: true,
+    showTooltip: true,
+    // unreadByChannel 不传 → badge 不渲染
+  },
+};
+
+/**
+ * 大量未读（测试 99+ 截断）
+ */
+export const UnreadOverflow: Story = {
+  args: {
+    channels: [
+      ChannelTypeEnum.SMS,
+      ChannelTypeEnum.WhatsApp,
+    ],
+    activeChannel: ChannelTypeEnum.SMS,
+    onChannelClick: () => { },
+    compact: true,
+    showTooltip: true,
+    unreadByChannel: {
+      [ChannelTypeEnum.SMS]: 120,  // → 显示 99+
+      [ChannelTypeEnum.WhatsApp]: 5,
+    },
   },
 };

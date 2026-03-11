@@ -6,6 +6,7 @@ import {
   useStrategy,
   useTheme,
 } from '@/store';
+import { useChannelUnread } from '@/hooks/use-channel-unread.hook';
 import { ChannelFilter } from './ChannelFilter';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { NetworkStatus } from './NetworkStatus';
@@ -24,6 +25,7 @@ export const TopbarTools = ({ extra }: ITopbarTools) => {
   const { code, enableSwitcher: showLanguageSwitcher } = useLanguage();
   const { activeChannel, allowedChannels } = useStrategy();
   const { setTheme, setLanguage, setActiveChannel } = useActions();
+  const unreadByChannel = useChannelUnread(allowedChannels);
 
   return (
     <div className="flex items-center gap-4">
@@ -33,6 +35,7 @@ export const TopbarTools = ({ extra }: ITopbarTools) => {
           channels={allowedChannels}
           activeChannel={activeChannel}
           onChannelClick={setActiveChannel}
+          unreadByChannel={unreadByChannel}
           compact
           showTooltip
         />

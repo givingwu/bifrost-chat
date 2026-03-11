@@ -18,7 +18,19 @@ export interface ChannelFilterProps {
   showTooltip?: boolean;
   /** 紧凑模式（仅图标） */
   compact?: boolean;
+  /**
+   * 各渠道未读数量，key = ChannelTypeEnum，value = 未读条数
+   * 传入时显示 badge，不传则不显示
+   *
+   * @example
+   * ```tsx
+   * const unreadByChannel = useChannelUnread(channels);
+   * <ChannelFilter unreadByChannel={unreadByChannel} ... />
+   * ```
+   */
+  unreadByChannel?: Partial<Record<ChannelTypeEnum, number>>;
 }
+
 /**
  * ChannelFilter：策略驱动的渠道切换器（Apple 风格 Segmented Control）。
  *
@@ -35,6 +47,7 @@ export interface ChannelFilterProps {
  *   channels={allowedChannels}
  *   activeChannel={activeChannel}
  *   onChannelClick={setActiveChannel}
+ *   unreadByChannel={useChannelUnread(allowedChannels)}
  *   compact
  *   showTooltip
  * />
@@ -47,6 +60,7 @@ export const ChannelFilter = memo(
     onChannelClick,
     showTooltip = true,
     compact = true,
+    unreadByChannel,
   }: ChannelFilterProps) => {
     const getLabel = useChannelLabel();
     const getIcon = useChannelIcon('sm');
@@ -77,6 +91,7 @@ export const ChannelFilter = memo(
           const isActive = channel === activeChannel;
           const icon = getIcon(channel);
           const label = getLabel(channel);
+          const count = unreadByChannel?.[channel] ?? 0;
 
           return (
             <button
@@ -96,6 +111,22 @@ export const ChannelFilter = memo(
               title={channel}
             >
               <span className="transition-all duration-200">{icon}</span>
+              {/* Unread badge：有数据且 > 0 才显示 */}
+              {unreadByChannel && count > 0 && (
+                <span
+                  aria-label={`${count} unread`}
+                  className={cn(
+                    'absolute -top-1 -right-1 z-20',
+                    'min-w-[14px] h-[14px] px-0.5',
+                    'flex items-center justify-center',
+                    'rounded-full bg-red-500 text-white text-[9px] font-bold leading-none',
+                    'ring-1 ring-white dark:ring-gray-900',
+                    isActive && 'ring-blue-100 dark:ring-blue-900',
+                  )}
+                >
+                  {count > 99 ? '99+' : count}
+                </span>
+              )}
               {/* Label in non-compact mode */}
               {!compact && <span className="ml-1">{label}</span>}
               {/* Tooltip on hover */}
