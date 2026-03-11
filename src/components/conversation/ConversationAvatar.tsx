@@ -1,16 +1,12 @@
 import { type KeyboardEvent, type MouseEvent, memo } from 'react';
-import type { Conversation } from '@/interfaces/conversation.interface';
 import { cn } from '@/utils/class.util';
 import { Avatar } from '../Avatar';
-import { ChannelBadge } from '../toolbar/ChannelBadge';
 
 export interface ConversationAvatarProps {
   /** 头像 src */
   src?: string;
   /** 用户名称 */
   name: string;
-  /** 渠道类型 */
-  channel?: Conversation['channel'];
   /** 头像大小 */
   size?: 'sm' | 'md' | 'lg';
   /** 自定义类名 */
@@ -33,7 +29,6 @@ export const ConversationAvatar = memo(
   ({
     src,
     name,
-    channel,
     size = 'md',
     className = '',
     onClick,
@@ -48,13 +43,6 @@ export const ConversationAvatar = memo(
           onClick={onClick}
           onKeyDown={onKeyDown}
           className="shadow-sm"
-          extra={
-            channel && (
-              <div className="absolute -bottom-1 -right-1 rounded-full border-2 border-white dark:border-gray-900">
-                <ChannelBadge type={channel} />
-              </div>
-            )
-          }
         />
       </div>
     );

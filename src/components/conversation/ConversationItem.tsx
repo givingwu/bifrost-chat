@@ -88,18 +88,24 @@ export const ConversationItem = memo(
         onKeyDown={handleKeyDown}
         className={containerClassName}
         aria-pressed={conversation.isActive}
-        aria-label={`与 ${conversation.user.name} 的会话${
-          conversation.unreadCount > 0
-            ? `，有 ${conversation.unreadCount} 条未读消息`
-            : ''
-        }`}
+        aria-label={`与 ${conversation.user.name} 的会话${conversation.unreadCount > 0
+          ? `，有 ${conversation.unreadCount} 条未读消息`
+          : ''
+          }`}
       >
         <div className="flex w-full items-start gap-3">
-          <ConversationAvatar
-            src={conversation.user.avatarUrl}
-            name={conversation.user.name}
-            channel={conversation.channel}
-          />
+          {/* 头像区域：未读 Badge 悬浮在右上角（微信风格） */}
+          <div className="relative flex-shrink-0">
+            <ConversationAvatar
+              src={conversation.user.avatarUrl}
+              name={conversation.user.name}
+            />
+            {conversation.unreadCount > 0 && !conversation.isActive && (
+              <span className="absolute -right-1 -top-1 flex min-w-[18px] h-[18px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white leading-none">
+                {conversation.unreadCount > 99 ? '99+' : conversation.unreadCount}
+              </span>
+            )}
+          </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-baseline justify-around gap-2">
               <h4
@@ -124,12 +130,6 @@ export const ConversationItem = memo(
             </p>
           </div>
         </div>
-
-        {conversation.unreadCount > 0 && !conversation.isActive && (
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-red-500 px-2 py-1 text-[10px] font-semibold text-primary-foreground">
-            {conversation.unreadCount > 99 ? '99+' : conversation.unreadCount}
-          </span>
-        )}
       </Button>
     );
   },
