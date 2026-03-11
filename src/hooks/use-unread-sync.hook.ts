@@ -54,6 +54,7 @@ export function useUnreadSync(): void {
           ConversationCacheHelper.incrementUnread(
             queryClient,
             event.conversationId,
+            event.message.channelType,
           );
         }
       },

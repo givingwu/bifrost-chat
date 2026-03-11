@@ -199,9 +199,9 @@ export function DefaultChatLayout({
   const handleSelectConversation = useCallback(
     (conversationId: string) => {
       actions.setActiveConversationId(conversationId);
-      ConversationCacheHelper.clearUnread(queryClient, conversationId);
+      ConversationCacheHelper.clearUnread(queryClient, conversationId, activeChannel);
     },
-    [actions, queryClient],
+    [actions, activeChannel, queryClient],
   );
 
   // 搜索回调（使用 startTransition 标记为过渡更新）

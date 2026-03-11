@@ -171,13 +171,13 @@ function mergeConversation(
   const existingMetadata = existingConversation.metadata;
   const mergedMetadata =
     existingMetadata &&
-    typeof existingMetadata === 'object' &&
-    existingMetadata.synthetic !== true
+      typeof existingMetadata === 'object' &&
+      existingMetadata.synthetic !== true
       ? existingMetadata
       : {
-          ...incomingConversation.metadata,
-          ...existingConversation.metadata,
-        };
+        ...incomingConversation.metadata,
+        ...existingConversation.metadata,
+      };
 
   return {
     ...existingConversation,
@@ -201,10 +201,13 @@ function mergeConversation(
 
 // biome-ignore lint/complexity/noStaticOnlyClass: cache helper uses a static utility style
 export class ConversationCacheHelper {
-  static getConversations(queryClient: QueryClient): Conversation[] {
+  static getConversations(
+    queryClient: QueryClient,
+    channel: ChannelTypeEnum,
+  ): Conversation[] {
     return (
       queryClient.getQueryData<Conversation[]>(
-        queryKeys.conversations.list(),
+        queryKeys.conversations.list(channel),
       ) ?? []
     );
   }
@@ -238,6 +241,7 @@ export class ConversationCacheHelper {
   static upsertConversation(
     queryClient: QueryClient,
     conversation: Conversation,
+    channel: ChannelTypeEnum,
     options?: {
       preserveUnreadCount?: boolean;
     },
@@ -245,7 +249,7 @@ export class ConversationCacheHelper {
     let nextConversation = conversation;
 
     queryClient.setQueryData<Conversation[]>(
-      queryKeys.conversations.list(),
+      queryKeys.conversations.list(channel),
       (old) => {
         const conversations = old ?? [];
         const existingConversation = conversations.find(
@@ -280,38 +284,41 @@ export class ConversationCacheHelper {
     return ConversationCacheHelper.upsertConversation(
       queryClient,
       syntheticConversation,
-      {
-        preserveUnreadCount: options?.preserveUnreadCount ?? true,
-      },
+      message.channelType,
+      { preserveUnreadCount: options?.preserveUnreadCount ?? true },
     );
   }
 
   static replaceConversationList(
     queryClient: QueryClient,
     conversations: Conversation[],
+    channel: ChannelTypeEnum,
   ): Conversation[] {
-    queryClient.setQueryData(queryKeys.conversations.list(), conversations);
+    queryClient.setQueryData(queryKeys.conversations.list(channel), conversations);
     return conversations;
   }
 
   static replaceConversation(
     queryClient: QueryClient,
     conversation: Conversation,
+    channel: ChannelTypeEnum,
   ): Conversation {
     return ConversationCacheHelper.upsertConversation(
       queryClient,
       conversation,
+      channel,
     );
   }
 
   static incrementUnread(
     queryClient: QueryClient,
     conversationId: string,
+    channel: ChannelTypeEnum,
   ): Conversation | undefined {
     let nextConversation: Conversation | undefined;
 
     queryClient.setQueryData<Conversation[]>(
-      queryKeys.conversations.list(),
+      queryKeys.conversations.list(channel),
       (old) =>
         (old ?? []).map((conversation) => {
           if (conversation.id !== conversationId) {
@@ -332,11 +339,12 @@ export class ConversationCacheHelper {
   static clearUnread(
     queryClient: QueryClient,
     conversationId: string,
+    channel: ChannelTypeEnum,
   ): Conversation | undefined {
     let nextConversation: Conversation | undefined;
 
     queryClient.setQueryData<Conversation[]>(
-      queryKeys.conversations.list(),
+      queryKeys.conversations.list(channel),
       (old) =>
         (old ?? []).map((conversation) => {
           if (conversation.id !== conversationId) {

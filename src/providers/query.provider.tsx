@@ -64,7 +64,8 @@ export const queryKeys = {
   conversations: {
     all: ['conversations'] as const,
     lists: () => [...queryKeys.conversations.all, 'list'] as const,
-    list: () => [...queryKeys.conversations.lists()] as const,
+    list: (channel: string) =>
+      [...queryKeys.conversations.lists(), channel] as const,
     details: () => [...queryKeys.conversations.all, 'detail'] as const,
     detail: (id: string) => [...queryKeys.conversations.details(), id] as const,
     // 会话元数据

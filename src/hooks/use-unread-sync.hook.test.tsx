@@ -119,7 +119,7 @@ describe('useUnreadSync', () => {
     });
 
     const conversations = queryClient.getQueryData<Conversation[]>(
-      queryKeys.conversations.list(),
+      queryKeys.conversations.list(ChannelTypeEnum.WhatsApp),
     );
     const messages = queryClient.getQueryData<{
       pages: Array<{ items: StandardMessage[] }>;
@@ -170,7 +170,7 @@ describe('useUnreadSync', () => {
     });
 
     const conversations = queryClient.getQueryData<Conversation[]>(
-      queryKeys.conversations.list(),
+      queryKeys.conversations.list(ChannelTypeEnum.WhatsApp),
     );
 
     expect(conversations?.[0]?.unreadCount).toBe(1);
@@ -185,7 +185,7 @@ describe('useUnreadSync', () => {
       },
     });
 
-    queryClient.setQueryData<Conversation[]>(queryKeys.conversations.list(), [
+    queryClient.setQueryData<Conversation[]>(queryKeys.conversations.list(ChannelTypeEnum.WhatsApp), [
       {
         id: 'conv-active',
         user: {
@@ -219,7 +219,7 @@ describe('useUnreadSync', () => {
     });
 
     const conversations = queryClient.getQueryData<Conversation[]>(
-      queryKeys.conversations.list(),
+      queryKeys.conversations.list(ChannelTypeEnum.WhatsApp),
     );
 
     expect(conversations?.[0]).toMatchObject({
@@ -243,7 +243,7 @@ describe('useUnreadSync', () => {
       status: MessageStatusEnum.Delivered,
     });
 
-    queryClient.setQueryData<Conversation[]>(queryKeys.conversations.list(), [
+    queryClient.setQueryData<Conversation[]>(queryKeys.conversations.list(ChannelTypeEnum.WhatsApp), [
       {
         id: 'conv-status',
         user: {
@@ -285,7 +285,7 @@ describe('useUnreadSync', () => {
     });
 
     const conversations = queryClient.getQueryData<Conversation[]>(
-      queryKeys.conversations.list(),
+      queryKeys.conversations.list(ChannelTypeEnum.WhatsApp),
     );
     const messages = queryClient.getQueryData<{
       pages: Array<{ items: StandardMessage[] }>;

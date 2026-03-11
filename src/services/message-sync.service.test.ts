@@ -61,7 +61,7 @@ describe('MessageSyncService', () => {
   it('应在收到陌生会话消息时构造临时会话并插入列表顶部', () => {
     const syncService = new MessageSyncService(queryClient);
 
-    queryClient.setQueryData<Conversation[]>(queryKeys.conversations.list(), [
+    queryClient.setQueryData<Conversation[]>(queryKeys.conversations.list(ChannelTypeEnum.WhatsApp), [
       {
         id: 'conv-existing',
         user: {
@@ -95,7 +95,7 @@ describe('MessageSyncService', () => {
     });
 
     const conversations = queryClient.getQueryData<Conversation[]>(
-      queryKeys.conversations.list(),
+      queryKeys.conversations.list(ChannelTypeEnum.WhatsApp),
     );
 
     expect(conversations?.map((item) => item.id)).toEqual([
@@ -117,7 +117,7 @@ describe('MessageSyncService', () => {
   it('应在已有会话收到新消息时刷新摘要并提升到列表顶部', () => {
     const syncService = new MessageSyncService(queryClient);
 
-    queryClient.setQueryData<Conversation[]>(queryKeys.conversations.list(), [
+    queryClient.setQueryData<Conversation[]>(queryKeys.conversations.list(ChannelTypeEnum.Email), [
       {
         id: 'conv-other',
         user: {
@@ -160,7 +160,7 @@ describe('MessageSyncService', () => {
     });
 
     const conversations = queryClient.getQueryData<Conversation[]>(
-      queryKeys.conversations.list(),
+      queryKeys.conversations.list(ChannelTypeEnum.Email),
     );
 
     expect(conversations?.[0]).toMatchObject({

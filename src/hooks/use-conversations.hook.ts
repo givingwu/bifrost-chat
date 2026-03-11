@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { queryKeys } from '@/providers/query.provider';
 import { useServices } from '@/providers/service.provider';
 import { ConversationCacheHelper } from '@/services/conversation-cache-helper.service';
+import { useStrategy } from '@/store';
 
 /**
  * 使用会话列表的 Hook
@@ -40,14 +41,15 @@ export function useConversations<TListParams = Record<string, unknown>>(
 ) {
   const queryClient = useQueryClient();
   const { conversationService } = useServices();
+  const { activeChannel } = useStrategy();
 
   const query = useQuery({
-    queryKey: queryKeys.conversations.list(),
+    queryKey: queryKeys.conversations.list(activeChannel),
     queryFn: () => {
       if (!conversationService) {
         return Promise.resolve([]);
       }
-      return conversationService.list(params);
+      return conversationService.list({ ...params, channelType: activeChannel } as TListParams);
     },
     enabled: (options?.enabled ?? true) && !!conversationService,
     staleTime: 1000 * 60 * 5, // 5 分钟
@@ -63,9 +65,10 @@ export function useConversations<TListParams = Record<string, unknown>>(
       ConversationCacheHelper.replaceConversationList(
         queryClient,
         conversations,
+        activeChannel,
       );
     });
-  }, [conversationService, queryClient]);
+  }, [activeChannel, conversationService, queryClient]);
 
   useEffect(() => {
     if (
@@ -83,6 +86,7 @@ export function useConversations<TListParams = Record<string, unknown>>(
           ConversationCacheHelper.replaceConversation(
             queryClient,
             nextConversation,
+            activeChannel,
           );
         },
       ),
@@ -93,7 +97,7 @@ export function useConversations<TListParams = Record<string, unknown>>(
         unsubscribe?.();
       }
     };
-  }, [conversationService, query.data, queryClient]);
+  }, [activeChannel, conversationService, query.data, queryClient]);
 
   return query;
 }

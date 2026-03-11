@@ -23,8 +23,8 @@ const mockMessageService: IMessageService = {
   list: vi.fn(),
   send: vi.fn(),
   markAsRead: vi.fn(),
-  subscribeToMessages: vi.fn(() => () => {}),
-  subscribeToMessageStatus: vi.fn(() => () => {}),
+  subscribeToMessages: vi.fn(() => () => { }),
+  subscribeToMessageStatus: vi.fn(() => () => { }),
   sendAttachment: vi.fn(),
   sendAudio: vi.fn(),
 };
@@ -88,7 +88,7 @@ describe('useTotalUnread', () => {
     });
 
     act(() => {
-      queryClient.setQueryData(queryKeys.conversations.list(), [
+      queryClient.setQueryData(queryKeys.conversations.list(ChannelTypeEnum.SMS), [
         createConversation('conv-1', 4),
         createConversation('conv-2', 3),
       ]);
