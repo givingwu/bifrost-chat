@@ -12,6 +12,7 @@ import {
   type MessageStatusUpdatedEvent,
 } from '@/interfaces/message.interface';
 import { queryKeys } from '@/providers/query.provider';
+import { seedConversationCache } from '@/test-utils/conversation-cache.test-util';
 import { ServiceProvider } from '@/providers/service.provider';
 import type { IConversationService } from '@/services/core/conversation.service';
 import type {
@@ -185,7 +186,7 @@ describe('useUnreadSync', () => {
       },
     });
 
-    queryClient.setQueryData<Conversation[]>(queryKeys.conversations.list(ChannelTypeEnum.WhatsApp), [
+    seedConversationCache(queryClient, ChannelTypeEnum.WhatsApp, [
       {
         id: 'conv-active',
         user: {
@@ -243,7 +244,7 @@ describe('useUnreadSync', () => {
       status: MessageStatusEnum.Delivered,
     });
 
-    queryClient.setQueryData<Conversation[]>(queryKeys.conversations.list(ChannelTypeEnum.WhatsApp), [
+    seedConversationCache(queryClient, ChannelTypeEnum.WhatsApp, [
       {
         id: 'conv-status',
         user: {

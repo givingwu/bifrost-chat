@@ -132,15 +132,36 @@ export const ConversationList = memo(
     // 判断是否应该自动获取数据
     const shouldAutoFetch = autoFetch && externalConversations === undefined;
 
-    // 使用 React Query 获取会话列表
+    // 使用 React Query 获取会话列表（InfiniteQuery 版本）
     const {
       data: fetchedConversations,
       isLoading: isFetching,
       error,
       refetch,
+      hasNextPage,
+      fetchNextPage,
+      isFetchingNextPage,
     } = useConversations({
       enabled: shouldAutoFetch,
     });
+
+    // 触底加载：IntersectionObserver 监听底部哨兵元素
+    const sentinelRef = useRef<HTMLDivElement>(null);
+    useEffect(() => {
+      if (!shouldAutoFetch || !hasNextPage) return;
+      const sentinel = sentinelRef.current;
+      if (!sentinel) return;
+      const observer = new IntersectionObserver(
+        (entries) => {
+          if (entries[0]?.isIntersecting && hasNextPage && !isFetchingNextPage) {
+            fetchNextPage();
+          }
+        },
+        { threshold: 0.1 },
+      );
+      observer.observe(sentinel);
+      return () => observer.disconnect();
+    }, [shouldAutoFetch, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
     // ==================== 数据处理 ====================
     // 确定最终使用的会话列表
@@ -318,6 +339,15 @@ export const ConversationList = memo(
               />
             </div>
           ))}
+          {/* 触底加载哨兵 */}
+          {shouldAutoFetch && (
+            <div ref={sentinelRef} className="h-4" aria-hidden />
+          )}
+          {isFetchingNextPage && (
+            <div className="py-2 text-center">
+              <LoadingState message="" />
+            </div>
+          )}
         </div>
       );
     }
@@ -354,6 +384,13 @@ export const ConversationList = memo(
             </div>
           ))}
         </div>
+        {/* 触底加载哨兵（虚拟滚动模式） */}
+        {shouldAutoFetch && <div ref={sentinelRef} className="h-4" aria-hidden />}
+        {isFetchingNextPage && (
+          <div className="py-2 text-center">
+            <LoadingState message="" />
+          </div>
+        )}
       </div>
     );
   },

@@ -6,6 +6,7 @@ import { AgentStatusEnum } from '@/interfaces/agent.interface';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import type { Conversation } from '@/interfaces/conversation.interface';
 import { queryKeys } from '@/providers/query.provider';
+import { seedConversationCache } from '@/test-utils/conversation-cache.test-util';
 import { ServiceProvider } from '@/providers/service.provider';
 import type { IConversationService } from '@/services/core/conversation.service';
 import type { IMessageService } from '@/services/core/message.service';
@@ -84,7 +85,7 @@ describe('useTotalUnread', () => {
     });
 
     // 直接向缓存写入初始数据（useTotalUnread 从缓存读取，不依赖 fetch）
-    queryClient.setQueryData(queryKeys.conversations.list(ChannelTypeEnum.WhatsApp), [
+    seedConversationCache(queryClient, ChannelTypeEnum.WhatsApp, [
       createConversation('conv-1', 2),
       createConversation('conv-2', 1),
     ]);
@@ -98,7 +99,7 @@ describe('useTotalUnread', () => {
     });
 
     act(() => {
-      queryClient.setQueryData(queryKeys.conversations.list(ChannelTypeEnum.SMS), [
+      seedConversationCache(queryClient, ChannelTypeEnum.SMS, [
         createConversation('conv-1', 4),
         createConversation('conv-2', 3),
       ]);

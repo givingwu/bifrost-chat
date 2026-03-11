@@ -2,7 +2,6 @@ import { QueryClient } from '@tanstack/react-query';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AgentStatusEnum } from '@/interfaces/agent.interface';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
-import type { Conversation } from '@/interfaces/conversation.interface';
 import {
   type StandardMessage,
   MessageDirectionEnum,
@@ -11,6 +10,8 @@ import {
 } from '@/interfaces/message.interface';
 import { queryKeys } from '@/providers/query.provider';
 import { MessageCacheHelper } from '@/services/cache/message-cache-helper.service';
+import { ConversationCacheHelper } from '@/services/cache/conversation-cache-helper.service';
+import { seedConversationCache } from '@/test-utils/conversation-cache.test-util';
 import { MessageSyncService } from './message-sync.service';
 
 describe('MessageSyncService', () => {
@@ -61,7 +62,7 @@ describe('MessageSyncService', () => {
   it('应在收到陌生会话消息时构造临时会话并插入列表顶部', () => {
     const syncService = new MessageSyncService(queryClient);
 
-    queryClient.setQueryData<Conversation[]>(queryKeys.conversations.list(ChannelTypeEnum.WhatsApp), [
+    seedConversationCache(queryClient, ChannelTypeEnum.WhatsApp, [
       {
         id: 'conv-existing',
         user: {
@@ -94,15 +95,13 @@ describe('MessageSyncService', () => {
       message,
     });
 
-    const conversations = queryClient.getQueryData<Conversation[]>(
-      queryKeys.conversations.list(ChannelTypeEnum.WhatsApp),
-    );
+    const conversations = ConversationCacheHelper.getConversations(queryClient, ChannelTypeEnum.WhatsApp);
 
-    expect(conversations?.map((item) => item.id)).toEqual([
+    expect(conversations.map((item) => item.id)).toEqual([
       'conv-new',
       'conv-existing',
     ]);
-    expect(conversations?.[0]).toMatchObject({
+    expect(conversations[0]).toMatchObject({
       id: 'conv-new',
       lastMessage: '新会话第一条消息',
       unreadCount: 0,
@@ -117,7 +116,7 @@ describe('MessageSyncService', () => {
   it('应在已有会话收到新消息时刷新摘要并提升到列表顶部', () => {
     const syncService = new MessageSyncService(queryClient);
 
-    queryClient.setQueryData<Conversation[]>(queryKeys.conversations.list(ChannelTypeEnum.Email), [
+    seedConversationCache(queryClient, ChannelTypeEnum.Email, [
       {
         id: 'conv-other',
         user: {
@@ -159,11 +158,9 @@ describe('MessageSyncService', () => {
       }),
     });
 
-    const conversations = queryClient.getQueryData<Conversation[]>(
-      queryKeys.conversations.list(ChannelTypeEnum.Email),
-    );
+    const conversations = ConversationCacheHelper.getConversations(queryClient, ChannelTypeEnum.Email);
 
-    expect(conversations?.[0]).toMatchObject({
+    expect(conversations[0]).toMatchObject({
       id: 'conv-1',
       lastMessage: '会话有新动态',
       unreadCount: 9,

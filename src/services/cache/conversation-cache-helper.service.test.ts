@@ -3,7 +3,6 @@ import { describe, expect, it } from 'vitest';
 import { AgentStatusEnum } from '@/interfaces/agent.interface';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import {
-  type Conversation,
   ConversationStatusEnum,
 } from '@/interfaces/conversation.interface';
 import {
@@ -12,7 +11,7 @@ import {
   MessageTypeEnum,
   type StandardMessage,
 } from '@/interfaces/message.interface';
-import { queryKeys } from '@/providers/query.provider';
+import { seedConversationCache } from '@/test-utils/conversation-cache.test-util';
 import { ConversationCacheHelper } from './conversation-cache-helper.service';
 
 function createMessage(
@@ -85,7 +84,7 @@ describe('ConversationCacheHelper', () => {
       content: { text: '新的陌生会话' },
     });
 
-    queryClient.setQueryData<Conversation[]>(queryKeys.conversations.list(ChannelTypeEnum.WhatsApp), [
+    seedConversationCache(queryClient, ChannelTypeEnum.WhatsApp, [
       {
         id: 'conv-old',
         user: {
@@ -102,11 +101,9 @@ describe('ConversationCacheHelper', () => {
 
     ConversationCacheHelper.upsertConversationFromMessage(queryClient, message);
 
-    const conversations = queryClient.getQueryData<Conversation[]>(
-      queryKeys.conversations.list(ChannelTypeEnum.WhatsApp),
-    );
+    const conversations = ConversationCacheHelper.getConversations(queryClient, ChannelTypeEnum.WhatsApp);
 
-    expect(conversations?.map((item) => item.id)).toEqual([
+    expect(conversations.map((item) => item.id)).toEqual([
       'conv-new',
       'conv-old',
     ]);
@@ -122,7 +119,7 @@ describe('ConversationCacheHelper', () => {
       sender: { app: 'mail-app', pin: 'customer@example.com' },
     });
 
-    queryClient.setQueryData<Conversation[]>(queryKeys.conversations.list(ChannelTypeEnum.Email), [
+    seedConversationCache(queryClient, ChannelTypeEnum.Email, [
       {
         id: 'conv-other',
         user: {
@@ -157,10 +154,8 @@ describe('ConversationCacheHelper', () => {
 
     ConversationCacheHelper.upsertConversationFromMessage(queryClient, message);
 
-    const conversations = queryClient.getQueryData<Conversation[]>(
-      queryKeys.conversations.list(ChannelTypeEnum.Email),
-    );
-    const updatedConversation = conversations?.[0];
+    const conversations = ConversationCacheHelper.getConversations(queryClient, ChannelTypeEnum.Email);
+    const updatedConversation = conversations[0];
 
     expect(updatedConversation?.id).toBe('conv-existing');
     expect(updatedConversation?.user.name).toBe('已存在客户');
@@ -187,7 +182,7 @@ describe('ConversationCacheHelper', () => {
   it('应支持直接增加和清空会话未读数', () => {
     const queryClient = new QueryClient();
 
-    queryClient.setQueryData<Conversation[]>(queryKeys.conversations.list(ChannelTypeEnum.WhatsApp), [
+    seedConversationCache(queryClient, ChannelTypeEnum.WhatsApp, [
       {
         id: 'conv-unread',
         user: {
@@ -216,7 +211,7 @@ describe('ConversationCacheHelper', () => {
   it('权威单会话更新应覆盖现有 unreadCount', () => {
     const queryClient = new QueryClient();
 
-    queryClient.setQueryData<Conversation[]>(queryKeys.conversations.list(ChannelTypeEnum.WhatsApp), [
+    seedConversationCache(queryClient, ChannelTypeEnum.WhatsApp, [
       {
         id: 'conv-authoritative',
         user: {

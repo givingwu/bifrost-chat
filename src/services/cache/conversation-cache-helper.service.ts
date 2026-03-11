@@ -1,4 +1,4 @@
-import type { QueryClient } from '@tanstack/react-query';
+import type { InfiniteData, QueryClient } from '@tanstack/react-query';
 import { AgentStatusEnum } from '@/interfaces/agent.interface';
 import type { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import {
@@ -13,7 +13,6 @@ import {
   type StandardMessage,
 } from '@/interfaces/message.interface';
 import { queryKeys } from '@/providers/query.provider';
-import type { UnreadCountResult } from '@/services/core/conversation.service';
 
 const PREVIEW_FALLBACK_BY_TYPE: Record<MessageTypeEnum, string> = {
   [MessageTypeEnum.Text]: '[text]',
@@ -202,15 +201,45 @@ function mergeConversation(
 
 // biome-ignore lint/complexity/noStaticOnlyClass: cache helper uses a static utility style
 export class ConversationCacheHelper {
+  // ==================== 内部辅助 ====================
+
+  /**
+   * 读取 InfiniteQuery 缓存并展平为会话数组
+   */
+  private static getPages(
+    queryClient: QueryClient,
+    channel: ChannelTypeEnum,
+  ): InfiniteData<Conversation[], number> | undefined {
+    return queryClient.getQueryData<InfiniteData<Conversation[], number>>(
+      queryKeys.conversations.list(channel),
+    );
+  }
+
+  /**
+   * 以 updater 函数更新所有 pages 内的会话，写回 InfiniteQuery 缓存
+   */
+  private static updatePages(
+    queryClient: QueryClient,
+    channel: ChannelTypeEnum,
+    updater: (conversations: Conversation[]) => Conversation[],
+  ): void {
+    queryClient.setQueryData<InfiniteData<Conversation[], number>>(
+      queryKeys.conversations.list(channel),
+      (old) => {
+        if (!old) return old;
+        return { ...old, pages: old.pages.map(updater) };
+      },
+    );
+  }
+
+  // ==================== 公共接口 ====================
+
   static getConversations(
     queryClient: QueryClient,
     channel: ChannelTypeEnum,
   ): Conversation[] {
-    return (
-      queryClient.getQueryData<Conversation[]>(
-        queryKeys.conversations.list(channel),
-      ) ?? []
-    );
+    const data = ConversationCacheHelper.getPages(queryClient, channel);
+    return data?.pages.flatMap((p) => p) ?? [];
   }
 
   static buildSyntheticConversation(message: StandardMessage): Conversation {
@@ -249,25 +278,18 @@ export class ConversationCacheHelper {
   ): Conversation {
     let nextConversation = conversation;
 
-    queryClient.setQueryData<Conversation[]>(
-      queryKeys.conversations.list(channel),
-      (old) => {
-        const conversations = old ?? [];
-        const existingConversation = conversations.find(
-          (item) => item.id === conversation.id,
-        );
+    ConversationCacheHelper.updatePages(queryClient, channel, (conversations) => {
+      const existingConversation = conversations.find(
+        (item) => item.id === conversation.id,
+      );
 
-        nextConversation = existingConversation
-          ? mergeConversation(existingConversation, conversation, options)
-          : conversation;
+      nextConversation = existingConversation
+        ? mergeConversation(existingConversation, conversation, options)
+        : conversation;
 
-        const restConversations = conversations.filter(
-          (item) => item.id !== conversation.id,
-        );
-
-        return [nextConversation, ...restConversations];
-      },
-    );
+      const rest = conversations.filter((item) => item.id !== conversation.id);
+      return [nextConversation, ...rest];
+    });
 
     return nextConversation;
   }
@@ -295,7 +317,14 @@ export class ConversationCacheHelper {
     conversations: Conversation[],
     channel: ChannelTypeEnum,
   ): Conversation[] {
-    queryClient.setQueryData(queryKeys.conversations.list(channel), conversations);
+    // 将整个列表写入第一页，保留 pageParams 结构
+    queryClient.setQueryData<InfiniteData<Conversation[], number>>(
+      queryKeys.conversations.list(channel),
+      (old) => ({
+        pages: [conversations],
+        pageParams: old?.pageParams ?? [1],
+      }),
+    );
     return conversations;
   }
 
@@ -318,20 +347,12 @@ export class ConversationCacheHelper {
   ): Conversation | undefined {
     let nextConversation: Conversation | undefined;
 
-    queryClient.setQueryData<Conversation[]>(
-      queryKeys.conversations.list(channel),
-      (old) =>
-        (old ?? []).map((conversation) => {
-          if (conversation.id !== conversationId) {
-            return conversation;
-          }
-
-          nextConversation = {
-            ...conversation,
-            unreadCount: conversation.unreadCount + 1,
-          };
-          return nextConversation;
-        }),
+    ConversationCacheHelper.updatePages(queryClient, channel, (conversations) =>
+      conversations.map((conversation) => {
+        if (conversation.id !== conversationId) return conversation;
+        nextConversation = { ...conversation, unreadCount: conversation.unreadCount + 1 };
+        return nextConversation;
+      }),
     );
 
     return nextConversation;
@@ -348,20 +369,15 @@ export class ConversationCacheHelper {
   ): Conversation | undefined {
     let nextConversation: Conversation | undefined;
 
-    queryClient.setQueryData<Conversation[]>(
-      queryKeys.conversations.list(channel),
-      (old) =>
-        (old ?? []).map((conversation) => {
-          if (conversation.id !== conversationId) {
-            return conversation;
-          }
-
-          nextConversation = {
-            ...conversation,
-            unreadCount: Math.max(0, conversation.unreadCount - amount),
-          };
-          return nextConversation;
-        }),
+    ConversationCacheHelper.updatePages(queryClient, channel, (conversations) =>
+      conversations.map((conversation) => {
+        if (conversation.id !== conversationId) return conversation;
+        nextConversation = {
+          ...conversation,
+          unreadCount: Math.max(0, conversation.unreadCount - amount),
+        };
+        return nextConversation;
+      }),
     );
 
     return nextConversation;
@@ -374,20 +390,12 @@ export class ConversationCacheHelper {
   ): Conversation | undefined {
     let nextConversation: Conversation | undefined;
 
-    queryClient.setQueryData<Conversation[]>(
-      queryKeys.conversations.list(channel),
-      (old) =>
-        (old ?? []).map((conversation) => {
-          if (conversation.id !== conversationId) {
-            return conversation;
-          }
-
-          nextConversation = {
-            ...conversation,
-            unreadCount: 0,
-          };
-          return nextConversation;
-        }),
+    ConversationCacheHelper.updatePages(queryClient, channel, (conversations) =>
+      conversations.map((conversation) => {
+        if (conversation.id !== conversationId) return conversation;
+        nextConversation = { ...conversation, unreadCount: 0 };
+        return nextConversation;
+      }),
     );
 
     return nextConversation;
@@ -412,14 +420,12 @@ export class ConversationCacheHelper {
   ): Conversation | undefined {
     let nextConversation: Conversation | undefined;
 
-    queryClient.setQueryData<Conversation[]>(
-      queryKeys.conversations.list(channel),
-      (old) =>
-        (old ?? []).map((conversation) => {
-          if (conversation.id !== conversationId) return conversation;
-          nextConversation = { ...conversation, unreadCount: Math.max(0, count) };
-          return nextConversation;
-        }),
+    ConversationCacheHelper.updatePages(queryClient, channel, (conversations) =>
+      conversations.map((conversation) => {
+        if (conversation.id !== conversationId) return conversation;
+        nextConversation = { ...conversation, unreadCount: Math.max(0, count) };
+        return nextConversation;
+      }),
     );
 
     return nextConversation;
