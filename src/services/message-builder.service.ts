@@ -133,7 +133,11 @@ function convertRichMediaPacketBody(
   content: IRichMediaMessage,
 ): IRichMediaMessage {
   return {
-    desc: content.desc ?? '',
+    desc: content.desc,
+    text: content.text,
+    url: content.url,
+    mimeType: content.mimeType ?? 'application/octet-stream',
+    size: content.size,
   };
 }
 
