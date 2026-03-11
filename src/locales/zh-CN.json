@@ -6,7 +6,7 @@
   },
   "toolbar": {
     "channel": {
-      "sms": "短信",
+      "sms": "交互短信",
       "whatsapp": "WhatsApp",
       "email": "邮件",
       "voip": "语音"
@@ -37,6 +37,9 @@
       "hint": "检测到未发送的草稿",
       "restore": "恢复",
       "discard": "丢弃"
+    },
+    "hint": {
+      "newline": "Shift+Enter 换行"
     }
   },
   "message": {

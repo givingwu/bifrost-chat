@@ -6,7 +6,7 @@
   },
   "toolbar": {
     "channel": {
-      "sms": "SMS",
+      "sms": "Interactive SMS",
       "whatsapp": "WhatsApp",
       "email": "Email",
       "voip": "VoIP"
@@ -37,6 +37,9 @@
       "hint": "Unsent draft detected",
       "restore": "Restore",
       "discard": "Discard"
+    },
+    "hint": {
+      "newline": "Shift+Enter to insert a new line"
     }
   },
   "message": {
