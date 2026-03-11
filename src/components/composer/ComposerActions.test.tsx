@@ -42,10 +42,11 @@ describe('ComposerActions', () => {
       expect(sendButton.getAttribute('aria-label')).toBe('Send message');
     });
 
-    it('当 canSend 为 false 时不应显示发送按钮', () => {
+    it('当 canSend 为 false 时发送按钮应渲染但置为 disabled', () => {
       render(<ComposerActions canSend={false} />);
-      const sendButton = screen.queryByTestId('composer-send');
-      expect(sendButton).toBeNull();
+      const sendButton = screen.getByTestId('composer-send');
+      expect(sendButton).toBeDefined();
+      expect(sendButton.getAttribute('disabled')).toBeDefined();
     });
 
     it('点击发送按钮应触发 onSend 回调', () => {
@@ -139,9 +140,12 @@ describe('ComposerActions', () => {
       expect(clearButton).toBeNull();
     });
 
-    it('当 canSend 为 false 且 showClear 为 false 时不应显示任何按钮', () => {
-      const { container } = render(<ComposerActions canSend={false} />);
-      expect(container.firstChild).toBeNull();
+    it('当 canSend 为 false 且 showClear 为 false 时应只显示 disabled 的发送按钮', () => {
+      render(<ComposerActions canSend={false} />);
+      const sendButton = screen.getByTestId('composer-send');
+      expect(sendButton.getAttribute('disabled')).toBeDefined();
+      const clearButton = screen.queryByTestId('composer-clear');
+      expect(clearButton).toBeNull();
     });
   });
 });

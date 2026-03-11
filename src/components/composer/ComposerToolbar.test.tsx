@@ -99,9 +99,12 @@ describe('ComposerToolbar', () => {
   it('should not call onSend with empty message', async () => {
     const onSend = vi.fn();
     render(<ComposerToolbar onSend={onSend} />);
-    const sendButton = screen.queryByTestId('composer-send');
+    const sendButton = screen.getByTestId('composer-send');
 
-    expect(sendButton).toBeNull();
+    // 空消息时 send 按钮始终渲染，但应为 disabled
+    expect(sendButton.getAttribute('disabled')).toBeDefined();
+    fireEvent.click(sendButton);
+    expect(onSend).not.toHaveBeenCalled();
   });
 
   it('should not call onSend with whitespace only', async () => {
@@ -110,9 +113,12 @@ describe('ComposerToolbar', () => {
     const input = screen.getByTestId('composer-input');
 
     fireEvent.change(input, { target: { value: '   ' } });
-    const sendButton = screen.queryByTestId('composer-send');
+    const sendButton = screen.getByTestId('composer-send');
 
-    expect(sendButton).toBeNull();
+    // 纯空白内容时 send 按钮依然渲染，但应为 disabled
+    expect(sendButton.getAttribute('disabled')).toBeDefined();
+    fireEvent.click(sendButton);
+    expect(onSend).not.toHaveBeenCalled();
   });
 
   it('should disable all interactions when disabled is true', () => {

@@ -45,7 +45,7 @@ const DEFAULT_COMPOSER_CONFIG: IComposerConfig = {
   audioOutputFormat: AudioOutputFormatEnum.Raw,
   // UI 显示配置
   showChannelSwitcher: true,
-  showCharCount: false,
+  showCharCount: true,
   showHint: true,
   showEmojiButton: true,
   // 模板配置

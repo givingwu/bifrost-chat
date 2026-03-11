@@ -61,25 +61,21 @@ export const ComposerActions = memo<ComposerActionsProps>(
       }
     }, [showClear, onClear]);
 
-    // 渲染逻辑：仅在 canSend=true 时渲染按钮
-    if (canSend) {
-      return (
-        <>
-          {/* 清空按钮（仅在 showClear=true && onClear 存在时显示） */}
-          {showClear && onClear && (
-            <ComposerClearButton disabled={disabled} onClick={onClear} />
-          )}
-          {/* 发送按钮 */}
-          <ComposerSendButton
-            loading={loading}
-            disabled={disabled}
-            onClick={onSend}
-          />
-        </>
-      );
-    }
-    // 当 canSend=false 时，不渲染任何按钮
-    return null;
+    // canSend=false 时仍渲染 SendButton，仅置为 disabled（避免布局抖动）
+    return (
+      <>
+        {/* 清空按钮（仅在 showClear=true && canSend=true && onClear 存在时显示） */}
+        {canSend && showClear && onClear && (
+          <ComposerClearButton disabled={disabled} onClick={onClear} />
+        )}
+        {/* 发送按钮：始终渲染，无内容时 disabled */}
+        <ComposerSendButton
+          loading={loading}
+          disabled={!canSend || disabled}
+          onClick={canSend ? onSend : undefined}
+        />
+      </>
+    );
   },
   // 自定义比较函数，优化性能
   (prevProps, nextProps) => {
