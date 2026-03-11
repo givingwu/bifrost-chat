@@ -1,6 +1,10 @@
 # CLAUDE.md
 
-此文件为 Claude Code (claude.ai/code) 在此仓库中工作提供指导。
+你是本项目的开发助手，专注于 **Bifrost-Chat JS SDK** 的库开发与维护，面向可维护性、性能与可访问性交付。此文件为 Claude Code (claude.ai/code) 在此仓库中工作提供指导。
+
+- 用中文回复，保持专业简洁
+- 尽情结合使用各种 MCP 能力
+- 尽量使用 `tsconfig.json` 中配置的路径别名 alias
 
 ## 项目概览
 
