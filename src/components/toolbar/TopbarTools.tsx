@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { memo, type ReactNode } from 'react';
 import {
   useActions,
   useLanguage,
@@ -19,7 +19,7 @@ export interface ITopbarTools {
 /**
  * TopbarTools：会话顶部栏右侧工具集合。
  */
-export const TopbarTools = ({ extra }: ITopbarTools) => {
+export const TopbarTools = memo(({ extra }: ITopbarTools) => {
   const { status, enableStatusIndicator: showNetworkStatus } = useNetwork();
   const { mode, enableSwitcher: showThemeSwitcher } = useTheme();
   const { code, enableSwitcher: showLanguageSwitcher } = useLanguage();
@@ -61,4 +61,6 @@ export const TopbarTools = ({ extra }: ITopbarTools) => {
       </div>
     </div>
   );
-};
+});
+
+TopbarTools.displayName = 'TopbarTools';
