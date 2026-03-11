@@ -26,11 +26,11 @@ import {
 } from '@/interfaces/network.interface';
 import { queryKeys } from '@/providers/query.provider';
 import { useServices } from '@/providers/service.provider';
-import { MessageBuilder } from '@/services/message-builder.service';
-import { MessageCacheHelper } from '@/services/message-cache-helper.service';
-import { messageQueue } from '@/services/message-queue.service';
-import { MessageSyncService } from '@/services/message-sync.service';
-import { pendingMessageTracker } from '@/services/pending-message-tracker.service';
+import { MessageBuilder } from '@/services/messaging/message-builder.service';
+import { MessageCacheHelper } from '@/services/cache/message-cache-helper.service';
+import { messageQueue } from '@/services/messaging/message-queue.service';
+import { MessageSyncService } from '@/services/messaging/message-sync.service';
+import { pendingMessageTracker } from '@/services/messaging/pending-message-tracker.service';
 import { useActiveConversationId, useNetwork, useStrategy } from '@/store';
 import { logger } from '@/utils/logger.util';
 import { useConversations } from './use-conversations.hook';

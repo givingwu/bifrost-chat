@@ -9,10 +9,10 @@ import { useServices } from '@/providers/service.provider';
 import type {
   MarkAsReadMeta,
   MarkAsReadResult,
-} from '@/services/message.service';
-import { MessageBuilder } from '@/services/message-builder.service';
-import { MessageCacheHelper } from '@/services/message-cache-helper.service';
-import { messageQueue } from '@/services/message-queue.service';
+} from '@/services/core/message.service';
+import { MessageBuilder } from '@/services/messaging/message-builder.service';
+import { MessageCacheHelper } from '@/services/cache/message-cache-helper.service';
+import { messageQueue } from '@/services/messaging/message-queue.service';
 
 export interface MarkAsReadParams {
   conversationId: string;

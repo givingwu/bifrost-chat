@@ -6,9 +6,9 @@ import { AgentStatusEnum } from '@/interfaces/agent.interface';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import type { Conversation } from '@/interfaces/conversation.interface';
 import { ServiceProvider } from '@/providers/service.provider';
-import type { IConversationService } from '@/services/conversation.service';
-import type { IMessageService } from '@/services/message.service';
-import type { ITemplateService } from '@/services/template.service';
+import type { IConversationService } from '@/services/core/conversation.service';
+import type { IMessageService } from '@/services/core/message.service';
+import type { ITemplateService } from '@/services/core/template.service';
 
 let listUpdatesCallback: ((conversations: Conversation[]) => void) | undefined;
 const conversationUpdateCallbacks = new Map<

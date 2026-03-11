@@ -13,11 +13,11 @@ import {
 } from '@/interfaces/message.interface';
 import { queryKeys } from '@/providers/query.provider';
 import { ServiceProvider } from '@/providers/service.provider';
-import type { IConversationService } from '@/services/conversation.service';
+import type { IConversationService } from '@/services/core/conversation.service';
 import type {
   IMessageService,
   MessageReceivedEvent,
-} from '@/services/message.service';
+} from '@/services/core/message.service';
 import { resetChatStore, useChatStore } from '@/store';
 import { useUnreadSync } from './use-unread-sync.hook';
 

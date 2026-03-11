@@ -16,10 +16,10 @@ import {
   NetworkStatusEnum,
 } from '@/interfaces/network.interface';
 import { ServiceProvider } from '@/providers/service.provider';
-import type { IConversationService } from '@/services/conversation.service';
-import type { IMessageService } from '@/services/message.service';
-import type { INetworkService } from '@/services/network.service';
-import type { ITemplateService } from '@/services/template.service';
+import type { IConversationService } from '@/services/core/conversation.service';
+import type { IMessageService } from '@/services/core/message.service';
+import type { INetworkService } from '@/services/core/network.service';
+import type { ITemplateService } from '@/services/core/template.service';
 import { useChatStore, useNetwork } from '@/store';
 import { DEFAULT_NETWORK_STATE } from '@/store/slices/network.slice';
 

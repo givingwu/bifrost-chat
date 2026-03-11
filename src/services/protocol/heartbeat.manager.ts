@@ -6,7 +6,7 @@ import {
   isPacketBodyRecord,
   PacketMessageTypeEnum,
 } from '@/interfaces/protocol.interface';
-import { MessageBuilder } from '../message-builder.service';
+import { MessageBuilder } from '@/services/messaging/message-builder.service';
 
 /**
  * HeartbeatManager - 心跳管理器

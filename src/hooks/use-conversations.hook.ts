@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { queryKeys } from '@/providers/query.provider';
 import { useServices } from '@/providers/service.provider';
-import { ConversationCacheHelper } from '@/services/conversation-cache-helper.service';
+import { ConversationCacheHelper } from '@/services/cache/conversation-cache-helper.service';
 import { useStrategy } from '@/store';
 
 /**

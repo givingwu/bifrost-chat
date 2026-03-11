@@ -27,8 +27,8 @@ import { useUnreadSync } from '@/hooks/use-unread-sync.hook';
 import type { Conversation } from '@/interfaces/conversation.interface';
 import type { Template } from '@/interfaces/template.interface';
 import { useTranslation } from '@/providers/I18n.provider';
-import { ConversationCacheHelper } from '@/services/conversation-cache-helper.service';
-import type { TemplatePreviewResult } from '@/services/template.service';
+import { ConversationCacheHelper } from '@/services/cache/conversation-cache-helper.service';
+import type { TemplatePreviewResult } from '@/services/core/template.service';
 import {
   useActions,
   useComposerConfig,

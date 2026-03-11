@@ -1,8 +1,8 @@
 import type { QueryClient } from '@tanstack/react-query';
-import { ConversationCacheHelper } from '@/services/conversation-cache-helper.service';
+import { ConversationCacheHelper } from '@/services/cache/conversation-cache-helper.service';
 import type { MessageStatusUpdatedEvent } from '@/interfaces/message.interface';
-import type { MessageReceivedEvent } from '@/services/message.service';
-import { MessageCacheHelper } from '@/services/message-cache-helper.service';
+import type { MessageReceivedEvent } from '@/services/core/message.service';
+import { MessageCacheHelper } from '@/services/cache/message-cache-helper.service';
 
 /**
  * MessageSyncService

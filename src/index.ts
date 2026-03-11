@@ -68,12 +68,12 @@ export * from '@/providers/query.provider';
 export * from '@/providers/service.provider';
 
 // Service Interfaces
-export * from '@/services/conversation.service';
-export * from '@/services/message.service';
-export * from '@/services/message-builder.service';
-export * from '@/services/network.service';
+export * from '@/services/core/conversation.service';
+export * from '@/services/core/message.service';
+export * from '@/services/core/network.service';
+export * from '@/services/messaging/message-builder.service';
+export * from '@/services/core/template.service';
 export * from '@/services/protocol';
-export * from '@/services/template.service';
 export * from '@/services/websocket';
 
 // Errors

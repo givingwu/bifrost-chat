@@ -3,7 +3,7 @@ import { useServices } from '@/providers/service.provider';
 import type {
   TemplatePreviewParams,
   TemplatePreviewResult,
-} from '@/services/template.service';
+} from '@/services/core/template.service';
 
 /**
  * 使用模板预览的 Hook

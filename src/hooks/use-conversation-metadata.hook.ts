@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { queryKeys } from '@/providers/query.provider';
 import { useServices } from '@/providers/service.provider';
-import { ConversationMetadata } from '@/services/conversation.service';
+import { ConversationMetadata } from '@/services/core/conversation.service';
 
 /**
  * 使用会话元数据的 Hook

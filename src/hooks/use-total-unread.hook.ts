@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useConversations } from '@/hooks/use-conversations.hook';
 import type { Conversation } from '@/interfaces/conversation.interface';
-import { ConversationCacheHelper } from '@/services/conversation-cache-helper.service';
+import { ConversationCacheHelper } from '@/services/cache/conversation-cache-helper.service';
 
 /**
  * 使用全量未读总数的 Hook

@@ -1,7 +1,7 @@
 import { onlineManager } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { NetworkReachabilityEnum } from '@/interfaces/network.interface';
-import type { INetworkService } from '@/services/network.service';
+import type { INetworkService } from '@/services/core/network.service';
 import { useActions } from '@/store';
 import { DEFAULT_NETWORK_STATE } from '@/store/slices/network.slice';
 

@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo } from 'react';
 import { useServices } from '@/providers/service.provider';
-import { MessageSyncService } from '@/services/message-sync.service';
+import { MessageSyncService } from '@/services/messaging/message-sync.service';
 
 /**
  * 消息状态实时同步 Hook

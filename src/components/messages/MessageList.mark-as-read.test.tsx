@@ -14,9 +14,9 @@ import enUSMessages from '@/locales/en-US.json';
 import { I18nProvider } from '@/providers/I18n.provider';
 import { queryKeys } from '@/providers/query.provider';
 import { ServiceProvider } from '@/providers/service.provider';
-import type { IConversationService } from '@/services/conversation.service';
-import type { IMessageService } from '@/services/message.service';
-import type { ITemplateService } from '@/services/template.service';
+import type { IConversationService } from '@/services/core/conversation.service';
+import type { IMessageService } from '@/services/core/message.service';
+import type { ITemplateService } from '@/services/core/template.service';
 import { MessageList } from './MessageList';
 
 class MockIntersectionObserver {

@@ -5,7 +5,7 @@ import { queryKeys } from '@/providers/query.provider';
 import {
   type InfiniteQueryData,
   MessageCacheHelper,
-} from '@/services/message-cache-helper.service';
+} from '@/services/cache/message-cache-helper.service';
 
 describe('MessageCacheHelper', () => {
   let queryClient: QueryClient;

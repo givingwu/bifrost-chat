@@ -48,8 +48,8 @@ import {
   WebSocketStatusEnum,
   type WebSocketStatusListener,
 } from '@/interfaces/websocket.interface';
-import { MessageBuilder } from '@/services/message-builder.service';
-import { messageQueue } from '@/services/message-queue.service';
+import { MessageBuilder } from '@/services/messaging/message-builder.service';
+import { messageQueue } from '@/services/messaging/message-queue.service';
 import {
   AckHandler,
   HeartbeatManager,

@@ -2,8 +2,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef } from 'react';
 import { MessageDirectionEnum } from '@/interfaces/message.interface';
 import { useServices } from '@/providers/service.provider';
-import { ConversationCacheHelper } from '@/services/conversation-cache-helper.service';
-import { MessageSyncService } from '@/services/message-sync.service';
+import { ConversationCacheHelper } from '@/services/cache/conversation-cache-helper.service';
+import { MessageSyncService } from '@/services/messaging/message-sync.service';
 import { useActiveConversationId } from '@/store';
 
 /**

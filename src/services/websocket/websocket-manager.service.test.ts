@@ -15,7 +15,7 @@ import {
   WebSocketEventTypeEnum,
   WebSocketStatusEnum,
 } from '@/interfaces/websocket.interface';
-import { messageQueue } from '@/services/message-queue.service';
+import { messageQueue } from '@/services/messaging/message-queue.service';
 import { WebSocketManager } from '@/services/websocket/websocket-manager.service';
 
 describe('WebSocketManager - 协议层 Helper 集成测试', () => {

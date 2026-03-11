@@ -10,8 +10,8 @@ import {
   PacketMessageTypeEnum,
   type RawPacket,
 } from '@/interfaces/protocol.interface';
-import { messageQueue } from '@/services/message-queue.service';
-import { pendingMessageTracker } from '@/services/pending-message-tracker.service';
+import { messageQueue } from '@/services/messaging/message-queue.service';
+import { pendingMessageTracker } from '@/services/messaging/pending-message-tracker.service';
 import { AckPacketHandler } from './ack-packet.handler';
 
 function getStatusEventData(

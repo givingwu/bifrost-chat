@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { queryKeys } from '@/providers/query.provider';
 import { useServices } from '@/providers/service.provider';
-import type { ITemplateListParams } from '@/services/template.service';
+import type { ITemplateListParams } from '@/services/core/template.service';
 
 /**
  * 使用模板列表的 Hook

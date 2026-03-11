@@ -8,7 +8,7 @@ import {
   isPacketBodyRecord,
   type RawPacket,
 } from '@/interfaces/protocol.interface';
-import { MessageBuilder } from '@/services/message-builder.service';
+import { MessageBuilder } from '@/services/messaging/message-builder.service';
 
 /**
  * PacketConverter - Packet 协议转换器

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { ErrorState } from '@/components/ErrorState';
 import { useMessages } from '@/hooks/use-messages.hook';
-import { MessageCacheHelper } from '@/services/message-cache-helper.service';
+import { MessageCacheHelper } from '@/services/cache/message-cache-helper.service';
 import { logger } from '@/utils/logger.util';
 import { MessageList } from './MessageList';
 

@@ -10,7 +10,7 @@ import {
   MessageTypeEnum,
 } from '@/interfaces/message.interface';
 import { queryKeys } from '@/providers/query.provider';
-import { MessageCacheHelper } from '@/services/message-cache-helper.service';
+import { MessageCacheHelper } from '@/services/cache/message-cache-helper.service';
 import { MessageSyncService } from './message-sync.service';
 
 describe('MessageSyncService', () => {

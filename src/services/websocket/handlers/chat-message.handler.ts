@@ -15,7 +15,7 @@ import type {
   PacketHandlerResult,
 } from '@/interfaces/websocket.interface';
 import { WebSocketEventTypeEnum } from '@/interfaces/websocket.interface';
-import { MessageBuilder } from '@/services/message-builder.service';
+import { MessageBuilder } from '@/services/messaging/message-builder.service';
 import { PacketConverter } from '@/services/protocol';
 import type { WebSocketManager } from '../websocket-manager.service';
 

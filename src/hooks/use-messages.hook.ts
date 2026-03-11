@@ -2,8 +2,8 @@ import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import type { StandardMessage } from '@/interfaces/message.interface';
 import { queryKeys } from '@/providers/query.provider';
 import { useServices } from '@/providers/service.provider';
-import type { IMessageListParams } from '@/services/message.service';
-import { MessageMerger } from '@/services/message-merger.service';
+import type { IMessageListParams } from '@/services/core/message.service';
+import { MessageMerger } from '@/services/messaging/message-merger.service';
 import { logger } from '@/utils/logger.util';
 
 /**

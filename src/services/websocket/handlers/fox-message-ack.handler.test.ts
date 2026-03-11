@@ -5,7 +5,7 @@ import {
   type RawPacket,
 } from '@/interfaces/protocol.interface';
 import { WebSocketEventTypeEnum } from '@/interfaces/websocket.interface';
-import { messageQueue } from '@/services/message-queue.service';
+import { messageQueue } from '@/services/messaging/message-queue.service';
 import { FoxMessageAckHandler } from './fox-message-ack.handler';
 
 describe('FoxMessageAckHandler', () => {

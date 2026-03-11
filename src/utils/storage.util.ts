@@ -1,6 +1,6 @@
 import type { IndexedDBConfig, IStorage } from '@/interfaces/storage.interface';
-import { IndexedDBImpl } from '../services/indexed-db.service';
-import { LocalStorageImpl } from '../services/local-storage.service';
+import { IndexedDBImpl } from '@/services/storage/indexed-db.service';
+import { LocalStorageImpl } from '@/services/storage/local-storage.service';
 
 /**
  * 检测 IndexedDB 是否可用

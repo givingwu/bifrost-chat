@@ -17,7 +17,7 @@ import type {
   PacketHandlerResult,
 } from '@/interfaces/websocket.interface';
 import { WebSocketEventTypeEnum } from '@/interfaces/websocket.interface';
-import { messageQueue } from '@/services/message-queue.service';
+import { messageQueue } from '@/services/messaging/message-queue.service';
 
 /**
  * 触达回复消息发送结果处理器

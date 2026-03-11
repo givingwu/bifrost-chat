@@ -2,11 +2,11 @@ import type { ReactNode } from 'react';
 import { createContext, useContext, useMemo } from 'react';
 import { useHostNetworkSync } from '@/hooks/use-host-network-sync.hook';
 import { NotImplementedError } from '@/errors/sdk.errors';
-import type { IConversationService } from '@/services/conversation.service';
-import type { IMessageService } from '@/services/message.service';
-import type { INetworkService } from '@/services/network.service';
-import type { OfflineMessageQueueService } from '@/services/offline-message-queue.service';
-import type { ITemplateService } from '@/services/template.service';
+import type { IConversationService } from '@/services/core/conversation.service';
+import type { IMessageService } from '@/services/core/message.service';
+import type { INetworkService } from '@/services/core/network.service';
+import type { OfflineMessageQueueService } from '@/services/messaging/offline-message-queue.service';
+import type { ITemplateService } from '@/services/core/template.service';
 
 /**
  * 服务上下文类型

@@ -19,8 +19,8 @@ import type {
   PacketHandlerResult,
 } from '@/interfaces/websocket.interface';
 import { WebSocketEventTypeEnum } from '@/interfaces/websocket.interface';
-import { messageQueue } from '@/services/message-queue.service';
-import { pendingMessageTracker } from '@/services/pending-message-tracker.service';
+import { messageQueue } from '@/services/messaging/message-queue.service';
+import { pendingMessageTracker } from '@/services/messaging/pending-message-tracker.service';
 import { AckHandler } from '@/services/protocol';
 
 /**

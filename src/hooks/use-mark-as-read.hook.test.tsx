@@ -12,10 +12,10 @@ import {
 import type { AckPacketBody } from '@/interfaces/protocol.interface';
 import { queryKeys } from '@/providers/query.provider';
 import { ServiceProvider } from '@/providers/service.provider';
-import type { IConversationService } from '@/services/conversation.service';
-import type { IMessageService } from '@/services/message.service';
-import { messageQueue } from '@/services/message-queue.service';
-import type { ITemplateService } from '@/services/template.service';
+import type { IConversationService } from '@/services/core/conversation.service';
+import type { IMessageService } from '@/services/core/message.service';
+import { messageQueue } from '@/services/messaging/message-queue.service';
+import type { ITemplateService } from '@/services/core/template.service';
 import { useMarkAsRead } from './use-mark-as-read.hook';
 
 const mockConversationService: IConversationService = {

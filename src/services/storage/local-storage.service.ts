@@ -1,5 +1,5 @@
 import type { IndexedDBConfig, IStorage } from '@/interfaces/storage.interface';
-import { MessageBuilder } from '@/services/message-builder.service';
+import { MessageBuilder } from '@/services/messaging/message-builder.service';
 import { IndexedDBError } from './indexed-db.service';
 
 /**
