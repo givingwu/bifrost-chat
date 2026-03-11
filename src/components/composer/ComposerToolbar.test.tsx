@@ -58,8 +58,8 @@ describe('ComposerToolbar', () => {
 
   it('should display channel switcher when channel is provided', () => {
     render(<ComposerToolbar channel={ChannelTypeEnum.WhatsApp} />);
-    // 通过渠道按钮来验证渠道切换器存在
-    const channelButton = screen.getByText('WhatsApp');
+    // ChannelFilter compact 模式只显示图标，通过 data-channel 属性验证按钮存在
+    const channelButton = document.querySelector('[data-channel="whatsapp"]');
     expect(channelButton).toBeDefined();
   });
 

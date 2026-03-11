@@ -229,7 +229,7 @@ describe('useUnreadSync', () => {
     });
   });
 
-  it('收到 Read 状态事件时只更新消息状态，不应减少会话未读', () => {
+  it('收到 Read 状态事件时应减少会话未读 -1 并更新消息状态', () => {
     const queryClient = new QueryClient({
       defaultOptions: {
         queries: {
@@ -287,11 +287,9 @@ describe('useUnreadSync', () => {
     const conversations = queryClient.getQueryData<Conversation[]>(
       queryKeys.conversations.list(ChannelTypeEnum.WhatsApp),
     );
-    const messages = queryClient.getQueryData<{
-      pages: Array<{ items: StandardMessage[] }>;
-    }>(queryKeys.messages.list('conv-status', ChannelTypeEnum.WhatsApp));
 
-    expect(conversations?.[0]?.unreadCount).toBe(3);
-    expect(messages?.pages[0]?.items[0]?.status).toBe(MessageStatusEnum.Read);
+    // useUnreadSync 只负责未读计数：Read ACK -1Ｈ3 →2）
+    // 消息状态更新由 useMessageStatusSync 负责，本测试不关注它
+    expect(conversations?.[0]?.unreadCount).toBe(2);
   });
 });

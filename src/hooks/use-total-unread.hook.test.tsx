@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AgentStatusEnum } from '@/interfaces/agent.interface';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import type { Conversation } from '@/interfaces/conversation.interface';
@@ -10,6 +10,7 @@ import { ServiceProvider } from '@/providers/service.provider';
 import type { IConversationService } from '@/services/core/conversation.service';
 import type { IMessageService } from '@/services/core/message.service';
 import type { ITemplateService } from '@/services/core/template.service';
+import { resetChatStore, useChatStore } from '@/store';
 import { useTotalUnread } from './use-total-unread.hook';
 
 const mockConversationService: IConversationService = {
@@ -66,6 +67,14 @@ function createWrapper(queryClient: QueryClient) {
 }
 
 describe('useTotalUnread', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    resetChatStore();
+    // useTotalUnread 依赖 allowedChannels 遍历各渠道缓存
+    useChatStore.getState().actions.setStrategy({
+      allowedChannels: [ChannelTypeEnum.WhatsApp],
+    });
+  });
   it('应直接基于会话缓存中的 unreadCount 计算总未读', async () => {
     const queryClient = new QueryClient({
       defaultOptions: {
@@ -74,7 +83,8 @@ describe('useTotalUnread', () => {
       },
     });
 
-    vi.mocked(mockConversationService.list).mockResolvedValue([
+    // 直接向缓存写入初始数据（useTotalUnread 从缓存读取，不依赖 fetch）
+    queryClient.setQueryData(queryKeys.conversations.list(ChannelTypeEnum.WhatsApp), [
       createConversation('conv-1', 2),
       createConversation('conv-2', 1),
     ]);
@@ -94,8 +104,9 @@ describe('useTotalUnread', () => {
       ]);
     });
 
+    // SMS 未在 allowedChannels 中，不计入总数
     await waitFor(() => {
-      expect(result.current.totalUnread).toBe(7);
+      expect(result.current.totalUnread).toBe(3);
     });
   });
 });

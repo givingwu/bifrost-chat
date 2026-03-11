@@ -1,7 +1,27 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
+import { LanguageCodeEnum } from '@/interfaces/language.interface';
+import { I18nProvider } from '@/providers/I18n.provider';
+import enUS from '@/locales/en-US.json';
 import { ChannelFilter } from './ChannelFilter';
+
+function Wrapper({ children }: { children: React.ReactNode }) {
+  return (
+    <I18nProvider locale={LanguageCodeEnum.EnUS} messages={enUS}>
+      {children}
+    </I18nProvider>
+  );
+}
+
+function renderWithProviders(ui: React.ReactElement) {
+  return render(ui, { wrapper: Wrapper });
+}
+
+// 使用 data-channel 属性查找按钮，避免依赖 i18n 翻译结果
+function getChannelButton(channel: ChannelTypeEnum) {
+  return document.querySelector(`[data-channel="${channel}"]`) as HTMLElement;
+}
 
 describe('ChannelFilter', () => {
   const mockOnChannelClick = vi.fn();
@@ -19,49 +39,34 @@ describe('ChannelFilter', () => {
   };
 
   it('应该渲染渠道切换器', () => {
-    render(<ChannelFilter {...defaultProps} />);
-
-    // 检查容器
-    const container = screen.getByRole('group');
-    expect(container).toBeInTheDocument();
+    renderWithProviders(<ChannelFilter {...defaultProps} />);
+    expect(screen.getByRole('group')).toBeInTheDocument();
   });
 
   it('应该渲染所有渠道按钮', () => {
-    render(<ChannelFilter {...defaultProps} />);
-
-    // 检查所有渠道按钮
-    expect(screen.getByLabelText('SMS')).toBeInTheDocument();
-    expect(screen.getByLabelText('WhatsApp')).toBeInTheDocument();
-    expect(screen.getByLabelText('Email')).toBeInTheDocument();
+    renderWithProviders(<ChannelFilter {...defaultProps} />);
+    expect(getChannelButton(ChannelTypeEnum.SMS)).toBeInTheDocument();
+    expect(getChannelButton(ChannelTypeEnum.WhatsApp)).toBeInTheDocument();
+    expect(getChannelButton(ChannelTypeEnum.Email)).toBeInTheDocument();
   });
 
   it('应该正确标记激活的渠道', () => {
-    render(<ChannelFilter {...defaultProps} />);
-
-    const smsButton = screen.getByLabelText('SMS');
-    const whatsAppButton = screen.getByLabelText('WhatsApp');
-    const emailButton = screen.getByLabelText('Email');
-
-    expect(smsButton).toHaveAttribute('aria-pressed', 'false');
-    expect(whatsAppButton).toHaveAttribute('aria-pressed', 'true');
-    expect(emailButton).toHaveAttribute('aria-pressed', 'false');
+    renderWithProviders(<ChannelFilter {...defaultProps} />);
+    expect(getChannelButton(ChannelTypeEnum.SMS)).toHaveAttribute('aria-pressed', 'false');
+    expect(getChannelButton(ChannelTypeEnum.WhatsApp)).toHaveAttribute('aria-pressed', 'true');
+    expect(getChannelButton(ChannelTypeEnum.Email)).toHaveAttribute('aria-pressed', 'false');
   });
 
   it('应该在点击时调用 onChannelClick', () => {
-    render(<ChannelFilter {...defaultProps} />);
-
-    const smsButton = screen.getByLabelText('SMS');
-    smsButton.click();
-
+    renderWithProviders(<ChannelFilter {...defaultProps} />);
+    getChannelButton(ChannelTypeEnum.SMS).click();
     expect(mockOnChannelClick).toHaveBeenCalledWith(ChannelTypeEnum.SMS);
   });
 
   it('应该在紧凑模式下仅显示图标', () => {
-    render(
+    renderWithProviders(
       <ChannelFilter {...defaultProps} compact={true} showTooltip={false} />,
     );
-
-    // 检查按钮是否不包含文字（tooltip 会影响 textContent，所以禁用它）
     const buttons = screen.getAllByRole('button');
     buttons.forEach((button) => {
       expect(button.textContent?.trim()).toBe('');
@@ -69,22 +74,19 @@ describe('ChannelFilter', () => {
   });
 
   it('应该在非紧凑模式下显示文字', () => {
-    render(<ChannelFilter {...defaultProps} compact={false} />);
-
-    const smsButton = screen.getByLabelText('SMS');
-    expect(smsButton.textContent).toContain('SMS');
+    renderWithProviders(<ChannelFilter {...defaultProps} compact={false} />);
+    // 非紧凑模式下 WhatsApp 按钮应包含渠道名称文字
+    const whatsAppBtn = getChannelButton(ChannelTypeEnum.WhatsApp);
+    expect(whatsAppBtn.textContent).toContain('WhatsApp');
   });
 
   it('应该在 showTooltip 为 false 时不渲染工具提示', () => {
-    render(<ChannelFilter {...defaultProps} showTooltip={false} />);
-
-    // 检查是否有工具提示
-    const tooltips = screen.queryAllByRole('tooltip');
-    expect(tooltips.length).toBe(0);
+    renderWithProviders(<ChannelFilter {...defaultProps} showTooltip={false} />);
+    expect(screen.queryAllByRole('tooltip').length).toBe(0);
   });
 
   it('应该在单渠道时不显示指示器', () => {
-    render(
+    renderWithProviders(
       <ChannelFilter
         channels={[ChannelTypeEnum.SMS]}
         activeChannel={ChannelTypeEnum.SMS}
@@ -93,23 +95,36 @@ describe('ChannelFilter', () => {
         showTooltip={false}
       />,
     );
-
-    // 单渠道时不应该有滑动指示器
-    const indicators = screen.queryAllByRole('presentation');
-    const slidingIndicators = indicators.filter((el) =>
-      el.classList.contains('bg-white'),
-    );
+    const slidingIndicators = screen
+      .queryAllByRole('presentation')
+      .filter((el) => el.classList.contains('bg-white'));
     expect(slidingIndicators.length).toBe(0);
   });
 
   it('应该在无激活渠道时不显示指示器', () => {
-    render(<ChannelFilter {...defaultProps} activeChannel={undefined} />);
-
-    // 无激活渠道时不应该有滑动指示器
-    const indicators = screen.queryAllByRole('presentation');
-    const slidingIndicators = indicators.filter((el) =>
-      el.classList.contains('bg-white'),
-    );
+    renderWithProviders(<ChannelFilter {...defaultProps} activeChannel={undefined} />);
+    const slidingIndicators = screen
+      .queryAllByRole('presentation')
+      .filter((el) => el.classList.contains('bg-white'));
     expect(slidingIndicators.length).toBe(0);
+  });
+
+  it('应该在传入 unreadByChannel 时显示 badge', () => {
+    renderWithProviders(
+      <ChannelFilter
+        {...defaultProps}
+        unreadByChannel={{
+          [ChannelTypeEnum.SMS]: 3,
+          [ChannelTypeEnum.WhatsApp]: 10,
+        }}
+      />,
+    );
+    expect(screen.getByLabelText('3 unread')).toBeInTheDocument();
+    expect(screen.getByLabelText('10 unread')).toBeInTheDocument();
+  });
+
+  it('不传 unreadByChannel 时不显示 badge', () => {
+    renderWithProviders(<ChannelFilter {...defaultProps} />);
+    expect(screen.queryAllByLabelText(/unread/).length).toBe(0);
   });
 });
