@@ -226,8 +226,9 @@ export class ConversationCacheHelper {
     queryClient.setQueryData<InfiniteData<Conversation[], number>>(
       queryKeys.conversations.list(channel),
       (old) => {
-        if (!old) return old;
-        return { ...old, pages: old.pages.map(updater) };
+        // 缓存不存在时初始化（新建陌生会话场景）
+        const existing = old ?? { pages: [[]], pageParams: [1] };
+        return { ...existing, pages: existing.pages.map(updater) };
       },
     );
   }
@@ -400,14 +401,6 @@ export class ConversationCacheHelper {
 
     return nextConversation;
   }
-
-  static sumTotalUnread(conversations: Conversation[]): number {
-    return conversations.reduce(
-      (sum, conversation) => sum + Math.max(0, conversation.unreadCount),
-      0,
-    );
-  }
-
 
   /**
    * 设置单个会话的精确未读数
