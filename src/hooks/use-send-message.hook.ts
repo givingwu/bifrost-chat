@@ -269,7 +269,8 @@ export function useSendMessage<
         {
           fromApp: currentUser.app,
           fromPin: currentUser.pin,
-          toPin: params.conversationId,
+          // Issue 1: toPin 应为联系人的手机号（user.id），而非 conversationId（会话 SID）
+          toPin: activeConversation?.user?.id ?? params.conversationId,
           channelType: activeChannel ?? allowedChannels[0],
           clientType: currentUser.clientType,
           conversationId: params.conversationId,

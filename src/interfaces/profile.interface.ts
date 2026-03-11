@@ -1,4 +1,23 @@
 /**
+ * 单个信息条目（支持实业方注入结构化数据）
+ */
+export interface ProfileInfoItem {
+  /** 标签 */
+  label: string;
+  /** 展示文本 */
+  value: string;
+  /**
+   * 可选跳转 URL（有则渲染为可点击链接）
+   * 例：/telecol/task/customer-info/12345
+   */
+  href?: string;
+  /** 图标类型 */
+  icon?: 'phone' | 'file' | 'link' | 'user';
+  /** 是否支持在会话列表搜索中返回（默认 true） */
+  searchable?: boolean;
+}
+
+/**
  * Profile 面板用户资料接口
  */
 export interface ProfileData {
@@ -34,4 +53,9 @@ export interface ProfileData {
   lastActiveAt?: string;
   /** 用户自定义字段 */
   customFields?: Record<string, string | number | boolean>;
+  /**
+   * 结构化业务信息列表（实业方注入）
+   * 例：手机号、资产编号、债务ID（支持一键跳转）
+   */
+  infoItems?: ProfileInfoItem[];
 }

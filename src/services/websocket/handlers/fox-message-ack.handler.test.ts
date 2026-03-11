@@ -5,7 +5,7 @@ import {
   type RawPacket,
 } from '@/interfaces/protocol.interface';
 import { WebSocketEventTypeEnum } from '@/interfaces/websocket.interface';
-import type { MessageStatusUpdatedEvent } from '@/services/message.service';
+import type { MessageStatusUpdatedEvent } from '@/interfaces/message.interface';
 import { messageQueue } from '@/services/message-queue.service';
 import { FoxMessageAckHandler } from './fox-message-ack.handler';
 

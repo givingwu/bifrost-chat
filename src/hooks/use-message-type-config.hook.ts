@@ -1,9 +1,9 @@
 import { useCallback, useMemo } from 'react';
 import { MessageTypeEnum } from '@/interfaces/message.interface';
 import {
-  getDefaultChannelMessageTypes,
   type MessageTypeDisplayStrategy,
 } from '@/interfaces/message-type-config.interface';
+import { getDefaultChannelMessageTypes } from '@/utils/channel.utils';
 import { useChatStore } from '@/store';
 
 /**

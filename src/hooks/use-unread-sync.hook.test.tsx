@@ -16,8 +16,8 @@ import type { IConversationService } from '@/services/conversation.service';
 import type {
   IMessageService,
   MessageReceivedEvent,
-  MessageStatusUpdatedEvent,
 } from '@/services/message.service';
+import type { MessageStatusUpdatedEvent } from '@/interfaces/message.interface';
 import { resetChatStore, useChatStore } from '@/store';
 import { useUnreadSync } from './use-unread-sync.hook';
 

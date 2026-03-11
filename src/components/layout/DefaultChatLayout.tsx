@@ -170,11 +170,20 @@ export function DefaultChatLayout({
       const lastMessage = conversation.lastMessage?.toLowerCase() || '';
       // 搜索会话 ID
       const conversationId = conversation.id?.toLowerCase() || '';
+      // 搜索手机号/联系方式 (pin)
+      const phone = String(conversation.metadata?.pin ?? '').toLowerCase();
+      // 搜索资产编号 (assetItemNumber)
+      const assetNumber = String(conversation.metadata?.assetItemNumber ?? '').toLowerCase();
+      // 搜索债务人 ID (subjectId)
+      const debtorId = String(conversation.metadata?.subjectId ?? '').toLowerCase();
 
       return (
         userName.includes(query) ||
         lastMessage.includes(query) ||
-        conversationId.includes(query)
+        conversationId.includes(query) ||
+        phone.includes(query) ||
+        assetNumber.includes(query) ||
+        debtorId.includes(query)
       );
     });
   }, [conversations, searchQuery]);

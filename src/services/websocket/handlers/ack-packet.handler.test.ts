@@ -9,7 +9,7 @@ import {
   PacketMessageTypeEnum,
   type RawPacket,
 } from '@/interfaces/protocol.interface';
-import type { MessageStatusUpdatedEvent } from '@/services/message.service';
+import type { MessageStatusUpdatedEvent } from '@/interfaces/message.interface';
 import { messageQueue } from '@/services/message-queue.service';
 import { pendingMessageTracker } from '@/services/pending-message-tracker.service';
 import { AckPacketHandler } from './ack-packet.handler';
