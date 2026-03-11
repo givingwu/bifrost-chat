@@ -6,12 +6,12 @@ import {
 import type { AckPacketBody } from '@/interfaces/protocol.interface';
 import { queryKeys } from '@/providers/query.provider';
 import { useServices } from '@/providers/service.provider';
+import { MessageCacheHelper } from '@/services/cache/message-cache-helper.service';
 import type {
   MarkAsReadMeta,
   MarkAsReadResult,
 } from '@/services/core/message.service';
 import { MessageBuilder } from '@/services/messaging/message-builder.service';
-import { MessageCacheHelper } from '@/services/cache/message-cache-helper.service';
 import { messageQueue } from '@/services/messaging/message-queue.service';
 
 export interface MarkAsReadParams {

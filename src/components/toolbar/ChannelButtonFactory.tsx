@@ -1,6 +1,6 @@
-import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import { useChannelIcon } from '@/hooks/use-channel-icon.hook';
 import { useChannelLabel } from '@/hooks/use-channel-label.hook';
+import type { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import { cn } from '@/utils/class.util';
 import { Button } from '../Button';
 

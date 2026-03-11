@@ -79,7 +79,7 @@ describe('AckPacketHandler', () => {
     });
 
     it('当 chatId 和映射表都不存在时应该返回 null', () => {
-      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => { });
+      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
       const packet: RawPacket = {
         id: 'msg-123',
@@ -275,7 +275,7 @@ describe('AckPacketHandler', () => {
     it('当 ACK 类型无效时应该返回 null', () => {
       const consoleSpy = vi
         .spyOn(console, 'error')
-        .mockImplementation(() => { });
+        .mockImplementation(() => {});
 
       const packet: RawPacket = {
         id: 'msg-123',

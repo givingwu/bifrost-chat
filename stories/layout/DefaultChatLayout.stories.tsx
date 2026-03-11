@@ -380,10 +380,6 @@ const meta: Meta<typeof DefaultChatLayout> = {
       control: 'text',
       description: 'class name',
     },
-    conversationBootstrap: {
-      control: false,
-      description: '详情页场景的会话查询/创建引导参数',
-    },
   },
   decorators: [
     (Story) => (
@@ -452,18 +448,6 @@ export const Default: Story = {
  * 展示 `conversationBootstrap` 在详情页场景下的 query -> create 引导能力。
  */
 export const WithConversationBootstrap: Story = {
-  args: {
-    conversationBootstrap: {
-      queryParams: {
-        debtorId: 1,
-        channelType: ChannelTypeEnum.WhatsApp,
-      },
-      createParams: {
-        debtorId: 1,
-        contactId: 2,
-      },
-    },
-  },
   parameters: {
     docs: {
       description: {

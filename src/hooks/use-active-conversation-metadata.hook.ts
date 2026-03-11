@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import {
   AvailableChannelTypes,
   type ChannelTypeEnum,
@@ -10,78 +10,56 @@ import { useConversationMetadata } from './use-conversation-metadata.hook';
 /**
  * 活跃会话元数据同步 Hook
  *
- * @description
- * 监听 activeConversationId 变化，自动获取会话元数据，
- * 并将 supportedChannels 同步到 SDK 的 strategy.allowedChannels。
- *
- * **行为说明**：
- * - 每次切换会话时更新 `allowedChannels`。
- * - 只有当前激活渠道不被新会话支持时，才重置 `activeChannel` 为首个可用渠道，
- *   避免在用户已手动选择渠道的情况下被静默覆盖。
- *
- * @returns 元数据查询结果和活跃会话 ID
+ * 监听 activeConversationId 变化，自动将元数据中的 supportedChannels
+ * 同步到 strategy.allowedChannels，并在必要时校正 activeChannel。
  */
 export function useActiveConversationMetadata() {
+  const config = useConfig();
   const { setStrategy } = useActions();
   const activeConversationId = useActiveConversationId();
-  const config = useConfig();
   const { activeChannel, allowedChannels } = useStrategy();
+  const { data: metadata } = useConversationMetadata(activeConversationId);
 
-  const queryResult = useConversationMetadata(activeConversationId);
+  // 稳定化 fallback
+  const configChannels = config?.strategy?.allowedChannels;
+  const fallbackChannels = useMemo(
+    () => configChannels ?? AvailableChannelTypes,
+    [configChannels],
+  );
 
-  const { data: metadata } = queryResult;
-  const hasActiveConversation = Boolean(activeConversationId);
-
-  const fallbackAllowedChannels =
-    config?.strategy?.allowedChannels ?? AvailableChannelTypes;
-  const fallbackActiveChannel =
-    config?.strategy?.activeChannel ??
-    fallbackAllowedChannels[0] ??
-    activeChannel;
-
-  // 同步 supportedChannels 到 SDK strategy
-  useEffect(() => {
-    const nextAllowedChannels =
-      hasActiveConversation && metadata?.supportedChannels?.length
-        ? (metadata.supportedChannels as readonly ChannelTypeEnum[])
-        : fallbackAllowedChannels;
-
-    const isCurrentChannelAllowed = nextAllowedChannels.includes(activeChannel);
-    const nextActiveChannel = isCurrentChannelAllowed
-      ? activeChannel
-      : nextAllowedChannels.includes(fallbackActiveChannel)
-        ? fallbackActiveChannel
-        : nextAllowedChannels[0];
-
-    const shouldUpdateAllowedChannels =
-      allowedChannels.length !== nextAllowedChannels.length ||
-      allowedChannels.some(
-        (channel, index) => channel !== nextAllowedChannels[index],
-      );
-    const shouldUpdateActiveChannel = nextActiveChannel !== activeChannel;
-
-    if (!shouldUpdateAllowedChannels && !shouldUpdateActiveChannel) {
-      return;
+  // 计算目标渠道列表
+  const nextChannels = useMemo(() => {
+    if (activeConversationId && metadata?.supportedChannels?.length) {
+      return metadata.supportedChannels as readonly ChannelTypeEnum[];
     }
 
-    setStrategy({
-      allowedChannels: nextAllowedChannels,
-      ...(shouldUpdateActiveChannel
-        ? { activeChannel: nextActiveChannel }
-        : {}),
-    });
-  }, [
-    metadata?.supportedChannels,
-    fallbackAllowedChannels,
-    fallbackActiveChannel,
-    hasActiveConversation,
-    setStrategy,
-    activeChannel,
-    allowedChannels,
-  ]);
+    return fallbackChannels;
+  }, [activeConversationId, metadata?.supportedChannels, fallbackChannels]);
 
-  return {
-    ...queryResult,
-    metadata,
-  };
+  // 用 ref 访问最新 store 值，避免放进 useEffect 依赖导致循环
+  const storeRef = useRef({ setStrategy, activeChannel, allowedChannels });
+  storeRef.current = { setStrategy, activeChannel, allowedChannels };
+
+  useEffect(() => {
+    const {
+      setStrategy: set,
+      activeChannel: ac,
+      allowedChannels: acs,
+    } = storeRef.current;
+
+    // 渠道列表没变就跳过
+    const isSame =
+      acs.length === nextChannels.length &&
+      acs.every((ch, i) => ch === nextChannels[i]);
+    const needSwitchChannel = !nextChannels.includes(ac);
+
+    if (isSame && !needSwitchChannel) return;
+
+    set({
+      ...(isSame ? {} : { allowedChannels: nextChannels }),
+      ...(needSwitchChannel ? { activeChannel: nextChannels[0] } : {}),
+    });
+  }, [nextChannels]);
+
+  return { metadata };
 }

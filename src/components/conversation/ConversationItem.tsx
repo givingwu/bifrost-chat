@@ -88,10 +88,11 @@ export const ConversationItem = memo(
         onKeyDown={handleKeyDown}
         className={containerClassName}
         aria-pressed={conversation.isActive}
-        aria-label={`与 ${conversation.user.name} 的会话${conversation.unreadCount > 0
-          ? `，有 ${conversation.unreadCount} 条未读消息`
-          : ''
-          }`}
+        aria-label={`与 ${conversation.user.name} 的会话${
+          conversation.unreadCount > 0
+            ? `，有 ${conversation.unreadCount} 条未读消息`
+            : ''
+        }`}
       >
         <div className="flex w-full items-start gap-3">
           {/* 头像区域：未读 Badge 悬浮在右上角（微信风格） */}
@@ -102,7 +103,9 @@ export const ConversationItem = memo(
             />
             {conversation.unreadCount > 0 && !conversation.isActive && (
               <span className="absolute -right-1 -top-1 flex min-w-[18px] h-[18px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white leading-none">
-                {conversation.unreadCount > 99 ? '99+' : conversation.unreadCount}
+                {conversation.unreadCount > 99
+                  ? '99+'
+                  : conversation.unreadCount}
               </span>
             )}
           </div>

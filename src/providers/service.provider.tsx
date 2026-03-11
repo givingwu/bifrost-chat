@@ -1,12 +1,12 @@
 import type { ReactNode } from 'react';
 import { createContext, useContext, useMemo } from 'react';
-import { useHostNetworkSync } from '@/hooks/use-host-network-sync.hook';
 import { NotImplementedError } from '@/errors/sdk.errors';
+import { useHostNetworkSync } from '@/hooks/use-host-network-sync.hook';
 import type { IConversationService } from '@/services/core/conversation.service';
 import type { IMessageService } from '@/services/core/message.service';
 import type { INetworkService } from '@/services/core/network.service';
-import type { OfflineMessageQueueService } from '@/services/messaging/offline-message-queue.service';
 import type { ITemplateService } from '@/services/core/template.service';
+import type { OfflineMessageQueueService } from '@/services/messaging/offline-message-queue.service';
 
 /**
  * 服务上下文类型
@@ -44,7 +44,7 @@ export function useServices(): ServiceContextValue {
   if (!context) {
     throw new Error(
       'useServices must be used within a ServiceProvider. ' +
-      'Wrap your component tree with <ServiceProvider>.',
+        'Wrap your component tree with <ServiceProvider>.',
     );
   }
   return context;
@@ -116,8 +116,8 @@ export function ServiceProvider({
   if (process.env.NODE_ENV === 'development' && parentContext !== null) {
     console.warn(
       '[Bifrost SDK] ⚠️ 检测到嵌套 ServiceProvider 实例。' +
-      '当前版本不支持多实例隔离，多个实例会共享 store 和缓存状态。' +
-      '如需支持多实例，请参阅 AGENTS.md 中的 P2-1 To-Be 规划。',
+        '当前版本不支持多实例隔离，多个实例会共享 store 和缓存状态。' +
+        '如需支持多实例，请参阅 AGENTS.md 中的 P2-1 To-Be 规划。',
     );
   }
 

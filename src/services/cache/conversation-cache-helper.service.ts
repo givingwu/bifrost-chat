@@ -171,13 +171,13 @@ function mergeConversation(
   const existingMetadata = existingConversation.metadata;
   const mergedMetadata =
     existingMetadata &&
-      typeof existingMetadata === 'object' &&
-      existingMetadata.synthetic !== true
+    typeof existingMetadata === 'object' &&
+    existingMetadata.synthetic !== true
       ? existingMetadata
       : {
-        ...incomingConversation.metadata,
-        ...existingConversation.metadata,
-      };
+          ...incomingConversation.metadata,
+          ...existingConversation.metadata,
+        };
 
   return {
     ...existingConversation,
@@ -279,18 +279,24 @@ export class ConversationCacheHelper {
   ): Conversation {
     let nextConversation = conversation;
 
-    ConversationCacheHelper.updatePages(queryClient, channel, (conversations) => {
-      const existingConversation = conversations.find(
-        (item) => item.id === conversation.id,
-      );
+    ConversationCacheHelper.updatePages(
+      queryClient,
+      channel,
+      (conversations) => {
+        const existingConversation = conversations.find(
+          (item) => item.id === conversation.id,
+        );
 
-      nextConversation = existingConversation
-        ? mergeConversation(existingConversation, conversation, options)
-        : conversation;
+        nextConversation = existingConversation
+          ? mergeConversation(existingConversation, conversation, options)
+          : conversation;
 
-      const rest = conversations.filter((item) => item.id !== conversation.id);
-      return [nextConversation, ...rest];
-    });
+        const rest = conversations.filter(
+          (item) => item.id !== conversation.id,
+        );
+        return [nextConversation, ...rest];
+      },
+    );
 
     return nextConversation;
   }
@@ -351,7 +357,10 @@ export class ConversationCacheHelper {
     ConversationCacheHelper.updatePages(queryClient, channel, (conversations) =>
       conversations.map((conversation) => {
         if (conversation.id !== conversationId) return conversation;
-        nextConversation = { ...conversation, unreadCount: conversation.unreadCount + 1 };
+        nextConversation = {
+          ...conversation,
+          unreadCount: conversation.unreadCount + 1,
+        };
         return nextConversation;
       }),
     );

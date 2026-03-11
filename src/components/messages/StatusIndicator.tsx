@@ -166,8 +166,9 @@ export const StatusIndicator = memo(
     } = config;
 
     // 构建类名
-    const iconClassName = `${size} ${colorClass} ${shouldAnimate && animate ? 'animate-spin' : ''
-      } ${className}`.trim();
+    const iconClassName = `${size} ${colorClass} ${
+      shouldAnimate && animate ? 'animate-spin' : ''
+    } ${className}`.trim();
 
     return (
       <span title={showTooltip ? tooltip : undefined}>

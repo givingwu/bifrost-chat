@@ -1,5 +1,8 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { MessageStatusEnum, type MessageStatusUpdatedEvent } from '@/interfaces/message.interface';
+import {
+  MessageStatusEnum,
+  type MessageStatusUpdatedEvent,
+} from '@/interfaces/message.interface';
 import {
   PacketMessageTypeEnum,
   type RawPacket,

@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
+import { NetworkError } from '@/errors/network.error';
 import {
   AuthorizationError,
   HTTPError,
@@ -11,14 +12,13 @@ import {
   ConnectionTimeoutError,
   SendFailedError,
 } from '@/errors/websocket.errors';
-import { NetworkError } from '@/errors/network.error';
 import {
-  type MessageSendResult,
-  type SendMessageOptions,
-  type StandardMessage,
   MessageFailureTypeEnum,
   MessagePriorityEnum,
+  type MessageSendResult,
   MessageStatusEnum,
+  type SendMessageOptions,
+  type StandardMessage,
 } from '@/interfaces/message.interface';
 import {
   NetworkErrorCodeEnum,
@@ -26,8 +26,8 @@ import {
 } from '@/interfaces/network.interface';
 import { queryKeys } from '@/providers/query.provider';
 import { useServices } from '@/providers/service.provider';
-import { MessageBuilder } from '@/services/messaging/message-builder.service';
 import { MessageCacheHelper } from '@/services/cache/message-cache-helper.service';
+import { MessageBuilder } from '@/services/messaging/message-builder.service';
 import { messageQueue } from '@/services/messaging/message-queue.service';
 import { MessageSyncService } from '@/services/messaging/message-sync.service';
 import { pendingMessageTracker } from '@/services/messaging/pending-message-tracker.service';
@@ -353,10 +353,7 @@ export function useSendMessage<
           { channel: activeChannel ?? undefined },
         );
 
-        logger.info(
-          '[useSendMessage] 消息已保存到离线队列:',
-          offlineMessageId,
-        );
+        logger.info('[useSendMessage] 消息已保存到离线队列:', offlineMessageId);
       } catch (queueError) {
         logger.error('[useSendMessage] 保存到离线队列失败:', queueError);
         if (tempId) {

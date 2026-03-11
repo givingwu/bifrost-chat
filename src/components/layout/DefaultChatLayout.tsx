@@ -17,10 +17,6 @@ import { Topbar } from '@/components/toolbar/Topbar';
 import { TopbarTools } from '@/components/toolbar/TopbarTools';
 import { useChannelUnread } from '@/hooks';
 import { useActiveConversationMetadata } from '@/hooks/use-active-conversation-metadata.hook';
-import {
-  type ConversationBootstrapOptions,
-  useConversationBootstrap,
-} from '@/hooks/use-conversation-bootstrap.hook';
 import { useConversations } from '@/hooks/use-conversations.hook';
 import { useMessageStatusSync } from '@/hooks/use-message-status-sync.hook';
 import { useSendMessage } from '@/hooks/use-send-message.hook';
@@ -54,8 +50,6 @@ export interface DefaultChatLayoutRenderTopbarProps {
   TopbarComponent: typeof Topbar;
 }
 
-export type { ConversationBootstrapOptions };
-
 export type DefaultChatLayoutRenderTopbar =
   | React.ReactNode
   | ((props: DefaultChatLayoutRenderTopbarProps) => React.ReactNode);
@@ -64,11 +58,6 @@ export interface DefaultChatLayoutProps {
   className?: string;
   style?: React.CSSProperties;
   extraTools?: React.ReactNode;
-  /**
-   * 会话引导参数。
-   * 详情页场景可传 query/create 参数，在首次进入时自动查询或创建会话。
-   */
-  conversationBootstrap?: ConversationBootstrapOptions;
   /**
    * 顶部栏自定义渲染：
    * - 直接传入 ReactNode：完全自定义
@@ -122,7 +111,6 @@ export function DefaultChatLayout({
   renderTopbar,
   className,
   style,
-  conversationBootstrap,
   onTotalUnreadChange,
   profileActions,
 }: DefaultChatLayoutProps) {
@@ -151,9 +139,6 @@ export function DefaultChatLayout({
   const { metadata: conversationMetadata } = useActiveConversationMetadata();
   // 初始化 useSendMessage 时传入 conversationMetadata
   const sendMessage = useSendMessage({ conversationMetadata });
-  const conversationBootstrapResult = useConversationBootstrap(
-    conversationBootstrap,
-  );
 
   // 库内订阅 messageService 实时消息/状态，自动维护未读增量（无需订阅方注册）
   useUnreadSync();
@@ -163,20 +148,10 @@ export function DefaultChatLayout({
   // 自动选中第一个会话
   useEffect(() => {
     // 如果当前没有选中会话，且会话列表已加载且不为空
-    if (
-      !activeConversationId &&
-      !conversationBootstrapResult.isBootstrapping &&
-      conversations &&
-      conversations.length > 0
-    ) {
+    if (!activeConversationId && conversations && conversations.length > 0) {
       actions.setActiveConversationId(conversations[0].id);
     }
-  }, [
-    conversations,
-    activeConversationId,
-    actions,
-    conversationBootstrapResult.isBootstrapping,
-  ]);
+  }, [conversations, activeConversationId, actions]);
 
   // 从会话列表中找到当前激活的会话
   const activeConversation = useMemo(

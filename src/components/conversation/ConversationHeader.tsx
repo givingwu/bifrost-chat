@@ -42,14 +42,7 @@ export const ConversationHeader = memo(
   }: ConversationHeaderProps) => {
     return (
       <div className={cn('p-4 pt-4 pb-2 space-y-4', className)}>
-        {title &&
-          (typeof title === 'string' ? (
-            <Title>
-              {title}
-            </Title>
-          ) : (
-            title
-          ))}
+        {title && (typeof title === 'string' ? <Title>{title}</Title> : title)}
 
         {showSearch && (
           <SearchInput

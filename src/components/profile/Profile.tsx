@@ -38,4 +38,3 @@ export const Profile = ({ profile, actions }: ProfileProps) => {
     </div>
   );
 };
-

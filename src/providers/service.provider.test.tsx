@@ -1,4 +1,8 @@
-import { onlineManager, QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import {
+  onlineManager,
+  QueryClient,
+  QueryClientProvider,
+} from '@tanstack/react-query';
 import {
   act,
   render,
@@ -9,6 +13,9 @@ import {
 import type { ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TopbarTools } from '@/components/toolbar/TopbarTools';
+import { AgentStatusEnum } from '@/interfaces/agent.interface';
+import { ChannelTypeEnum } from '@/interfaces/channel.interface';
+import { MessageTypeDisplayStrategy } from '@/interfaces/message-type-config.interface';
 import {
   NetworkQualityEnum,
   NetworkReachabilityEnum,
@@ -22,9 +29,6 @@ import type { INetworkService } from '@/services/core/network.service';
 import type { ITemplateService } from '@/services/core/template.service';
 import { useChatStore, useNetwork, useStrategy } from '@/store';
 import { DEFAULT_NETWORK_STATE } from '@/store/slices/network.slice';
-import { ChannelTypeEnum } from '@/interfaces/channel.interface';
-import { AgentStatusEnum } from '@/interfaces/agent.interface';
-import { MessageTypeDisplayStrategy } from '@/interfaces/message-type-config.interface';
 
 // Mock store to allow custom useStrategy
 vi.mock('@/store', async (importOriginal) => {
@@ -51,8 +55,8 @@ const mockMessageService: IMessageService = {
   list: vi.fn(),
   send: vi.fn(),
   markAsRead: vi.fn(),
-  subscribeToMessages: vi.fn(() => () => { }),
-  subscribeToMessageStatus: vi.fn(() => () => { }),
+  subscribeToMessages: vi.fn(() => () => {}),
+  subscribeToMessageStatus: vi.fn(() => () => {}),
   sendAttachment: vi.fn(),
   sendAudio: vi.fn(),
 };
@@ -124,7 +128,7 @@ describe('ServiceProvider', () => {
         status: AgentStatusEnum.Online,
       },
       allowedMessageTypes: [],
-      messageDisplayStrategy: MessageTypeDisplayStrategy.ShowUnsupported
+      messageDisplayStrategy: MessageTypeDisplayStrategy.ShowUnsupported,
     });
   });
 

@@ -1,4 +1,7 @@
-import { type StandardMessage, MessageStatusEnum } from '@/interfaces/message.interface';
+import {
+  MessageStatusEnum,
+  type StandardMessage,
+} from '@/interfaces/message.interface';
 import type { OfflineMessage } from '@/interfaces/offline-message.interface';
 
 /**

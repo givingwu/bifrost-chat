@@ -2,8 +2,8 @@ import { useQuery } from '@tanstack/react-query';
 import { queryKeys } from '@/providers/query.provider';
 import { useServices } from '@/providers/service.provider';
 import type {
-    UnreadCountParams,
-    UnreadCountResult,
+  UnreadCountParams,
+  UnreadCountResult,
 } from '@/services/core/conversation.service';
 
 /**
@@ -24,26 +24,26 @@ import type {
  * ```
  */
 export function useUnreadCount(params?: UnreadCountParams): {
-    data: UnreadCountResult | undefined;
-    isLoading: boolean;
-    refetch: () => void;
+  data: UnreadCountResult | undefined;
+  isLoading: boolean;
+  refetch: () => void;
 } {
-    const { conversationService } = useServices();
+  const { conversationService } = useServices();
 
-    const enabled = !!conversationService?.getUnreadCount;
+  const enabled = !!conversationService?.getUnreadCount;
 
-    const query = useQuery<UnreadCountResult>({
-        queryKey: queryKeys.conversations.unread(params),
-        queryFn: () => conversationService!.getUnreadCount!(params),
-        enabled,
-        staleTime: 1000 * 30,        // 30s 内视为新鲜
-        refetchInterval: 1000 * 60,  // 每 60s 轮询一次
-        refetchOnWindowFocus: true,
-    });
+  const query = useQuery<UnreadCountResult>({
+    queryKey: queryKeys.conversations.unread(params),
+    queryFn: () => conversationService!.getUnreadCount!(params),
+    enabled,
+    staleTime: 1000 * 30, // 30s 内视为新鲜
+    refetchInterval: 1000 * 60, // 每 60s 轮询一次
+    refetchOnWindowFocus: true,
+  });
 
-    return {
-        data: query.data,
-        isLoading: query.isLoading,
-        refetch: query.refetch,
-    };
+  return {
+    data: query.data,
+    isLoading: query.isLoading,
+    refetch: query.refetch,
+  };
 }

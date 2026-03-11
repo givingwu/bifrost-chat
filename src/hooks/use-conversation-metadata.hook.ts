@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { queryKeys } from '@/providers/query.provider';
 import { useServices } from '@/providers/service.provider';
-import { ConversationMetadata } from '@/services/core/conversation.service';
+import type { ConversationMetadata } from '@/services/core/conversation.service';
 
 /**
  * 使用会话元数据的 Hook
@@ -30,7 +30,9 @@ import { ConversationMetadata } from '@/services/core/conversation.service';
  * }
  * ```
  */
-export function useConversationMetadata<TConversationMetadata extends ConversationMetadata = ConversationMetadata>(conversationId: string) {
+export function useConversationMetadata<
+  TConversationMetadata extends ConversationMetadata = ConversationMetadata,
+>(conversationId: string) {
   const { conversationService } = useServices();
 
   return useQuery<TConversationMetadata | null>({
@@ -44,7 +46,9 @@ export function useConversationMetadata<TConversationMetadata extends Conversati
         return null;
       }
 
-      return conversationService.getMetadata({ id: conversationId }) as Promise<TConversationMetadata>;
+      return conversationService.getMetadata({
+        id: conversationId,
+      }) as Promise<TConversationMetadata>;
     },
     enabled: !!conversationService?.getMetadata && !!conversationId,
     staleTime: 1000 * 60 * 5, // 5 分钟

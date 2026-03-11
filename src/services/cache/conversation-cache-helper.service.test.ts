@@ -2,9 +2,7 @@ import { QueryClient } from '@tanstack/react-query';
 import { describe, expect, it } from 'vitest';
 import { AgentStatusEnum } from '@/interfaces/agent.interface';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
-import {
-  ConversationStatusEnum,
-} from '@/interfaces/conversation.interface';
+import { ConversationStatusEnum } from '@/interfaces/conversation.interface';
 import {
   MessageDirectionEnum,
   MessageStatusEnum,
@@ -101,7 +99,10 @@ describe('ConversationCacheHelper', () => {
 
     ConversationCacheHelper.upsertConversationFromMessage(queryClient, message);
 
-    const conversations = ConversationCacheHelper.getConversations(queryClient, ChannelTypeEnum.WhatsApp);
+    const conversations = ConversationCacheHelper.getConversations(
+      queryClient,
+      ChannelTypeEnum.WhatsApp,
+    );
 
     expect(conversations.map((item) => item.id)).toEqual([
       'conv-new',
@@ -154,7 +155,10 @@ describe('ConversationCacheHelper', () => {
 
     ConversationCacheHelper.upsertConversationFromMessage(queryClient, message);
 
-    const conversations = ConversationCacheHelper.getConversations(queryClient, ChannelTypeEnum.Email);
+    const conversations = ConversationCacheHelper.getConversations(
+      queryClient,
+      ChannelTypeEnum.Email,
+    );
     const updatedConversation = conversations[0];
 
     expect(updatedConversation?.id).toBe('conv-existing');
@@ -197,14 +201,28 @@ describe('ConversationCacheHelper', () => {
       },
     ]);
 
-    ConversationCacheHelper.incrementUnread(queryClient, 'conv-unread', ChannelTypeEnum.WhatsApp);
+    ConversationCacheHelper.incrementUnread(
+      queryClient,
+      'conv-unread',
+      ChannelTypeEnum.WhatsApp,
+    );
     expect(
-      ConversationCacheHelper.getConversations(queryClient, ChannelTypeEnum.WhatsApp)[0]?.unreadCount,
+      ConversationCacheHelper.getConversations(
+        queryClient,
+        ChannelTypeEnum.WhatsApp,
+      )[0]?.unreadCount,
     ).toBe(3);
 
-    ConversationCacheHelper.clearUnread(queryClient, 'conv-unread', ChannelTypeEnum.WhatsApp);
+    ConversationCacheHelper.clearUnread(
+      queryClient,
+      'conv-unread',
+      ChannelTypeEnum.WhatsApp,
+    );
     expect(
-      ConversationCacheHelper.getConversations(queryClient, ChannelTypeEnum.WhatsApp)[0]?.unreadCount,
+      ConversationCacheHelper.getConversations(
+        queryClient,
+        ChannelTypeEnum.WhatsApp,
+      )[0]?.unreadCount,
     ).toBe(0);
   });
 
@@ -226,21 +244,28 @@ describe('ConversationCacheHelper', () => {
       },
     ]);
 
-    ConversationCacheHelper.replaceConversation(queryClient, {
-      id: 'conv-authoritative',
-      user: {
-        id: 'authoritative-user',
-        name: '原会话',
-        status: AgentStatusEnum.Online,
+    ConversationCacheHelper.replaceConversation(
+      queryClient,
+      {
+        id: 'conv-authoritative',
+        user: {
+          id: 'authoritative-user',
+          name: '原会话',
+          status: AgentStatusEnum.Online,
+        },
+        lastMessage: '新摘要',
+        lastMessageTime: new Date(1_770_000_100_000).toISOString(),
+        unreadCount: 1,
+        channel: ChannelTypeEnum.Email,
       },
-      lastMessage: '新摘要',
-      lastMessageTime: new Date(1_770_000_100_000).toISOString(),
-      unreadCount: 1,
-      channel: ChannelTypeEnum.Email,
-    }, ChannelTypeEnum.WhatsApp);
+      ChannelTypeEnum.WhatsApp,
+    );
 
     expect(
-      ConversationCacheHelper.getConversations(queryClient, ChannelTypeEnum.WhatsApp)[0],
+      ConversationCacheHelper.getConversations(
+        queryClient,
+        ChannelTypeEnum.WhatsApp,
+      )[0],
     ).toMatchObject({
       id: 'conv-authoritative',
       unreadCount: 1,

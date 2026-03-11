@@ -4,19 +4,10 @@ import './styles/index.css';
 // Components
 export * from '@/components';
 export type {
-  ConversationBootstrapOptions,
   DefaultChatLayoutRenderTopbar,
   DefaultChatLayoutRenderTopbarProps,
 } from '@/components/layout/DefaultChatLayout';
-export * from '@/errors/network.error';
-/**
- * SDK 错误模块
- *
- * @description
- * 统一导出所有 SDK 错误类和工具
- */
-export * from '@/errors/sdk.errors';
-export * from '@/errors/websocket.errors';
+
 export { useConversationMetadata } from '@/hooks/use-conversation-metadata.hook';
 // Hooks
 // 会话相关 Hooks

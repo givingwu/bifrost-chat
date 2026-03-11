@@ -1,7 +1,7 @@
 import {
   MessageDirectionEnum,
   MessageStatusEnum,
-  MessageStatusUpdatedEvent,
+  type MessageStatusUpdatedEvent,
 } from '@/interfaces/message.interface';
 import {
   type AckData,
@@ -109,7 +109,6 @@ const OUTGOING_STATUS_PRIORITY: Record<MessageStatusEnum, number> = {
   [MessageStatusEnum.Revoked]: 5,
   [MessageStatusEnum.Deleted]: 5,
 };
-
 
 /**
  * 转换为服务端消息 ID
@@ -991,13 +990,13 @@ export class MessageQueueService {
 
     const nextStage =
       nextStatus === MessageStatusEnum.Sending ||
-        nextStatus === MessageStatusEnum.Sent
+      nextStatus === MessageStatusEnum.Sent
         ? MessageQueueStageEnum.PendingChannelReceipt
         : nextStatus === MessageStatusEnum.Delivered
           ? MessageQueueStageEnum.Delivered
           : nextStatus === MessageStatusEnum.Read ||
-            nextStatus === MessageStatusEnum.Revoked ||
-            nextStatus === MessageStatusEnum.Deleted
+              nextStatus === MessageStatusEnum.Revoked ||
+              nextStatus === MessageStatusEnum.Deleted
             ? MessageQueueStageEnum.Completed
             : MessageQueueStageEnum.Failed;
 
@@ -1106,7 +1105,7 @@ export class MessageQueueService {
       }
     }
 
-    return undefined
+    return undefined;
   }
 
   /**

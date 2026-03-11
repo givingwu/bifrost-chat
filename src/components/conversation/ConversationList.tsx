@@ -153,7 +153,11 @@ export const ConversationList = memo(
       if (!sentinel) return;
       const observer = new IntersectionObserver(
         (entries) => {
-          if (entries[0]?.isIntersecting && hasNextPage && !isFetchingNextPage) {
+          if (
+            entries[0]?.isIntersecting &&
+            hasNextPage &&
+            !isFetchingNextPage
+          ) {
             fetchNextPage();
           }
         },
@@ -385,7 +389,9 @@ export const ConversationList = memo(
           ))}
         </div>
         {/* 触底加载哨兵（虚拟滚动模式） */}
-        {shouldAutoFetch && <div ref={sentinelRef} className="h-4" aria-hidden />}
+        {shouldAutoFetch && (
+          <div ref={sentinelRef} className="h-4" aria-hidden />
+        )}
         {isFetchingNextPage && (
           <div className="py-2 text-center">
             <LoadingState message="" />

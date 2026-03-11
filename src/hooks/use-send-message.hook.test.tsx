@@ -18,9 +18,9 @@ import { queryKeys } from '@/providers/query.provider';
 import { ServiceProvider } from '@/providers/service.provider';
 import type { IConversationService } from '@/services/core/conversation.service';
 import type { IMessageService } from '@/services/core/message.service';
+import type { ITemplateService } from '@/services/core/template.service';
 import { messageQueue } from '@/services/messaging/message-queue.service';
 import { pendingMessageTracker } from '@/services/messaging/pending-message-tracker.service';
-import type { ITemplateService } from '@/services/core/template.service';
 import type { CurrentUser } from '@/store';
 import { useSendMessage } from './use-send-message.hook';
 

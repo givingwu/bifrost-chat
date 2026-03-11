@@ -1,5 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { type StandardMessage, MessageStatusEnum } from '@/interfaces/message.interface';
+import {
+  MessageStatusEnum,
+  type StandardMessage,
+} from '@/interfaces/message.interface';
 import { queryKeys } from '@/providers/query.provider';
 import { useServices } from '@/providers/service.provider';
 
@@ -119,10 +122,10 @@ export function useRetryMessage() {
               items: page.items.map((item: StandardMessage) =>
                 item._offlineMessageId === offlineMessageId
                   ? {
-                    ...item,
-                    status: MessageStatusEnum.Failed,
-                    error: error.message,
-                  }
+                      ...item,
+                      status: MessageStatusEnum.Failed,
+                      error: error.message,
+                    }
                   : item,
               ),
             })),

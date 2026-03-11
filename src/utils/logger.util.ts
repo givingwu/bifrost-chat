@@ -20,14 +20,14 @@
  */
 
 function isDebugEnabled(): boolean {
-    try {
-        return (
-            typeof localStorage !== 'undefined' &&
-            localStorage.getItem('bifrost:debug') === 'true'
-        );
-    } catch {
-        return false;
-    }
+  try {
+    return (
+      typeof localStorage !== 'undefined' &&
+      localStorage.getItem('bifrost:debug') === 'true'
+    );
+  } catch {
+    return false;
+  }
 }
 
 let _debug = process.env.NODE_ENV === 'development' || isDebugEnabled();
@@ -36,30 +36,30 @@ let _debug = process.env.NODE_ENV === 'development' || isDebugEnabled();
  * 设置全局 debug 模式（由 SDK 初始化时调用）
  */
 export function setLoggerDebug(enabled: boolean): void {
-    _debug = enabled;
+  _debug = enabled;
 }
 
 export const logger = {
-    info: (...args: unknown[]): void => {
-        if (_debug) {
-            console.info(...args);
-        }
-    },
-    warn: (...args: unknown[]): void => {
-        if (_debug) {
-            console.warn(...args);
-        }
-    },
-    /**
-     * error 级别日志始终输出（不受 debug 控制），因为错误信息对排查生产问题至关重要。
-     * SDK 宿主如需过滤，可通过 `window.onerror` 或自定义 ErrorBoundary 处理。
-     */
-    error: (...args: unknown[]): void => {
-        console.error(...args);
-    },
-    debug: (...args: unknown[]): void => {
-        if (_debug) {
-            console.debug(...args);
-        }
-    },
+  info: (...args: unknown[]): void => {
+    if (_debug) {
+      console.info(...args);
+    }
+  },
+  warn: (...args: unknown[]): void => {
+    if (_debug) {
+      console.warn(...args);
+    }
+  },
+  /**
+   * error 级别日志始终输出（不受 debug 控制），因为错误信息对排查生产问题至关重要。
+   * SDK 宿主如需过滤，可通过 `window.onerror` 或自定义 ErrorBoundary 处理。
+   */
+  error: (...args: unknown[]): void => {
+    console.error(...args);
+  },
+  debug: (...args: unknown[]): void => {
+    if (_debug) {
+      console.debug(...args);
+    }
+  },
 };

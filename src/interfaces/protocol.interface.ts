@@ -1,14 +1,14 @@
-import {
-  type IAuthMessage,
-  type ILocationMessage,
-  type IMediaMessage,
-  type IRichMediaMessage,
-  type IStringMessage,
-  type ITemplateMessage,
-  type MessageParticipant,
-  type MessageTypeEnum,
-} from './message.interface';
 import type { ServerMessageStatus } from '@/services/protocol/status.mapper';
+import type {
+  IAuthMessage,
+  ILocationMessage,
+  IMediaMessage,
+  IRichMediaMessage,
+  IStringMessage,
+  ITemplateMessage,
+  MessageParticipant,
+  MessageTypeEnum,
+} from './message.interface';
 
 /**
  * ACK 类型枚举
@@ -81,7 +81,6 @@ export enum PacketMessageTypeEnum {
   MessageStatusAck = 'message_status_ack',
 }
 
-
 /**
  * Packet 协议消息体（body）结构，用于类型安全的 Packet body 转换
  *
@@ -111,7 +110,7 @@ export type PacketBody =
   | DeleteChatBody
   | PacketBodyBase;
 
-export interface AuthPacketBody extends IAuthMessage { }
+export interface AuthPacketBody extends IAuthMessage {}
 
 export interface PacketBodyBase {
   type?: MessageTypeEnum | PacketMessageTypeEnum | AckMessageTypeEnum;
@@ -126,10 +125,10 @@ export interface TextPacketBody extends PacketBodyBase {
 
 export interface MediaPacketBody extends PacketBodyBase {
   type:
-  | MessageTypeEnum.Image
-  | MessageTypeEnum.Audio
-  | MessageTypeEnum.Video
-  | MessageTypeEnum.File;
+    | MessageTypeEnum.Image
+    | MessageTypeEnum.Audio
+    | MessageTypeEnum.Video
+    | MessageTypeEnum.File;
   content: IMediaMessage;
 }
 

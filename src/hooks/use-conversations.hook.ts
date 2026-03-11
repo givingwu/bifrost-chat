@@ -1,10 +1,10 @@
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
+import type { Conversation } from '@/interfaces/conversation.interface';
 import { queryKeys } from '@/providers/query.provider';
 import { useServices } from '@/providers/service.provider';
 import { ConversationCacheHelper } from '@/services/cache/conversation-cache-helper.service';
 import { useStrategy } from '@/store';
-import type { Conversation } from '@/interfaces/conversation.interface';
 
 /**
  * 使用会话列表分页 Hook（Infinite Query 版本）
@@ -43,8 +43,9 @@ export function useConversations<TListParams = Record<string, unknown>>(
     initialPageParam: 1,
     getNextPageParam: (lastPage, allPages) => {
       // 宿主层会在返回数组上挂载 total 字段
-      const total = (lastPage as Conversation[] & { total?: number }).total ?? 0;
-      const fetched = allPages.flatMap(p => p).length;
+      const total =
+        (lastPage as Conversation[] & { total?: number }).total ?? 0;
+      const fetched = allPages.flatMap((p) => p).length;
       return fetched < total ? allPages.length + 1 : undefined;
     },
     enabled: (options?.enabled ?? true) && !!conversationService,
@@ -52,7 +53,7 @@ export function useConversations<TListParams = Record<string, unknown>>(
   });
 
   // 推导扁平会话列表（所有页合并）
-  const conversations = query.data?.pages.flatMap(page => page) ?? undefined;
+  const conversations = query.data?.pages.flatMap((page) => page) ?? undefined;
 
   // 订阅会话列表级别的权威回灌
   useEffect(() => {
@@ -69,7 +70,11 @@ export function useConversations<TListParams = Record<string, unknown>>(
 
   // 对已知会话补充单会话级回灌
   useEffect(() => {
-    if (!conversationService?.subscribeToConversationUpdates || !conversations?.length) return;
+    if (
+      !conversationService?.subscribeToConversationUpdates ||
+      !conversations?.length
+    )
+      return;
 
     const unsubscribers = conversations.map((conversation) =>
       conversationService.subscribeToConversationUpdates?.(

@@ -14,8 +14,8 @@ import { queryKeys } from '@/providers/query.provider';
 import { ServiceProvider } from '@/providers/service.provider';
 import type { IConversationService } from '@/services/core/conversation.service';
 import type { IMessageService } from '@/services/core/message.service';
-import { messageQueue } from '@/services/messaging/message-queue.service';
 import type { ITemplateService } from '@/services/core/template.service';
+import { messageQueue } from '@/services/messaging/message-queue.service';
 import { useMarkAsRead } from './use-mark-as-read.hook';
 
 const mockConversationService: IConversationService = {

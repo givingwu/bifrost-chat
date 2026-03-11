@@ -6,7 +6,7 @@ import type { Conversation } from '@/interfaces/conversation.interface';
  * SDK 层使用 supportedChannels，业务数据通过扩展字段传递
  */
 export interface ConversationMetadata
-  extends Pick<Conversation, 'supportedChannels'> { }
+  extends Pick<Conversation, 'supportedChannels'> {}
 
 /**
  * 未读数量查询参数
@@ -21,7 +21,7 @@ export interface UnreadCountParams {
 /**
  * 未读数量结果
  */
-export type UnreadCountResult = Partial<Record<ChannelTypeEnum, number>>
+export type UnreadCountResult = Partial<Record<ChannelTypeEnum, number>>;
 
 /**
  * 会话服务接口 (泛型版本)

@@ -9,7 +9,6 @@
 
 import type { RawPacket } from '@/interfaces/protocol.interface';
 import { PacketMessageTypeEnum } from '@/interfaces/protocol.interface';
-import { BasePacketHandler } from './base-packet.handler';
 import type {
   PacketHandlerContext,
   PacketHandlerResult,
@@ -18,6 +17,7 @@ import { WebSocketEventTypeEnum } from '@/interfaces/websocket.interface';
 import { MessageBuilder } from '@/services/messaging/message-builder.service';
 import { PacketConverter } from '@/services/protocol';
 import type { WebSocketManager } from '../websocket-manager.service';
+import { BasePacketHandler } from './base-packet.handler';
 
 /**
  * 聊天消息处理器

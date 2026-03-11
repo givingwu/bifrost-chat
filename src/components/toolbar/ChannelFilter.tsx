@@ -1,9 +1,9 @@
-import { memo, useMemo, type CSSProperties } from 'react';
+import { type CSSProperties, memo, useMemo } from 'react';
 import { useChannelIcon } from '@/hooks/use-channel-icon.hook';
 import { useChannelLabel } from '@/hooks/use-channel-label.hook';
+import type { AgentStatusEnum } from '@/interfaces/agent.interface';
+import type { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import { cn } from '@/utils/class.util';
-import { AgentStatusEnum } from '@/interfaces/agent.interface';
-import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 
 export interface ChannelFilterProps {
   /** 坐席状态（in_call 时触发互斥逻辑） */
@@ -78,7 +78,10 @@ export const ChannelFilter = memo(
     return (
       <fieldset
         aria-label="Channel Filter"
-        className={cn('relative inline-flex items-center rounded-full p-0.5 bg-gray-100 dark:bg-white/[0.08] backdrop-blur-md border border-gray-300/60 dark:border-white/15 shadow-sm', className)}
+        className={cn(
+          'relative inline-flex items-center rounded-full p-0.5 bg-gray-100 dark:bg-white/[0.08] backdrop-blur-md border border-gray-300/60 dark:border-white/15 shadow-sm',
+          className,
+        )}
         style={style}
       >
         {/* Sliding indicator - 仅在多渠道时显示 */}

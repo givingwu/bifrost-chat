@@ -1,6 +1,6 @@
 import { type KeyboardEvent, type MouseEvent, memo } from 'react';
-import { Image } from './Image';
 import { cn } from '@/utils/class.util';
+import { Image } from './Image';
 
 export interface AvatarProps {
   /** 图片 URL */
@@ -85,11 +85,13 @@ export const Avatar = memo(
     lazy = true,
   }: AvatarProps) => {
     // 容器类名
-    const rounedClassName = rounded ? 'rounded-full' : 'rounded-lg'
+    const rounedClassName = rounded ? 'rounded-full' : 'rounded-lg';
     const containerClassName =
-      `relative inline-flex items-center justify-center bg-gray-200 ${rounedClassName
-        } ${AVATAR_SIZE_MAP[size]} ${onClick ? 'cursor-pointer' : ''
-        } ${className}`.trim();
+      `relative inline-flex items-center justify-center bg-gray-200 ${
+        rounedClassName
+      } ${AVATAR_SIZE_MAP[size]} ${
+        onClick ? 'cursor-pointer' : ''
+      } ${className}`.trim();
 
     return (
       <div
@@ -103,7 +105,7 @@ export const Avatar = memo(
         <Image
           src={src}
           alt={alt}
-          className={cn("w-full h-full object-cover", rounedClassName)}
+          className={cn('w-full h-full object-cover', rounedClassName)}
           fallback={fallback || <DefaultFallback />}
           fallbackSrc={DEFAULT_AVATAR_URL}
           lazy={lazy}

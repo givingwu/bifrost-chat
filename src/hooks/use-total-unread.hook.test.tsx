@@ -22,8 +22,8 @@ const mockMessageService: IMessageService = {
   list: vi.fn(),
   send: vi.fn(),
   markAsRead: vi.fn(),
-  subscribeToMessages: vi.fn(() => () => { }),
-  subscribeToMessageStatus: vi.fn(() => () => { }),
+  subscribeToMessages: vi.fn(() => () => {}),
+  subscribeToMessageStatus: vi.fn(() => () => {}),
   sendAttachment: vi.fn(),
   sendAudio: vi.fn(),
 };
@@ -65,7 +65,10 @@ describe('useTotalUnread', () => {
     });
 
     const queryClient = new QueryClient({
-      defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+      },
     });
 
     const { result } = renderHook(() => useTotalUnread(), {
@@ -84,7 +87,10 @@ describe('useTotalUnread', () => {
     vi.mocked(mockConversationService.getUnreadCount!).mockResolvedValue({});
 
     const queryClient = new QueryClient({
-      defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+      },
     });
 
     const { result } = renderHook(() => useTotalUnread(), {
@@ -98,7 +104,10 @@ describe('useTotalUnread', () => {
 
   it('传入 conversations 时应跳过 API 直接求和', async () => {
     const queryClient = new QueryClient({
-      defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+      },
     });
 
     const conversations = [

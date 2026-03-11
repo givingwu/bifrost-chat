@@ -17,13 +17,15 @@ interface ProfileHeaderProps {
 export const ProfileHeader = ({ profile, actions }: ProfileHeaderProps) => {
   return (
     <div className="flex flex-col items-center">
-      {profile?.avatarUrl && <div className="mb-4 h-20 w-20 rounded-full border-2 border-border p-1">
-        <img
-          src={profile?.avatarUrl ?? 'https://placehold.co/80x80'}
-          alt={profile?.name ?? 'User'}
-          className="h-full w-full rounded-full object-cover"
-        />
-      </div>}
+      {profile?.avatarUrl && (
+        <div className="mb-4 h-20 w-20 rounded-full border-2 border-border p-1">
+          <img
+            src={profile?.avatarUrl ?? 'https://placehold.co/80x80'}
+            alt={profile?.name ?? 'User'}
+            className="h-full w-full rounded-full object-cover"
+          />
+        </div>
+      )}
       <h2 className="text-lg font-semibold text-text">
         {profile?.name ?? 'Customer'}
       </h2>
@@ -49,4 +51,3 @@ export const ProfileHeader = ({ profile, actions }: ProfileHeaderProps) => {
     </div>
   );
 };
-

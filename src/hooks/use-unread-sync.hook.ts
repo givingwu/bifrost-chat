@@ -85,7 +85,12 @@ export function useUnreadSync(): void {
           const conversationId = event.conversationId;
 
           // 会话级 -1（全局/渠道级派生）
-          ConversationCacheHelper.decrementUnread(queryClient, conversationId, channel, 1);
+          ConversationCacheHelper.decrementUnread(
+            queryClient,
+            conversationId,
+            channel,
+            1,
+          );
         }
       },
     );

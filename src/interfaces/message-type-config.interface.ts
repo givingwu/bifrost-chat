@@ -1,5 +1,5 @@
-import { ChannelTypeEnum } from './channel.interface';
-import { MessageTypeEnum } from './message.interface';
+import type { ChannelTypeEnum } from './channel.interface';
+import type { MessageTypeEnum } from './message.interface';
 
 /**
  * 消息类型显示策略

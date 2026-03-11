@@ -1,4 +1,4 @@
-import { ChannelTypeEnum } from '@/interfaces/channel.interface';
+import type { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import { useTranslation } from '@/providers/I18n.provider';
 
 /**
@@ -9,8 +9,8 @@ import { useTranslation } from '@/providers/I18n.provider';
  * getLabel(ChannelTypeEnum.SMS); // '交互短信' | 'Interactive SMS'
  */
 export const useChannelLabel = () => {
-    const { t } = useTranslation();
-    return (channel: ChannelTypeEnum): string =>
-        t(`toolbar.channel.${channel.toLowerCase()}` as Parameters<typeof t>[0]) ||
-        channel;
+  const { t } = useTranslation();
+  return (channel: ChannelTypeEnum): string =>
+    t(`toolbar.channel.${channel.toLowerCase()}` as Parameters<typeof t>[0]) ||
+    channel;
 };

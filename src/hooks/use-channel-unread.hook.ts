@@ -24,35 +24,41 @@ import { useActiveConversationId, useStrategy } from '@/store';
  * ```
  */
 export function useChannelUnread(
-    channels?: readonly ChannelTypeEnum[],
+  channels?: readonly ChannelTypeEnum[],
 ): UnreadCountResult {
-    const { conversationService } = useServices();
-    const { allowedChannels } = useStrategy();
-    const targetChannels = channels ?? allowedChannels;
-    const activeConversationId = useActiveConversationId()
+  const { conversationService } = useServices();
+  const { allowedChannels } = useStrategy();
+  const targetChannels = channels ?? allowedChannels;
+  const activeConversationId = useActiveConversationId();
 
-    const { data: unreadByChannel } = useQuery({
-        queryKey: [...queryKeys.conversations.unread({ conversationId: activeConversationId }), ...targetChannels],
-        queryFn: () => conversationService?.getUnreadCount?.({
-            conversationId: activeConversationId
-        }),
-        enabled: !!conversationService?.getUnreadCount && !!activeConversationId,
-        staleTime: 1000 * 30,
-        refetchInterval: 1000 * 60,
-    });
+  const { data: unreadByChannel } = useQuery({
+    queryKey: [
+      ...queryKeys.conversations.unread({
+        conversationId: activeConversationId,
+      }),
+      ...targetChannels,
+    ],
+    queryFn: () =>
+      conversationService?.getUnreadCount?.({
+        conversationId: activeConversationId,
+      }),
+    enabled: !!conversationService?.getUnreadCount && !!activeConversationId,
+    staleTime: 1000 * 30,
+    refetchInterval: 1000 * 60,
+  });
 
-    return useMemo(() => {
-        if (!unreadByChannel) return {};
+  return useMemo(() => {
+    if (!unreadByChannel) return {};
 
-        // 只返回 targetChannels 内的渠道
-        const result: Partial<Record<ChannelTypeEnum, number>> = {};
+    // 只返回 targetChannels 内的渠道
+    const result: Partial<Record<ChannelTypeEnum, number>> = {};
 
-        for (const channel of targetChannels) {
-            const count = unreadByChannel[channel];
-            if (count != null && count > 0) {
-                result[channel] = count;
-            }
-        }
-        return result;
-    }, [unreadByChannel, targetChannels]);
+    for (const channel of targetChannels) {
+      const count = unreadByChannel[channel];
+      if (count != null && count > 0) {
+        result[channel] = count;
+      }
+    }
+    return result;
+  }, [unreadByChannel, targetChannels]);
 }

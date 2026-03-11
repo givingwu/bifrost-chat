@@ -1,8 +1,8 @@
 import {
-  type StandardMessage,
   ClientTypeEnum,
   MessageDirectionEnum,
   MessageStatusEnum,
+  type StandardMessage,
 } from '@/interfaces/message.interface';
 import {
   isPacketBodyRecord,

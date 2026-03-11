@@ -1,11 +1,11 @@
+import type { SDKError } from '@/errors/sdk.errors';
 import type { ChannelTypeEnum } from './channel.interface';
 import type { ConnectionStateEnum } from './connection.interface';
 import type { User } from './conversation.interface';
-import type { SDKError } from '@/errors/sdk.errors';
+import type { LanguageCodeEnum } from './language.interface';
 import type { StandardMessage } from './message.interface';
 import type { MessageTypeConfig } from './message-type-config.interface';
 import type { ThemeModeEnum } from './theme.interface';
-import type { LanguageCodeEnum } from './language.interface';
 
 /**
  * SDK 配置接口

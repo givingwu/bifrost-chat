@@ -11,12 +11,12 @@ import { queryKeys } from '@/providers/query.provider';
  * 测试中直接调用此函数代替原先的 `setQueryData<Conversation[]>(...)`.
  */
 export function seedConversationCache(
-    queryClient: QueryClient,
-    channel: ChannelTypeEnum,
-    conversations: Conversation[],
+  queryClient: QueryClient,
+  channel: ChannelTypeEnum,
+  conversations: Conversation[],
 ): void {
-    queryClient.setQueryData<InfiniteData<Conversation[], number>>(
-        queryKeys.conversations.list(channel),
-        { pages: [conversations], pageParams: [1] },
-    );
+  queryClient.setQueryData<InfiniteData<Conversation[], number>>(
+    queryKeys.conversations.list(channel),
+    { pages: [conversations], pageParams: [1] },
+  );
 }

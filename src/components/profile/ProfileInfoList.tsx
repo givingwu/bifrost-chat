@@ -1,5 +1,8 @@
 import { FileText, Link, Mail, Phone, User as UserIcon } from 'lucide-react';
-import type { ProfileData, ProfileInfoItem } from '@/interfaces/profile.interface';
+import type {
+  ProfileData,
+  ProfileInfoItem,
+} from '@/interfaces/profile.interface';
 
 interface ProfileInfoListProps {
   profile?: ProfileData;
@@ -33,10 +36,15 @@ export const ProfileInfoList = ({ profile }: ProfileInfoListProps) => {
       value: profile?.localTime,
       href: undefined,
     },
-  ].filter(item => !!item.value) as { icon: React.ReactNode; label: string; value: string; href: string | undefined }[];
+  ].filter((item) => !!item.value) as {
+    icon: React.ReactNode;
+    label: string;
+    value: string;
+    href: string | undefined;
+  }[];
 
   // 实业方注入的扩展信息项
-  const injectedItems = (profile?.infoItems ?? []).map(item => ({
+  const injectedItems = (profile?.infoItems ?? []).map((item) => ({
     icon: item.icon ? iconMap[item.icon] : <FileText className="h-4 w-4" />,
     label: item.label,
     value: item.value,
@@ -55,7 +63,9 @@ export const ProfileInfoList = ({ profile }: ProfileInfoListProps) => {
         <div key={item.label} className="flex items-center gap-3 text-sm">
           <div className="text-gray-400 dark:text-gray-500">{item.icon}</div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs text-gray-400 dark:text-gray-500">{item.label}</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500">
+              {item.label}
+            </p>
             {item.href ? (
               <a
                 href={item.href}

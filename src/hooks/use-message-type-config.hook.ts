@@ -1,10 +1,8 @@
 import { useCallback, useMemo } from 'react';
 import { MessageTypeEnum } from '@/interfaces/message.interface';
-import {
-  type MessageTypeDisplayStrategy,
-} from '@/interfaces/message-type-config.interface';
-import { getDefaultChannelMessageTypes } from '@/utils/channel.utils';
+import type { MessageTypeDisplayStrategy } from '@/interfaces/message-type-config.interface';
 import { useChatStore } from '@/store';
+import { getDefaultChannelMessageTypes } from '@/utils/channel.utils';
 
 /**
  * 所有可用消息类型的常量列表

@@ -19,9 +19,7 @@ type Story = StoryObj<typeof ConversationAvatar>;
 export const WhatsApp = () => {
   return (
     <div className="p-4 bg-muted rounded-lg">
-      <ConversationAvatar
-        name="WhatsApp 用户"
-      />
+      <ConversationAvatar name="WhatsApp 用户" />
     </div>
   );
 };

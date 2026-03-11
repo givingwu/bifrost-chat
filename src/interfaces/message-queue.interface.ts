@@ -156,12 +156,12 @@ export interface OutgoingMessageQueueItem extends BaseMessageQueueItem {
    * - 不等同于 UI 显示的消息状态
    */
   stage:
-  | MessageQueueStageEnum.PendingSendAck
-  | MessageQueueStageEnum.PendingChannelReceipt
-  | MessageQueueStageEnum.Delivered
-  | MessageQueueStageEnum.Completed
-  | MessageQueueStageEnum.Failed
-  | MessageQueueStageEnum.TimedOut;
+    | MessageQueueStageEnum.PendingSendAck
+    | MessageQueueStageEnum.PendingChannelReceipt
+    | MessageQueueStageEnum.Delivered
+    | MessageQueueStageEnum.Completed
+    | MessageQueueStageEnum.Failed
+    | MessageQueueStageEnum.TimedOut;
   /**
    * 原始消息数据
    * - 可选，完整的消息对象
@@ -217,10 +217,10 @@ export interface ReceiptAckQueueItem extends BaseMessageQueueItem {
    * - 描述回执在队列中的当前生命周期阶段
    */
   stage:
-  | MessageQueueStageEnum.PendingServerAck
-  | MessageQueueStageEnum.Completed
-  | MessageQueueStageEnum.Failed
-  | MessageQueueStageEnum.TimedOut;
+    | MessageQueueStageEnum.PendingServerAck
+    | MessageQueueStageEnum.Completed
+    | MessageQueueStageEnum.Failed
+    | MessageQueueStageEnum.TimedOut;
 }
 
 /**

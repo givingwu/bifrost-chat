@@ -2,8 +2,8 @@ import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import { LanguageCodeEnum } from '@/interfaces/language.interface';
-import { I18nProvider } from '@/providers/I18n.provider';
 import enUS from '@/locales/en-US.json';
+import { I18nProvider } from '@/providers/I18n.provider';
 import { ChannelFilter } from './ChannelFilter';
 
 function Wrapper({ children }: { children: React.ReactNode }) {
@@ -52,9 +52,18 @@ describe('ChannelFilter', () => {
 
   it('应该正确标记激活的渠道', () => {
     renderWithProviders(<ChannelFilter {...defaultProps} />);
-    expect(getChannelButton(ChannelTypeEnum.SMS)).toHaveAttribute('aria-pressed', 'false');
-    expect(getChannelButton(ChannelTypeEnum.WhatsApp)).toHaveAttribute('aria-pressed', 'true');
-    expect(getChannelButton(ChannelTypeEnum.Email)).toHaveAttribute('aria-pressed', 'false');
+    expect(getChannelButton(ChannelTypeEnum.SMS)).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
+    expect(getChannelButton(ChannelTypeEnum.WhatsApp)).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    expect(getChannelButton(ChannelTypeEnum.Email)).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
   });
 
   it('应该在点击时调用 onChannelClick', () => {
@@ -81,7 +90,9 @@ describe('ChannelFilter', () => {
   });
 
   it('应该在 showTooltip 为 false 时不渲染工具提示', () => {
-    renderWithProviders(<ChannelFilter {...defaultProps} showTooltip={false} />);
+    renderWithProviders(
+      <ChannelFilter {...defaultProps} showTooltip={false} />,
+    );
     expect(screen.queryAllByRole('tooltip').length).toBe(0);
   });
 
@@ -102,7 +113,9 @@ describe('ChannelFilter', () => {
   });
 
   it('应该在无激活渠道时不显示指示器', () => {
-    renderWithProviders(<ChannelFilter {...defaultProps} activeChannel={undefined} />);
+    renderWithProviders(
+      <ChannelFilter {...defaultProps} activeChannel={undefined} />,
+    );
     const slidingIndicators = screen
       .queryAllByRole('presentation')
       .filter((el) => el.classList.contains('bg-white'));

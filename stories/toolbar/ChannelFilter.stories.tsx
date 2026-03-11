@@ -21,7 +21,7 @@ export const SingleChannel: Story = {
   args: {
     channels: [ChannelTypeEnum.SMS],
     activeChannel: ChannelTypeEnum.SMS,
-    onChannelClick: () => { },
+    onChannelClick: () => {},
     compact: true,
     showTooltip: true,
   },
@@ -38,7 +38,7 @@ export const MultipleChannels: Story = {
       ChannelTypeEnum.Email,
     ],
     activeChannel: ChannelTypeEnum.WhatsApp,
-    onChannelClick: () => { },
+    onChannelClick: () => {},
     compact: true,
     showTooltip: true,
   },
@@ -57,7 +57,7 @@ export const AllChannels: Story = {
       ChannelTypeEnum.IVR,
     ],
     activeChannel: ChannelTypeEnum.WhatsApp,
-    onChannelClick: () => { },
+    onChannelClick: () => {},
     compact: true,
     showTooltip: true,
   },
@@ -74,7 +74,7 @@ export const NonCompact: Story = {
       ChannelTypeEnum.Email,
     ],
     activeChannel: ChannelTypeEnum.SMS,
-    onChannelClick: () => { },
+    onChannelClick: () => {},
     unreadByChannel: {
       [ChannelTypeEnum.SMS]: 9,
       [ChannelTypeEnum.WhatsApp]: 99,
@@ -96,7 +96,7 @@ export const WithoutTooltip: Story = {
       ChannelTypeEnum.Email,
     ],
     activeChannel: ChannelTypeEnum.WhatsApp,
-    onChannelClick: () => { },
+    onChannelClick: () => {},
     compact: true,
     showTooltip: false,
   },
@@ -113,7 +113,7 @@ export const DarkMode: Story = {
       ChannelTypeEnum.Email,
     ],
     activeChannel: ChannelTypeEnum.Email,
-    onChannelClick: () => { },
+    onChannelClick: () => {},
     compact: true,
     showTooltip: true,
   },
@@ -135,7 +135,7 @@ export const NoActiveChannel: Story = {
       ChannelTypeEnum.Email,
     ],
     activeChannel: undefined,
-    onChannelClick: () => { },
+    onChannelClick: () => {},
     compact: true,
     showTooltip: true,
   },
@@ -155,7 +155,7 @@ export const WithUnreadBadge: Story = {
       ChannelTypeEnum.Email,
     ],
     activeChannel: ChannelTypeEnum.WhatsApp,
-    onChannelClick: () => { },
+    onChannelClick: () => {},
     compact: true,
     showTooltip: true,
     unreadByChannel: {
@@ -177,7 +177,7 @@ export const WithoutUnreadBadge: Story = {
       ChannelTypeEnum.Email,
     ],
     activeChannel: ChannelTypeEnum.WhatsApp,
-    onChannelClick: () => { },
+    onChannelClick: () => {},
     compact: true,
     showTooltip: true,
     // unreadByChannel 不传 → badge 不渲染
@@ -189,16 +189,13 @@ export const WithoutUnreadBadge: Story = {
  */
 export const UnreadOverflow: Story = {
   args: {
-    channels: [
-      ChannelTypeEnum.SMS,
-      ChannelTypeEnum.WhatsApp,
-    ],
+    channels: [ChannelTypeEnum.SMS, ChannelTypeEnum.WhatsApp],
     activeChannel: ChannelTypeEnum.SMS,
-    onChannelClick: () => { },
+    onChannelClick: () => {},
     compact: true,
     showTooltip: true,
     unreadByChannel: {
-      [ChannelTypeEnum.SMS]: 120,  // → 显示 99+
+      [ChannelTypeEnum.SMS]: 120, // → 显示 99+
       [ChannelTypeEnum.WhatsApp]: 5,
     },
   },

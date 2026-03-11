@@ -32,7 +32,7 @@ describe('PendingMessageTracker', () => {
     });
 
     it('当 messageId 为空时不应该注册', () => {
-      const warnSpy = vi.spyOn(logger, 'warn').mockImplementation(() => { });
+      const warnSpy = vi.spyOn(logger, 'warn').mockImplementation(() => {});
 
       tracker.register('', 'conv-1');
 
@@ -43,7 +43,7 @@ describe('PendingMessageTracker', () => {
     });
 
     it('当 conversationId 为空时不应该注册', () => {
-      const warnSpy = vi.spyOn(logger, 'warn').mockImplementation(() => { });
+      const warnSpy = vi.spyOn(logger, 'warn').mockImplementation(() => {});
 
       tracker.register('msg-1', '');
 

@@ -7,7 +7,6 @@
  * @module services/websocket
  */
 
-import type { BasePacketHandler } from './handlers/base-packet.handler';
 import type {
   PacketHandlerContext,
   PacketHandlerResult,
@@ -16,6 +15,7 @@ import { AckHandler, PacketValidator } from '@/services/protocol';
 import { HeartbeatManager } from '@/services/protocol/heartbeat.manager';
 import { AckPacketHandler } from './handlers/ack-packet.handler';
 import { AuthFailHandler } from './handlers/auth-fail.handler';
+import type { BasePacketHandler } from './handlers/base-packet.handler';
 import { ChatMessageHandler } from './handlers/chat-message.handler';
 import { FoxMessageAckHandler } from './handlers/fox-message-ack.handler';
 import { HeartbeatHandler } from './handlers/heartbeat.handler';

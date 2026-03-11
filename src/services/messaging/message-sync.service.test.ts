@@ -3,14 +3,14 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AgentStatusEnum } from '@/interfaces/agent.interface';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import {
-  type StandardMessage,
   MessageDirectionEnum,
   MessageStatusEnum,
   MessageTypeEnum,
+  type StandardMessage,
 } from '@/interfaces/message.interface';
 import { queryKeys } from '@/providers/query.provider';
-import { MessageCacheHelper } from '@/services/cache/message-cache-helper.service';
 import { ConversationCacheHelper } from '@/services/cache/conversation-cache-helper.service';
+import { MessageCacheHelper } from '@/services/cache/message-cache-helper.service';
 import { seedConversationCache } from '@/test-utils/conversation-cache.test-util';
 import { MessageSyncService } from './message-sync.service';
 
@@ -95,7 +95,10 @@ describe('MessageSyncService', () => {
       message,
     });
 
-    const conversations = ConversationCacheHelper.getConversations(queryClient, ChannelTypeEnum.WhatsApp);
+    const conversations = ConversationCacheHelper.getConversations(
+      queryClient,
+      ChannelTypeEnum.WhatsApp,
+    );
 
     expect(conversations.map((item) => item.id)).toEqual([
       'conv-new',
@@ -158,7 +161,10 @@ describe('MessageSyncService', () => {
       }),
     });
 
-    const conversations = ConversationCacheHelper.getConversations(queryClient, ChannelTypeEnum.Email);
+    const conversations = ConversationCacheHelper.getConversations(
+      queryClient,
+      ChannelTypeEnum.Email,
+    );
 
     expect(conversations[0]).toMatchObject({
       id: 'conv-1',
@@ -340,7 +346,7 @@ describe('MessageSyncService', () => {
   });
 
   it('当第二次推送 id 或 tempId 重复时应去重并给出告警', () => {
-    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => { });
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
     const syncService = new MessageSyncService(queryClient);
 

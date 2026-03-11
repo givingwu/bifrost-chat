@@ -1,10 +1,5 @@
 import { memo, type ReactNode } from 'react';
-import {
-  useActions,
-  useLanguage,
-  useNetwork,
-  useTheme,
-} from '@/store';
+import { useActions, useLanguage, useNetwork, useTheme } from '@/store';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { NetworkStatus } from './NetworkStatus';
 import { ThemeSwitcher } from './ThemeSwitcher';

@@ -7,20 +7,20 @@ import type { Conversation } from '@/interfaces/conversation.interface';
 import {
   MessageDirectionEnum,
   MessageStatusEnum,
+  type MessageStatusUpdatedEvent,
   MessageTypeEnum,
   type StandardMessage,
-  type MessageStatusUpdatedEvent,
 } from '@/interfaces/message.interface';
 import { queryKeys } from '@/providers/query.provider';
-import { seedConversationCache } from '@/test-utils/conversation-cache.test-util';
 import { ServiceProvider } from '@/providers/service.provider';
+import { ConversationCacheHelper } from '@/services/cache/conversation-cache-helper.service';
 import type { IConversationService } from '@/services/core/conversation.service';
 import type {
   IMessageService,
   MessageReceivedEvent,
 } from '@/services/core/message.service';
-import { ConversationCacheHelper } from '@/services/cache/conversation-cache-helper.service';
 import { resetChatStore, useChatStore } from '@/store';
+import { seedConversationCache } from '@/test-utils/conversation-cache.test-util';
 import { useUnreadSync } from './use-unread-sync.hook';
 
 let messageCallback: ((event: MessageReceivedEvent) => void) | undefined;
@@ -120,7 +120,10 @@ describe('useUnreadSync', () => {
       });
     });
 
-    const conversations = ConversationCacheHelper.getConversations(queryClient, ChannelTypeEnum.WhatsApp);
+    const conversations = ConversationCacheHelper.getConversations(
+      queryClient,
+      ChannelTypeEnum.WhatsApp,
+    );
     const messages = queryClient.getQueryData<{
       pages: Array<{ items: StandardMessage[] }>;
     }>(queryKeys.messages.list('conv-new', ChannelTypeEnum.WhatsApp));
@@ -169,7 +172,10 @@ describe('useUnreadSync', () => {
       });
     });
 
-    const conversations = ConversationCacheHelper.getConversations(queryClient, ChannelTypeEnum.WhatsApp);
+    const conversations = ConversationCacheHelper.getConversations(
+      queryClient,
+      ChannelTypeEnum.WhatsApp,
+    );
 
     expect(conversations[0]?.unreadCount).toBe(1);
   });
@@ -216,7 +222,10 @@ describe('useUnreadSync', () => {
       });
     });
 
-    const conversations = ConversationCacheHelper.getConversations(queryClient, ChannelTypeEnum.WhatsApp);
+    const conversations = ConversationCacheHelper.getConversations(
+      queryClient,
+      ChannelTypeEnum.WhatsApp,
+    );
 
     expect(conversations[0]).toMatchObject({
       id: 'conv-active',
@@ -280,7 +289,10 @@ describe('useUnreadSync', () => {
       });
     });
 
-    const conversations = ConversationCacheHelper.getConversations(queryClient, ChannelTypeEnum.WhatsApp);
+    const conversations = ConversationCacheHelper.getConversations(
+      queryClient,
+      ChannelTypeEnum.WhatsApp,
+    );
 
     // useUnreadSync 只负责未读计数：Read ACK -1（3 → 2）
     // 消息状态更新由 useMessageStatusSync 负责，本测试不关注它

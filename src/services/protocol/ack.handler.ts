@@ -11,11 +11,11 @@ import {
   isPacketBodyRecord,
   PacketMessageTypeEnum,
 } from '@/interfaces/protocol.interface';
+import { MessageBuilder } from '@/services/messaging/message-builder.service';
 import {
   isServerMessageStatus,
   mapServerMessageStatusToLocal,
 } from '@/services/protocol/status.mapper';
-import { MessageBuilder } from '@/services/messaging/message-builder.service';
 import {
   buildOptionalFields,
   extractMessageId,
