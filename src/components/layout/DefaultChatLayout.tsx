@@ -14,6 +14,7 @@ import { ConversationList } from '@/components/conversation/ConversationList';
 import { ConversationPanel } from '@/components/conversation/ConversationPanel';
 import { InfiniteMessageList } from '@/components/messages/InfiniteMessageList';
 import { Profile } from '@/components/profile/Profile';
+import type { ProfileAction } from '@/components/profile/Profile';
 import { TemplatePanel } from '@/components/template/TemplatePanel';
 import { Topbar } from '@/components/toolbar/Topbar';
 import { TopbarTools } from '@/components/toolbar/TopbarTools';
@@ -69,6 +70,19 @@ export interface DefaultChatLayoutProps {
    * 便于业务方做标题栏徽章、埋点等
    */
   onTotalUnreadChange?: (total: number) => void;
+  /**
+   * 客户画像头部快捷操作按钮
+   * 不传则不渲染按钮栏
+   *
+   * @example
+   * ```tsx
+   * profileActions={[
+   *   { icon: <Phone className="h-4 w-4" />, label: '拨打电话', onClick: () => callPhone(profile?.phone) },
+   *   { icon: <Mail  className="h-4 w-4" />, label: '发送邮件', onClick: () => openMail(profile?.email) },
+   * ]}
+   * ```
+   */
+  profileActions?: ProfileAction[];
 }
 
 /**
@@ -99,6 +113,7 @@ export function DefaultChatLayout({
   className,
   style,
   onTotalUnreadChange,
+  profileActions,
 }: DefaultChatLayoutProps) {
   const queryClient = useQueryClient();
   const { t } = useTranslation();
@@ -369,14 +384,16 @@ export function DefaultChatLayout({
         ) : null
       }
       profilePanel={
-        <aside className="flex flex-col w-75 shrink-0 border-l border-gray-200/50 dark:border-white/10 bg-gray-50/50 dark:bg-black/20">
-          {profile && <Profile profile={profile} />}
-          <TemplatePanel
-            onTemplateSelect={handleTemplateSelect}
-            conversationId={activeConversationId ?? undefined}
-            currentChannel={activeChannel}
-            renderingTemplateId={renderingTemplateId}
-          />
+        <aside className="flex flex-col w-75 shrink-0 border-l border-gray-200/50 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 divide-y divide-gray-200/50 dark:divide-white/10">
+          {profile && <Profile profile={profile} actions={profileActions} />}
+          <div className="flex flex-col flex-1 min-h-0">
+            <TemplatePanel
+              onTemplateSelect={handleTemplateSelect}
+              conversationId={activeConversationId ?? undefined}
+              currentChannel={activeChannel}
+              renderingTemplateId={renderingTemplateId}
+            />
+          </div>
         </aside>
       }
     >

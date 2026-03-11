@@ -1,13 +1,22 @@
-import { Mail, Phone, User as UserIcon } from 'lucide-react';
 import type { ProfileData } from '@/interfaces/profile.interface';
+
+export interface ProfileAction {
+  /** 按钮图标 */
+  icon: React.ReactNode;
+  /** 无障碍标签 */
+  label: string;
+  /** 点击回调 */
+  onClick: () => void;
+}
 
 interface ProfileHeaderProps {
   profile?: ProfileData;
+  actions?: ProfileAction[];
 }
 
-export const ProfileHeader = ({ profile }: ProfileHeaderProps) => {
+export const ProfileHeader = ({ profile, actions }: ProfileHeaderProps) => {
   return (
-    <div className="flex flex-col items-center border-b border-border px-6 py-6">
+    <div className="flex flex-col items-center">
       <div className="mb-4 h-20 w-20 rounded-full border-2 border-border p-1">
         <img
           src={profile?.avatarUrl ?? 'https://placehold.co/80x80'}
@@ -21,26 +30,23 @@ export const ProfileHeader = ({ profile }: ProfileHeaderProps) => {
       <span className="text-sm text-gray-400 dark:text-gray-500">
         {profile?.role ?? 'Customer'}
       </span>
-      <div className="mt-4 flex gap-2">
-        <button
-          type="button"
-          className="rounded-full bg-primary/10 p-2 text-primary transition hover:bg-primary/20"
-        >
-          <Phone className="h-4 w-4" />
-        </button>
-        <button
-          type="button"
-          className="rounded-full bg-primary/10 p-2 text-primary transition hover:bg-primary/20"
-        >
-          <Mail className="h-4 w-4" />
-        </button>
-        <button
-          type="button"
-          className="rounded-full bg-primary/10 p-2 text-primary transition hover:bg-primary/20"
-        >
-          <UserIcon className="h-4 w-4" />
-        </button>
-      </div>
+
+      {actions && actions.length > 0 && (
+        <div className="mt-4 flex gap-2">
+          {actions.map((action) => (
+            <button
+              key={action.label}
+              type="button"
+              aria-label={action.label}
+              onClick={action.onClick}
+              className="rounded-full bg-primary/10 p-2 text-primary transition hover:bg-primary/20"
+            >
+              {action.icon}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
+

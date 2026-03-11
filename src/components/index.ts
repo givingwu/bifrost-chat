@@ -53,7 +53,6 @@ export { WhatsAppMessage } from './messages/WhatsAppMessage';
 export { Profile } from './profile/Profile';
 export { ProfileHeader } from './profile/ProfileHeader';
 export { ProfileInfoList } from './profile/ProfileInfoList';
-export { ProfileSectionTitle } from './profile/ProfileSectionTitle';
 export { SearchInput } from './SearchInput';
 // Template components
 export { TemplateCategoryButton } from './template/TemplateCategoryButton';

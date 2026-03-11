@@ -67,9 +67,9 @@ export const TemplatePanel = ({
   } = useTemplates(
     shouldFetchFromServer
       ? {
-          conversationId,
-          currentChannel,
-        }
+        conversationId,
+        currentChannel,
+      }
       : ({} as never),
   );
 
@@ -168,7 +168,7 @@ export const TemplatePanel = ({
 
       {/* 模板列表 */}
       <section
-        className={cn('flex-1 overflow-y-auto p-4', isPending && 'opacity-60')}
+        className={cn('flex-1 overflow-y-auto px-4 py-3', isPending && 'opacity-60')}
         aria-label={t('template.title')}
         aria-live="polite"
         aria-busy={isLoading || isPending}

@@ -47,7 +47,7 @@ export const TemplateHeader = ({
     <div
       className={
         className ||
-        'border-b px-4 py-3 border-gray-200/50 dark:border-white/10'
+        'px-4 pt-4'
       }
     >
       {/* 搜索框 */}

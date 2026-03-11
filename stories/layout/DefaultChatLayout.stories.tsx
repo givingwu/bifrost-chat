@@ -6,6 +6,7 @@ import { I18nProvider } from '@/providers/I18n.provider';
 import '@/styles/theme.css';
 import {
   ConfigProvider,
+  configureChatStore,
   type IConversationService,
   type IMessageService,
   type ITemplateService,
@@ -292,11 +293,11 @@ class MockMessageService implements IMessageService {
   }
 
   subscribeToMessages() {
-    return () => {};
+    return () => { };
   }
 
   subscribeToMessageStatus() {
-    return () => {};
+    return () => { };
   }
 }
 
@@ -532,3 +533,71 @@ export const English: Story = {
     },
   },
 };
+
+/**
+ * Profile + 模板面板并存
+ *
+ * 展示右侧边栏中 Profile（客户画像）与 TemplatePanel（快捷回复模板）同时渲染时的
+ * 间距和分割线效果。
+ *
+ * @description
+ * 通过 `configureChatStore` 注入 mock profile 数据来触发 Profile 组件渲染，
+ * 同时 TemplatePanel 正常展示模板列表。两者之间由父级 `aside` 的 `divide-y`
+ * 自动插入分割线，无需各自管理边框。
+ */
+export const WithProfileAndTemplatePanel: Story = {
+  args: {},
+  decorators: [
+    (Story) => {
+      configureChatStore({
+        profile: {
+          profile: {
+            id: 'user-demo',
+            name: '张三',
+            avatarUrl: 'https://i.pravatar.cc/150?img=12',
+            role: 'VIP 客户',
+            email: 'zhangsan@example.com',
+            phone: '+86 138 0000 0000',
+            tags: ['VIP', '已认证'],
+          },
+        },
+      });
+      return (
+        <ConfigProvider
+          config={{
+            strategy: {
+              activeChannel: ChannelTypeEnum.SMS,
+              allowedChannels: [
+                ChannelTypeEnum.WhatsApp,
+                ChannelTypeEnum.SMS,
+                ChannelTypeEnum.Email,
+              ],
+            },
+          }}
+        >
+          <ServiceProvider
+            conversationService={new MockConversationService()}
+            messageService={new MockMessageService()}
+            templateService={new MockTemplateService()}
+          >
+            <Story />
+          </ServiceProvider>
+        </ConfigProvider>
+      );
+    },
+  ],
+  render: (args) => (
+    <DefaultChatLayout {...args}>
+      <InfiniteMessageList conversationId="conv-1" />
+    </DefaultChatLayout>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '右侧面板同时展示客户画像（Profile）和快捷回复模板（TemplatePanel）。两者之间通过父容器的 divide-y 自动插入分割线，Profile 不再自持 border-b，TemplatePanel 用包裹层保证剩余空间填满与内部滚动正常。',
+      },
+    },
+  },
+};
+

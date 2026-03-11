@@ -1,6 +1,5 @@
 import { FileText, Link, Mail, Phone, User as UserIcon } from 'lucide-react';
 import type { ProfileData, ProfileInfoItem } from '@/interfaces/profile.interface';
-import { ProfileSectionTitle } from './ProfileSectionTitle';
 
 interface ProfileInfoListProps {
   profile?: ProfileData;
@@ -51,8 +50,7 @@ export const ProfileInfoList = ({ profile }: ProfileInfoListProps) => {
   }
 
   return (
-    <div className="space-y-4 px-4 py-4">
-      <ProfileSectionTitle title="Information" />
+    <div className="flex flex-col space-y-4">
       {allItems.map((item) => (
         <div key={item.label} className="flex items-center gap-3 text-sm">
           <div className="text-gray-400 dark:text-gray-500">{item.icon}</div>
