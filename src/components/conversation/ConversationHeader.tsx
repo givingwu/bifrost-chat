@@ -1,6 +1,7 @@
 import { memo, type ReactNode } from 'react';
 import { cn } from '@/utils/class.util';
 import { SearchInput } from '../SearchInput';
+import { Title } from '../Title';
 
 export interface ConversationHeaderProps {
   /** 自定义类名 */
@@ -40,12 +41,12 @@ export const ConversationHeader = memo(
     onSearchSubmit,
   }: ConversationHeaderProps) => {
     return (
-      <div className={cn('p-4 pt-6 pb-2 space-y-4', className)}>
+      <div className={cn('p-4 pt-4 pb-2 space-y-4', className)}>
         {title &&
           (typeof title === 'string' ? (
-            <h2 className="text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">
+            <Title>
               {title}
-            </h2>
+            </Title>
           ) : (
             title
           ))}

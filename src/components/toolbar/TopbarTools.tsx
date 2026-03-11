@@ -3,11 +3,8 @@ import {
   useActions,
   useLanguage,
   useNetwork,
-  useStrategy,
   useTheme,
 } from '@/store';
-import { useChannelUnread } from '@/hooks/use-channel-unread.hook';
-import { ChannelFilter } from './ChannelFilter';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { NetworkStatus } from './NetworkStatus';
 import { ThemeSwitcher } from './ThemeSwitcher';
@@ -19,18 +16,16 @@ export interface ITopbarTools {
 /**
  * TopbarTools：会话顶部栏右侧工具集合。
  */
-export const TopbarTools = memo(({ extra }: ITopbarTools) => {
+export const TopbarTools = memo(({ extra = null }: ITopbarTools) => {
   const { status, enableStatusIndicator: showNetworkStatus } = useNetwork();
   const { mode, enableSwitcher: showThemeSwitcher } = useTheme();
   const { code, enableSwitcher: showLanguageSwitcher } = useLanguage();
-  const { activeChannel, allowedChannels } = useStrategy();
-  const { setTheme, setLanguage, setActiveChannel } = useActions();
-  const unreadByChannel = useChannelUnread(allowedChannels);
+  const { setTheme, setLanguage } = useActions();
 
   return (
     <div className="flex items-center gap-4">
       {/* 渠道切换器 */}
-      {allowedChannels.length > 1 && (
+      {/* {allowedChannels.length > 1 && (
         <ChannelFilter
           channels={allowedChannels}
           activeChannel={activeChannel}
@@ -39,13 +34,13 @@ export const TopbarTools = memo(({ extra }: ITopbarTools) => {
           compact
           showTooltip
         />
-      )}
+      )} */}
 
       {/* 网络状态 */}
       {showNetworkStatus && <NetworkStatus status={status} />}
 
       {/* 分隔线 */}
-      {(showLanguageSwitcher || showThemeSwitcher || extra) && (
+      {(showNetworkStatus || extra) && (
         <div className="h-6 w-px bg-gray-200 dark:bg-white/10 mx-2"></div>
       )}
 

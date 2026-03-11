@@ -1,4 +1,4 @@
-import { memo, useMemo } from 'react';
+import { memo, useMemo, type CSSProperties } from 'react';
 import { useChannelIcon } from '@/hooks/use-channel-icon.hook';
 import { useChannelLabel } from '@/hooks/use-channel-label.hook';
 import { cn } from '@/utils/class.util';
@@ -29,6 +29,10 @@ export interface ChannelFilterProps {
    * ```
    */
   unreadByChannel?: Partial<Record<ChannelTypeEnum, number>>;
+  /** 自定义容器类名 */
+  className?: string;
+  /** 自定义容器样式 */
+  style?: CSSProperties;
 }
 
 /**
@@ -61,6 +65,8 @@ export const ChannelFilter = memo(
     showTooltip = true,
     compact = true,
     unreadByChannel,
+    className,
+    style,
   }: ChannelFilterProps) => {
     const getLabel = useChannelLabel();
     const getIcon = useChannelIcon('sm');
@@ -72,7 +78,8 @@ export const ChannelFilter = memo(
     return (
       <fieldset
         aria-label="Channel Filter"
-        className="relative inline-flex items-center rounded-full p-0.5 bg-gray-100 dark:bg-white/[0.08] backdrop-blur-md border border-gray-300/60 dark:border-white/15 shadow-sm"
+        className={cn('relative inline-flex items-center rounded-full p-0.5 bg-gray-100 dark:bg-white/[0.08] backdrop-blur-md border border-gray-300/60 dark:border-white/15 shadow-sm', className)}
+        style={style}
       >
         {/* Sliding indicator - 仅在多渠道时显示 */}
         {channels.length > 1 && activeIndex >= 0 && (
