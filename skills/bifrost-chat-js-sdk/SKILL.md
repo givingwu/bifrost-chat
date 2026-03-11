@@ -63,11 +63,21 @@ language: "zh-CN"
 
 ## 强制约束
 
-- 只使用 `Conversation` 语义，禁止新增公开 `Session` 命名。
+- **SDK 层会话概念统一为 `Conversation`，严格禁止使用 `Session` 或 `Chat` 作为公开命名**（方法名、接口名、类型名、hook 名、queryKey 均适用）。
 - 组件和 hooks 不直连 API。
 - 服务端状态只放 React Query，Zustand 只放客户端交互态。
 - 文档必须标注 As-Is / To-Be。
 - **修改 `@src/components/` 下的任何内容时，必须同步更新对应的 `@stories/` 组件设计，增加或更新示例**。
+
+## 会话命名速查（强制）
+
+| 场景 | ✅ 正确 | ❌ 禁止 |
+|------|---------|--------|
+| 接口 / 类型 | `Conversation`、`IConversationService` | `Session`、`Chat`、`ISessionService`、`IChatService` |
+| Hooks | `useConversations`、`useCreateConversation` | `useSessions`、`useChat` |
+| QueryKey | `queryKeys.conversations.*` | `queryKeys.sessions.*`、`queryKeys.chats.*` |
+| 组件 / Store | `ConversationList`、`conversationSlice` | `SessionList`、`chatSlice` |
+| 变量 / 参数 | `conversation`、`conversationId` | `session`、`chatId`（宿主层除外） |
 
 ## 交付前检查
 
