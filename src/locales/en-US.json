@@ -9,7 +9,9 @@
       "sms": "Interactive SMS",
       "whatsapp": "WhatsApp",
       "email": "Email",
-      "voip": "VoIP"
+      "voip": "VoIP",
+      "viber": "Viber",
+      "ivr": "IVR"
     }
   },
   "composer": {

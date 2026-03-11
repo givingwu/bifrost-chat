@@ -9,7 +9,9 @@
       "sms": "交互短信",
       "whatsapp": "WhatsApp",
       "email": "邮件",
-      "voip": "语音"
+      "voip": "VoIP",
+      "viber": "Viber",
+      "ivr": "IVR"
     }
   },
   "composer": {

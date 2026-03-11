@@ -1,9 +1,9 @@
-import { Mail, MessageSquare, Phone, Smartphone } from 'lucide-react';
-import type React from 'react';
 import { memo, useMemo } from 'react';
-import type { AgentStatusEnum } from '@/interfaces/agent.interface';
-import { ChannelTypeEnum } from '@/interfaces/channel.interface';
+import { useChannelIcon } from '@/hooks/use-channel-icon.hook';
+import { useChannelLabel } from '@/hooks/use-channel-label.hook';
 import { cn } from '@/utils/class.util';
+import { AgentStatusEnum } from '@/interfaces/agent.interface';
+import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 
 export interface ChannelFilterProps {
   /** 坐席状态（in_call 时触发互斥逻辑） */
@@ -19,27 +19,6 @@ export interface ChannelFilterProps {
   /** 紧凑模式（仅图标） */
   compact?: boolean;
 }
-
-export const iconMap: Partial<Record<ChannelTypeEnum, React.ReactNode>> = {
-  [ChannelTypeEnum.SMS]: <Smartphone className="h-3 w-3" />,
-  [ChannelTypeEnum.WhatsApp]: <MessageSquare className="h-3 w-3" />,
-  [ChannelTypeEnum.Email]: <Mail className="h-3 w-3" />,
-  [ChannelTypeEnum.Viber]: <MessageSquare className="h-3 w-3" />,
-  [ChannelTypeEnum.IVR]: <Phone className="h-3 w-3" />,
-};
-
-export const labelMap: Record<ChannelTypeEnum, string> = {
-  [ChannelTypeEnum.SMS]: 'SMS',
-  [ChannelTypeEnum.WhatsApp]: 'WhatsApp',
-  [ChannelTypeEnum.Email]: 'Email',
-  [ChannelTypeEnum.Viber]: 'Viber',
-  [ChannelTypeEnum.IVR]: 'IVR',
-};
-
-export const getChannelLabel = (channel: ChannelTypeEnum) => {
-  return labelMap[channel] || channel;
-};
-
 /**
  * ChannelFilter：策略驱动的渠道切换器（Apple 风格 Segmented Control）。
  *
@@ -69,6 +48,8 @@ export const ChannelFilter = memo(
     showTooltip = true,
     compact = true,
   }: ChannelFilterProps) => {
+    const getLabel = useChannelLabel();
+    const getIcon = useChannelIcon('sm');
     const activeIndex = useMemo(
       () => channels.findIndex((channel) => channel === activeChannel),
       [channels, activeChannel],
@@ -77,13 +58,13 @@ export const ChannelFilter = memo(
     return (
       <fieldset
         aria-label="Channel Filter"
-        className="relative inline-flex items-center rounded-full p-0.5 bg-white/80 dark:bg-white/10 backdrop-blur-md border border-gray-200/50 dark:border-white/10"
+        className="relative inline-flex items-center rounded-full p-0.5 bg-gray-100 dark:bg-white/[0.08] backdrop-blur-md border border-gray-300/60 dark:border-white/15 shadow-sm"
       >
         {/* Sliding indicator - 仅在多渠道时显示 */}
         {channels.length > 1 && activeIndex >= 0 && (
           <div
             role="presentation"
-            className="absolute top-0.5 bottom-0.5 rounded-full bg-white dark:bg-white/20 shadow-md transition-all duration-300 ease-out"
+            className="absolute top-0.5 bottom-0.5 rounded-full bg-white dark:bg-primary/20 shadow-md ring-1 ring-black/5 dark:ring-white/10 transition-all duration-300 ease-out"
             style={{
               width: `calc(${100 / channels.length}% - 4px)`,
               left: `calc(${activeIndex * (100 / channels.length)}% + 2px)`,
@@ -94,8 +75,8 @@ export const ChannelFilter = memo(
         {/* Channel buttons */}
         {channels.map((channel) => {
           const isActive = channel === activeChannel;
-          const icon = iconMap[channel];
-          const label = getChannelLabel(channel);
+          const icon = getIcon(channel);
+          const label = getLabel(channel);
 
           return (
             <button
@@ -109,8 +90,8 @@ export const ChannelFilter = memo(
                 'relative z-10 flex items-center justify-center px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-300 group',
                 'min-w-[40px] cursor-pointer',
                 isActive
-                  ? 'text-blue-600 dark:text-blue-400'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200',
+                  ? 'text-blue-600 dark:text-blue-400 font-semibold'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200',
               )}
               title={channel}
             >

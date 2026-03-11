@@ -1,5 +1,6 @@
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
-import { getChannelLabel, iconMap } from '@/components/toolbar/ChannelFilter';
+import { useChannelIcon } from '@/hooks/use-channel-icon.hook';
+import { useChannelLabel } from '@/hooks/use-channel-label.hook';
 import { useChannelSwitcher } from '@/hooks/use-channel-switcher.hook';
 import type { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import { cn } from '@/utils/class.util';
@@ -95,8 +96,10 @@ export const ChannelBadgeSwitcher = memo(
       return null;
     }
 
-    const activeIcon = activeChannel ? iconMap[activeChannel] : null;
-    const activeLabel = activeChannel ? getChannelLabel(activeChannel) : '';
+    const getIcon = useChannelIcon('sm');
+    const getLabel = useChannelLabel();
+    const activeIcon = activeChannel ? getIcon(activeChannel) : null;
+    const activeLabel = activeChannel ? getLabel(activeChannel) : '';
 
     return (
       <div ref={containerRef} className="relative">
@@ -130,13 +133,13 @@ export const ChannelBadgeSwitcher = memo(
               'animate-in fade-in slide-in-from-bottom-2 duration-200',
             )}
             role="menu"
-            aria-label="选择渠道"
+            aria-label="Choose Channel"
           >
             <div className="p-1">
               {channels.map((channel) => {
                 const isActive = channel === activeChannel;
-                const icon = iconMap[channel];
-                const label = getChannelLabel(channel);
+                const icon = getIcon(channel);
+                const label = getLabel(channel);
 
                 return (
                   <button

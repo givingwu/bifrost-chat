@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import { Button } from '@/components/Button';
-import { getChannelLabel, iconMap } from '@/components/toolbar/ChannelFilter';
+import { useChannelIcon } from '@/hooks/use-channel-icon.hook';
+import { useChannelLabel } from '@/hooks/use-channel-label.hook';
 import { useChannelSwitcher } from '@/hooks/use-channel-switcher.hook';
 import type { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import { cn } from '@/utils/class.util';
@@ -54,6 +55,9 @@ export const ChannelSwitcher = memo(
         onChannelChange,
       });
 
+    const getLabel = useChannelLabel();
+    const getIcon = useChannelIcon('sm');
+
     if (!shouldRender) {
       return null;
     }
@@ -64,8 +68,8 @@ export const ChannelSwitcher = memo(
       >
         {channels.map((channel) => {
           const isActive = channel === activeChannel;
-          const icon = iconMap[channel];
-          const label = getChannelLabel(channel);
+          const icon = getIcon(channel);
+          const label = getLabel(channel);
 
           return (
             <Button

@@ -1,6 +1,6 @@
-import { Mail, MessageSquare, Phone, Smartphone } from 'lucide-react';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
-import { useTranslation } from '@/providers/I18n.provider';
+import { useChannelIcon } from '@/hooks/use-channel-icon.hook';
+import { useChannelLabel } from '@/hooks/use-channel-label.hook';
 import { cn } from '@/utils/class.util';
 import { Button } from '../Button';
 
@@ -25,15 +25,8 @@ export const ChannelButtonFactory = ({
   disabled,
   onClick,
 }: ChannelButtonFactoryProps) => {
-  const { t } = useTranslation();
-  const labelKey = `toolbar.channel.${channel}`;
-  const iconMap: Partial<Record<ChannelTypeEnum, React.ReactNode>> = {
-    [ChannelTypeEnum.SMS]: <Smartphone className="h-4 w-4" />,
-    [ChannelTypeEnum.WhatsApp]: <MessageSquare className="h-4 w-4" />,
-    [ChannelTypeEnum.Email]: <Mail className="h-4 w-4" />,
-    [ChannelTypeEnum.Viber]: <MessageSquare className="h-4 w-4" />,
-    [ChannelTypeEnum.IVR]: <Phone className="h-4 w-4" />,
-  };
+  const getLabel = useChannelLabel();
+  const getIcon = useChannelIcon('md');
 
   return (
     <Button
@@ -48,8 +41,8 @@ export const ChannelButtonFactory = ({
       )}
       onClick={() => onClick?.(channel)}
     >
-      {iconMap[channel]}
-      <span>{t(labelKey)}</span>
+      {getIcon(channel)}
+      <span>{getLabel(channel)}</span>
     </Button>
   );
 };
