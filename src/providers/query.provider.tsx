@@ -69,10 +69,10 @@ export const queryKeys = {
     details: () => [...queryKeys.conversations.all, 'detail'] as const,
     detail: (id: string) => [...queryKeys.conversations.details(), id] as const,
     // 会话元数据
-    metadata: (chatId: string) =>
-      [...queryKeys.conversations.all, 'metadata', chatId] as const,
+    metadata: (conversationId: string) =>
+      [...queryKeys.conversations.all, 'metadata', conversationId] as const,
     // 未读数量
-    unread: (params?: { channelType?: string; chatId?: string }) =>
+    unread: (params?: { channelType?: string; conversationId?: string }) =>
       [...queryKeys.conversations.all, 'unread', params ?? {}] as const,
   },
   // 消息相关
@@ -97,11 +97,11 @@ export const queryKeys = {
           ? ([...queryKeys.templates.lists(), conversationId] as const)
           : ([...queryKeys.templates.lists()] as const),
     // 模板渲染
-    render: (chatId: string, channelType: string, template: string) =>
+    render: (conversationId: string, channelType: string, template: string) =>
       [
         ...queryKeys.templates.all,
         'render',
-        chatId,
+        conversationId,
         channelType,
         template,
       ] as const,

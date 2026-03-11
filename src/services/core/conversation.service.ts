@@ -12,10 +12,6 @@ export interface ConversationMetadata
  * 未读数量查询参数
  */
 export interface UnreadCountParams {
-  /** 当前应用 */
-  app: string
-  /** PIN 码 */
-  pin: string
   /** 会话 ID（可选，不传则查询全部会话） */
   conversationId?: string;
   /** 渠道类型（可选，不传则查询全部渠道） */
