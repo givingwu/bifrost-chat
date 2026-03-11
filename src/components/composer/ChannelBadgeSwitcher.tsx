@@ -92,12 +92,13 @@ export const ChannelBadgeSwitcher = memo(
       };
     }, [isOpen]);
 
+    const getIcon = useChannelIcon('sm');
+    const getLabel = useChannelLabel();
+
     if (!shouldRender) {
       return null;
     }
 
-    const getIcon = useChannelIcon('sm');
-    const getLabel = useChannelLabel();
     const activeIcon = activeChannel ? getIcon(activeChannel) : null;
     const activeLabel = activeChannel ? getLabel(activeChannel) : '';
 
