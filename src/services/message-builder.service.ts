@@ -1,19 +1,17 @@
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
-import type {
-  ILocationMessage,
-  IMediaMessage,
-  IRichMediaMessage,
-  IStringMessage,
-  ITemplateMessage,
-  MessageContent,
-} from '@/interfaces/message.interface';
 import {
+  type ILocationMessage,
+  type IMediaMessage,
+  type IRichMediaMessage,
+  type IStringMessage,
+  type ITemplateMessage,
+  type MessageContent,
   type ClientTypeEnum,
+  type SendMessageOptions,
+  type StandardMessage,
   MessageDirectionEnum,
   MessageStatusEnum,
   MessageTypeEnum,
-  type SendMessageOptions,
-  type StandardMessage,
 } from '@/interfaces/message.interface';
 import {
   isPacketBodyRecord,

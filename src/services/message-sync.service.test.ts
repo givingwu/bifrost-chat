@@ -1,12 +1,10 @@
-// cspell:disable
-// cspell:words conv cust
 import { QueryClient } from '@tanstack/react-query';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AgentStatusEnum } from '@/interfaces/agent.interface';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import type { Conversation } from '@/interfaces/conversation.interface';
-import type { StandardMessage } from '@/interfaces/message.interface';
 import {
+  type StandardMessage,
   MessageDirectionEnum,
   MessageStatusEnum,
   MessageTypeEnum,
@@ -345,7 +343,7 @@ describe('MessageSyncService', () => {
   });
 
   it('当第二次推送 id 或 tempId 重复时应去重并给出告警', () => {
-    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => { });
 
     const syncService = new MessageSyncService(queryClient);
 

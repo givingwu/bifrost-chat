@@ -9,6 +9,7 @@ import {
   MessageStatusEnum,
   MessageTypeEnum,
   type StandardMessage,
+  type MessageStatusUpdatedEvent,
 } from '@/interfaces/message.interface';
 import { queryKeys } from '@/providers/query.provider';
 import { ServiceProvider } from '@/providers/service.provider';
@@ -17,7 +18,6 @@ import type {
   IMessageService,
   MessageReceivedEvent,
 } from '@/services/message.service';
-import type { MessageStatusUpdatedEvent } from '@/interfaces/message.interface';
 import { resetChatStore, useChatStore } from '@/store';
 import { useUnreadSync } from './use-unread-sync.hook';
 

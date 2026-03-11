@@ -1,7 +1,6 @@
 import { QueryClient } from '@tanstack/react-query';
 import { beforeEach, describe, expect, it } from 'vitest';
-import type { StandardMessage } from '@/interfaces/message.interface';
-import { MessageStatusEnum } from '@/interfaces/message.interface';
+import { type StandardMessage, MessageStatusEnum } from '@/interfaces/message.interface';
 import { queryKeys } from '@/providers/query.provider';
 import {
   type InfiniteQueryData,

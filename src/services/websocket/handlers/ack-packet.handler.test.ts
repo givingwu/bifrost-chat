@@ -3,13 +3,13 @@ import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import {
   ClientTypeEnum,
   MessageStatusEnum,
+  type MessageStatusUpdatedEvent,
 } from '@/interfaces/message.interface';
 import {
   AckMessageTypeEnum,
   PacketMessageTypeEnum,
   type RawPacket,
 } from '@/interfaces/protocol.interface';
-import type { MessageStatusUpdatedEvent } from '@/interfaces/message.interface';
 import { messageQueue } from '@/services/message-queue.service';
 import { pendingMessageTracker } from '@/services/pending-message-tracker.service';
 import { AckPacketHandler } from './ack-packet.handler';

@@ -1,11 +1,10 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { MessageStatusEnum } from '@/interfaces/message.interface';
+import { MessageStatusEnum, type MessageStatusUpdatedEvent } from '@/interfaces/message.interface';
 import {
   PacketMessageTypeEnum,
   type RawPacket,
 } from '@/interfaces/protocol.interface';
 import { WebSocketEventTypeEnum } from '@/interfaces/websocket.interface';
-import type { MessageStatusUpdatedEvent } from '@/interfaces/message.interface';
 import { messageQueue } from '@/services/message-queue.service';
 import { FoxMessageAckHandler } from './fox-message-ack.handler';
 

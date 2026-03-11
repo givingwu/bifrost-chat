@@ -1,5 +1,4 @@
-import type { StandardMessage } from '@/interfaces/message.interface';
-import { MessagePriorityEnum } from '@/interfaces/message.interface';
+import { type StandardMessage, MessagePriorityEnum } from '@/interfaces/message.interface';
 import type {
   OfflineMessage,
   OfflineQueueConfig,

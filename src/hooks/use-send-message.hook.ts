@@ -12,12 +12,10 @@ import {
   SendFailedError,
 } from '@/errors/websocket.errors';
 import { NetworkError } from '@/errors/network.error';
-import type {
-  MessageSendResult,
-  SendMessageOptions,
-  StandardMessage,
-} from '@/interfaces/message.interface';
 import {
+  type MessageSendResult,
+  type SendMessageOptions,
+  type StandardMessage,
   MessageFailureTypeEnum,
   MessagePriorityEnum,
   MessageStatusEnum,

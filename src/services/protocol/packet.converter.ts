@@ -1,5 +1,5 @@
-import type { StandardMessage } from '@/interfaces/message.interface';
 import {
+  type StandardMessage,
   ClientTypeEnum,
   MessageDirectionEnum,
   MessageStatusEnum,

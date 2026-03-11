@@ -1,8 +1,7 @@
 import { memo } from 'react';
 import { useDeleteFailedMessage } from '@/hooks/use-delete-failed-message.hook';
 import { useRetryMessage } from '@/hooks/use-retry-message.hook';
-import type { StandardMessage } from '@/interfaces/message.interface';
-import { MessageStatusEnum } from '@/interfaces/message.interface';
+import { type StandardMessage, MessageStatusEnum } from '@/interfaces/message.interface';
 import { useTranslation } from '@/providers/I18n.provider';
 import { cn } from '@/utils/class.util';
 import { Button } from '../Button';
