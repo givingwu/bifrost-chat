@@ -1,6 +1,10 @@
 import type { ReactNode } from 'react';
-import { createContext, useContext, useRef } from 'react';
-import { type ChatStoreInitialState, configureChatStore } from '@/store';
+import { createContext, useContext, useEffect, useMemo, useRef } from 'react';
+import {
+  type ChatStoreInitialState,
+  configureChatStore,
+  useChatStore,
+} from '@/store';
 
 export interface IConfigSettings extends ChatStoreInitialState {}
 
@@ -20,15 +24,27 @@ export interface ConfigProviderProps {
  *
  * @description
  * 用于集中注入 SDK 配置。配置结构与 ChatStoreState 对齐（actions 除外），
- * 最终由 ChatContainer 在初始化 store 时消费。
+ * 当配置语义变化时会重置并重新初始化全局 store，避免不同入口之间残留状态串场。
  */
 export const ConfigProvider = ({ children, config }: ConfigProviderProps) => {
-  const initializedRef = useRef(false);
+  const appliedSignatureRef = useRef<string | undefined>(undefined);
+  const configSignature = useMemo(() => JSON.stringify(config), [config]);
 
-  if (!initializedRef.current) {
+  if (appliedSignatureRef.current === undefined) {
+    useChatStore.setState(useChatStore.getInitialState(), true);
     configureChatStore(config);
-    initializedRef.current = true;
+    appliedSignatureRef.current = configSignature;
   }
+
+  useEffect(() => {
+    if (appliedSignatureRef.current === configSignature) {
+      return;
+    }
+
+    useChatStore.setState(useChatStore.getInitialState(), true);
+    configureChatStore(config);
+    appliedSignatureRef.current = configSignature;
+  }, [config, configSignature]);
 
   return (
     <ConfigContext.Provider value={config}>{children}</ConfigContext.Provider>

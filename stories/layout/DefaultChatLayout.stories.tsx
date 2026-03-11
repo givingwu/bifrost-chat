@@ -6,7 +6,6 @@ import { I18nProvider } from '@/providers/I18n.provider';
 import '@/styles/theme.css';
 import {
   ConfigProvider,
-  configureChatStore,
   type IConversationService,
   type IMessageService,
   type ITemplateService,
@@ -194,10 +193,10 @@ class MockConversationService implements IConversationService {
 }
 
 class MockMessageService implements IMessageService {
-  sendAttachment(params: any): Promise<SendAttachmentResult> {
+  sendAttachment(_params: unknown): Promise<SendAttachmentResult> {
     throw new Error('Method not implemented.');
   }
-  sendAudio(params: any): Promise<SendAudioResult> {
+  sendAudio(_params: unknown): Promise<SendAudioResult> {
     throw new Error('Method not implemented.');
   }
   async list(conversationId: string) {
@@ -279,7 +278,7 @@ class MockMessageService implements IMessageService {
     return messages;
   }
 
-  async send(conversationId: string) {
+  async send(_conversationId: string) {
     const result: MessageSendResult = {
       tempId: `temp-${Date.now()}`,
       messageId: `msg-${Date.now()}`,
@@ -293,11 +292,11 @@ class MockMessageService implements IMessageService {
   }
 
   subscribeToMessages() {
-    return () => { };
+    return () => {};
   }
 
   subscribeToMessageStatus() {
-    return () => { };
+    return () => {};
   }
 }
 
@@ -381,6 +380,10 @@ const meta: Meta<typeof DefaultChatLayout> = {
       control: 'text',
       description: 'class name',
     },
+    conversationBootstrap: {
+      control: false,
+      description: '详情页场景的会话查询/创建引导参数',
+    },
   },
   decorators: [
     (Story) => (
@@ -438,6 +441,34 @@ export const Default: Story = {
     docs: {
       description: {
         story: '展示默认聊天布局的完整结构，包含会话列表、消息区域和输入框。',
+      },
+    },
+  },
+};
+
+/**
+ * 详情页直达会话
+ *
+ * 展示 `conversationBootstrap` 在详情页场景下的 query -> create 引导能力。
+ */
+export const WithConversationBootstrap: Story = {
+  args: {
+    conversationBootstrap: {
+      queryParams: {
+        debtorId: 1,
+        channelType: ChannelTypeEnum.WhatsApp,
+      },
+      createParams: {
+        debtorId: 1,
+        contactId: 2,
+      },
+    },
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '进入详情页时，DefaultChatLayout 会先尝试 query 已有会话，未命中再 create，成功后自动激活对应会话与渠道。',
       },
     },
   },
@@ -548,43 +579,39 @@ export const English: Story = {
 export const WithProfileAndTemplatePanel: Story = {
   args: {},
   decorators: [
-    (Story) => {
-      configureChatStore({
-        profile: {
-          profile: {
-            id: 'user-demo',
-            name: '张三',
-            avatarUrl: 'https://i.pravatar.cc/150?img=12',
-            role: 'VIP 客户',
-            email: 'zhangsan@example.com',
-            phone: '+86 138 0000 0000',
-            tags: ['VIP', '已认证'],
+    (Story) => (
+      <ConfigProvider
+        config={{
+          strategy: {
+            activeChannel: ChannelTypeEnum.SMS,
+            allowedChannels: [
+              ChannelTypeEnum.WhatsApp,
+              ChannelTypeEnum.SMS,
+              ChannelTypeEnum.Email,
+            ],
           },
-        },
-      });
-      return (
-        <ConfigProvider
-          config={{
-            strategy: {
-              activeChannel: ChannelTypeEnum.SMS,
-              allowedChannels: [
-                ChannelTypeEnum.WhatsApp,
-                ChannelTypeEnum.SMS,
-                ChannelTypeEnum.Email,
-              ],
+          profile: {
+            profile: {
+              id: 'user-demo',
+              name: '张三',
+              avatarUrl: 'https://i.pravatar.cc/150?img=12',
+              role: 'VIP 客户',
+              email: 'zhangsan@example.com',
+              phone: '+86 138 0000 0000',
+              tags: ['VIP', '已认证'],
             },
-          }}
+          },
+        }}
+      >
+        <ServiceProvider
+          conversationService={new MockConversationService()}
+          messageService={new MockMessageService()}
+          templateService={new MockTemplateService()}
         >
-          <ServiceProvider
-            conversationService={new MockConversationService()}
-            messageService={new MockMessageService()}
-            templateService={new MockTemplateService()}
-          >
-            <Story />
-          </ServiceProvider>
-        </ConfigProvider>
-      );
-    },
+          <Story />
+        </ServiceProvider>
+      </ConfigProvider>
+    ),
   ],
   render: (args) => (
     <DefaultChatLayout {...args}>
@@ -600,4 +627,3 @@ export const WithProfileAndTemplatePanel: Story = {
     },
   },
 };
-

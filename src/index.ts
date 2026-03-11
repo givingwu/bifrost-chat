@@ -4,14 +4,23 @@ import './styles/index.css';
 // Components
 export * from '@/components';
 export type {
+  ConversationBootstrapOptions,
   DefaultChatLayoutRenderTopbar,
   DefaultChatLayoutRenderTopbarProps,
 } from '@/components/layout/DefaultChatLayout';
-
+export * from '@/errors/network.error';
+/**
+ * SDK 错误模块
+ *
+ * @description
+ * 统一导出所有 SDK 错误类和工具
+ */
+export * from '@/errors/sdk.errors';
+export * from '@/errors/websocket.errors';
+export { useConversationMetadata } from '@/hooks/use-conversation-metadata.hook';
 // Hooks
 // 会话相关 Hooks
 export { useConversations } from '@/hooks/use-conversations.hook';
-export { useConversationMetadata } from '@/hooks/use-conversation-metadata.hook';
 export { useCreateConversation } from '@/hooks/use-create-conversation.hook';
 export { useInViewport } from '@/hooks/use-in-viewport.hook';
 export { useMarkAsRead } from '@/hooks/use-mark-as-read.hook';
@@ -23,16 +32,6 @@ export { useTemplates } from '@/hooks/use-templates.hook';
 // 未读相关 Hooks
 export { useTotalUnread } from '@/hooks/use-total-unread.hook';
 export { useUnreadSync } from '@/hooks/use-unread-sync.hook';
-
-/**
- * SDK 错误模块
- *
- * @description
- * 统一导出所有 SDK 错误类和工具
- */
-export * from '@/errors/sdk.errors';
-export * from '@/errors/websocket.errors';
-export * from '@/errors/network.error';
 
 // Types
 export * from '@/interfaces/agent.interface';
@@ -71,21 +70,10 @@ export * from '@/providers/service.provider';
 export * from '@/services/core/conversation.service';
 export * from '@/services/core/message.service';
 export * from '@/services/core/network.service';
-export * from '@/services/messaging/message-builder.service';
 export * from '@/services/core/template.service';
+export * from '@/services/messaging/message-builder.service';
 export * from '@/services/protocol';
 export * from '@/services/websocket';
-
-// Errors
-/**
- * SDK 错误模块
- *
- * @description
- * 统一导出所有 SDK 错误类和工具
- */
-export * from '@/errors/sdk.errors';
-export * from '@/errors/websocket.errors';
-export * from '@/errors/network.error';
 
 // Store
 export * from '@/store';

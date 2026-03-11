@@ -19,15 +19,15 @@ const meta: Meta<typeof ConfigProvider> = {
     docs: {
       description: {
         component:
-          '用于一次性初始化全局 Chat Store 的 Provider。' +
-          '仅首次挂载时生效，后续 config 变更不会覆盖已有状态。',
+          '用于注入并维护全局 Chat Store 配置的 Provider。' +
+          '当 config 语义变化时，会重置并重新初始化 store。',
       },
     },
   },
   argTypes: {
     config: {
       control: false,
-      description: 'Store 初始化配置（静态）',
+      description: 'Store 初始化配置',
     },
     children: {
       control: false,
@@ -68,7 +68,7 @@ const renderWithSnapshot = (config: ChatStoreInitialState) => {
 };
 
 /**
- * 静态初始化：在首次挂载时把 config 合并进 store。
+ * 初始化：在首次挂载时把 config 写入 store。
  */
 export const StaticInitialization: Story = {
   render: () =>
@@ -97,9 +97,9 @@ export const LocaleOverride: Story = {
 };
 
 /**
- * 静态行为：更新 config prop 不会触发重新初始化。
+ * 同步行为：更新 config prop 会触发重新初始化。
  */
-export const ConfigIsStaticAfterMount: Story = {
+export const ConfigSyncAfterMount: Story = {
   render: () => {
     const [nextLanguage, setNextLanguage] = useState(false);
 
@@ -132,6 +132,9 @@ export const ConfigIsStaticAfterMount: Story = {
                 <p className="text-sm text-text">
                   当前 config.language 目标值：
                   {dynamicConfig.language?.code}
+                </p>
+                <p className="text-sm text-text-muted">
+                  当前 store 会随 config 语义变化重置并同步。
                 </p>
                 <StoreSnapshot state={state} />
               </div>
