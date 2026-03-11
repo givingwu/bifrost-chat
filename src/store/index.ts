@@ -134,24 +134,24 @@ const mergeInitialState = (
       : baseState.theme,
     language: initialState.language
       ? {
-          ...baseState.language,
-          ...initialState.language,
-          // 确保 messages 始终存在，如果 code 变化了则重新加载 messages
-          messages:
-            initialState.language.code &&
+        ...baseState.language,
+        ...initialState.language,
+        // 确保 messages 始终存在，如果 code 变化了则重新加载 messages
+        messages:
+          initialState.language.code &&
             initialState.language.code !== baseState.language.code
-              ? loadMessagesSync(initialState.language.code)
-              : baseState.language.messages,
-        }
+            ? loadMessagesSync(initialState.language.code)
+            : baseState.language.messages,
+      }
       : baseState.language,
     profile: initialState.profile
       ? { ...baseState.profile, ...initialState.profile }
       : baseState.profile,
     conversation: initialState.activeConversationId
       ? {
-          ...baseState.conversation,
-          activeConversationId: initialState.activeConversationId,
-        }
+        ...baseState.conversation,
+        activeConversationId: initialState.activeConversationId,
+      }
       : baseState.conversation,
     composer: initialState.composer
       ? { ...baseState.composer, ...initialState.composer }
@@ -254,17 +254,7 @@ export const useComposerConfig = () => useChatStore((state) => state.composer);
  * const actions = useActions();
  * actions.setActiveChannel(ChannelTypeEnum.WhatsApp);
  */
-export const useActions = () => {
-  const actions = useChatStore((state) => state.actions);
-  // DEBUG: 检测 actions 引用是否稳定
-  console.log(
-    '[DEBUG useActions] actions reference:',
-    actions,
-    'setSystemPrefersDark:',
-    actions?.setSystemPrefersDark,
-  );
-  return actions;
-};
+export const useActions = () => useChatStore((state) => state.actions);
 
 /**
  * 重置 Chat Store 到初始状态

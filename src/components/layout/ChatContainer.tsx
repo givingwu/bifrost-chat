@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect } from 'react';
+import { type ReactNode, useEffect, useRef } from 'react';
 import { ThemeModeEnum } from '@/interfaces/theme.interface';
 import { I18nProvider } from '@/providers/I18n.provider';
 import {
@@ -82,37 +82,26 @@ export const ChatContainer = ({ children }: ChatContainerProps) => {
   const { code: languageCode, messages } = useLanguage();
   const { setLanguage, setSystemPrefersDark } = useActions();
 
-  useEffect(() => {
-    console.log(
-      '[DEBUG ChatContainer] useEffect triggered, setSystemPrefersDark:',
-      setSystemPrefersDark,
-    );
+  // 用 ref 保持最新函数引用，避免 useEffect 因函数引用变化而死循环
+  const setSystemPrefersDarkRef = useRef(setSystemPrefersDark);
+  setSystemPrefersDarkRef.current = setSystemPrefersDark;
 
-    if (typeof window === 'undefined') {
-      return;
-    }
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
 
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const handleChange = (event: MediaQueryListEvent) => {
-      console.log(
-        '[DEBUG ChatContainer] mediaQuery change event, matches:',
-        event.matches,
-      );
-      setSystemPrefersDark(event.matches);
+      setSystemPrefersDarkRef.current(event.matches);
     };
 
-    console.log(
-      '[DEBUG ChatContainer] calling setSystemPrefersDark with initial value:',
-      mediaQuery.matches,
-    );
-    setSystemPrefersDark(mediaQuery.matches);
+    setSystemPrefersDarkRef.current(mediaQuery.matches);
     mediaQuery.addEventListener('change', handleChange);
 
     return () => {
-      console.log('[DEBUG ChatContainer] useEffect cleanup');
       mediaQuery.removeEventListener('change', handleChange);
     };
-  }, [setSystemPrefersDark]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // 只挂载一次，通过 ref 访问最新函数
 
   const resolvedThemeMode =
     theme.mode === ThemeModeEnum.System
