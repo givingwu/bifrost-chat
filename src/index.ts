@@ -11,6 +11,7 @@ export type {
 // Hooks
 // 会话相关 Hooks
 export { useConversations } from '@/hooks/use-conversations.hook';
+export { useConversationMetadata } from '@/hooks/use-conversation-metadata.hook';
 export { useCreateConversation } from '@/hooks/use-create-conversation.hook';
 export { useInViewport } from '@/hooks/use-in-viewport.hook';
 export { useMarkAsRead } from '@/hooks/use-mark-as-read.hook';
