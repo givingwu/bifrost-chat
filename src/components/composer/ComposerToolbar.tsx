@@ -525,7 +525,7 @@ export const ComposerToolbar = forwardRef<
           maxLength={effectiveMaxLength}
         />
 
-        {/* 底部工具栏 - 所有操作按钮 */}
+        {/* 底部工具栏 - 所有操作按鈕 */}
         <div className="flex items-center justify-between">
           {/* 左侧：渠道相关 */}
           <div className="flex items-center gap-1">
@@ -544,7 +544,7 @@ export const ComposerToolbar = forwardRef<
             )}
           </div>
 
-          {/* 右侧：操作按钮 */}
+          {/* 右侧：操作按鈕 */}
           <div className="flex items-center gap-1">
             {composerConfig.enableAttachments && (
               <ComposerAttachments
@@ -577,6 +577,13 @@ export const ComposerToolbar = forwardRef<
           </div>
         </div>
       </form>
+
+      {/* Shift+Enter 提示 */}
+      {!disabled && (
+        <p className="mt-1 text-[11px] text-gray-400/70 dark:text-gray-600/80 select-none text-right pr-1">
+          {t('composer.hint.newline')}
+        </p>
+      )}
     </div>
   );
 });
