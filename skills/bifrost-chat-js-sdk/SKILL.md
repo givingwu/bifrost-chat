@@ -67,6 +67,7 @@ language: "zh-CN"
 - 组件和 hooks 不直连 API。
 - 服务端状态只放 React Query，Zustand 只放客户端交互态。
 - 文档必须标注 As-Is / To-Be。
+- **修改 `@src/components/` 下的任何内容时，必须同步更新对应的 `@stories/` 组件设计，增加或更新示例**。
 
 ## 交付前检查
 
