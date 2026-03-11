@@ -35,21 +35,29 @@ export const createThemeSlice: StateCreator<ThemeSlice, [], [], ThemeSlice> = (
   actions: {
     // mode 保留用户设置的原始偏好（含 system），resolvedMode 才是实际渲染值
     setTheme: (mode: ThemeModeEnum) =>
-      set((state) => ({
-        theme: {
-          ...state.theme,
-          mode,
-          resolvedMode: resolveThemeMode(mode, state.theme.systemPrefersDark),
-        },
-      })),
-    // 系统偏好变化时同步刷新 resolvedMode
+      set((state) => {
+        if (!state.theme.enableSwitcher) return state;
+
+        return {
+          theme: {
+            ...state.theme,
+            mode,
+            resolvedMode: resolveThemeMode(mode, state.theme.systemPrefersDark),
+          },
+        };
+      }),
+    // 系统偏好变化时同步刷新 resolvedMode（仅在 enableSwitcher=true 时生效）
     setSystemPrefersDark: (prefersDark: boolean) =>
-      set((state) => ({
-        theme: {
-          ...state.theme,
-          systemPrefersDark: prefersDark,
-          resolvedMode: resolveThemeMode(state.theme.mode, prefersDark),
-        },
-      })),
+      set((state) => {
+        if (!state.theme.enableSwitcher) return state;
+
+        return {
+          theme: {
+            ...state.theme,
+            systemPrefersDark: prefersDark,
+            resolvedMode: resolveThemeMode(state.theme.mode, prefersDark),
+          },
+        };
+      }),
   },
 });
