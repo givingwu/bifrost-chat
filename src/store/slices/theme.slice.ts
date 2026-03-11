@@ -47,8 +47,16 @@ export const createThemeSlice: StateCreator<ThemeSlice, [], [], ThemeSlice> = (
         };
       }),
     // 系统偏好变化时同步刷新 resolvedMode（仅在 enableSwitcher=true 时生效）
-    setSystemPrefersDark: (prefersDark: boolean) =>
-      set((state) => {
+    setSystemPrefersDark: (prefersDark: boolean) => {
+      console.log(
+        '[DEBUG setSystemPrefersDark] called with prefersDark:',
+        prefersDark,
+      );
+      return set((state) => {
+        console.log(
+          '[DEBUG setSystemPrefersDark] inside set, enableSwitcher:',
+          state.theme.enableSwitcher,
+        );
         if (!state.theme.enableSwitcher) return state;
 
         return {
@@ -58,6 +66,7 @@ export const createThemeSlice: StateCreator<ThemeSlice, [], [], ThemeSlice> = (
             resolvedMode: resolveThemeMode(state.theme.mode, prefersDark),
           },
         };
-      }),
+      });
+    },
   },
 });

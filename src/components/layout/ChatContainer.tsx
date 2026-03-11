@@ -83,19 +83,33 @@ export const ChatContainer = ({ children }: ChatContainerProps) => {
   const { setLanguage, setSystemPrefersDark } = useActions();
 
   useEffect(() => {
+    console.log(
+      '[DEBUG ChatContainer] useEffect triggered, setSystemPrefersDark:',
+      setSystemPrefersDark,
+    );
+
     if (typeof window === 'undefined') {
       return;
     }
 
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const handleChange = (event: MediaQueryListEvent) => {
+      console.log(
+        '[DEBUG ChatContainer] mediaQuery change event, matches:',
+        event.matches,
+      );
       setSystemPrefersDark(event.matches);
     };
 
+    console.log(
+      '[DEBUG ChatContainer] calling setSystemPrefersDark with initial value:',
+      mediaQuery.matches,
+    );
     setSystemPrefersDark(mediaQuery.matches);
     mediaQuery.addEventListener('change', handleChange);
 
     return () => {
+      console.log('[DEBUG ChatContainer] useEffect cleanup');
       mediaQuery.removeEventListener('change', handleChange);
     };
   }, [setSystemPrefersDark]);
