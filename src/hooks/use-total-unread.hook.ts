@@ -27,10 +27,9 @@ export function useTotalUnread(conversations?: Conversation[] | null): {
   // 全局模式：调用 getUnreadCount API（仅在不传 conversations 时启用）
   const { data: unreadByChannel } = useQuery({
     queryKey: queryKeys.conversations.unread(),
-    queryFn: () => conversationService!.getUnreadCount!(),
+    queryFn: () => conversationService?.getUnreadCount?.(),
     enabled:
-      conversations === undefined &&
-      !!conversationService?.getUnreadCount,
+      conversations === undefined && !!conversationService?.getUnreadCount,
     staleTime: 1000 * 30, // 30 秒内视为新鲜
     refetchInterval: 1000 * 60, // 每分钟后台轮询一次
   });
