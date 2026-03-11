@@ -22,7 +22,6 @@ import type { INetworkService } from '@/services/core/network.service';
 import type { ITemplateService } from '@/services/core/template.service';
 import { useChatStore, useNetwork, useStrategy } from '@/store';
 import { DEFAULT_NETWORK_STATE } from '@/store/slices/network.slice';
-import { createChatStore } from '@/store/index';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import { AgentStatusEnum } from '@/interfaces/agent.interface';
 import { MessageTypeDisplayStrategy } from '@/interfaces/message-type-config.interface';
