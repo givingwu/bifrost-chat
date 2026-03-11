@@ -1,4 +1,4 @@
-import { onlineManager } from '@tanstack/react-query';
+import { onlineManager, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
   act,
   render,
@@ -20,8 +20,21 @@ import type { IConversationService } from '@/services/core/conversation.service'
 import type { IMessageService } from '@/services/core/message.service';
 import type { INetworkService } from '@/services/core/network.service';
 import type { ITemplateService } from '@/services/core/template.service';
-import { useChatStore, useNetwork } from '@/store';
+import { useChatStore, useNetwork, useStrategy } from '@/store';
 import { DEFAULT_NETWORK_STATE } from '@/store/slices/network.slice';
+import { createChatStore } from '@/store/index';
+import { ChannelTypeEnum } from '@/interfaces/channel.interface';
+import { AgentStatusEnum } from '@/interfaces/agent.interface';
+import { MessageTypeDisplayStrategy } from '@/interfaces/message-type-config.interface';
+
+// Mock store to allow custom useStrategy
+vi.mock('@/store', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/store')>();
+  return {
+    ...actual,
+    useStrategy: vi.fn(),
+  };
+});
 
 const mockConversationService: IConversationService = {
   list: vi.fn(),
@@ -39,8 +52,8 @@ const mockMessageService: IMessageService = {
   list: vi.fn(),
   send: vi.fn(),
   markAsRead: vi.fn(),
-  subscribeToMessages: vi.fn(() => () => {}),
-  subscribeToMessageStatus: vi.fn(() => () => {}),
+  subscribeToMessages: vi.fn(() => () => { }),
+  subscribeToMessageStatus: vi.fn(() => () => { }),
   sendAttachment: vi.fn(),
   sendAudio: vi.fn(),
 };
@@ -71,17 +84,27 @@ const onlineSnapshot: NetworkState = {
   },
 };
 
+// 创建 QueryClient
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: { retry: false },
+    mutations: { retry: false },
+  },
+});
+
 function createWrapper(networkService?: INetworkService) {
   return function Wrapper({ children }: { children: ReactNode }) {
     return (
-      <ServiceProvider
-        conversationService={mockConversationService}
-        messageService={mockMessageService}
-        templateService={mockTemplateService}
-        networkService={networkService}
-      >
-        {children}
-      </ServiceProvider>
+      <QueryClientProvider client={queryClient}>
+        <ServiceProvider
+          conversationService={mockConversationService}
+          messageService={mockMessageService}
+          templateService={mockTemplateService}
+          networkService={networkService}
+        >
+          {children}
+        </ServiceProvider>
+      </QueryClientProvider>
     );
   };
 }
@@ -91,11 +114,25 @@ describe('ServiceProvider', () => {
     vi.clearAllMocks();
     useChatStore.getState().actions.replaceNetwork(DEFAULT_NETWORK_STATE);
     onlineManager.setOnline(true);
+
+    // Mock useStrategy for TopbarTools test
+    vi.mocked(useStrategy).mockReturnValue({
+      activeChannel: ChannelTypeEnum.WhatsApp,
+      allowedChannels: [ChannelTypeEnum.WhatsApp],
+      currentUser: {
+        app: 'test-app',
+        pin: 'test-agent-123',
+        status: AgentStatusEnum.Online,
+      },
+      allowedMessageTypes: [],
+      messageDisplayStrategy: MessageTypeDisplayStrategy.ShowUnsupported
+    });
   });
 
   afterEach(() => {
     useChatStore.getState().actions.replaceNetwork(DEFAULT_NETWORK_STATE);
     onlineManager.setOnline(true);
+    vi.mocked(useStrategy).mockReset();
   });
 
   it('应同步 Host 网络快照到 store 与 onlineManager', async () => {
@@ -139,7 +176,20 @@ describe('ServiceProvider', () => {
   });
 
   it('未注入 networkService 时不显示网络状态', () => {
-    render(<TopbarTools />);
+    // 初始化空的 conversation 列表缓存（useChannelUnread 需要）
+    queryClient.setQueryData(['conversations', 'whatsapp'], []);
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <ServiceProvider
+          conversationService={mockConversationService}
+          messageService={mockMessageService}
+          templateService={mockTemplateService}
+        >
+          <TopbarTools />
+        </ServiceProvider>
+      </QueryClientProvider>,
+    );
 
     expect(screen.queryByLabelText('网络已连接')).not.toBeInTheDocument();
     expect(screen.queryByLabelText('网络状态未知')).not.toBeInTheDocument();

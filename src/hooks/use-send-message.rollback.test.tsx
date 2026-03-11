@@ -66,8 +66,8 @@ vi.mock('@/store', async (importOriginal) => {
   };
 });
 
-// Mock MessageBuilder
-vi.mock('@/services/message-builder.service', () => ({
+// Mock MessageBuilder - 路径必须与实际导入路径一致
+vi.mock('@/services/messaging/message-builder.service', () => ({
   MessageBuilder: {
     buildTextMessage: vi.fn((content, options) => ({
       id: 'temp-msg-1',
