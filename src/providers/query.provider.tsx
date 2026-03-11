@@ -71,6 +71,9 @@ export const queryKeys = {
     // 会话元数据
     metadata: (chatId: string) =>
       [...queryKeys.conversations.all, 'metadata', chatId] as const,
+    // 未读数量
+    unread: (params?: { channelType?: string; chatId?: string }) =>
+      [...queryKeys.conversations.all, 'unread', params ?? {}] as const,
   },
   // 消息相关
   messages: {

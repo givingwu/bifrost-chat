@@ -18,4 +18,5 @@ export { useSendMessage } from './use-send-message.hook';
 export { useTemplatePreview } from './use-template-preview.hook';
 export { useTemplates } from './use-templates.hook';
 export { useTotalUnread } from './use-total-unread.hook';
+export { useUnreadCount } from './use-unread-count.hook';
 export { useUnreadSync } from './use-unread-sync.hook';

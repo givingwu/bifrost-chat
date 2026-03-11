@@ -1,3 +1,4 @@
+import type { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import type { Conversation } from '@/interfaces/conversation.interface';
 
 /**
@@ -5,7 +6,26 @@ import type { Conversation } from '@/interfaces/conversation.interface';
  * SDK 层使用 supportedChannels，业务数据通过扩展字段传递
  */
 export interface ConversationMetadata
-  extends Pick<Conversation, 'supportedChannels'> {}
+  extends Pick<Conversation, 'supportedChannels'> { }
+
+/**
+ * 未读数量查询参数
+ */
+export interface UnreadCountParams {
+  /** 当前应用 */
+  app: string
+  /** PIN 码 */
+  pin: string
+  /** 会话 ID（可选，不传则查询全部会话） */
+  conversationId?: string;
+  /** 渠道类型（可选，不传则查询全部渠道） */
+  channelType?: string;
+}
+
+/**
+ * 未读数量结果
+ */
+export type UnreadCountResult = Partial<Record<ChannelTypeEnum, number>>
 
 /**
  * 会话服务接口 (泛型版本)
@@ -109,4 +129,34 @@ export interface IConversationService<
    * ```
    */
   getMetadata?(params: TMetadataParams): Promise<TConversationMetadata>;
+
+  /**
+   * 获取未读数量
+   *
+   * @description
+   * 对应后端接口 /bifrost-hermod/chat/unread。
+   * 业务方在实现时自行注入 app/pin 等鉴权参数；
+   * SDK 只传递可选的 channelType 和 chatId 过滤条件。
+   *
+   * @param params 查询参数（可选）
+   * @returns 未读数量结果
+   *
+   * @example
+   * ```typescript
+   * class MyConversationService implements IConversationService {
+   *   async getUnreadCount(params) {
+   *     const res = await fetch('/bifrost-hermod/chat/unread', {
+   *       method: 'POST',
+   *       body: JSON.stringify({ app: this.app, pin: this.pin, ...params }),
+   *     });
+   *     const { data } = await res.json();
+   *     return {
+   *       byChannel: { sms: data.sms, whatsapp: data.whatsapp },
+   *       total: Object.values(data).reduce((s, n) => s + n, 0),
+   *     };
+   *   }
+   * }
+   * ```
+   */
+  getUnreadCount?(params?: UnreadCountParams): Promise<UnreadCountResult>;
 }
