@@ -148,12 +148,12 @@ export function DefaultChatLayout({
   renderConversationItemMeta,
   renderTopbarMeta,
 }: DefaultChatLayoutProps) {
-  const { t } = useTranslation();
   const actions = useActions();
+  const { t } = useTranslation();
   const { profile } = useProfile();
+  const { activeChannel } = useStrategy();
   const { templateMode } = useComposerConfig();
   const { data: conversations = [] } = useConversations();
-  const { activeChannel } = useStrategy();
   const { activeConversationId, searchQuery } = useConversation();
 
   // Composer ref，用于外部控制输入框
@@ -171,20 +171,6 @@ export function DefaultChatLayout({
   const { metadata: conversationMetadata } = useActiveConversationMetadata();
   // 初始化 useSendMessage 时传入 conversationMetadata
   const sendMessage = useSendMessage({ conversationMetadata });
-
-  // 库内订阅 messageService 实时消息/状态，自动维护未读增量（无需订阅方注册）
-  useUnreadSync();
-  // 消息状态实时同步（ACK/已读），在布局顶层调用一次，避免多实例重复订阅
-  useMessageStatusSync();
-
-  // 自动选中第一个会话
-  useEffect(() => {
-    // 如果当前没有选中会话，且会话列表已加载且不为空
-    if (!activeConversationId && conversations && conversations.length > 0) {
-      actions.setActiveConversationId(conversations[0].id);
-    }
-  }, [conversations, activeConversationId, actions]);
-
   // 从会话列表中找到当前激活的会话
   const activeConversation = useMemo(
     () =>
@@ -201,7 +187,6 @@ export function DefaultChatLayout({
   const subtitle = activeConversation
     ? `${t(`toolbar.channel.${activeConversation.channel}`)} · ${t(`conversation.status.${activeConversation.status || 'active'}`)}`
     : activeChannel;
-
   // 搜索过滤逻辑（使用 startTransition 标记为过渡更新）
   const filteredConversations = useMemo(() => {
     if (!searchQuery) {
@@ -238,13 +223,8 @@ export function DefaultChatLayout({
       );
     });
   }, [conversations, searchQuery]);
-
   // 全量未读总数（基于完整会话列表，不随搜索筛选变化）
   const { totalUnread } = useTotalUnread(conversations ?? null);
-
-  useEffect(() => {
-    onTotalUnreadChange?.(totalUnread);
-  }, [totalUnread, onTotalUnreadChange]);
 
   // 选会话时：仅设置激活 ID；未读数完全由 socket ACK 驱动（msg_receive_ack +1 / msg_read_ack -1）
   const handleSelectConversation = useCallback(
@@ -387,6 +367,32 @@ export function DefaultChatLayout({
       />
     );
   }, [defaultTopbarExtra, renderTopbar, subtitle, title, renderTopbarMeta]);
+
+  // 库内订阅 messageService 实时消息/状态，自动维护未读增量（无需订阅方注册）
+  useUnreadSync();
+  // 消息状态实时同步（ACK/已读），在布局顶层调用一次，避免多实例重复订阅
+  useMessageStatusSync();
+  // 当未读消息变化需要更新消息数量
+  useEffect(() => {
+    onTotalUnreadChange?.(totalUnread);
+  }, [totalUnread, onTotalUnreadChange]);
+  // 自动选中会话：初始加载或渠道切换时
+  // 注意：conversations 已经由 useConversations 按当前渠道过滤
+  useEffect(() => {
+    if (!conversations || conversations.length === 0) {
+      return actions.setActiveConversationId('');
+    }
+
+    // 检查当前 activeConversationId 是否在会话列表中
+    const exists = conversations.some(
+      (conversation) => conversation.id === activeConversationId,
+    );
+
+    if (!exists) {
+      // activeConversationId 不存在（初始加载或渠道切换后）
+      actions.setActiveConversationId(conversations[0].id);
+    }
+  }, [conversations, activeConversationId, actions]);
 
   return (
     <ChatLayout
