@@ -126,16 +126,6 @@ export const MessageList = ({
     [conversationId, enableAutoMarkAsRead, scheduleMarkAsRead],
   );
 
-  // 开发模式下验证 props
-  if (process.env.NODE_ENV === 'development') {
-    if (enableAutoMarkAsRead && !conversationId) {
-      console.warn(
-        '[MessageList] enableAutoMarkAsRead is true but conversationId is missing. ' +
-          'Mark as read functionality will be disabled.',
-      );
-    }
-  }
-
   // 始终调用 useVirtualizer hook（避免条件性调用 hook）
   // 当禁用虚拟滚动时，count 设置为 0
   const shouldUseVirtualization =

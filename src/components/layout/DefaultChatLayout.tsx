@@ -379,7 +379,16 @@ export function DefaultChatLayout({
   // 自动选中会话：初始加载或渠道切换时
   // 注意：conversations 已经由 useConversations 按当前渠道过滤
   useEffect(() => {
+    // DEBUG: 诊断递归渲染问题
+    console.log('[DefaultChatLayout] auto-select effect triggered', {
+      conversationsLength: conversations?.length,
+      conversationsRef: conversations?.map((c) => c.id).join(','),
+      activeConversationId,
+      timestamp: Date.now(),
+    });
+
     if (!conversations || conversations.length === 0) {
+      console.log('[DefaultChatLayout] no conversations, clearing activeId');
       return actions.setActiveConversationId('');
     }
 
@@ -390,7 +399,13 @@ export function DefaultChatLayout({
 
     if (!exists) {
       // activeConversationId 不存在（初始加载或渠道切换后）
+      console.log(
+        '[DefaultChatLayout] activeId not found, setting to first:',
+        conversations[0].id,
+      );
       actions.setActiveConversationId(conversations[0].id);
+    } else {
+      console.log('[DefaultChatLayout] activeId exists, no change needed');
     }
   }, [conversations, activeConversationId, actions]);
 

@@ -57,6 +57,15 @@ export function useConversations<TListParams = Record<string, unknown>>(
   const conversationIdsKey =
     conversations?.map((conversation) => conversation.id).join('|') ?? '';
 
+  // DEBUG: 诊断递归渲染问题
+  useEffect(() => {
+    console.log('[useConversations] conversations reference changed', {
+      conversationIdsKey,
+      length: conversations?.length,
+      timestamp: Date.now(),
+    });
+  }, [conversationIdsKey, conversations?.length]);
+
   useEffect(() => {
     if (!conversationService?.subscribeToListUpdates) {
       return;
