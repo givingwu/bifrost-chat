@@ -47,7 +47,6 @@ class MockConversationService implements IConversationService {
         ChannelTypeEnum.WhatsApp,
         ChannelTypeEnum.SMS,
         ChannelTypeEnum.Email,
-        ChannelTypeEnum.WhatsApp,
       ];
       const statuses = [
         AgentStatusEnum.Online,
@@ -391,7 +390,6 @@ const meta: Meta<typeof DefaultChatLayout> = {
               ChannelTypeEnum.WhatsApp,
               ChannelTypeEnum.SMS,
               ChannelTypeEnum.Email,
-              ChannelTypeEnum.WhatsApp,
             ],
           },
         }}

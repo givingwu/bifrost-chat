@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { Meta, StoryObj } from 'storybook-react-rsbuild';
 import { ChannelSwitcher } from '@/components/composer/ChannelSwitcher';
-import { ChannelTypeEnum } from '@/interfaces/channel.interface';
+import { AvailableChannels, ChannelTypeEnum } from '@/interfaces/channel.interface';
 import '@/styles/theme.css';
 
 /**
@@ -10,12 +10,11 @@ import '@/styles/theme.css';
  * 展示 Composer 场景的渠道切换器（按钮组模式）的各种用法：
  * - 基础示例（完整模式）
  * - 紧凑模式（仅图标）
- * - 使用会话级别的 supportedChannels
- * - 不同渠道的切换
- * - 单渠道场景
+ * - 会话级别的 supportedChannels
+ * - 全量渠道覆盖
+ * - 单渠道场景（不显示切换器）
  * - 暗色模式
  */
-
 const meta: Meta<typeof ChannelSwitcher> = {
   title: 'Composer/ChannelSwitcher',
   component: ChannelSwitcher,
@@ -42,7 +41,7 @@ export default meta;
 type Story = StoryObj<typeof ChannelSwitcher>;
 
 /**
- * 基础示例 - 默认渠道切换器（完整模式）
+ * 基础示例 - 全局 allowedChannels（完整模式）
  */
 export const Default = () => {
   const [activeChannel, setActiveChannel] = useState<ChannelTypeEnum>(
@@ -85,7 +84,7 @@ export const Compact = () => {
 };
 
 /**
- * 使用会话级别的 supportedChannels
+ * 使用会话级别的 supportedChannels（SMS + WhatsApp）
  */
 export const WithSupportedChannels = () => {
   const [activeChannel, setActiveChannel] = useState<ChannelTypeEnum>(
@@ -117,56 +116,46 @@ export const WithSupportedChannels = () => {
 };
 
 /**
- * 不同渠道 - 展示不同渠道的切换
+ * 各种 supportedChannels 组合对比
  */
 export const DifferentChannels = () => {
   const [activeChannel, setActiveChannel] = useState<ChannelTypeEnum>(
     ChannelTypeEnum.WhatsApp,
   );
 
+  const combinations: { label: string; channels: ChannelTypeEnum[] }[] = [
+    {
+      label: 'SMS + WhatsApp',
+      channels: [ChannelTypeEnum.SMS, ChannelTypeEnum.WhatsApp],
+    },
+    {
+      label: 'SMS + WhatsApp + Email',
+      channels: [
+        ChannelTypeEnum.SMS,
+        ChannelTypeEnum.WhatsApp,
+        ChannelTypeEnum.Email,
+      ],
+    },
+    {
+      label: '全部渠道（5 个）',
+      channels: [...AvailableChannels],
+    },
+  ];
+
   return (
     <div className="space-y-4">
-      <div>
-        <p className="text-sm font-medium mb-2">SMS + WhatsApp</p>
-        <div className="p-4 bg-muted rounded-lg">
-          <ChannelSwitcher
-            supportedChannels={[ChannelTypeEnum.SMS, ChannelTypeEnum.WhatsApp]}
-            activeChannel={activeChannel}
-            onChannelChange={setActiveChannel}
-          />
+      {combinations.map(({ label, channels }) => (
+        <div key={label}>
+          <p className="text-sm font-medium mb-2">{label}</p>
+          <div className="p-4 bg-muted rounded-lg">
+            <ChannelSwitcher
+              supportedChannels={channels}
+              activeChannel={activeChannel}
+              onChannelChange={setActiveChannel}
+            />
+          </div>
         </div>
-      </div>
-      <div>
-        <p className="text-sm font-medium mb-2">SMS + WhatsApp + Email</p>
-        <div className="p-4 bg-muted rounded-lg">
-          <ChannelSwitcher
-            supportedChannels={[
-              ChannelTypeEnum.SMS,
-              ChannelTypeEnum.WhatsApp,
-              ChannelTypeEnum.Email,
-            ]}
-            activeChannel={activeChannel}
-            onChannelChange={setActiveChannel}
-          />
-        </div>
-      </div>
-      <div>
-        <p className="text-sm font-medium mb-2">所有渠道</p>
-        <div className="p-4 bg-muted rounded-lg">
-          <ChannelSwitcher
-            supportedChannels={[
-              ChannelTypeEnum.SMS,
-              ChannelTypeEnum.WhatsApp,
-              ChannelTypeEnum.Email,
-              ChannelTypeEnum.WhatsApp,
-              ChannelTypeEnum.Viber,
-              ChannelTypeEnum.IVR,
-            ]}
-            activeChannel={activeChannel}
-            onChannelChange={setActiveChannel}
-          />
-        </div>
-      </div>
+      ))}
       <p className="text-sm text-text-muted">当前激活渠道: {activeChannel}</p>
     </div>
   );
@@ -175,21 +164,19 @@ export const DifferentChannels = () => {
 /**
  * 单渠道场景 - 不显示切换器
  */
-export const SingleChannel = () => {
-  return (
-    <div className="p-4 bg-muted rounded-lg">
-      <ChannelSwitcher supportedChannels={[ChannelTypeEnum.WhatsApp]} />
-      <p className="mt-2 text-sm text-text-muted">单渠道场景，不显示切换器</p>
-    </div>
-  );
-};
+export const SingleChannel = () => (
+  <div className="p-4 bg-muted rounded-lg">
+    <ChannelSwitcher supportedChannels={[ChannelTypeEnum.WhatsApp]} />
+    <p className="mt-2 text-sm text-text-muted">单渠道场景，不显示切换器</p>
+  </div>
+);
 
 /**
- * 暗色模式 - 展示暗色模式下的样式
+ * 暗色模式
  */
 export const DarkMode = () => {
   const [activeChannel, setActiveChannel] = useState<ChannelTypeEnum>(
-    ChannelTypeEnum.WhatsApp,
+    ChannelTypeEnum.Viber,
   );
 
   return (
@@ -199,11 +186,7 @@ export const DarkMode = () => {
       </p>
       <div className="bg-gray-800 p-4 rounded-lg">
         <ChannelSwitcher
-          supportedChannels={[
-            ChannelTypeEnum.SMS,
-            ChannelTypeEnum.WhatsApp,
-            ChannelTypeEnum.Email,
-          ]}
+          supportedChannels={[...AvailableChannels]}
           activeChannel={activeChannel}
           onChannelChange={setActiveChannel}
         />
@@ -216,7 +199,7 @@ export const DarkMode = () => {
 };
 
 /**
- * 交互演示 - 展示渠道切换的交互效果
+ * 交互演示 - 展示渠道切换的交互效果与切换日志
  */
 export const InteractiveDemo = () => {
   const [activeChannel, setActiveChannel] = useState<ChannelTypeEnum>(
@@ -234,11 +217,7 @@ export const InteractiveDemo = () => {
     <div className="space-y-4">
       <div className="p-4 bg-muted rounded-lg">
         <ChannelSwitcher
-          supportedChannels={[
-            ChannelTypeEnum.SMS,
-            ChannelTypeEnum.WhatsApp,
-            ChannelTypeEnum.Email,
-          ]}
+          supportedChannels={[...AvailableChannels]}
           activeChannel={activeChannel}
           onChannelChange={handleChannelChange}
         />

@@ -1,6 +1,10 @@
 import type { Meta, StoryObj } from 'storybook-react-rsbuild';
 import { ChannelFilter } from '@/components/toolbar/ChannelFilter';
-import { ChannelTypeEnum } from '@/interfaces/channel.interface';
+import { CHANNEL_BRAND_COLOR } from '@/hooks/use-channel-icon.hook';
+import {
+  AvailableChannels,
+  ChannelTypeEnum,
+} from '@/interfaces/channel.interface';
 
 const meta: Meta<typeof ChannelFilter> = {
   title: 'Toolbar/ChannelFilter',
@@ -15,7 +19,7 @@ export default meta;
 type Story = StoryObj<typeof ChannelFilter>;
 
 /**
- * 基础示例：单渠道
+ * 基础示例：单渠道（无指示器）
  */
 export const SingleChannel: Story = {
   args: {
@@ -45,23 +49,45 @@ export const MultipleChannels: Story = {
 };
 
 /**
- * 全部渠道
+ * 全部渠道（5 个）
  */
 export const AllChannels: Story = {
   args: {
-    channels: [
-      ChannelTypeEnum.SMS,
-      ChannelTypeEnum.WhatsApp,
-      ChannelTypeEnum.Email,
-      ChannelTypeEnum.Viber,
-      ChannelTypeEnum.IVR,
-    ],
+    channels: AvailableChannels,
     activeChannel: ChannelTypeEnum.WhatsApp,
     onChannelClick: () => {},
     compact: true,
     showTooltip: true,
   },
 };
+
+/**
+ * 品牌色展示 — 每个渠道的 active 背景色各不相同
+ *
+ * 点击按钮可切换 activeChannel，观察各渠道品牌色。
+ */
+export const BrandColors = () => (
+  <div className="flex flex-col gap-4 items-start">
+    {AvailableChannels.map((channel) => (
+      <div key={channel} className="flex items-center gap-3">
+        <ChannelFilter
+          channels={AvailableChannels}
+          activeChannel={channel}
+          onChannelClick={() => {}}
+          compact
+          showTooltip={false}
+        />
+        <span className="text-xs text-gray-600 font-mono">
+          {channel} — {CHANNEL_BRAND_COLOR[channel]}
+        </span>
+        <span
+          className="inline-block w-4 h-4 rounded-full"
+          style={{ backgroundColor: CHANNEL_BRAND_COLOR[channel] }}
+        />
+      </div>
+    ))}
+  </div>
+);
 
 /**
  * 非紧凑模式（显示文字）
@@ -107,12 +133,8 @@ export const WithoutTooltip: Story = {
  */
 export const DarkMode: Story = {
   args: {
-    channels: [
-      ChannelTypeEnum.SMS,
-      ChannelTypeEnum.WhatsApp,
-      ChannelTypeEnum.Email,
-    ],
-    activeChannel: ChannelTypeEnum.Email,
+    channels: AvailableChannels,
+    activeChannel: ChannelTypeEnum.Viber,
     onChannelClick: () => {},
     compact: true,
     showTooltip: true,
@@ -143,17 +165,10 @@ export const NoActiveChannel: Story = {
 
 /**
  * 渠道未读 Badge 示例
- *
- * 各渠道右上角显示未读数字徽标。
- * 通过 `unreadByChannel` prop 直接传入数据，ChannelFilter 为纯受控组件。
  */
 export const WithUnreadBadge: Story = {
   args: {
-    channels: [
-      ChannelTypeEnum.SMS,
-      ChannelTypeEnum.WhatsApp,
-      ChannelTypeEnum.Email,
-    ],
+    channels: AvailableChannels,
     activeChannel: ChannelTypeEnum.WhatsApp,
     onChannelClick: () => {},
     compact: true,
@@ -161,7 +176,8 @@ export const WithUnreadBadge: Story = {
     unreadByChannel: {
       [ChannelTypeEnum.SMS]: 3,
       [ChannelTypeEnum.WhatsApp]: 10,
-      // Email 无未读，不传
+      [ChannelTypeEnum.Viber]: 99,
+      [ChannelTypeEnum.IVR]: 120, // → 99+
     },
   },
 };
@@ -180,7 +196,6 @@ export const WithoutUnreadBadge: Story = {
     onChannelClick: () => {},
     compact: true,
     showTooltip: true,
-    // unreadByChannel 不传 → badge 不渲染
   },
 };
 
@@ -195,7 +210,7 @@ export const UnreadOverflow: Story = {
     compact: true,
     showTooltip: true,
     unreadByChannel: {
-      [ChannelTypeEnum.SMS]: 120, // → 显示 99+
+      [ChannelTypeEnum.SMS]: 120, // → 99+
       [ChannelTypeEnum.WhatsApp]: 5,
     },
   },

@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from 'storybook-react-rsbuild';
+import type { Meta } from 'storybook-react-rsbuild';
 import { ChannelBadge } from '@/components/toolbar/ChannelBadge';
 import {
   AvailableChannels,
@@ -22,28 +22,44 @@ const meta: Meta<typeof ChannelBadge> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof ChannelBadge>;
 
-export const WhatsApp = () => {
-  return (
-    <div className="p-4 bg-muted rounded-lg">
-      <ChannelBadge type={ChannelTypeEnum.WhatsApp} />
-    </div>
-  );
-};
+export const WhatsApp = () => (
+  <div className="p-4 bg-muted rounded-lg">
+    <ChannelBadge type={ChannelTypeEnum.WhatsApp} />
+  </div>
+);
 
-export const SMS = () => {
-  return (
-    <div className="p-4 bg-muted rounded-lg">
-      <ChannelBadge type={ChannelTypeEnum.SMS} />
-    </div>
-  );
-};
+export const SMS = () => (
+  <div className="p-4 bg-muted rounded-lg">
+    <ChannelBadge type={ChannelTypeEnum.SMS} />
+  </div>
+);
 
-export const Email = () => {
-  return (
-    <div className="p-4 bg-muted rounded-lg">
-      <ChannelBadge type={ChannelTypeEnum.Email} />
-    </div>
-  );
-};
+export const Email = () => (
+  <div className="p-4 bg-muted rounded-lg">
+    <ChannelBadge type={ChannelTypeEnum.Email} />
+  </div>
+);
+
+export const Viber = () => (
+  <div className="p-4 bg-muted rounded-lg">
+    <ChannelBadge type={ChannelTypeEnum.Viber} />
+  </div>
+);
+
+export const IVR = () => (
+  <div className="p-4 bg-muted rounded-lg">
+    <ChannelBadge type={ChannelTypeEnum.IVR} />
+  </div>
+);
+
+/**
+ * 所有渠道一览
+ */
+export const AllChannels = () => (
+  <div className="flex gap-3 p-4 bg-muted rounded-lg flex-wrap">
+    {AvailableChannels.map((channel) => (
+      <ChannelBadge key={channel} type={channel} />
+    ))}
+  </div>
+);
