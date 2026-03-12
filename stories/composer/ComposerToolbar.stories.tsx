@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { Meta, StoryObj } from 'storybook-react-rsbuild';
 import { ComposerToolbar } from '@/components/composer/ComposerToolbar';
 import {
-  AvailableChannelTypes,
+  AvailableChannels,
   ChannelTypeEnum,
 } from '@/interfaces/channel.interface';
 import { ConfigProvider } from '@/providers/config.provider';
@@ -25,7 +25,7 @@ const meta: Meta<typeof ComposerToolbar> = {
     channel: {
       defaultValue: ChannelTypeEnum.WhatsApp,
       control: { type: 'select' },
-      options: AvailableChannelTypes,
+      options: AvailableChannels,
     },
     onSend: { action: 'send' },
     onSendAttachment: { action: 'sendAttachment' },

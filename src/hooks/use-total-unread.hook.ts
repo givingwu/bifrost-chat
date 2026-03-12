@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
-import { AvailableChannelTypes } from '@/interfaces/channel.interface';
+import { AvailableChannels } from '@/interfaces/channel.interface';
 import { queryKeys } from '@/providers/query.provider';
 import { useServices } from '@/providers/service.provider';
 
@@ -31,7 +31,7 @@ export function useTotalUnread(): {
   const totalUnread = useMemo(() => {
     if (!unreadByChannel) return 0;
 
-    return AvailableChannelTypes.reduce((sum, channel) => {
+    return AvailableChannels.reduce((sum, channel) => {
       return sum + Math.max(0, unreadByChannel[channel] ?? 0);
     }, 0);
   }, [unreadByChannel]);

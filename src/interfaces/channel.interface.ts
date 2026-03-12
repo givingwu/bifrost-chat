@@ -19,7 +19,7 @@ export enum ChannelTypeEnum {
 /**
  * 可用渠道类型数组（使用 as const 确保类型安全）
  */
-export const AvailableChannelTypes = [
+export const AvailableChannels = [
   ChannelTypeEnum.SMS,
   ChannelTypeEnum.WhatsApp,
   ChannelTypeEnum.Email,
@@ -30,7 +30,7 @@ export const AvailableChannelTypes = [
 /**
  * 渠道类型联合类型（用于类型推导）
  */
-export type AvailableChannelType = (typeof AvailableChannelTypes)[number];
+export type AvailableChannelType = (typeof AvailableChannels)[number];
 
 /**
  * 渠道配置接口

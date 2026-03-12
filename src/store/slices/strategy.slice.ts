@@ -1,7 +1,7 @@
 import type { StateCreator } from 'zustand';
 import { AgentStatusEnum } from '@/interfaces/agent.interface';
 import {
-  AvailableChannelTypes,
+  AvailableChannels,
   ChannelTypeEnum,
 } from '@/interfaces/channel.interface';
 import {
@@ -74,7 +74,7 @@ export const createStrategySlice: StateCreator<
   StrategySlice
 > = (set) => ({
   strategy: {
-    allowedChannels: AvailableChannelTypes,
+    allowedChannels: AvailableChannels,
     activeChannel: ChannelTypeEnum.SMS,
     // currentUser 在宿主调用 configureChatStore / setCurrentUser 之前为空默认值。
     // 注意：pin 为空字符串时 SDK 不应发送协议消息，宿主需在使用前完成初始化。

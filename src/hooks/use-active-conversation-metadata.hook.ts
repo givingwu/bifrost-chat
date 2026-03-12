@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react';
 import {
-  AvailableChannelTypes,
+  AvailableChannels,
   type ChannelTypeEnum,
 } from '@/interfaces/channel.interface';
 import { useConfig } from '@/providers/config.provider';
@@ -24,7 +24,7 @@ export function useActiveConversationMetadata() {
   // 稳定化 fallback
   const configChannels = config?.strategy?.allowedChannels;
   const fallbackChannels = useMemo(
-    () => configChannels ?? AvailableChannelTypes,
+    () => configChannels ?? AvailableChannels,
     [configChannels],
   );
 

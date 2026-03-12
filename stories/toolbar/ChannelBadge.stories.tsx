@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from 'storybook-react-rsbuild';
 import { ChannelBadge } from '@/components/toolbar/ChannelBadge';
 import {
-  AvailableChannelTypes,
+  AvailableChannels,
   ChannelTypeEnum,
 } from '@/interfaces/channel.interface';
 import '@/styles/theme.css';
@@ -15,7 +15,7 @@ const meta: Meta<typeof ChannelBadge> = {
   tags: ['autodocs'],
   argTypes: {
     type: {
-      options: AvailableChannelTypes,
+      options: AvailableChannels,
       control: { type: 'select' },
     },
   },

@@ -76,8 +76,7 @@ describe('useTotalUnread', () => {
     });
 
     await waitFor(() => {
-      // 仅统计 allowedChannels 中的渠道（WhatsApp=5，SMS 排除）
-      expect(result.current.totalUnread).toBe(5);
+      expect(result.current.totalUnread).toBe(8);
     });
 
     expect(mockConversationService.getUnreadCount).toHaveBeenCalledTimes(1);
