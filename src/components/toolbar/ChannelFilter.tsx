@@ -79,7 +79,7 @@ export const ChannelFilter = memo(
       <fieldset
         aria-label="Channel Filter"
         className={cn(
-          'relative inline-flex items-center rounded-full p-0.5 bg-gray-100 dark:bg-white/[0.08] backdrop-blur-md border border-gray-300/60 dark:border-white/15 shadow-sm',
+          'relative inline-flex items-center rounded-full p-0.5 bg-gray-100 dark:bg-white/8 backdrop-blur-md border border-gray-300/60 dark:border-white/15 shadow-sm',
           className,
         )}
         style={style}
@@ -113,9 +113,9 @@ export const ChannelFilter = memo(
               aria-pressed={isActive}
               className={cn(
                 'relative z-10 flex items-center justify-center px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-300 group',
-                'min-w-[40px] cursor-pointer',
+                'min-w-10 cursor-pointer',
                 isActive
-                  ? 'text-blue-600 dark:text-blue-400 font-semibold'
+                  ? 'bg-blue-500 text-white font-semibold'
                   : 'text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200',
               )}
               title={channel}
@@ -124,10 +124,11 @@ export const ChannelFilter = memo(
               {/* Unread badge：有数据且 > 0 才显示 */}
               {unreadByChannel && count > 0 && (
                 <span
+                  role="tooltip"
                   aria-label={`${count} unread`}
                   className={cn(
                     'absolute -top-1 -right-1 z-20',
-                    'min-w-[14px] h-[14px] px-0.5',
+                    'min-w-3.5 h-3.5 px-0.5',
                     'flex items-center justify-center',
                     'rounded-full bg-red-500 text-white text-[9px] font-bold leading-none',
                     'ring-1 ring-white dark:ring-gray-900',

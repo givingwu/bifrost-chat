@@ -15,7 +15,6 @@ import { Profile, type ProfileAction } from '@/components/profile/Profile';
 import { TemplatePanel } from '@/components/template/TemplatePanel';
 import { Topbar } from '@/components/toolbar/Topbar';
 import { TopbarTools } from '@/components/toolbar/TopbarTools';
-import { useChannelUnread } from '@/hooks';
 import { useActiveConversationMetadata } from '@/hooks/use-active-conversation-metadata.hook';
 import { useConversations } from '@/hooks/use-conversations.hook';
 import { useMessageStatusSync } from '@/hooks/use-message-status-sync.hook';
@@ -35,8 +34,6 @@ import {
   useStrategy,
 } from '@/store';
 import { cn } from '@/utils/class.util';
-import { Title } from '../Title';
-import { ChannelFilter } from '../toolbar/ChannelFilter';
 import { ChatLayout } from './ChatLayout';
 
 export interface DefaultChatLayoutRenderTopbarProps {
@@ -119,7 +116,7 @@ export function DefaultChatLayout({
   const { profile } = useProfile();
   const { templateMode } = useComposerConfig();
   const { data: conversations = [] } = useConversations();
-  const { activeChannel, allowedChannels } = useStrategy();
+  const { activeChannel } = useStrategy();
   const { activeConversationId, searchQuery } = useConversation();
 
   // Composer ref，用于外部控制输入框
@@ -133,8 +130,6 @@ export function DefaultChatLayout({
     string | number | undefined
   >();
 
-  // 获取渠道未读数量
-  const unreadByChannel = useChannelUnread(allowedChannels);
   // 后台静默同步会话元数据（supportedChannels 等）
   const { metadata: conversationMetadata } = useActiveConversationMetadata();
   // 初始化 useSendMessage 时传入 conversationMetadata
@@ -359,22 +354,7 @@ export function DefaultChatLayout({
         <ConversationPanel
           header={
             <ConversationHeader
-              title={
-                <div className="flex justify-between">
-                  <Title>{t('title')}</Title>
-                  {/* 渠道切换器 */}
-                  {allowedChannels.length > 1 && (
-                    <ChannelFilter
-                      channels={allowedChannels}
-                      activeChannel={activeChannel}
-                      onChannelClick={actions.setActiveChannel}
-                      unreadByChannel={unreadByChannel}
-                      compact
-                      showTooltip
-                    />
-                  )}
-                </div>
-              }
+              title={t('title')}
               searchValue={searchQuery}
               onSearchChange={handleSearchChange}
               onSearchSubmit={handleSearchSubmit}
