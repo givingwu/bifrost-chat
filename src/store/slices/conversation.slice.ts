@@ -35,19 +35,13 @@ export const createConversationSlice: StateCreator<
     searchQuery: '',
   },
   actions: {
-    setActiveConversationId: (conversationId: string) => {
-      // DEBUG: 诊断递归渲染问题
-      console.log('[ConversationSlice] setActiveConversationId called', {
-        newId: conversationId,
-        timestamp: Date.now(),
-      });
-      return set((state) => ({
+    setActiveConversationId: (conversationId: string) =>
+      set((state) => ({
         conversation: {
           ...state.conversation,
           activeConversationId: conversationId,
         },
-      }));
-    },
+      })),
     setSearchQuery: (query: string) =>
       set((state) => ({
         conversation: {

@@ -1,5 +1,5 @@
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import type { Conversation } from '@/interfaces/conversation.interface';
 import { queryKeys } from '@/providers/query.provider';
 import { useServices } from '@/providers/service.provider';
@@ -53,18 +53,23 @@ export function useConversations<TListParams = Record<string, unknown>>(
   });
 
   // 推导扁平会话列表（所有页合并）
-  const conversations = query.data?.pages.flat() ?? undefined;
-  const conversationIdsKey =
-    conversations?.map((conversation) => conversation.id).join('|') ?? '';
+  // 使用 useMemo 稳定化数组引用，避免每次渲染都创建新数组
+  const conversationIdsKey = useMemo(() => {
+    const pages = query.data?.pages;
+    if (!pages) return '';
 
-  // DEBUG: 诊断递归渲染问题
-  useEffect(() => {
-    console.log('[useConversations] conversations reference changed', {
-      conversationIdsKey,
-      length: conversations?.length,
-      timestamp: Date.now(),
-    });
-  }, [conversationIdsKey, conversations?.length]);
+    return pages
+      .flat()
+      .map((c) => c.id)
+      .join('|');
+  }, [query.data?.pages]);
+
+  // 推导扁平会话列表（所有页合并）
+  // 依赖 query.data（而非 pages）确保 setQueryData 更新内容时能触发重算
+  const conversations = useMemo(
+    () => query.data?.pages.flat(),
+    [query.data],
+  );
 
   useEffect(() => {
     if (!conversationService?.subscribeToListUpdates) {

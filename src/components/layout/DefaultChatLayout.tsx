@@ -153,7 +153,8 @@ export function DefaultChatLayout({
   const { profile } = useProfile();
   const { activeChannel } = useStrategy();
   const { templateMode } = useComposerConfig();
-  const { data: conversations = [] } = useConversations();
+  const { data: conversations = [], isFetching: isConversationsFetching } =
+    useConversations();
   const { activeConversationId, searchQuery } = useConversation();
 
   // Composer ref，用于外部控制输入框
@@ -378,18 +379,18 @@ export function DefaultChatLayout({
   }, [totalUnread, onTotalUnreadChange]);
   // 自动选中会话：初始加载或渠道切换时
   // 注意：conversations 已经由 useConversations 按当前渠道过滤
+  // 三重幂等守卫，防止无效 store 写入触发循环：
+  //   1. conversations 正在 fetch 时跳过（渠道切换竞态）
+  //   2. 清空 activeId 前检查是否已经为空
+  //   3. auto-select 前检查目标 id 是否和当前相同
   useEffect(() => {
-    // DEBUG: 诊断递归渲染问题
-    console.log('[DefaultChatLayout] auto-select effect triggered', {
-      conversationsLength: conversations?.length,
-      conversationsRef: conversations?.map((c) => c.id).join(','),
-      activeConversationId,
-      timestamp: Date.now(),
-    });
+    if (isConversationsFetching) return;
 
     if (!conversations || conversations.length === 0) {
-      console.log('[DefaultChatLayout] no conversations, clearing activeId');
-      return actions.setActiveConversationId('');
+      if (activeConversationId !== '') {
+        actions.setActiveConversationId('');
+      }
+      return;
     }
 
     // 检查当前 activeConversationId 是否在会话列表中
@@ -398,16 +399,12 @@ export function DefaultChatLayout({
     );
 
     if (!exists) {
-      // activeConversationId 不存在（初始加载或渠道切换后）
-      console.log(
-        '[DefaultChatLayout] activeId not found, setting to first:',
-        conversations[0].id,
-      );
-      actions.setActiveConversationId(conversations[0].id);
-    } else {
-      console.log('[DefaultChatLayout] activeId exists, no change needed');
+      const firstId = conversations[0].id;
+      if (firstId !== activeConversationId) {
+        actions.setActiveConversationId(firstId);
+      }
     }
-  }, [conversations, activeConversationId, actions]);
+  }, [conversations, activeConversationId, actions, isConversationsFetching]);
 
   return (
     <ChatLayout
