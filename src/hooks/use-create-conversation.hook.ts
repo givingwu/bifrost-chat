@@ -43,9 +43,9 @@ import { ConversationCacheHelper } from '@/services/cache/conversation-cache-hel
  * }
  * ```
  */
-export function useCreateConversation<
-  TParams extends Conversation = Conversation,
->(enableUpsert: boolean) {
+export function useCreateConversation<TParams = Conversation>(
+  enableUpsert?: boolean,
+) {
   const queryClient = useQueryClient();
   const { conversationService } = useServices();
 
