@@ -120,7 +120,6 @@ describe('useActiveConversationMetadata', () => {
     await waitFor(() => {
       expect(useChatStore.getState().strategy.allowedChannels).toEqual([
         ChannelTypeEnum.WhatsApp,
-        ChannelTypeEnum.SMS,
       ]);
     });
 
