@@ -1,5 +1,4 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import type { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import type { Conversation } from '@/interfaces/conversation.interface';
 import { queryKeys } from '@/providers/query.provider';
 import { useServices } from '@/providers/service.provider';
@@ -11,6 +10,11 @@ import { ConversationCacheHelper } from '@/services/cache/conversation-cache-hel
  * @description
  * 使用 React Query Mutation 管理会话创建。
  * 创建成功后会直接更新会话列表缓存，确保新会话立即显示。
+ *
+ * **设计说明**：
+ * - 不使用乐观更新（onMutate），因为创建操作不需要预先修改缓存
+ * - 使用 `invalidateQueries` 模糊匹配刷新所有相关查询，解耦 queryKey 结构
+ * - `ConversationCacheHelper.upsertConversation` 负责精确更新特定渠道的缓存
  *
  * @returns Mutation 结果
  *
@@ -39,35 +43,43 @@ import { ConversationCacheHelper } from '@/services/cache/conversation-cache-hel
  * }
  * ```
  */
-export function useCreateConversation<TParams = Conversation>() {
+export function useCreateConversation<
+  TParams extends Conversation = Conversation,
+>(enableUpsert: boolean) {
   const queryClient = useQueryClient();
   const { conversationService } = useServices();
 
   return useMutation({
     mutationFn: (params: TParams) => conversationService.create(params),
 
-    // 成功后直接更新缓存，确保新会话立即显示
     onSuccess: (newConversation) => {
       // 从返回的会话中获取 channel，确保更新到正确的渠道列表
-      const channel = newConversation.channel as ChannelTypeEnum;
+      const channel = newConversation.channel;
 
-      // 直接将新会话插入缓存
-      ConversationCacheHelper.upsertConversation(
-        queryClient,
-        newConversation,
-        channel,
-      );
+      // 直接将新会话插入缓存（精确更新特定渠道）
+      if (enableUpsert) {
+        ConversationCacheHelper.upsertConversation(
+          queryClient,
+          newConversation,
+          channel,
+        );
+      }
 
-      // 同时 invalidate 以确保后续数据一致性
+      // 使用模糊匹配 invalidate 所有 conversations list 查询
+      // lists() 返回 ['conversations', 'list']，会匹配所有以它开头的 key
+      // 这样即使宿主层自定义了 queryKey 结构，也能正确刷新
       queryClient.invalidateQueries({
         queryKey: queryKeys.conversations.lists(),
       });
     },
 
-    // 如果出错，记录日志
     onError: (error, params) => {
-      console.error('[useCreateConversation] error: ', error);
-      console.log('[useCreateConversation] params: ', params);
+      // 创建失败只记录日志，不需要回滚缓存
+      // 因为创建操作不会预先修改缓存
+      if (error) {
+        console.error('[use-create-conversation] error: ', error);
+        console.log('[use-create-conversation] params: ', params);
+      }
     },
   });
 }
