@@ -20,7 +20,7 @@ export function useTotalUnread(): {
 } {
   const { conversationService } = useServices();
 
-  const { data: unreadByChannel, isFetching } = useQuery({
+  const { data: unreadByChannel = 0 } = useQuery({
     queryKey: queryKeys.conversations.unread(),
     queryFn: () => conversationService?.getUnreadCount?.(),
     enabled: !!conversationService?.getUnreadCount,
@@ -29,12 +29,12 @@ export function useTotalUnread(): {
   });
 
   const totalUnread = useMemo(() => {
-    if (!unreadByChannel || !isFetching) return 0;
+    if (!unreadByChannel) return 0;
 
     return AvailableChannelTypes.reduce((sum, channel) => {
       return sum + Math.max(0, unreadByChannel[channel] ?? 0);
     }, 0);
-  }, [unreadByChannel, isFetching]);
+  }, [unreadByChannel]);
 
   return { totalUnread };
 }
