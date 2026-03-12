@@ -67,6 +67,28 @@ export interface StrategySlice {
   };
 }
 
+/**
+ * 规范化 allowedChannels，确保：
+ * 1. 过滤掉不在 AvailableChannels 中的非法渠道
+ * 2. 去重
+ * 3. 按 AvailableChannels 定义的固定顺序排序
+ * 4. 防空兜底：结果为空时回退到 fallback（通常为当前 allowedChannels）
+ */
+export function normalizeAllowedChannels(
+  channels: readonly ChannelTypeEnum[],
+  fallback: readonly ChannelTypeEnum[] = AvailableChannels,
+): readonly ChannelTypeEnum[] {
+  const valid = [...new Set(channels)].filter((ch) =>
+    (AvailableChannels as readonly string[]).includes(ch),
+  );
+
+  if (valid.length === 0) return fallback;
+
+  return valid.sort(
+    (a, b) => AvailableChannels.indexOf(a) - AvailableChannels.indexOf(b),
+  );
+}
+
 export const createStrategySlice: StateCreator<
   StrategySlice,
   [],
@@ -90,14 +112,62 @@ export const createStrategySlice: StateCreator<
     messageDisplayStrategy: MessageTypeDisplayStrategy.ShowUnsupported,
   },
   actions: {
+    /**
+     * 更新 strategy，对 allowedChannels 做完整规范化：
+     * - 过滤非法渠道
+     * - 去重
+     * - 按 AvailableChannels 固定排序
+     * - 防空兜底（回退当前值）
+     * - activeChannel 联动：若新 allowedChannels 不包含目标 activeChannel，
+     *   自动校正为 allowedChannels[0]
+     */
     setStrategy: (payload: Partial<StrategyState>) =>
-      set((state) => ({
-        strategy: { ...state.strategy, ...payload },
-      })),
+      set((state) => {
+        const current = state.strategy;
+
+        // 规范化 allowedChannels（仅在有更新时处理）
+        const allowedChannels = payload.allowedChannels
+          ? normalizeAllowedChannels(
+              payload.allowedChannels,
+              current.allowedChannels,
+            )
+          : current.allowedChannels;
+
+        // activeChannel 联动校正：
+        // 取 payload 中的目标值（或保持当前值），
+        // 若不在最终 allowedChannels 中，自动取首位
+        const rawActiveChannel = payload.activeChannel ?? current.activeChannel;
+        const activeChannel = (allowedChannels as readonly string[]).includes(
+          rawActiveChannel,
+        )
+          ? rawActiveChannel
+          : allowedChannels[0];
+
+        return {
+          strategy: {
+            ...current,
+            ...payload,
+            allowedChannels,
+            activeChannel,
+          },
+        };
+      }),
+
+    /**
+     * 切换激活渠道，仅允许切换到当前 allowedChannels 中的渠道，
+     * 否则静默忽略（防止非法写入）
+     */
     setActiveChannel: (channel: ChannelTypeEnum) =>
-      set((state) => ({
-        strategy: { ...state.strategy, activeChannel: channel },
-      })),
+      set((state) => {
+        const { allowedChannels } = state.strategy;
+        if (!(allowedChannels as readonly string[]).includes(channel)) {
+          return state;
+        }
+        return {
+          strategy: { ...state.strategy, activeChannel: channel },
+        };
+      }),
+
     setCurrentUser: (user) =>
       set((state) => ({
         strategy: { ...state.strategy, currentUser: user },
