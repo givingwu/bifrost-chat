@@ -31,7 +31,7 @@ export function useChannelUnread(
   const targetChannels = channels ?? allowedChannels;
   const activeConversationId = useActiveConversationId();
 
-  const { data: unreadByChannel } = useQuery({
+  const { data: unreadByChannel, isFetching } = useQuery({
     queryKey: [
       ...queryKeys.conversations.unread({
         conversationId: activeConversationId,
@@ -48,7 +48,7 @@ export function useChannelUnread(
   });
 
   return useMemo(() => {
-    if (!unreadByChannel) return {};
+    if (!unreadByChannel || !isFetching) return {};
 
     // 只返回 targetChannels 内的渠道
     const result: Partial<Record<ChannelTypeEnum, number>> = {};
@@ -60,5 +60,5 @@ export function useChannelUnread(
       }
     }
     return result;
-  }, [unreadByChannel, targetChannels]);
+  }, [unreadByChannel, targetChannels, isFetching]);
 }

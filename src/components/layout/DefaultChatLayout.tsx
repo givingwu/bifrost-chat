@@ -225,7 +225,7 @@ export function DefaultChatLayout({
     });
   }, [conversations, searchQuery]);
   // 全量未读总数（基于完整会话列表，不随搜索筛选变化）
-  const { totalUnread } = useTotalUnread(conversations ?? null);
+  const { totalUnread } = useTotalUnread();
 
   // 选会话时：仅设置激活 ID；未读数完全由 socket ACK 驱动（msg_receive_ack +1 / msg_read_ack -1）
   const handleSelectConversation = useCallback(

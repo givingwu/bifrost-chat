@@ -101,26 +101,4 @@ describe('useTotalUnread', () => {
       expect(result.current.totalUnread).toBe(0);
     });
   });
-
-  it('传入 conversations 时应跳过 API 直接求和', async () => {
-    const queryClient = new QueryClient({
-      defaultOptions: {
-        queries: { retry: false },
-        mutations: { retry: false },
-      },
-    });
-
-    const conversations = [
-      { id: 'c1', unreadCount: 2 },
-      { id: 'c2', unreadCount: 3 },
-    ] as any[];
-
-    const { result } = renderHook(() => useTotalUnread(conversations), {
-      wrapper: createWrapper(queryClient),
-    });
-
-    // 本地模式：直接求和，不调用 API
-    expect(result.current.totalUnread).toBe(5);
-    expect(mockConversationService.getUnreadCount).not.toHaveBeenCalled();
-  });
 });
