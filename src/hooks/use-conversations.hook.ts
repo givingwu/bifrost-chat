@@ -1,9 +1,7 @@
-import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect } from 'react';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import type { Conversation } from '@/interfaces/conversation.interface';
 import { queryKeys } from '@/providers/query.provider';
 import { useServices } from '@/providers/service.provider';
-import { ConversationCacheHelper } from '@/services/cache/conversation-cache-helper.service';
 import { useStrategy } from '@/store';
 
 /**
@@ -24,7 +22,6 @@ export function useConversations<TListParams = Record<string, unknown>>(
   options?: { enabled?: boolean },
   params?: Omit<TListParams, 'channelType' | 'current' | 'pageSize'>,
 ) {
-  const queryClient = useQueryClient();
   const { conversationService } = useServices();
   const { activeChannel } = useStrategy();
 
@@ -54,45 +51,6 @@ export function useConversations<TListParams = Record<string, unknown>>(
 
   // 推导扁平会话列表（所有页合并）
   const conversations = query.data?.pages.flatMap((page) => page) ?? undefined;
-
-  // 订阅会话列表级别的权威回灌
-  useEffect(() => {
-    if (!conversationService?.subscribeToListUpdates) return;
-
-    return conversationService.subscribeToListUpdates((newConversations) => {
-      ConversationCacheHelper.replaceConversationList(
-        queryClient,
-        newConversations,
-        activeChannel,
-      );
-    });
-  }, [activeChannel, conversationService, queryClient]);
-
-  // 对已知会话补充单会话级回灌
-  useEffect(() => {
-    if (
-      !conversationService?.subscribeToConversationUpdates ||
-      !conversations?.length
-    )
-      return;
-
-    const unsubscribers = conversations.map((conversation) =>
-      conversationService.subscribeToConversationUpdates?.(
-        conversation.id,
-        (nextConversation) => {
-          ConversationCacheHelper.replaceConversation(
-            queryClient,
-            nextConversation,
-            activeChannel,
-          );
-        },
-      ),
-    );
-
-    return () => {
-      for (const unsub of unsubscribers) unsub?.();
-    };
-  }, [activeChannel, conversationService, conversations, queryClient]);
 
   return {
     ...query,
