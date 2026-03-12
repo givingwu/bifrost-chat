@@ -22,20 +22,36 @@ export function useActiveConversationMetadata() {
     useConversationMetadata(activeConversationId);
 
   // 稳定化 fallback
-  const configChannels = config?.strategy?.allowedChannels;
   const fallbackChannels = useMemo(
-    () => configChannels ?? AvailableChannels,
-    [configChannels],
+    () =>
+      allowedChannels ?? config?.strategy?.allowedChannels ?? AvailableChannels,
+    [allowedChannels, config?.strategy?.allowedChannels],
   );
 
   // 计算目标渠道列表
   const nextChannels = useMemo(() => {
-    if (activeConversationId && metadata?.supportedChannels?.length) {
-      return metadata.supportedChannels as readonly ChannelTypeEnum[];
-    }
+    if (isFetching) return fallbackChannels;
+    else {
+      if (activeConversationId && metadata?.supportedChannels?.length) {
+        // DEBUG: 记录 metadata.supportedChannels 的使用
+        console.log(
+          '[DEBUG useActiveConversationMetadata] computing nextChannels from metadata',
+          {
+            conversationId: activeConversationId,
+            supportedChannels: metadata.supportedChannels,
+          },
+        );
+        return metadata.supportedChannels as readonly ChannelTypeEnum[];
+      }
 
-    return fallbackChannels;
-  }, [activeConversationId, metadata?.supportedChannels, fallbackChannels]);
+      return fallbackChannels;
+    }
+  }, [
+    isFetching,
+    activeConversationId,
+    metadata?.supportedChannels,
+    fallbackChannels,
+  ]);
 
   // 用 ref 访问最新值，避免放进 useEffect 依赖导致循环
   const latestRef = useRef({
@@ -63,7 +79,9 @@ export function useActiveConversationMetadata() {
     } = latestRef.current;
 
     // metadata 还在加载中：跳过，避免 fallback 全量渠道覆盖 store
-    if (activeConversationId && isFetching) return;
+    if (activeConversationId && isFetching) {
+      return;
+    }
 
     // 渠道列表没变就跳过（顺序无关的比较）
     const isSame =
