@@ -45,6 +45,11 @@ export interface DefaultChatLayoutRenderTopbarProps {
   extra: React.ReactNode;
   /** 默认的 Topbar 组件，方便在外部包一层再渲染 */
   TopbarComponent: typeof Topbar;
+  /**
+   * 自定义渲染元数据区域
+   * 在标题和副标题之间渲染
+   */
+  renderMeta?: () => React.ReactNode;
 }
 
 export type DefaultChatLayoutRenderTopbar =
@@ -79,6 +84,36 @@ export interface DefaultChatLayoutProps {
    * ```
    */
   profileActions?: ProfileAction[];
+  /**
+   * 自定义渲染会话列表项的元数据区域
+   * 在人名和最后消息之间渲染
+   * @example
+   * ```tsx
+   * renderConversationItemMeta={(conv) => (
+   *   <div className="text-xs text-gray-500">
+   *     <span>({conv.metadata?.relationship})</span>
+   *     <span className="ml-2">{conv.metadata?.assetItemNumber}</span>
+   *   </div>
+   * )}
+   * ```
+   */
+  renderConversationItemMeta?: (conversation: Conversation) => React.ReactNode;
+  /**
+   * 自定义渲染 Topbar 的元数据区域
+   * 在标题和副标题之间渲染
+   * @example
+   * ```tsx
+   * renderTopbarMeta={() => (
+   *   <button
+   *     className="text-xs text-blue-500 hover:underline"
+   *     onClick={() => navigateToAsset(activeConversation?.metadata?.assetItemNumber)}
+   *   >
+   *     {activeConversation?.metadata?.assetItemNumber}
+   *   </button>
+   * )}
+   * ```
+   */
+  renderTopbarMeta?: () => React.ReactNode;
 }
 
 /**
@@ -110,6 +145,8 @@ export function DefaultChatLayout({
   style,
   onTotalUnreadChange,
   profileActions,
+  renderConversationItemMeta,
+  renderTopbarMeta,
 }: DefaultChatLayoutProps) {
   const { t } = useTranslation();
   const actions = useActions();
@@ -331,6 +368,7 @@ export function DefaultChatLayout({
         subtitle,
         extra: defaultTopbarExtra,
         TopbarComponent: Topbar,
+        renderMeta: renderTopbarMeta,
       });
     }
 
@@ -341,9 +379,14 @@ export function DefaultChatLayout({
 
     // 默认实现
     return (
-      <Topbar title={title} subtitle={subtitle} extra={defaultTopbarExtra} />
+      <Topbar
+        title={title}
+        subtitle={subtitle}
+        extra={defaultTopbarExtra}
+        renderMeta={renderTopbarMeta}
+      />
     );
-  }, [defaultTopbarExtra, renderTopbar, subtitle, title]);
+  }, [defaultTopbarExtra, renderTopbar, subtitle, title, renderTopbarMeta]);
 
   return (
     <ChatLayout
@@ -368,6 +411,7 @@ export function DefaultChatLayout({
             )}
             conversations={filteredConversations}
             onSelect={handleSelectConversation}
+            renderItemMeta={renderConversationItemMeta}
           />
         </ConversationPanel>
       }

@@ -54,6 +54,11 @@ export interface ConversationListProps {
   scrollRef?: React.RefObject<HTMLDivElement>;
   /** 是否启用虚拟滚动，默认启用 */
   enableVirtualization?: boolean;
+  /**
+   * 自定义渲染会话列表项的元数据区域
+   * 在人名和最后消息之间渲染
+   */
+  renderItemMeta?: (conversation: Conversation) => React.ReactNode;
 }
 
 // ==================== 辅助函数 ====================
@@ -122,6 +127,7 @@ export const ConversationList = memo(
     onRetry,
     scrollRef: externalScrollRef,
     enableVirtualization = true,
+    renderItemMeta,
   }: ConversationListProps) => {
     const { t } = useTranslation();
 
@@ -340,6 +346,7 @@ export const ConversationList = memo(
               <ConversationItem
                 conversation={conversation}
                 onSelect={onSelect}
+                renderMeta={renderItemMeta}
               />
             </div>
           ))}
@@ -384,6 +391,7 @@ export const ConversationList = memo(
               <ConversationItem
                 conversation={processedConversations[virtualItem.index]}
                 onSelect={onSelect}
+                renderMeta={renderItemMeta}
               />
             </div>
           ))}

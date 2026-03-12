@@ -13,6 +13,21 @@ export interface ConversationItemProps {
   onSelect?: (conversationId: string) => void;
   /** 自定义类名 */
   className?: string;
+  /**
+   * 自定义渲染元数据区域（在人名和最后消息之间）
+   * @param conversation 会话数据
+   * @returns ReactNode 或 null
+   * @example
+   * ```tsx
+   * renderMeta={(conv) => (
+   *   <div className="text-xs text-gray-500">
+   *     <span>({conv.metadata?.relationship})</span>
+   *     <span className="ml-2">{conv.metadata?.assetItemNumber}</span>
+   *   </div>
+   * )}
+   * ```
+   */
+  renderMeta?: (conversation: Conversation) => React.ReactNode;
 }
 
 /**
@@ -35,13 +50,19 @@ const INACTIVE_STATE_STYLES = {
 /**
  * ConversationItem：会话列表项组件。
  * - 显示会话信息（头像、名称、最后消息、时间、未读数）。
+ * - 支持通过 renderMeta 自定义渲染元数据区域。
  * - 支持选中状态和未读消息提示。
  * - 使用 memo 优化性能，避免不必要的重新渲染。
  * - 支持键盘导航（Enter 和 Space 键）。
  * - 支持无障碍访问（ARIA 标签）。
  */
 export const ConversationItem = memo(
-  ({ conversation, onSelect, className = '' }: ConversationItemProps) => {
+  ({
+    conversation,
+    onSelect,
+    className = '',
+    renderMeta,
+  }: ConversationItemProps) => {
     // 确定使用的样式
     const styles = conversation.isActive
       ? ACTIVE_STATE_STYLES
@@ -81,6 +102,11 @@ export const ConversationItem = memo(
       onSelect?.(conversation.id);
     }, [conversation.id, onSelect]);
 
+    // 渲染元数据区域
+    const metaContent = useMemo(() => {
+      return renderMeta?.(conversation);
+    }, [conversation, renderMeta]);
+
     return (
       <Button
         type="button"
@@ -96,13 +122,13 @@ export const ConversationItem = memo(
       >
         <div className="flex w-full items-start gap-3">
           {/* 头像区域：未读 Badge 悬浮在右上角（微信风格） */}
-          <div className="relative flex-shrink-0">
+          <div className="relative shrink-0">
             <ConversationAvatar
               src={conversation.user.avatarUrl}
               name={conversation.user.name}
             />
             {conversation.unreadCount > 0 && !conversation.isActive && (
-              <span className="absolute -right-1 -top-1 flex min-w-[18px] h-[18px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white leading-none">
+              <span className="absolute -right-1 -top-1 flex min-w-4.5 h-4.5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white leading-none">
                 {conversation.unreadCount > 99
                   ? '99+'
                   : conversation.unreadCount}
@@ -110,6 +136,7 @@ export const ConversationItem = memo(
             )}
           </div>
           <div className="min-w-0 flex-1">
+            {/* 第一行：人名 + 时间 */}
             <div className="flex items-baseline justify-around gap-2">
               <h4
                 className={cn(
@@ -119,13 +146,16 @@ export const ConversationItem = memo(
               >
                 {conversation.user.name}
               </h4>
-              <span className={cn('text-xs', styles.time)}>
+              <span className={cn('text-xs shrink-0', styles.time)}>
                 {lastReplyTime}
               </span>
             </div>
+            {/* 第二行：自定义元数据区域（由业务层渲染） */}
+            {metaContent}
+            {/* 第三行：最后一条消息 */}
             <p
               className={cn(
-                'line-clamp-2 text-sm truncate leading-snug',
+                'line-clamp-1 text-sm truncate leading-snug',
                 styles.message,
               )}
             >
