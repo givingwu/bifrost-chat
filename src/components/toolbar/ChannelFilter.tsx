@@ -1,5 +1,8 @@
 import { type CSSProperties, memo, useMemo } from 'react';
-import { useChannelIcon } from '@/hooks/use-channel-icon.hook';
+import {
+  CHANNEL_BRAND_COLOR,
+  useChannelIcon,
+} from '@/hooks/use-channel-icon.hook';
 import { useChannelLabel } from '@/hooks/use-channel-label.hook';
 import type { AgentStatusEnum } from '@/interfaces/agent.interface';
 import type { ChannelTypeEnum } from '@/interfaces/channel.interface';
@@ -115,9 +118,14 @@ export const ChannelFilter = memo(
                 'relative z-10 flex items-center justify-center px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-300 group',
                 'min-w-10 cursor-pointer',
                 isActive
-                  ? 'bg-blue-500 text-white font-semibold'
+                  ? 'text-white font-semibold'
                   : 'text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200',
               )}
+              style={
+                isActive
+                  ? { backgroundColor: CHANNEL_BRAND_COLOR[channel] }
+                  : undefined
+              }
               title={channel}
             >
               <span className="transition-all duration-200">{icon}</span>
@@ -132,7 +140,6 @@ export const ChannelFilter = memo(
                     'flex items-center justify-center',
                     'rounded-full bg-red-500 text-white text-[9px] font-bold leading-none',
                     'ring-1 ring-white dark:ring-gray-900',
-                    isActive && 'ring-blue-100 dark:ring-blue-900',
                   )}
                 >
                   {count > 99 ? '99+' : count}
