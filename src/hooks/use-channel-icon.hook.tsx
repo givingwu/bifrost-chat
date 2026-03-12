@@ -5,9 +5,9 @@ export type ChannelIconSize = 'xs' | 'sm' | 'md' | 'lg';
 
 const SIZE_PX: Record<ChannelIconSize, number> = {
   xs: 12,
-  sm: 14,
-  md: 16,
-  lg: 20,
+  sm: 16,
+  md: 24,
+  lg: 32,
 };
 
 /**
