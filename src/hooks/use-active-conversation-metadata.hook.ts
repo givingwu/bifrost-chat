@@ -18,7 +18,8 @@ export function useActiveConversationMetadata() {
   const { setStrategy } = useActions();
   const activeConversationId = useActiveConversationId();
   const { activeChannel, allowedChannels } = useStrategy();
-  const { data: metadata } = useConversationMetadata(activeConversationId);
+  const { data: metadata, isFetching } =
+    useConversationMetadata(activeConversationId);
 
   // 稳定化 fallback
   const configChannels = config?.strategy?.allowedChannels;
@@ -41,25 +42,24 @@ export function useActiveConversationMetadata() {
   storeRef.current = { setStrategy, activeChannel, allowedChannels };
 
   useEffect(() => {
-    const {
-      setStrategy: set,
-      activeChannel: ac,
-      allowedChannels: acs,
-    } = storeRef.current;
+    // metadata 还在加载中：跳过，避免 fallback 全量渠道覆盖 store
+    if (activeConversationId && isFetching) return;
 
-    // 渠道列表没变就跳过
+    const { setStrategy, activeChannel, allowedChannels } = storeRef.current;
+
+    // 渠道列表没变就跳过（顺序无关的比较）
     const isSame =
-      acs.length === nextChannels.length &&
-      acs.every((ch, i) => ch === nextChannels[i]);
-    const needSwitchChannel = !nextChannels.includes(ac);
+      allowedChannels.length === nextChannels.length &&
+      allowedChannels.every((channel) => nextChannels.includes(channel));
+    const needSwitchChannel = !nextChannels.includes(activeChannel);
 
     if (isSame && !needSwitchChannel) return;
 
-    set({
+    setStrategy({
       ...(isSame ? {} : { allowedChannels: nextChannels }),
       ...(needSwitchChannel ? { activeChannel: nextChannels[0] } : {}),
     });
-  }, [nextChannels]);
+  }, [nextChannels, activeConversationId, isFetching]);
 
   return { metadata };
 }
