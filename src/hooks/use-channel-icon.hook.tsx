@@ -1,4 +1,10 @@
-import { Mail, MessageSquare, Phone, Smartphone } from 'lucide-react';
+import {
+  BotMessageSquare,
+  Mail,
+  MessageSquare,
+  PhoneCall,
+  Smartphone,
+} from 'lucide-react';
 import type React from 'react';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 
@@ -17,8 +23,8 @@ const CHANNEL_ICON_MAP: Partial<Record<ChannelTypeEnum, IconFactory>> = {
   [ChannelTypeEnum.SMS]: (cls) => <Smartphone className={cls} />,
   [ChannelTypeEnum.WhatsApp]: (cls) => <MessageSquare className={cls} />,
   [ChannelTypeEnum.Email]: (cls) => <Mail className={cls} />,
-  [ChannelTypeEnum.Viber]: (cls) => <MessageSquare className={cls} />,
-  [ChannelTypeEnum.IVR]: (cls) => <Phone className={cls} />,
+  [ChannelTypeEnum.Viber]: (cls) => <PhoneCall className={cls} />,
+  [ChannelTypeEnum.IVR]: (cls) => <BotMessageSquare className={cls} />,
 };
 
 /**
