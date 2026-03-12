@@ -119,7 +119,7 @@ describe('useConversations Hook', () => {
     expect(result.current.error).toEqual(error);
   });
 
-  it('宿主推送列表更新时应覆盖 Query 缓存', async () => {
+  it('宿主推送会话列表更新时应替换当前列表', async () => {
     vi.mocked(mockConversationService.list).mockResolvedValue(
       mockConversations,
     );
@@ -133,20 +133,25 @@ describe('useConversations Hook', () => {
       expect(listUpdatesCallback).toBeTypeOf('function');
     });
 
-    const nextConversations: Conversation[] = [
-      {
-        ...mockConversations[0],
-        unreadCount: 5,
-        lastMessage: '最新列表回灌',
-      },
-    ];
-
     act(() => {
-      listUpdatesCallback?.(nextConversations);
+      listUpdatesCallback?.([
+        {
+          ...mockConversations[0],
+          id: 'conv-2',
+          unreadCount: 0,
+          lastMessage: '列表回灌',
+        },
+      ]);
     });
 
     await waitFor(() => {
-      expect(result.current.data).toEqual(nextConversations);
+      expect(result.current.data).toEqual([
+        expect.objectContaining({
+          id: 'conv-2',
+          unreadCount: 0,
+          lastMessage: '列表回灌',
+        }),
+      ]);
     });
   });
 

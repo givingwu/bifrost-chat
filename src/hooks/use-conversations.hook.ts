@@ -1,7 +1,9 @@
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import type { Conversation } from '@/interfaces/conversation.interface';
 import { queryKeys } from '@/providers/query.provider';
 import { useServices } from '@/providers/service.provider';
+import { ConversationCacheHelper } from '@/services/cache/conversation-cache-helper.service';
 import { useStrategy } from '@/store';
 
 /**
@@ -24,6 +26,7 @@ export function useConversations<TListParams = Record<string, unknown>>(
 ) {
   const { conversationService } = useServices();
   const { activeChannel } = useStrategy();
+  const queryClient = useQueryClient();
 
   const query = useInfiniteQuery({
     queryKey: queryKeys.conversations.list(activeChannel),
@@ -42,7 +45,7 @@ export function useConversations<TListParams = Record<string, unknown>>(
       // 宿主层会在返回数组上挂载 total 字段
       const total =
         (lastPage as Conversation[] & { total?: number }).total ?? 0;
-      const fetched = allPages.flatMap((p) => p).length;
+      const fetched = allPages.flat().length;
       return fetched < total ? allPages.length + 1 : undefined;
     },
     enabled: (options?.enabled ?? true) && !!conversationService,
@@ -50,7 +53,55 @@ export function useConversations<TListParams = Record<string, unknown>>(
   });
 
   // 推导扁平会话列表（所有页合并）
-  const conversations = query.data?.pages.flatMap((page) => page) ?? undefined;
+  const conversations = query.data?.pages.flat() ?? undefined;
+  const conversationIdsKey =
+    conversations?.map((conversation) => conversation.id).join('|') ?? '';
+
+  useEffect(() => {
+    if (!conversationService?.subscribeToListUpdates) {
+      return;
+    }
+
+    return conversationService.subscribeToListUpdates((nextConversations) => {
+      ConversationCacheHelper.replaceConversationList(
+        queryClient,
+        nextConversations,
+        activeChannel,
+      );
+    });
+  }, [activeChannel, conversationService, queryClient]);
+
+  useEffect(() => {
+    const conversationIds = conversationIdsKey
+      ? conversationIdsKey.split('|')
+      : [];
+
+    if (
+      !conversationService?.subscribeToConversationUpdates ||
+      conversationIds.length === 0
+    ) {
+      return;
+    }
+
+    const unsubscribeCallbacks = conversationIds.map((conversationId) =>
+      conversationService.subscribeToConversationUpdates?.(
+        conversationId,
+        (conversation) => {
+          ConversationCacheHelper.replaceConversation(
+            queryClient,
+            conversation,
+            activeChannel,
+          );
+        },
+      ),
+    );
+
+    return () => {
+      for (const unsubscribe of unsubscribeCallbacks) {
+        unsubscribe?.();
+      }
+    };
+  }, [activeChannel, conversationIdsKey, conversationService, queryClient]);
 
   return {
     ...query,
