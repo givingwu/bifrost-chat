@@ -41,7 +41,11 @@ export function useActiveConversationMetadata() {
             supportedChannels: metadata.supportedChannels,
           },
         );
-        return metadata.supportedChannels as readonly ChannelTypeEnum[];
+        return [...metadata.supportedChannels].sort(
+          (a, b) =>
+            AvailableChannels.indexOf(a as ChannelTypeEnum) -
+            AvailableChannels.indexOf(b as ChannelTypeEnum),
+        ) as readonly ChannelTypeEnum[];
       }
 
       return fallbackChannels;
