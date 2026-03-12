@@ -37,15 +37,33 @@ export function useActiveConversationMetadata() {
     return fallbackChannels;
   }, [activeConversationId, metadata?.supportedChannels, fallbackChannels]);
 
-  // 用 ref 访问最新 store 值，避免放进 useEffect 依赖导致循环
-  const storeRef = useRef({ setStrategy, activeChannel, allowedChannels });
-  storeRef.current = { setStrategy, activeChannel, allowedChannels };
+  // 用 ref 访问最新值，避免放进 useEffect 依赖导致循环
+  const latestRef = useRef({
+    setStrategy,
+    activeChannel,
+    allowedChannels,
+    activeConversationId,
+    isFetching,
+  });
+  latestRef.current = {
+    setStrategy,
+    activeChannel,
+    allowedChannels,
+    activeConversationId,
+    isFetching,
+  };
 
   useEffect(() => {
+    const {
+      setStrategy,
+      activeChannel,
+      allowedChannels,
+      activeConversationId,
+      isFetching,
+    } = latestRef.current;
+
     // metadata 还在加载中：跳过，避免 fallback 全量渠道覆盖 store
     if (activeConversationId && isFetching) return;
-
-    const { setStrategy, activeChannel, allowedChannels } = storeRef.current;
 
     // 渠道列表没变就跳过（顺序无关的比较）
     const isSame =
@@ -59,7 +77,7 @@ export function useActiveConversationMetadata() {
       ...(isSame ? {} : { allowedChannels: nextChannels }),
       ...(needSwitchChannel ? { activeChannel: nextChannels[0] } : {}),
     });
-  }, [nextChannels, activeConversationId, isFetching]);
+  }, [nextChannels]);
 
   return { metadata };
 }
