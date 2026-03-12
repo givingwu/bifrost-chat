@@ -1,5 +1,9 @@
-import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useMemo, useRef } from 'react';
+import {
+  keepPreviousData,
+  useInfiniteQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
+import { useEffect, useMemo } from 'react';
 import type { Conversation } from '@/interfaces/conversation.interface';
 import { queryKeys } from '@/providers/query.provider';
 import { useServices } from '@/providers/service.provider';
@@ -50,6 +54,9 @@ export function useConversations<TListParams = Record<string, unknown>>(
     },
     enabled: (options?.enabled ?? true) && !!conversationService,
     staleTime: 1000 * 60 * 5,
+    // 切换渠道（queryKey 变化）时，保持上一渠道的列表可见直到新数据到来，
+    // 避免 list 短暂置空带来的闪屏。
+    placeholderData: keepPreviousData,
   });
 
   // 推导扁平会话列表（所有页合并）
@@ -66,10 +73,7 @@ export function useConversations<TListParams = Record<string, unknown>>(
 
   // 推导扁平会话列表（所有页合并）
   // 依赖 query.data（而非 pages）确保 setQueryData 更新内容时能触发重算
-  const conversations = useMemo(
-    () => query.data?.pages.flat(),
-    [query.data],
-  );
+  const conversations = useMemo(() => query.data?.pages.flat(), [query.data]);
 
   useEffect(() => {
     if (!conversationService?.subscribeToListUpdates) {

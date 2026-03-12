@@ -153,8 +153,11 @@ export function DefaultChatLayout({
   const { profile } = useProfile();
   const { activeChannel } = useStrategy();
   const { templateMode } = useComposerConfig();
-  const { data: conversations = [], isFetching: isConversationsFetching } =
-    useConversations();
+  const {
+    data: conversations = [],
+    isFetching: isConversationsFetching,
+    isLoading: isConversationsLoading,
+  } = useConversations();
   const { activeConversationId, searchQuery } = useConversation();
 
   // Composer ref，用于外部控制输入框
@@ -424,8 +427,14 @@ export function DefaultChatLayout({
         >
           <ConversationList
             className={cn(
-              'transition',
-              isPending ? 'opacity-80' : 'opacity-100',
+              'transition-opacity duration-150',
+              // 搜索过渡（低优先级更新）：轻微透明
+              isPending && 'opacity-80',
+              // 后台静默刷新（invalidate refetch）：轻微透明，不展示空态/骨架
+              // isLoading（初始加载）时不加此样式，让列表保持 placeholderData 的旧数据可见
+              !isConversationsLoading &&
+                isConversationsFetching &&
+                'opacity-60',
             )}
             conversations={filteredConversations}
             onSelect={handleSelectConversation}
