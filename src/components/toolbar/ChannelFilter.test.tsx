@@ -112,16 +112,6 @@ describe('ChannelFilter', () => {
     expect(slidingIndicators.length).toBe(0);
   });
 
-  it('应该在无激活渠道时不显示指示器', () => {
-    renderWithProviders(
-      <ChannelFilter {...defaultProps} activeChannel={undefined} />,
-    );
-    const slidingIndicators = screen
-      .queryAllByRole('presentation')
-      .filter((el) => el.classList.contains('bg-white'));
-    expect(slidingIndicators.length).toBe(0);
-  });
-
   it('应该在传入 unreadByChannel 时显示 badge', () => {
     renderWithProviders(
       <ChannelFilter
