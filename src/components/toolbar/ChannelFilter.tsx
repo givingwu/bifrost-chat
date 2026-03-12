@@ -11,7 +11,7 @@ export interface ChannelFilterProps {
   /** 允许的渠道列表 */
   channels: readonly ChannelTypeEnum[];
   /** 当前激活的渠道 */
-  activeChannel?: ChannelTypeEnum;
+  activeChannel: ChannelTypeEnum;
   /** 点击渠道按钮回调 */
   onChannelClick?: (type: ChannelTypeEnum) => void;
   /** 是否显示工具提示 */
@@ -71,7 +71,7 @@ export const ChannelFilter = memo(
     const getLabel = useChannelLabel();
     const getIcon = useChannelIcon('sm');
     const activeIndex = useMemo(
-      () => channels.findIndex((channel) => channel === activeChannel),
+      () => channels.indexOf(activeChannel),
       [channels, activeChannel],
     );
 
