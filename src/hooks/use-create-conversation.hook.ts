@@ -1,6 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { Conversation } from '@/interfaces/conversation.interface';
-import { queryKeys } from '@/providers/query.provider';
 import { useServices } from '@/providers/service.provider';
 import { ConversationCacheHelper } from '@/services/cache/conversation-cache-helper.service';
 
@@ -9,12 +8,12 @@ import { ConversationCacheHelper } from '@/services/cache/conversation-cache-hel
  *
  * @description
  * 使用 React Query Mutation 管理会话创建。
- * 创建成功后会直接更新会话列表缓存，确保新会话立即显示。
+ * 创建成功后会写入 pending conversation 缓存，确保新会话立即显示。
  *
  * **设计说明**：
- * - 不使用乐观更新（onMutate），因为创建操作不需要预先修改缓存
- * - 使用 `invalidateQueries` 模糊匹配刷新所有相关查询，解耦 queryKey 结构
- * - `ConversationCacheHelper.upsertConversation` 负责精确更新特定渠道的缓存
+ * - 不使用 optimistic mutation，服务端 create 成功后再落 pending cache
+ * - pending conversation 作为客户端待确认状态的单一事实来源
+ * - 真实 server list / websocket 确认后会自动移除 pending
  *
  * @returns Mutation 结果
  *
@@ -56,21 +55,14 @@ export function useCreateConversation<TParams = Conversation>(
       // 从返回的会话中获取 channel，确保更新到正确的渠道列表
       const channel = newConversation.channel;
 
-      // 直接将新会话插入缓存（精确更新特定渠道）
+      // 创建成功后写入 pending cache，等待真实 list / 消息确认
       if (enableUpsert) {
-        ConversationCacheHelper.upsertConversation(
+        ConversationCacheHelper.upsertPendingConversation(
           queryClient,
           newConversation,
           channel,
         );
       }
-
-      // 使用模糊匹配 invalidate 所有 conversations list 查询
-      // lists() 返回 ['conversations', 'list']，会匹配所有以它开头的 key
-      // 这样即使宿主层自定义了 queryKey 结构，也能正确刷新
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.conversations.lists(),
-      });
     },
 
     onError: (error, params) => {

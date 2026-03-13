@@ -1,6 +1,6 @@
 import {
-  keepPreviousData,
   useInfiniteQuery,
+  useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
 import { useEffect, useMemo } from 'react';
@@ -31,6 +31,13 @@ export function useConversations<TListParams = Record<string, unknown>>(
   const { conversationService } = useServices();
   const { activeChannel } = useStrategy();
   const queryClient = useQueryClient();
+  const { data: pendingConversations = [] } = useQuery({
+    queryKey: queryKeys.conversations.pending(activeChannel),
+    queryFn: () => [] as Conversation[],
+    initialData: [] as Conversation[],
+    staleTime: Number.POSITIVE_INFINITY,
+    gcTime: Number.POSITIVE_INFINITY,
+  });
 
   const query = useInfiniteQuery({
     queryKey: queryKeys.conversations.list(activeChannel),
@@ -54,26 +61,41 @@ export function useConversations<TListParams = Record<string, unknown>>(
     },
     enabled: (options?.enabled ?? true) && !!conversationService,
     staleTime: 1000 * 60 * 5,
-    // 切换渠道（queryKey 变化）时，保持上一渠道的列表可见直到新数据到来，
-    // 避免 list 短暂置空带来的闪屏。
-    placeholderData: keepPreviousData,
   });
+
+  const serverConversations = useMemo(
+    () => query.data?.pages.flat() ?? [],
+    [query.data],
+  );
+
+  const conversations = useMemo(
+    () =>
+      ConversationCacheHelper.mergeConversationsWithPending(
+        serverConversations,
+        pendingConversations,
+      ),
+    [pendingConversations, serverConversations],
+  );
+
+  useEffect(() => {
+    if (pendingConversations.length === 0 || serverConversations.length === 0) {
+      return;
+    }
+
+    ConversationCacheHelper.confirmPendingConversations(
+      queryClient,
+      activeChannel,
+      serverConversations.map((conversation) => conversation.id),
+    );
+  }, [activeChannel, pendingConversations, queryClient, serverConversations]);
 
   // 推导扁平会话列表（所有页合并）
   // 使用 useMemo 稳定化数组引用，避免每次渲染都创建新数组
   const conversationIdsKey = useMemo(() => {
-    const pages = query.data?.pages;
-    if (!pages) return '';
+    if (conversations.length === 0) return '';
 
-    return pages
-      .flat()
-      .map((c) => c.id)
-      .join('|');
-  }, [query.data?.pages]);
-
-  // 推导扁平会话列表（所有页合并）
-  // 依赖 query.data（而非 pages）确保 setQueryData 更新内容时能触发重算
-  const conversations = useMemo(() => query.data?.pages.flat(), [query.data]);
+    return conversations.map((conversation) => conversation.id).join('|');
+  }, [conversations]);
 
   useEffect(() => {
     if (!conversationService?.subscribeToListUpdates) {

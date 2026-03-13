@@ -44,6 +44,14 @@ const COMMON_AVATAR_KEYS = [
 ] as const;
 const INCOMING_AVATAR_KEYS = ['senderAvatarUrl', 'fromAvatarUrl'] as const;
 const OUTGOING_AVATAR_KEYS = ['receiverAvatarUrl', 'toAvatarUrl'] as const;
+const PENDING_CREATE_LOCAL_STATE = 'pending_create' as const;
+const PENDING_CREATE_SOURCE = 'create' as const;
+
+type PendingConversationMetadata = Record<string, unknown> & {
+  localState?: typeof PENDING_CREATE_LOCAL_STATE;
+  pendingSince?: string;
+  pendingSource?: typeof PENDING_CREATE_SOURCE;
+};
 
 function pickMetadataString(
   metadata: Record<string, unknown> | undefined,
@@ -161,6 +169,51 @@ function mergeSupportedChannels(
   return [...new Set(merged)];
 }
 
+function isMetadataRecord(
+  metadata: Conversation['metadata'],
+): metadata is Record<string, unknown> {
+  return typeof metadata === 'object' && metadata !== null;
+}
+
+function toPendingConversation(conversation: Conversation): Conversation {
+  const metadata: PendingConversationMetadata = isMetadataRecord(
+    conversation.metadata,
+  )
+    ? { ...conversation.metadata }
+    : {};
+
+  return {
+    ...conversation,
+    metadata: {
+      ...metadata,
+      localState: PENDING_CREATE_LOCAL_STATE,
+      pendingSince:
+        typeof metadata.pendingSince === 'string'
+          ? metadata.pendingSince
+          : new Date().toISOString(),
+      pendingSource: PENDING_CREATE_SOURCE,
+    },
+  };
+}
+
+function mergePendingConversations(
+  serverConversations: Conversation[],
+  pendingConversations: Conversation[],
+): Conversation[] {
+  if (pendingConversations.length === 0) {
+    return serverConversations;
+  }
+
+  const serverConversationIds = new Set(
+    serverConversations.map((conversation) => conversation.id),
+  );
+  const visiblePendingConversations = pendingConversations.filter(
+    (conversation) => !serverConversationIds.has(conversation.id),
+  );
+
+  return [...visiblePendingConversations, ...serverConversations];
+}
+
 function mergeConversation(
   existingConversation: Conversation,
   incomingConversation: Conversation,
@@ -233,6 +286,20 @@ export class ConversationCacheHelper {
     );
   }
 
+  private static updatePendingConversations(
+    queryClient: QueryClient,
+    channel: ChannelTypeEnum,
+    updater: (conversations: Conversation[]) => Conversation[],
+  ): void {
+    queryClient.setQueryData<Conversation[]>(
+      queryKeys.conversations.pending(channel),
+      (old) => {
+        const existing = old ?? [];
+        return updater(existing);
+      },
+    );
+  }
+
   // ==================== 公共接口 ====================
 
   static getConversations(
@@ -240,7 +307,28 @@ export class ConversationCacheHelper {
     channel: ChannelTypeEnum,
   ): Conversation[] {
     const data = ConversationCacheHelper.getPages(queryClient, channel);
-    return data?.pages.flatMap((p) => p) ?? [];
+    return data?.pages.flat() ?? [];
+  }
+
+  static getPendingConversations(
+    queryClient: QueryClient,
+    channel: ChannelTypeEnum,
+  ): Conversation[] {
+    return (
+      queryClient.getQueryData<Conversation[]>(
+        queryKeys.conversations.pending(channel),
+      ) ?? []
+    );
+  }
+
+  static getMergedConversations(
+    queryClient: QueryClient,
+    channel: ChannelTypeEnum,
+  ): Conversation[] {
+    return mergePendingConversations(
+      ConversationCacheHelper.getConversations(queryClient, channel),
+      ConversationCacheHelper.getPendingConversations(queryClient, channel),
+    );
   }
 
   static buildSyntheticConversation(message: StandardMessage): Conversation {
@@ -277,6 +365,12 @@ export class ConversationCacheHelper {
       preserveUnreadCount?: boolean;
     },
   ): Conversation {
+    ConversationCacheHelper.confirmPendingConversation(
+      queryClient,
+      conversation.id,
+      channel,
+    );
+
     let nextConversation = conversation;
 
     ConversationCacheHelper.updatePages(
@@ -299,6 +393,96 @@ export class ConversationCacheHelper {
     );
 
     return nextConversation;
+  }
+
+  static upsertPendingConversation(
+    queryClient: QueryClient,
+    conversation: Conversation,
+    channel: ChannelTypeEnum,
+  ): Conversation {
+    const nextPendingConversation = toPendingConversation(conversation);
+    let nextConversation = nextPendingConversation;
+
+    ConversationCacheHelper.updatePendingConversations(
+      queryClient,
+      channel,
+      (conversations) => {
+        const existingConversation = conversations.find(
+          (item) => item.id === conversation.id,
+        );
+
+        nextConversation = existingConversation
+          ? mergeConversation(existingConversation, nextPendingConversation, {
+              preserveUnreadCount: true,
+            })
+          : nextPendingConversation;
+
+        const rest = conversations.filter(
+          (item) => item.id !== conversation.id,
+        );
+
+        return [nextConversation, ...rest];
+      },
+    );
+
+    return nextConversation;
+  }
+
+  static confirmPendingConversation(
+    queryClient: QueryClient,
+    conversationId: string,
+    channel: ChannelTypeEnum,
+  ): Conversation | undefined {
+    let removedConversation: Conversation | undefined;
+
+    ConversationCacheHelper.updatePendingConversations(
+      queryClient,
+      channel,
+      (conversations) => {
+        const rest = conversations.filter((conversation) => {
+          const isMatch = conversation.id === conversationId;
+          if (isMatch) {
+            removedConversation = conversation;
+          }
+          return !isMatch;
+        });
+
+        return removedConversation ? rest : conversations;
+      },
+    );
+
+    return removedConversation;
+  }
+
+  static confirmPendingConversations(
+    queryClient: QueryClient,
+    channel: ChannelTypeEnum,
+    conversationIds: string[],
+  ): void {
+    if (conversationIds.length === 0) {
+      return;
+    }
+
+    const confirmedConversationIds = new Set(conversationIds);
+
+    ConversationCacheHelper.updatePendingConversations(
+      queryClient,
+      channel,
+      (conversations) => {
+        const rest = conversations.filter(
+          (conversation) => !confirmedConversationIds.has(conversation.id),
+        );
+
+        return rest.length === conversations.length ? conversations : rest;
+      },
+    );
+  }
+
+  static mergeConversationsWithPending(
+    conversations: Conversation[],
+    pendingConversations: Conversation[],
+  ): Conversation[] {
+    return mergePendingConversations(conversations, pendingConversations);
   }
 
   static upsertConversationFromMessage(
@@ -324,6 +508,12 @@ export class ConversationCacheHelper {
     conversations: Conversation[],
     channel: ChannelTypeEnum,
   ): Conversation[] {
+    ConversationCacheHelper.confirmPendingConversations(
+      queryClient,
+      channel,
+      conversations.map((conversation) => conversation.id),
+    );
+
     // 将整个列表写入第一页，保留 pageParams 结构
     queryClient.setQueryData<InfiniteData<Conversation[], number>>(
       queryKeys.conversations.list(channel),

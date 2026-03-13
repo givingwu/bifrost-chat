@@ -66,13 +66,13 @@ export const queryKeys = {
     lists: () => [...queryKeys.conversations.all, 'list'] as const,
     list: (channel: string) =>
       [...queryKeys.conversations.lists(), channel] as const,
+    pending: (channel: string) =>
+      [...queryKeys.conversations.all, 'pending', channel] as const,
     details: () => [...queryKeys.conversations.all, 'detail'] as const,
     detail: (id: string) => [...queryKeys.conversations.details(), id] as const,
     // 会话元数据
     metadata: (conversationId: string) =>
       [...queryKeys.conversations.all, 'metadata', conversationId] as const,
-    bootstrap: (params?: { queryParams?: unknown; createParams?: unknown }) =>
-      [...queryKeys.conversations.all, 'bootstrap', params ?? {}] as const,
     // 未读数量
     unread: (params?: { channelType?: string; conversationId?: string }) =>
       [...queryKeys.conversations.all, 'unread', params ?? {}] as const,
