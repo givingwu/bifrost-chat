@@ -1,4 +1,5 @@
 import { memo, type ReactNode } from 'react';
+import { useTranslation } from '@/providers/I18n.provider';
 import { cn } from '@/utils/class.util';
 import { SearchInput } from '../SearchInput';
 import { Title } from '../Title';
@@ -40,6 +41,7 @@ export const ConversationHeader = memo(
     onSearchChange,
     onSearchSubmit,
   }: ConversationHeaderProps) => {
+    const { t } = useTranslation();
     return (
       <div className={cn('p-4 pt-4 pb-2 space-y-4', className)}>
         {title && (typeof title === 'string' ? <Title>{title}</Title> : title)}
@@ -47,12 +49,12 @@ export const ConversationHeader = memo(
         {showSearch && (
           <SearchInput
             type="search"
-            placeholder={searchPlaceholder}
+            placeholder={searchPlaceholder || t('conversation.search')}
             value={searchValue}
             onChange={onSearchChange}
             onEnter={onSearchSubmit}
             clearable
-            aria-label="搜索会话"
+            aria-label={t('conversation.searchAriaLabel')}
           />
         )}
 

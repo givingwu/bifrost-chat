@@ -1,4 +1,5 @@
 import { memo, type ReactNode } from 'react';
+import { useTranslation } from '@/providers/I18n.provider';
 
 export interface ConversationPanelProps {
   /** 头部内容 */
@@ -28,6 +29,7 @@ export const ConversationPanel = memo(
     width = '320px',
     showBorder = true,
   }: ConversationPanelProps) => {
+    const { t } = useTranslation();
     // 容器类名
     const containerClassName = `shrink-0 ${
       showBorder ? 'border-r border-gray-200/50 dark:border-white/10' : ''
@@ -37,7 +39,7 @@ export const ConversationPanel = memo(
       <aside
         style={{ width }}
         className={containerClassName}
-        aria-label="会话面板"
+        aria-label={t('conversation.panel')}
       >
         {header}
         {children}

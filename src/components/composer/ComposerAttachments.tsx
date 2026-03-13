@@ -1,6 +1,7 @@
 import { Paperclip } from 'lucide-react';
 import { type MouseEvent, memo } from 'react';
 import { IconButton } from '@/components/IconButton';
+import { useTranslation } from '@/providers/I18n.provider';
 import { ARIA_LABELS, BUTTON_SIZES, TEST_IDS } from './composer.constants';
 
 export interface ComposerAttachmentsProps {
@@ -35,6 +36,8 @@ export const ComposerAttachments = memo<ComposerAttachmentsProps>(
     accept = '*',
     multiple = false,
   }) => {
+    const { t } = useTranslation();
+
     const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
       if (disabled) {
         event.preventDefault();
@@ -73,7 +76,7 @@ export const ComposerAttachments = memo<ComposerAttachmentsProps>(
         size="xs"
         disabled={disabled}
         onClick={handleClick}
-        aria-label={ARIA_LABELS.ATTACHMENT}
+        aria-label={t(ARIA_LABELS.ATTACHMENT)}
         data-testid={TEST_IDS.COMPOSER_ATTACH}
       />
     );

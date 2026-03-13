@@ -1,6 +1,7 @@
 import { X } from 'lucide-react';
 import { memo } from 'react';
 import { IconButton } from '@/components/IconButton';
+import { useTranslation } from '@/providers/I18n.provider';
 import { ARIA_LABELS, BUTTON_SIZES, TEST_IDS } from './composer.constants';
 
 export interface ComposerClearButtonProps {
@@ -25,6 +26,7 @@ export interface ComposerClearButtonProps {
  */
 export const ComposerClearButton = memo<ComposerClearButtonProps>(
   ({ disabled = false, onClick }) => {
+    const { t } = useTranslation();
     return (
       <IconButton
         icon={<X className={BUTTON_SIZES.ICON_XS} />}
@@ -32,7 +34,7 @@ export const ComposerClearButton = memo<ComposerClearButtonProps>(
         size="xs"
         disabled={disabled}
         onClick={onClick}
-        aria-label={ARIA_LABELS.CLEAR}
+        aria-label={t(ARIA_LABELS.CLEAR)}
         data-testid={TEST_IDS.COMPOSER_CLEAR}
       />
     );

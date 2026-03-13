@@ -6,6 +6,7 @@ import {
 import { useChannelLabel } from '@/hooks/use-channel-label.hook';
 import type { AgentStatusEnum } from '@/interfaces/agent.interface';
 import type { ChannelTypeEnum } from '@/interfaces/channel.interface';
+import { useTranslation } from '@/providers/I18n.provider';
 import { cn } from '@/utils/class.util';
 
 export interface ChannelFilterProps {
@@ -78,9 +79,11 @@ export const ChannelFilter = memo(
       [channels, activeChannel],
     );
 
+    const { t } = useTranslation();
+
     return (
       <fieldset
-        aria-label="Channel Filter"
+        aria-label={t('toolbar.channelFilter.ariaLabel')}
         className={cn(
           'relative inline-flex items-center rounded-full p-0.5 bg-gray-100 dark:bg-white/8 backdrop-blur-md border border-gray-300/60 dark:border-white/15 shadow-sm',
           className,
@@ -133,7 +136,7 @@ export const ChannelFilter = memo(
               {unreadByChannel && count > 0 && (
                 <span
                   role="tooltip"
-                  aria-label={`${count} unread`}
+                  aria-label={t('toolbar.channelFilter.unread', { count })}
                   className={cn(
                     'absolute -top-1 -right-1 z-20',
                     'min-w-3.5 h-3.5 px-0.5',

@@ -41,24 +41,23 @@ export const BUTTON_SIZES = {
   XS_PADDING: 'p-1.5',
 } as const;
 
-/** ARIA 标签常量 */
+/** ARIA 标签 i18n key 映射（使用时需通过 t() 解析） */
 export const ARIA_LABELS = {
-  SEND: 'Send message',
-  ATTACHMENT: 'Attach file',
-  VOICE_INPUT: 'Voice input',
-  EMOJI: 'Insert emoji',
-  COMPOSER_INPUT: 'Message input',
-  CLEAR: 'Clear input',
+  SEND: 'composer.aria.send',
+  ATTACHMENT: 'composer.aria.attachment',
+  VOICE_INPUT: 'composer.aria.voiceInput',
+  EMOJI: 'composer.aria.emoji',
+  COMPOSER_INPUT: 'composer.aria.input',
+  CLEAR: 'composer.aria.clear',
 } as const;
 
-/** 渠道提示信息映射 */
+/** 渠道提示信息 i18n key 映射（使用时需通过 t() 解析） */
 export const CHANNEL_HINTS: Record<string, string> = {
-  sms: 'SMS · 1 segment',
-  whatsapp: 'Secure Connection',
-  email: 'Rich text enabled',
-  viber: 'Viber Message',
-  ivr: 'Voice Call',
-  default: 'Default Channel',
+  sms: 'composer.hint.sms',
+  whatsapp: 'composer.hint.whatsapp',
+  email: 'composer.hint.email',
+  viber: 'composer.hint.viber',
+  default: 'composer.hint.default',
 };
 
 /** 测试 ID 常量 */

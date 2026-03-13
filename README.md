@@ -270,6 +270,24 @@ export function App() {
 - 后续可在 Host 侧补充更细粒度的网络原因与诊断字段，再通过
   `networkService` 透传给 SDK
 
+### 4) Composer 草稿与离线队列
+
+**当前已实现（As-Is）**
+
+- Composer 草稿按 `conversationId + channel` 做分桶缓存；没有
+  `conversationId` 时退化为 `channel` 级缓存
+- 旧的 conversation 级草稿 key 会在首次读取时迁移到新的
+  channel 级 key
+- `clearDraftOnSend` 仅在发送结果为成功终态时清理草稿
+- 网络失败或可重试失败会保留离线队列；业务失败、鉴权失败、校验失败不会被当作离线消息
+- `draft` 与 `offline queue` 职责分离：前者是输入工作态，后者是待重试发送记录
+
+**目标架构（To-Be）**
+
+- 如需支持“失败消息恢复到输入框”，应通过显式 restore 动作复制
+  outbox 消息到 draft，而不是直接 dequeue
+- 后续可为 Host 暴露更清晰的 draft / outbox 恢复策略配置，但不合并两类存储职责
+
 ## 公开 API（以导出为准）
 
 ### 组件

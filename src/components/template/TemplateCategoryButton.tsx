@@ -1,4 +1,5 @@
 import { Button } from '@/components/Button';
+import { useTranslation } from '@/providers/I18n.provider';
 import { cn } from '@/utils/class.util';
 
 export interface TemplateCategoryButtonProps {
@@ -32,6 +33,7 @@ export const TemplateCategoryButton = ({
   label,
   className,
 }: TemplateCategoryButtonProps) => {
+  const { t } = useTranslation();
   return (
     <Button
       type="button"
@@ -44,7 +46,9 @@ export const TemplateCategoryButton = ({
         className,
       )}
       aria-pressed={isSelected}
-      aria-label={`${label} ${isSelected ? '(Selected)' : ''}`}
+      aria-label={
+        isSelected ? t('template.categorySelected', { label }) : label
+      }
     >
       {label}
     </Button>

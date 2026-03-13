@@ -1,6 +1,7 @@
 import { Send } from 'lucide-react';
 import { memo } from 'react';
 import { IconButton } from '@/components/IconButton';
+import { useTranslation } from '@/providers/I18n.provider';
 import { cn } from '@/utils/class.util';
 import { ARIA_LABELS, BUTTON_SIZES, TEST_IDS } from './composer.constants';
 
@@ -29,6 +30,7 @@ export interface ComposerSendButtonProps {
  */
 export const ComposerSendButton = memo<ComposerSendButtonProps>(
   ({ loading = false, disabled = false, onClick }) => {
+    const { t } = useTranslation();
     return (
       <IconButton
         icon={<Send className={BUTTON_SIZES.ICON_XS} />}
@@ -43,7 +45,7 @@ export const ComposerSendButton = memo<ComposerSendButtonProps>(
         onClick={onClick}
         loading={loading}
         disabled={disabled}
-        aria-label={ARIA_LABELS.SEND}
+        aria-label={t(ARIA_LABELS.SEND)}
         data-testid={TEST_IDS.COMPOSER_SEND}
       />
     );

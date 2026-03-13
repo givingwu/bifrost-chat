@@ -8,6 +8,7 @@ import {
   useImperativeHandle,
   useRef,
 } from 'react';
+import { useTranslation } from '@/providers/I18n.provider';
 import { cn } from '@/utils/class.util';
 import { INPUT_LIMITS, TEST_IDS, TEXT_SIZES } from './composer.constants';
 
@@ -100,6 +101,7 @@ export const ComposerInput = forwardRef<ComposerInputRef, ComposerInputProps>(
     ref,
   ) => {
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const { t } = useTranslation();
 
     // 暴露 ref 方法给父组件
     useImperativeHandle(
@@ -202,7 +204,7 @@ export const ComposerInput = forwardRef<ComposerInputRef, ComposerInputProps>(
           onKeyDown={handleKeyDown}
           onBlur={onBlur}
           onFocus={onFocus}
-          aria-label="消息输入框"
+          aria-label={t('composer.aria.input')}
           aria-invalid={isAtMaxLength}
           data-testid={TEST_IDS.COMPOSER_INPUT}
         />

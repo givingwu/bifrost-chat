@@ -3,6 +3,9 @@ import { describe, expect, it, vi } from 'vitest';
 import { AgentStatusEnum } from '@/interfaces/agent.interface';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import type { Conversation } from '@/interfaces/conversation.interface';
+import { LanguageCodeEnum } from '@/interfaces/language.interface';
+import zhCN from '@/locales/zh-CN.json';
+import { I18nProvider } from '@/providers/I18n.provider';
 import { ConversationItem } from './ConversationItem';
 
 // Mock useLanguage hook
@@ -14,6 +17,18 @@ vi.mock('@/store', () => ({
 vi.mock('@/utils/time.util', () => ({
   formatTimestamp: () => '10:30',
 }));
+
+function Wrapper({ children }: { children: React.ReactNode }) {
+  return (
+    <I18nProvider locale={LanguageCodeEnum.ZhCN} messages={zhCN}>
+      {children}
+    </I18nProvider>
+  );
+}
+
+function renderWithProviders(ui: React.ReactElement) {
+  return render(ui, { wrapper: Wrapper });
+}
 
 const createMockConversation = (
   overrides?: Partial<Conversation>,
@@ -35,14 +50,14 @@ describe('ConversationItem', () => {
   describe('基础渲染', () => {
     it('应该渲染用户名', () => {
       const conversation = createMockConversation();
-      render(<ConversationItem conversation={conversation} />);
+      renderWithProviders(<ConversationItem conversation={conversation} />);
 
       expect(screen.getByText('张三')).toBeInTheDocument();
     });
 
     it('应该渲染最后一条消息', () => {
       const conversation = createMockConversation();
-      render(<ConversationItem conversation={conversation} />);
+      renderWithProviders(<ConversationItem conversation={conversation} />);
 
       expect(screen.getByText('这是最后一条消息')).toBeInTheDocument();
     });
@@ -57,7 +72,7 @@ describe('ConversationItem', () => {
         },
       });
 
-      render(
+      renderWithProviders(
         <ConversationItem
           conversation={conversation}
           renderMeta={(conv) => {
@@ -78,7 +93,7 @@ describe('ConversationItem', () => {
 
     it('当 renderMeta 不存在时，不应渲染额外内容', () => {
       const conversation = createMockConversation();
-      render(<ConversationItem conversation={conversation} />);
+      renderWithProviders(<ConversationItem conversation={conversation} />);
 
       // 只有人名和最后消息，没有其他内容
       expect(screen.getByText('张三')).toBeInTheDocument();
@@ -92,7 +107,7 @@ describe('ConversationItem', () => {
         },
       });
 
-      render(
+      renderWithProviders(
         <ConversationItem
           conversation={conversation}
           renderMeta={(conv) => {
@@ -112,7 +127,7 @@ describe('ConversationItem', () => {
       const conversation = createMockConversation();
       const onSelect = vi.fn();
 
-      const { container } = render(
+      const { container } = renderWithProviders(
         <ConversationItem conversation={conversation} onSelect={onSelect} />,
       );
 
@@ -129,7 +144,7 @@ describe('ConversationItem', () => {
         unreadCount: 5,
         isActive: false,
       });
-      render(<ConversationItem conversation={conversation} />);
+      renderWithProviders(<ConversationItem conversation={conversation} />);
 
       expect(screen.getByText('5')).toBeInTheDocument();
     });
@@ -139,7 +154,7 @@ describe('ConversationItem', () => {
         unreadCount: 100,
         isActive: false,
       });
-      render(<ConversationItem conversation={conversation} />);
+      renderWithProviders(<ConversationItem conversation={conversation} />);
 
       expect(screen.getByText('99+')).toBeInTheDocument();
     });

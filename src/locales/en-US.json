@@ -2,7 +2,10 @@
   "title": "Messages",
   "common": {
     "loading": "Loading...",
-    "retry": "Retry"
+    "retry": "Retry",
+    "close": "Close",
+    "search": "Search",
+    "clear": "Clear"
   },
   "toolbar": {
     "channel": {
@@ -26,6 +29,19 @@
         "disconnected": "Network disconnected",
         "reconnecting": "Network reconnecting"
       }
+    },
+    "theme": {
+      "system": "System",
+      "light": "Light",
+      "dark": "Dark",
+      "ariaLabel": "Theme: {{mode}}"
+    },
+    "language": {
+      "ariaLabel": "Language: {{code}}"
+    },
+    "channelFilter": {
+      "ariaLabel": "Channel Filter",
+      "unread": "{{count}} unread"
     }
   },
   "composer": {
@@ -45,6 +61,7 @@
     "attachment": {
       "add": "Add Attachment",
       "remove": "Remove Attachment",
+      "removeFile": "Remove {{name}}",
       "maxSize": "File size exceeds limit",
       "maxCount": "Maximum attachments limit reached",
       "invalidType": "Unsupported file type"
@@ -55,7 +72,22 @@
       "discard": "Discard"
     },
     "hint": {
-      "newline": "Shift+Enter to insert a new line"
+      "newline": "Shift+Enter to insert a new line",
+      "sms": "SMS · 1 segment",
+      "whatsapp": "Secure Connection",
+      "email": "Rich text enabled",
+      "viber": "Viber Message",
+      "default": "Default Channel"
+    },
+    "aria": {
+      "send": "Send message",
+      "attachment": "Attach file",
+      "voiceInput": "Voice input",
+      "emoji": "Insert emoji",
+      "input": "Message input",
+      "clear": "Clear input",
+      "closeError": "Close error message",
+      "chooseChannel": "Choose Channel"
     }
   },
   "message": {
@@ -90,13 +122,17 @@
     "not_sent": "Not Sent",
     "error_reason": "Error: {{error}}",
     "empty": "No messages yet",
-    "unsupported": "Unsupported message type"
+    "unsupported": "Unsupported message type",
+    "unsupportedWithType": "Unsupported Message Type: {{type}}",
+    "warningIcon": "Warning icon"
   },
   "conversation": {
     "title": "Conversations",
     "empty": "No conversations yet",
     "search": "Search conversations",
     "ariaLabel": "Conversation with {{name}}{{unread, plural, =0 {} other {, {{count}} unread messages}}}",
+    "panel": "Conversation panel",
+    "searchAriaLabel": "Search conversations",
     "error": {
       "loadFailed": "Failed to load conversations"
     },
@@ -113,6 +149,8 @@
     "searchOrCreate": "Search or create template...",
     "keyboardHint": "Use ↑↓ to select, Enter to confirm, ESC to close",
     "keyboardHintSimple": "Use ↑↓ to select, Enter to confirm",
+    "list": "Template list",
+    "categorySelected": "{{label}} (Selected)",
     "panel": {
       "allCategories": "All",
       "loading": "Loading...",
@@ -120,12 +158,26 @@
       "retry": "Retry",
       "noTemplates": "No templates yet",
       "noMatchTemplates": "No matching templates found",
-      "showingCount": "Showing {{filtered}} / {{total}} templates"
+      "showingCount": "Showing {{filtered}} / {{total}} templates",
+      "usageCount": "Used {{count}} times"
     }
   },
   "emoji": {
     "title": "Select Emoji",
-    "hint": "Click an emoji to insert it into the input"
+    "hint": "Click an emoji to insert it into the input",
+    "picker": "Emoji picker",
+    "categories": "Emoji categories",
+    "list": "Emoji list",
+    "switchCategory": "Switch to {{name}} category",
+    "insert": "Insert emoji {{emoji}}",
+    "category": {
+      "emotion": "Emotion",
+      "gestures": "Gestures",
+      "hearts": "Hearts",
+      "symbols": "Symbols",
+      "animals": "Animals",
+      "food": "Food"
+    }
   },
   "mention": {
     "search": "Search: {{query}}",
@@ -133,6 +185,9 @@
   },
   "search": {
     "placeholder": "Search..."
+  },
+  "image": {
+    "loadFailed": "Image failed to load"
   },
   "Gateway": {
     "Plugin": {

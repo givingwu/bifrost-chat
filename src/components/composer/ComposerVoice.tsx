@@ -1,6 +1,7 @@
 import { Mic } from 'lucide-react';
 import { memo } from 'react';
 import { IconButton } from '@/components/IconButton';
+import { useTranslation } from '@/providers/I18n.provider';
 import { ARIA_LABELS, BUTTON_SIZES, TEST_IDS } from './composer.constants';
 
 export interface ComposerVoiceProps {
@@ -25,6 +26,7 @@ export interface ComposerVoiceProps {
  */
 export const ComposerVoice = memo<ComposerVoiceProps>(
   ({ disabled = false, onClick }) => {
+    const { t } = useTranslation();
     return (
       <IconButton
         icon={<Mic className={BUTTON_SIZES.ICON_XS} />}
@@ -32,7 +34,7 @@ export const ComposerVoice = memo<ComposerVoiceProps>(
         size="xs"
         disabled={disabled}
         onClick={onClick}
-        aria-label={ARIA_LABELS.VOICE_INPUT}
+        aria-label={t(ARIA_LABELS.VOICE_INPUT)}
         data-testid={TEST_IDS.COMPOSER_VOICE}
       />
     );

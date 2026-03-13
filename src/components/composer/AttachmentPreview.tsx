@@ -2,6 +2,7 @@ import { File, FileText, Image as ImageIcon, Video, X } from 'lucide-react';
 import { memo } from 'react';
 import { MessageTypeEnum } from '@/index';
 import type { Attachment } from '@/interfaces/attachment.interface';
+import { useTranslation } from '@/providers/I18n.provider';
 import { cn } from '@/utils/class.util';
 import { TEST_IDS } from './composer.constants';
 
@@ -83,6 +84,7 @@ function getAttachmentIcon(type: Attachment['type']) {
  */
 export const AttachmentPreview = memo<AttachmentPreviewProps>(
   ({ attachments, onRemove, disabled = false }) => {
+    const { t } = useTranslation();
     if (attachments.length === 0) {
       return null;
     }
@@ -139,7 +141,9 @@ export const AttachmentPreview = memo<AttachmentPreviewProps>(
                     'hover:bg-destructive/10 hover:text-destructive',
                     'focus:outline-none focus:ring-2 focus:ring-destructive/40',
                   )}
-                  aria-label={`Remove ${attachment.file.name}`}
+                  aria-label={t('composer.attachment.removeFile', {
+                    name: attachment.file.name,
+                  })}
                 >
                   <X className="h-3 w-3" />
                 </button>

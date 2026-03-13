@@ -8,6 +8,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import { useTranslation } from '@/providers/I18n.provider';
 import { cn } from '@/utils/class.util';
 import { TEST_IDS } from './composer.constants';
 
@@ -38,12 +39,12 @@ interface EmojiCategoryInfo {
  * 表情分类配置
  */
 export const EMOJI_CATEGORIES: readonly EmojiCategoryInfo[] = [
-  { id: 'emotion', name: '表情', icon: '😀' },
-  { id: 'gestures', name: '手势', icon: '👍' },
-  { id: 'hearts', name: '爱心', icon: '❤️' },
-  { id: 'symbols', name: '符号', icon: '⭐' },
-  { id: 'animals', name: '动物', icon: '🐶' },
-  { id: 'food', name: '食物', icon: '🍎' },
+  { id: 'emotion', name: 'emotion', icon: '😀' },
+  { id: 'gestures', name: 'gestures', icon: '👍' },
+  { id: 'hearts', name: 'hearts', icon: '❤️' },
+  { id: 'symbols', name: 'symbols', icon: '⭐' },
+  { id: 'animals', name: 'animals', icon: '🐶' },
+  { id: 'food', name: 'food', icon: '🍎' },
 ] as const;
 
 /**
@@ -273,7 +274,9 @@ const EmojiCategoryTab = memo<{
   category: EmojiCategoryInfo;
   isActive: boolean;
   onClick: () => void;
-}>(({ category, isActive, onClick }) => (
+  label: string;
+  switchLabel: string;
+}>(({ category, isActive, onClick, label, switchLabel }) => (
   <button
     type="button"
     onClick={onClick}
@@ -285,12 +288,12 @@ const EmojiCategoryTab = memo<{
       isActive && 'bg-muted text-text',
       !isActive && 'text-gray-400 dark:text-gray-500',
     )}
-    aria-label={`切换到${category.name}分类`}
+    aria-label={switchLabel}
     role="tab"
     aria-selected={isActive}
   >
     <span className="text-xl">{category.icon}</span>
-    <span className="text-[10px]">{category.name}</span>
+    <span className="text-[10px]">{label}</span>
   </button>
 ));
 
@@ -334,6 +337,7 @@ export const EmojiPicker = memo<EmojiPickerProps>(
       useState<EmojiCategory>(defaultCategory);
     const [focusedEmoji, setFocusedEmoji] = useState<string | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
+    const { t } = useTranslation();
     const resolvedGridColumns = useMemo(() => {
       const parsedColumns = Math.floor(gridColumns);
 
@@ -493,10 +497,10 @@ export const EmojiPicker = memo<EmojiPickerProps>(
           data-testid={TEST_IDS.COMPOSER_EMOJI}
           role="dialog"
           aria-modal="true"
-          aria-label="表情选择器"
+          aria-label={t('emoji.picker')}
         >
           <p className="text-sm text-gray-400 dark:text-gray-500 text-center">
-            暂无表情
+            {t('emoji.hint')}
           </p>
         </div>
       );
@@ -516,12 +520,14 @@ export const EmojiPicker = memo<EmojiPickerProps>(
         data-testid={TEST_IDS.COMPOSER_EMOJI}
         role="dialog"
         aria-modal="true"
-        aria-label="表情选择器"
+        aria-label={t('emoji.picker')}
       >
         {/* 头部 */}
         <div className="sticky top-0 z-10 border-b border-border bg-card px-4 py-3">
           <h3 className="flex items-baseline gap-2">
-            <span className="text-sm font-semibold text-text">选择表情</span>
+            <span className="text-sm font-semibold text-text">
+              {t('emoji.title')}
+            </span>
           </h3>
         </div>
 
@@ -530,7 +536,7 @@ export const EmojiPicker = memo<EmojiPickerProps>(
           <div
             className="flex gap-1 px-2 py-3 border-b border-border overflow-x-auto"
             role="tablist"
-            aria-label="表情分类"
+            aria-label={t('emoji.categories')}
           >
             {EMOJI_CATEGORIES.map((category) => (
               <EmojiCategoryTab
@@ -538,6 +544,14 @@ export const EmojiPicker = memo<EmojiPickerProps>(
                 category={category}
                 isActive={activeCategory === category.id}
                 onClick={() => handleCategoryChange(category.id)}
+                label={t(`emoji.category.${category.name}`, {
+                  defaultValue: category.name,
+                })}
+                switchLabel={t('emoji.switchCategory', {
+                  name: t(`emoji.category.${category.name}`, {
+                    defaultValue: category.name,
+                  }),
+                })}
               />
             ))}
           </div>
@@ -550,7 +564,7 @@ export const EmojiPicker = memo<EmojiPickerProps>(
             gridTemplateColumns: `repeat(${resolvedGridColumns}, minmax(0, 1fr))`,
           }}
           role="listbox"
-          aria-label="表情列表"
+          aria-label={t('emoji.list')}
         >
           {emojiList.map((emoji, index) => (
             <button
@@ -570,7 +584,7 @@ export const EmojiPicker = memo<EmojiPickerProps>(
                 'active:scale-90',
                 'cursor-pointer',
               )}
-              aria-label={`插入表情 ${emoji}`}
+              aria-label={t('emoji.insert', { emoji })}
               title={emoji}
               role="option"
               aria-selected={focusedEmoji === emoji}
@@ -584,8 +598,8 @@ export const EmojiPicker = memo<EmojiPickerProps>(
         <div className="border-t border-border bg-muted/30 px-4 py-2">
           <p className="text-[10px] text-gray-400 dark:text-gray-500 text-center">
             {showCategories && !emojis
-              ? `当前分类：${EMOJI_CATEGORIES.find((c) => c.id === activeCategory)?.name} · 共 ${emojiList.length} 个表情`
-              : `共 ${emojiList.length} 个表情`}
+              ? `${t(`emoji.category.${activeCategory}`, { defaultValue: activeCategory })} · ${emojiList.length}`
+              : `${emojiList.length}`}
           </p>
         </div>
       </div>

@@ -63,7 +63,11 @@ describe('Topbar', () => {
         <Topbar
           title="张三"
           renderMeta={() => (
-            <button data-testid="asset-button" onClick={handleClick}>
+            <button
+              type="button"
+              data-testid="asset-button"
+              onClick={handleClick}
+            >
               ASSET-2024-001
             </button>
           )}

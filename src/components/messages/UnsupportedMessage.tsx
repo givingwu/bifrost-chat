@@ -3,6 +3,7 @@ import {
   MessageTypeEnum,
   type StandardMessage,
 } from '@/interfaces/message.interface';
+import { useTranslation } from '@/providers/I18n.provider';
 
 export interface UnsupportedMessageProps {
   /** 标准消息 */
@@ -21,8 +22,10 @@ export interface UnsupportedMessageProps {
  */
 export const UnsupportedMessage = memo(
   ({ message, messageType, customMessage }: UnsupportedMessageProps) => {
+    const { t } = useTranslation();
     const type = messageType ?? message?.type ?? MessageTypeEnum.Other;
-    const displayMessage = customMessage ?? `Unsupported Message Type: ${type}`;
+    const displayMessage =
+      customMessage ?? t('message.unsupportedWithType', { type });
 
     return (
       <div className="flex items-center gap-3 px-4 py-2.5 text-muted-foreground">
@@ -37,10 +40,10 @@ export const UnsupportedMessage = memo(
           strokeLinecap="round"
           strokeLinejoin="round"
           className="text-orange-500 shrink-0"
-          aria-label="警告图标"
+          aria-label={t('message.warningIcon')}
           role="img"
         >
-          <title>Unsupported Message Type</title>
+          <title>{t('message.unsupported')}</title>
           <circle cx="12" cy="12" r="10" />
           <line x1="12" y1="8" x2="12" y2="12" />
           <line x1="12" y1="16" x2="12.01" y2="16" />

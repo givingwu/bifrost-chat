@@ -529,7 +529,7 @@ export const ComposerToolbar = forwardRef<
                 setSendError(null);
               }}
               className="text-error hover:text-error/80 ml-2"
-              aria-label="关闭错误提示"
+              aria-label={t('composer.aria.closeError')}
             >
               ✕
             </button>

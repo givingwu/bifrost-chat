@@ -1,6 +1,7 @@
 import { Smile } from 'lucide-react';
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/Button';
+import { useTranslation } from '@/providers/I18n.provider';
 import { cn } from '@/utils/class.util';
 import { ARIA_LABELS, BUTTON_SIZES, TEST_IDS } from './composer.constants';
 import { EmojiPicker, type EmojiPickerProps } from './EmojiPicker';
@@ -85,6 +86,7 @@ export const EmojiPickerButton = memo<EmojiPickerButtonProps>(
   }) => {
     const [isOpen, setIsOpen] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
+    const { t } = useTranslation();
 
     // 使用 ref 存储回调，避免事件监听器重新绑定
     const callbacksRef = useRef({
@@ -194,7 +196,7 @@ export const EmojiPickerButton = memo<EmojiPickerButtonProps>(
             buttonClassName,
           )}
           onClick={handleButtonClick}
-          aria-label={ARIA_LABELS.EMOJI}
+          aria-label={t(ARIA_LABELS.EMOJI)}
           aria-pressed={isOpen}
           aria-haspopup="dialog"
         >

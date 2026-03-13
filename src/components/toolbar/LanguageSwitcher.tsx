@@ -3,6 +3,7 @@ import {
   AvailableLanguageCodes,
   LanguageCodeEnum,
 } from '@/interfaces/language.interface';
+import { useTranslation } from '@/providers/I18n.provider';
 import { CircularButton } from '../Button';
 
 export interface LanguageSwitcherProps {
@@ -22,6 +23,7 @@ export const LanguageSwitcher = ({
   value,
   onChange,
 }: LanguageSwitcherProps) => {
+  const { t } = useTranslation();
   const nextLanguage = useCallback(() => {
     const currentIndex = AvailableLanguageCodes.indexOf(value);
     const nextIndex = (currentIndex + 1) % AvailableLanguageCodes.length;
@@ -31,7 +33,9 @@ export const LanguageSwitcher = ({
   return (
     <CircularButton
       data-component="language-switcher"
-      aria-label={`Language: ${languageLabelMap[value]}`}
+      aria-label={t('toolbar.language.ariaLabel', {
+        code: languageLabelMap[value],
+      })}
       onClick={nextLanguage}
       className={
         value === LanguageCodeEnum.EnUS

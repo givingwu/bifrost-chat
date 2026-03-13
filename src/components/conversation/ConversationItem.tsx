@@ -1,6 +1,7 @@
 import { type KeyboardEvent, memo, useCallback, useMemo } from 'react';
 import { Button } from '@/components/Button';
 import type { Conversation } from '@/interfaces/conversation.interface';
+import { useTranslation } from '@/providers/I18n.provider';
 import { useLanguage } from '@/store';
 import { cn } from '@/utils/class.util';
 import { formatTimestamp } from '@/utils/time.util';
@@ -83,6 +84,7 @@ export const ConversationItem = memo(
     renderMeta,
     getConversationDisplayTitle,
   }: ConversationItemProps) => {
+    const { t } = useTranslation();
     // 确定使用的样式
     const styles = conversation.isActive
       ? ACTIVE_STATE_STYLES
@@ -134,11 +136,10 @@ export const ConversationItem = memo(
         onKeyDown={handleKeyDown}
         className={containerClassName}
         aria-pressed={conversation.isActive}
-        aria-label={`与 ${conversation.user.name} 的会话${
-          conversation.unreadCount > 0
-            ? `，有 ${conversation.unreadCount} 条未读消息`
-            : ''
-        }`}
+        aria-label={t('conversation.ariaLabel', {
+          name: conversation.user.name,
+          count: conversation.unreadCount,
+        })}
       >
         <div className="flex w-full items-start gap-3">
           {/* 头像区域：未读 Badge 悬浮在右上角（微信风格） */}

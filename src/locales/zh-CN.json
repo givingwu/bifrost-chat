@@ -2,7 +2,10 @@
   "title": "消息",
   "common": {
     "loading": "加载中...",
-    "retry": "重试"
+    "retry": "重试",
+    "close": "关闭",
+    "search": "搜索",
+    "clear": "清除"
   },
   "toolbar": {
     "channel": {
@@ -26,6 +29,19 @@
         "disconnected": "网络已断开",
         "reconnecting": "网络重连中"
       }
+    },
+    "theme": {
+      "system": "系统",
+      "light": "浅色",
+      "dark": "深色",
+      "ariaLabel": "主题：{{mode}}"
+    },
+    "language": {
+      "ariaLabel": "语言：{{code}}"
+    },
+    "channelFilter": {
+      "ariaLabel": "渠道筛选",
+      "unread": "{{count}} 条未读"
     }
   },
   "composer": {
@@ -45,6 +61,7 @@
     "attachment": {
       "add": "添加附件",
       "remove": "移除附件",
+      "removeFile": "移除 {{name}}",
       "maxSize": "文件大小超过限制",
       "maxCount": "附件数量超过限制",
       "invalidType": "不支持的文件类型"
@@ -55,7 +72,22 @@
       "discard": "丢弃"
     },
     "hint": {
-      "newline": "Shift+Enter 换行"
+      "newline": "Shift+Enter 换行",
+      "sms": "SMS · 1 segment",
+      "whatsapp": "安全连接",
+      "email": "已启用富文本",
+      "viber": "Viber 消息",
+      "default": "默认渠道"
+    },
+    "aria": {
+      "send": "发送消息",
+      "attachment": "添加附件",
+      "voiceInput": "语音输入",
+      "emoji": "插入表情",
+      "input": "消息输入框",
+      "clear": "清空输入",
+      "closeError": "关闭错误提示",
+      "chooseChannel": "选择渠道"
     }
   },
   "message": {
@@ -90,13 +122,17 @@
     "not_sent": "未发送",
     "error_reason": "错误：{{error}}",
     "empty": "暂无消息",
-    "unsupported": "不支持的消息类型"
+    "unsupported": "不支持的消息类型",
+    "unsupportedWithType": "不支持的消息类型：{{type}}",
+    "warningIcon": "警告图标"
   },
   "conversation": {
     "title": "会话",
     "empty": "暂无会话",
     "search": "搜索会话",
     "ariaLabel": "与 {{name}} 的会话{{unread, plural, =0 {} other {，有 {{count}} 条未读消息}}}",
+    "panel": "会话面板",
+    "searchAriaLabel": "搜索会话",
     "error": {
       "loadFailed": "加载会话失败"
     },
@@ -113,6 +149,8 @@
     "searchOrCreate": "搜索或创建模板...",
     "keyboardHint": "使用 ↑↓ 选择，Enter 确认，ESC 关闭",
     "keyboardHintSimple": "使用 ↑↓ 选择，Enter 确认",
+    "list": "模板列表",
+    "categorySelected": "{{label}}（已选中）",
     "panel": {
       "allCategories": "全部",
       "loading": "加载中...",
@@ -120,12 +158,26 @@
       "retry": "重试",
       "noTemplates": "暂无模板",
       "noMatchTemplates": "未找到匹配的模板",
-      "showingCount": "显示 {{filtered}} / {{total}} 个模板"
+      "showingCount": "显示 {{filtered}} / {{total}} 个模板",
+      "usageCount": "使用 {{count}} 次"
     }
   },
   "emoji": {
     "title": "选择表情",
-    "hint": "点击表情即可插入到输入框"
+    "hint": "点击表情即可插入到输入框",
+    "picker": "表情选择器",
+    "categories": "表情分类",
+    "list": "表情列表",
+    "switchCategory": "切换到{{name}}分类",
+    "insert": "插入表情 {{emoji}}",
+    "category": {
+      "emotion": "表情",
+      "gestures": "手势",
+      "hearts": "爱心",
+      "symbols": "符号",
+      "animals": "动物",
+      "food": "食物"
+    }
   },
   "mention": {
     "search": "搜索: {{query}}",
@@ -133,6 +185,9 @@
   },
   "search": {
     "placeholder": "搜索..."
+  },
+  "image": {
+    "loadFailed": "图片加载失败"
   },
   "Gateway": {
     "Plugin": {

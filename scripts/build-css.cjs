@@ -1,7 +1,5 @@
-// biome-ignore lint/style/useNodejsImportProtocol: <explanation>
-const fs = require('fs');
-// biome-ignore lint/style/useNodejsImportProtocol: <explanation>
-const path = require('path');
+const fs = require('node:fs');
+const path = require('node:path');
 const postcss = require('postcss');
 const postcssConfig = require('../postcss.config.cjs');
 
@@ -30,8 +28,9 @@ async function build() {
   });
   if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
   fs.writeFileSync(output, result.css);
-  // biome-ignore lint/style/useTemplate: <explanation>
-  if (result.map) fs.writeFileSync(output + '.map', result.map.toString());
+  if (result.map) {
+    fs.writeFileSync(`${output}.map`, result.map.toString());
+  }
 }
 
 build().catch((err) => {

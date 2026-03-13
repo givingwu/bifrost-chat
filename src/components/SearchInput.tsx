@@ -120,7 +120,7 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
             // 自定义样式
             className,
           )}
-          aria-label="Search"
+          aria-label={t('common.search')}
           style={
             showIcon || showClearButton ? { paddingRight: '2rem' } : undefined
           }
@@ -139,7 +139,7 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
             type="button"
             onClick={handleClear}
             className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1 text-gray-400 dark:text-gray-500 transition-colors hover:bg-gray-200/50 hover:text-text dark:hover:bg-white/10"
-            aria-label="Clear"
+            aria-label={t('common.clear')}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -152,7 +152,7 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
               strokeLinecap="round"
               strokeLinejoin="round"
             >
-              <title>Clear</title>
+              <title>{t('common.clear')}</title>
               <path d="M18 6 6 18" />
               <path d="m6 6 12 12" />
             </svg>

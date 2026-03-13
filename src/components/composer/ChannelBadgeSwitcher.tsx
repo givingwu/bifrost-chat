@@ -3,6 +3,7 @@ import { useChannelIcon } from '@/hooks/use-channel-icon.hook';
 import { useChannelLabel } from '@/hooks/use-channel-label.hook';
 import { useChannelSwitcher } from '@/hooks/use-channel-switcher.hook';
 import type { ChannelTypeEnum } from '@/interfaces/channel.interface';
+import { useTranslation } from '@/providers/I18n.provider';
 import { cn } from '@/utils/class.util';
 
 export interface ChannelBadgeSwitcherProps {
@@ -94,6 +95,7 @@ export const ChannelBadgeSwitcher = memo(
 
     const getIcon = useChannelIcon('sm');
     const getLabel = useChannelLabel();
+    const { t } = useTranslation();
 
     if (!shouldRender) {
       return null;
@@ -134,7 +136,7 @@ export const ChannelBadgeSwitcher = memo(
               'animate-in fade-in slide-in-from-bottom-2 duration-200',
             )}
             role="menu"
-            aria-label="Choose Channel"
+            aria-label={t('composer.aria.chooseChannel')}
           >
             <div className="p-1">
               {channels.map((channel) => {

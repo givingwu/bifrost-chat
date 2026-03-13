@@ -1,5 +1,6 @@
 import { ChevronRight, Loader2 } from 'lucide-react';
 import type { Template } from '@/interfaces/template.interface';
+import { useTranslation } from '@/providers/I18n.provider';
 import { cn } from '@/utils/class.util';
 
 export interface TemplateListProps {
@@ -41,16 +42,19 @@ export const TemplateList = ({
   showUsageCount = false,
   renderingTemplateId,
 }: TemplateListProps) => {
+  const { t } = useTranslation();
   if (templates.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-8">
-        <p className="text-sm text-gray-400 dark:text-gray-500">暂无模板</p>
+        <p className="text-sm text-gray-400 dark:text-gray-500">
+          {t('template.panel.noTemplates')}
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-2" role="listbox" aria-label="模板列表">
+    <div className="space-y-2" role="listbox" aria-label={t('template.list')}>
       {templates.map((template) => {
         const isSelected = template.id === selectedId;
         // 只有当 renderingTemplateId 有值时才进行比较，避免 undefined === undefined 的问题
@@ -101,7 +105,10 @@ export const TemplateList = ({
               {/* 使用次数 */}
               {showUsageCount && template.usageCount !== undefined && (
                 <p className="text-[10px] text-gray-500 dark:text-gray-400">
-                  使用 {template.usageCount} 次
+                  {t('template.panel.usageCount', {
+                    count: template.usageCount,
+                    defaultValue: `Used ${template.usageCount} times`,
+                  })}
                 </p>
               )}
             </div>

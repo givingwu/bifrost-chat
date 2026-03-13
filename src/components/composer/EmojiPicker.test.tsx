@@ -1,10 +1,25 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
+import { LanguageCodeEnum } from '@/interfaces/language.interface';
+import zhCN from '@/locales/zh-CN.json';
+import { I18nProvider } from '@/providers/I18n.provider';
 import { EmojiPicker } from './EmojiPicker';
+
+function Wrapper({ children }: { children: React.ReactNode }) {
+  return (
+    <I18nProvider locale={LanguageCodeEnum.ZhCN} messages={zhCN}>
+      {children}
+    </I18nProvider>
+  );
+}
+
+function renderWithProviders(ui: React.ReactElement) {
+  return render(ui, { wrapper: Wrapper });
+}
 
 describe('EmojiPicker', () => {
   it('默认使用 8 列网格布局', () => {
-    render(<EmojiPicker open={true} onEmojiSelect={vi.fn()} />);
+    renderWithProviders(<EmojiPicker open={true} onEmojiSelect={vi.fn()} />);
 
     const listbox = screen.getByRole('listbox', { name: '表情列表' });
     expect(listbox).toHaveStyle({
@@ -16,7 +31,7 @@ describe('EmojiPicker', () => {
     const onEmojiSelect = vi.fn();
     const onClose = vi.fn();
 
-    render(
+    renderWithProviders(
       <EmojiPicker
         open={true}
         emojis={['😀', '😁']}

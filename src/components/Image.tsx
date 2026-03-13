@@ -36,7 +36,13 @@ const DEFAULT_IMAGE_PLACEHOLDER =
 /**
  * 默认占位符组件
  */
-export const DefaultImageFallback = ({ alt }: { alt?: string }) => (
+export const DefaultImageFallback = ({
+  alt,
+  fallbackText = 'Image failed to load',
+}: {
+  alt?: string;
+  fallbackText?: string;
+}) => (
   <svg
     className="w-full h-full text-gray-400"
     fill="currentColor"
@@ -44,9 +50,9 @@ export const DefaultImageFallback = ({ alt }: { alt?: string }) => (
     xmlns="http://www.w3.org/2000/svg"
     aria-hidden="true"
     role="img"
-    aria-label={alt || '图片加载失败'}
+    aria-label={alt || fallbackText}
   >
-    <title>{alt || '图片加载失败'}</title>
+    <title>{alt || fallbackText}</title>
     <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" />
   </svg>
 );
