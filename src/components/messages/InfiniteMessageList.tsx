@@ -117,7 +117,7 @@ export function InfiniteMessageList({
       );
     }
 
-    const reversedMessages = MessageCacheHelper.dedupeMessages(
+    const reversedMessages = MessageCacheHelper.dedupeAndSortMessages(
       [...pages].reverse().flatMap((page) => page.items) || [],
     );
     logger.info(

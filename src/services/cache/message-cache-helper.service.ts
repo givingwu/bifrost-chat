@@ -158,6 +158,12 @@ function matchMessageIdentity(
   return null;
 }
 
+function getComparableTimestamp(message: StandardMessage): number {
+  return typeof message.timestamp === 'number'
+    ? message.timestamp
+    : Number.POSITIVE_INFINITY;
+}
+
 /**
  * 无限查询页面结构
  */
@@ -308,6 +314,38 @@ export class MessageCacheHelper {
   }
 
   /**
+   * 按消息时间升序排序，时间相同时保留原始相对顺序。
+   * MessageList 会依赖“旧消息在前，新消息在后”的输入顺序。
+   */
+  static sortMessagesByTimestamp(
+    messages: StandardMessage[],
+  ): StandardMessage[] {
+    return messages
+      .map((message, index) => ({ message, index }))
+      .sort((left, right) => {
+        const timestampDiff =
+          getComparableTimestamp(left.message) -
+          getComparableTimestamp(right.message);
+
+        if (timestampDiff !== 0) {
+          return timestampDiff;
+        }
+
+        return left.index - right.index;
+      })
+      .map(({ message }) => message);
+  }
+
+  /**
+   * 先做幂等去重，再按 timestamp 升序排序。
+   */
+  static dedupeAndSortMessages(messages: StandardMessage[]): StandardMessage[] {
+    return MessageCacheHelper.sortMessagesByTimestamp(
+      MessageCacheHelper.dedupeMessages(messages),
+    );
+  }
+
+  /**
    * 在无限查询数据中查找消息
    *
    * @param data 无限查询数据
@@ -410,9 +448,18 @@ export class MessageCacheHelper {
       }
 
       // pages[0] 始终是最新页；fetchNextPage 追加的是更旧的历史页
-      logger.info('[MessageCacheHelper.addMessageToCache] 添加到最新页的末尾');
+      // 新消息进入缓存后，页内仍需按 timestamp 升序保持稳定顺序。
+      logger.info('[MessageCacheHelper.addMessageToCache] 添加到最新页并重排');
       const newPages = old.pages.map((page, index) =>
-        index === 0 ? { ...page, items: [...page.items, message] } : page,
+        index === 0
+          ? {
+              ...page,
+              items: MessageCacheHelper.sortMessagesByTimestamp([
+                ...page.items,
+                message,
+              ]),
+            }
+          : page,
       );
 
       logger.info(
@@ -453,18 +500,30 @@ export class MessageCacheHelper {
     queryClient.setQueryData<InfiniteQueryData>(queryKey, (old) => {
       if (!old) return old;
 
+      const shouldResortMessages = 'timestamp' in updates;
       const newPages = old.pages.map((page) => ({
         ...page,
-        items: page.items.map((msg) => {
-          // 匹配 messageId 或 tempId
-          const isMatch =
-            (messageId && msg.id === messageId) ||
-            (tempId && msg.tempId === tempId) ||
-            (messageId && msg.tempId === messageId) || // 处理 tempId 被更新为 messageId 的情况
-            (tempId && msg.id === tempId);
+        items: shouldResortMessages
+          ? MessageCacheHelper.sortMessagesByTimestamp(
+              page.items.map((msg) => {
+                const isMatch =
+                  (messageId && msg.id === messageId) ||
+                  (tempId && msg.tempId === tempId) ||
+                  (messageId && msg.tempId === messageId) ||
+                  (tempId && msg.id === tempId);
 
-          return isMatch ? mergeMessageUpdates(msg, updates) : msg;
-        }),
+                return isMatch ? mergeMessageUpdates(msg, updates) : msg;
+              }),
+            )
+          : page.items.map((msg) => {
+              const isMatch =
+                (messageId && msg.id === messageId) ||
+                (tempId && msg.tempId === tempId) ||
+                (messageId && msg.tempId === messageId) ||
+                (tempId && msg.id === tempId);
+
+              return isMatch ? mergeMessageUpdates(msg, updates) : msg;
+            }),
       }));
 
       return { ...old, pages: newPages };
@@ -525,8 +584,10 @@ export class MessageCacheHelper {
 
         const newPages = old.pages.map((page) => ({
           ...page,
-          items: page.items.map((msg) =>
-            msg.tempId === tempId ? realMessage : msg,
+          items: MessageCacheHelper.sortMessagesByTimestamp(
+            page.items.map((msg) =>
+              msg.tempId === tempId ? realMessage : msg,
+            ),
           ),
         }));
 
@@ -556,7 +617,11 @@ export class MessageCacheHelper {
       (old) => {
         if (!old) {
           return {
-            pages: [{ items: messages }],
+            pages: [
+              {
+                items: MessageCacheHelper.dedupeAndSortMessages(messages),
+              },
+            ],
             pageParams: [undefined],
           };
         }
@@ -574,7 +639,13 @@ export class MessageCacheHelper {
         // pages[0] 始终是最新页；fetchNextPage 追加的是更旧的历史页
         const newPages = old.pages.map((page, index) =>
           index === 0
-            ? { ...page, items: [...page.items, ...newMessages] }
+            ? {
+                ...page,
+                items: MessageCacheHelper.sortMessagesByTimestamp([
+                  ...page.items,
+                  ...newMessages,
+                ]),
+              }
             : page,
         );
 
@@ -636,7 +707,7 @@ export class MessageCacheHelper {
 
     if (!data) return [];
 
-    return MessageCacheHelper.dedupeMessages(
+    return MessageCacheHelper.dedupeAndSortMessages(
       data.pages.flatMap((page) => page.items),
     );
   }

@@ -14,6 +14,18 @@ describe('MessageCacheHelper', () => {
   let queryClient: QueryClient;
   const conversationId = 'conv-123';
 
+  function createMessage(
+    id: string,
+    timestamp: number,
+    overrides?: Partial<StandardMessage>,
+  ): StandardMessage {
+    return {
+      id,
+      timestamp,
+      ...overrides,
+    } as StandardMessage;
+  }
+
   beforeEach(() => {
     queryClient = new QueryClient({
       defaultOptions: {
@@ -115,6 +127,30 @@ describe('MessageCacheHelper', () => {
     });
   });
 
+  describe('dedupeAndSortMessages', () => {
+    it('应该在去重后按 timestamp 升序返回消息', () => {
+      const messages = [
+        createMessage('msg-2', 2_000),
+        createMessage('msg-1', 1_000),
+        createMessage('msg-1', 1_000, {
+          status: MessageStatusEnum.Sent,
+        }),
+      ];
+
+      expect(MessageCacheHelper.dedupeAndSortMessages(messages)).toEqual([
+        {
+          id: 'msg-1',
+          timestamp: 1_000,
+          status: MessageStatusEnum.Sent,
+        },
+        {
+          id: 'msg-2',
+          timestamp: 2_000,
+        },
+      ]);
+    });
+  });
+
   describe('addMessageToCache', () => {
     it('应该添加消息到空缓存', () => {
       const message = {
@@ -142,13 +178,13 @@ describe('MessageCacheHelper', () => {
       // 初始化缓存
       queryClient.setQueryData(queryKeys.messages.list(conversationId), {
         pages: [
-          { items: [{ id: 'msg-1' } as StandardMessage] },
-          { items: [{ id: 'msg-2' } as StandardMessage] },
+          { items: [createMessage('msg-1', 2_000)] },
+          { items: [createMessage('msg-2', 1_000)] },
         ],
         pageParams: [1, 2],
       });
 
-      const newMessage = { id: 'msg-3' } as StandardMessage;
+      const newMessage = createMessage('msg-3', 1_500);
 
       MessageCacheHelper.addMessageToCache(
         queryClient,
@@ -162,8 +198,13 @@ describe('MessageCacheHelper', () => {
 
       expect(data).toEqual({
         pages: [
-          { items: [{ id: 'msg-1' }, { id: 'msg-3' }] },
-          { items: [{ id: 'msg-2' }] },
+          {
+            items: [
+              { id: 'msg-3', timestamp: 1_500 },
+              { id: 'msg-1', timestamp: 2_000 },
+            ],
+          },
+          { items: [{ id: 'msg-2', timestamp: 1_000 }] },
         ],
         pageParams: [1, 2],
       });
@@ -358,6 +399,40 @@ describe('MessageCacheHelper', () => {
       });
     });
 
+    it('timestamp 更新后应重新按时间排序', () => {
+      queryClient.setQueryData(queryKeys.messages.list(conversationId), {
+        pages: [
+          {
+            items: [
+              createMessage('msg-1', 1_000, {
+                status: MessageStatusEnum.Sent,
+              }),
+              createMessage('msg-2', 3_000, {
+                status: MessageStatusEnum.Sent,
+              }),
+            ],
+          },
+        ],
+        pageParams: [undefined],
+      });
+
+      MessageCacheHelper.updateMessageInCache(
+        queryClient,
+        conversationId,
+        { timestamp: 500 },
+        'msg-2',
+      );
+
+      const data = queryClient.getQueryData<InfiniteQueryData>(
+        queryKeys.messages.list(conversationId),
+      );
+
+      expect(data?.pages[0]?.items).toEqual([
+        { id: 'msg-2', timestamp: 500, status: MessageStatusEnum.Sent },
+        { id: 'msg-1', timestamp: 1_000, status: MessageStatusEnum.Sent },
+      ]);
+    });
+
     it('不应将 Read 降级为 Delivered，但应保留其他字段更新', () => {
       queryClient.setQueryData(queryKeys.messages.list(conversationId), {
         pages: [
@@ -528,15 +603,15 @@ describe('MessageCacheHelper', () => {
     it('应该批量添加到最新页而不是历史页', () => {
       queryClient.setQueryData(queryKeys.messages.list(conversationId), {
         pages: [
-          { items: [{ id: 'latest-1' } as StandardMessage] },
-          { items: [{ id: 'older-1' } as StandardMessage] },
+          { items: [createMessage('latest-1', 3_000)] },
+          { items: [createMessage('older-1', 1_000)] },
         ],
         pageParams: [1, 2],
       });
 
       MessageCacheHelper.addMessagesToCache(queryClient, conversationId, [
-        { id: 'msg-2' } as StandardMessage,
-        { id: 'msg-3' } as StandardMessage,
+        createMessage('msg-2', 5_000),
+        createMessage('msg-3', 2_000),
       ]);
 
       const data = queryClient.getQueryData<InfiniteQueryData>(
@@ -546,10 +621,14 @@ describe('MessageCacheHelper', () => {
       expect(data).toEqual({
         pages: [
           {
-            items: [{ id: 'latest-1' }, { id: 'msg-2' }, { id: 'msg-3' }],
+            items: [
+              { id: 'msg-3', timestamp: 2_000 },
+              { id: 'latest-1', timestamp: 3_000 },
+              { id: 'msg-2', timestamp: 5_000 },
+            ],
           },
           {
-            items: [{ id: 'older-1' }],
+            items: [{ id: 'older-1', timestamp: 1_000 }],
           },
         ],
         pageParams: [1, 2],
@@ -595,8 +674,8 @@ describe('MessageCacheHelper', () => {
       // 初始化缓存
       queryClient.setQueryData(queryKeys.messages.list(conversationId), {
         pages: [
-          { items: [{ id: 'msg-1' } as StandardMessage] },
-          { items: [{ id: 'msg-2' } as StandardMessage] },
+          { items: [createMessage('msg-1', 2_000)] },
+          { items: [createMessage('msg-2', 1_000)] },
         ],
         pageParams: [1, 2],
       });
@@ -606,7 +685,10 @@ describe('MessageCacheHelper', () => {
         conversationId,
       );
 
-      expect(messages).toEqual([{ id: 'msg-1' }, { id: 'msg-2' }]);
+      expect(messages).toEqual([
+        { id: 'msg-2', timestamp: 1_000 },
+        { id: 'msg-1', timestamp: 2_000 },
+      ]);
     });
 
     it('应该在扁平化时去重重复 MID', () => {

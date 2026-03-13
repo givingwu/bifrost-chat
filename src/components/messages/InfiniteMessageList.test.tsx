@@ -122,6 +122,52 @@ describe('InfiniteMessageList', () => {
     expect(latestCall.messages[0]?.tempId).toBe('temp-mid-1');
   });
 
+  it('应在渲染前按 timestamp 升序整理乱序消息', () => {
+    useMessagesMock.mockReturnValue({
+      data: {
+        pages: [
+          {
+            items: [
+              createMessage('mid-3', 3_000),
+              createMessage('mid-2', 2_000),
+            ],
+          },
+          {
+            items: [createMessage('mid-1', 1_000)],
+          },
+        ],
+      },
+      isLoading: false,
+      error: null,
+      hasNextPage: false,
+      fetchNextPage: vi.fn(),
+      isFetchingNextPage: false,
+    });
+
+    render(
+      <InfiniteMessageList
+        conversationId="conv-1"
+        currentChannel={ChannelTypeEnum.WhatsApp}
+      />,
+      {
+        wrapper: createWrapper(new QueryClient()),
+      },
+    );
+
+    const latestCall = messageListSpy.mock.calls.at(-1)?.[0] as {
+      messages: StandardMessage[];
+    };
+
+    expect(latestCall.messages.map((message) => message.id)).toEqual([
+      'mid-1',
+      'mid-2',
+      'mid-3',
+    ]);
+    expect(latestCall.messages.map((message) => message.timestamp)).toEqual([
+      1_000, 2_000, 3_000,
+    ]);
+  });
+
   it('打开会话时保留已有缓存，不因挂载而 invalidate（避免重复请求）', () => {
     const queryClient = new QueryClient();
     const queryKey = queryKeys.messages.list(
