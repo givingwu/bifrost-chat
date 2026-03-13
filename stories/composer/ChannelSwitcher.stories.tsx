@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import type { Meta, StoryObj } from 'storybook-react-rsbuild';
 import { ChannelSwitcher } from '@/components/composer/ChannelSwitcher';
-import { AvailableChannels, ChannelTypeEnum } from '@/interfaces/channel.interface';
+import {
+  AvailableChannels,
+  ChannelTypeEnum,
+} from '@/interfaces/channel.interface';
 import '@/styles/theme.css';
 
 /**

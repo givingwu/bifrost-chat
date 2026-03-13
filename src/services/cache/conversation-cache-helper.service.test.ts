@@ -401,4 +401,75 @@ describe('ConversationCacheHelper', () => {
       }),
     ]);
   });
+
+  it('重复写入同一个 pending 会话时应保持该会话位于顶部', () => {
+    const queryClient = new QueryClient();
+
+    seedPendingConversationCache(queryClient, ChannelTypeEnum.WhatsApp, [
+      {
+        id: 'conv-other',
+        user: {
+          id: 'other-user',
+          name: '其他待确认会话',
+          status: AgentStatusEnum.Offline,
+        },
+        lastMessage: '',
+        lastMessageTime: new Date(1_770_000_005_000).toISOString(),
+        unreadCount: 0,
+        channel: ChannelTypeEnum.WhatsApp,
+        metadata: {
+          localState: 'pending_create',
+          pendingSince: new Date(1_770_000_005_000).toISOString(),
+          pendingSource: 'create',
+        },
+      },
+      {
+        id: 'conv-active',
+        user: {
+          id: 'active-user',
+          name: '当前活跃 pending',
+          status: AgentStatusEnum.Online,
+        },
+        lastMessage: '',
+        lastMessageTime: new Date(1_770_000_001_000).toISOString(),
+        unreadCount: 0,
+        channel: ChannelTypeEnum.WhatsApp,
+        metadata: {
+          localState: 'pending_create',
+          pendingSince: new Date(1_770_000_001_000).toISOString(),
+          pendingSource: 'create',
+          debtorId: 'debtor-1',
+          contactId: 'contact-1',
+        },
+      },
+    ]);
+
+    ConversationCacheHelper.upsertPendingConversation(
+      queryClient,
+      {
+        id: 'conv-active',
+        user: {
+          id: 'active-user',
+          name: '当前活跃 pending',
+          status: AgentStatusEnum.Online,
+        },
+        lastMessage: '',
+        lastMessageTime: new Date(1_770_000_100_000).toISOString(),
+        unreadCount: 0,
+        channel: ChannelTypeEnum.WhatsApp,
+        metadata: {
+          debtorId: 'debtor-1',
+          contactId: 'contact-1',
+        },
+      },
+      ChannelTypeEnum.WhatsApp,
+    );
+
+    expect(
+      ConversationCacheHelper.getPendingConversations(
+        queryClient,
+        ChannelTypeEnum.WhatsApp,
+      ).map((conversation) => conversation.id),
+    ).toEqual(['conv-active', 'conv-other']);
+  });
 });

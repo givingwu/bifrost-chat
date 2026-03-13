@@ -10,8 +10,8 @@ import { ServiceProvider } from '@/providers/service.provider';
 import type { IConversationService } from '@/services/core/conversation.service';
 import type { IMessageService } from '@/services/core/message.service';
 import type { ITemplateService } from '@/services/core/template.service';
-import { seedPendingConversationCache } from '@/test-utils/conversation-cache.test-util';
 import { resetChatStore } from '@/store';
+import { seedPendingConversationCache } from '@/test-utils/conversation-cache.test-util';
 
 let listUpdatesCallback: ((conversations: Conversation[]) => void) | undefined;
 const conversationUpdateCallbacks = new Map<
@@ -191,7 +191,9 @@ describe('useConversations Hook', () => {
   });
 
   it('应将当前渠道的 pending 会话合并到展示列表顶部', async () => {
-    vi.mocked(mockConversationService.list).mockResolvedValue(mockConversations);
+    vi.mocked(mockConversationService.list).mockResolvedValue(
+      mockConversations,
+    );
 
     const queryClient = new QueryClient({
       defaultOptions: {
@@ -246,10 +248,9 @@ describe('useConversations Hook', () => {
       expect(result.current.isSuccess).toBe(true);
     });
 
-    expect(result.current.data?.map((conversation) => conversation.id)).toEqual([
-      'conv-pending',
-      'conv-1',
-    ]);
+    expect(result.current.data?.map((conversation) => conversation.id)).toEqual(
+      ['conv-pending', 'conv-1'],
+    );
   });
 
   it('当服务端返回同 id 会话时应自动移除 pending', async () => {
