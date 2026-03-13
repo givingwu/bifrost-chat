@@ -36,45 +36,57 @@ function createOfflineMessage(id: string): OfflineMessage {
   };
 }
 
-function createMockStorage(initialMessages: OfflineMessage[] = []): IStorage & {
-  getAll: ReturnType<typeof vi.fn>;
-  close: ReturnType<typeof vi.fn>;
-} {
+function createMockStorage(initialMessages: OfflineMessage[] = []): IStorage {
   let messages = [...initialMessages];
 
-  return {
-    open: vi.fn(async () => {}),
-    close: vi.fn(() => {}),
-    add: vi.fn(async (_storeName: string, data: OfflineMessage) => {
-      messages.push(data);
-      return data.id;
-    }),
-    get: vi.fn(async (_storeName: string, key: string) => {
-      return messages.find((message) => message.id === key) ?? null;
-    }),
-    put: vi.fn(async (_storeName: string, data: OfflineMessage) => {
-      messages = messages.map((message) =>
-        message.id === data.id ? data : message,
-      );
-    }),
-    delete: vi.fn(async (_storeName: string, key: string) => {
-      messages = messages.filter((message) => message.id !== key);
-    }),
-    getAll: vi.fn(async () => [...messages]),
-    getByIndex: vi.fn(
-      async (_storeName: string, indexName: string, value: IDBValidKey) => {
-        if (indexName !== 'conversationId') {
-          return [];
-        }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const anyFn = (fn: any) => fn;
 
-        return messages.filter((message) => message.conversationId === value);
-      },
+  return {
+    open: anyFn(vi.fn(async () => {})),
+    close: anyFn(vi.fn(() => {})),
+    add: anyFn(
+      vi.fn(async (_storeName: string, data: OfflineMessage) => {
+        messages.push(data);
+        return data.id;
+      }),
     ),
-    clear: vi.fn(async () => {
-      messages = [];
-    }),
-    count: vi.fn(async () => messages.length),
-    getStorageType: vi.fn(() => 'indexeddb'),
+    get: anyFn(
+      vi.fn(async (_storeName: string, key: string) => {
+        return messages.find((message) => message.id === key) ?? null;
+      }),
+    ),
+    put: anyFn(
+      vi.fn(async (_storeName: string, data: OfflineMessage) => {
+        messages = messages.map((message) =>
+          message.id === data.id ? data : message,
+        );
+      }),
+    ),
+    delete: anyFn(
+      vi.fn(async (_storeName: string, key: string) => {
+        messages = messages.filter((message) => message.id !== key);
+      }),
+    ),
+    getAll: anyFn(vi.fn(async () => [...messages])),
+    getByIndex: anyFn(
+      vi.fn(
+        async (_storeName: string, indexName: string, value: IDBValidKey) => {
+          if (indexName !== 'conversationId') {
+            return [];
+          }
+
+          return messages.filter((message) => message.conversationId === value);
+        },
+      ),
+    ),
+    clear: anyFn(
+      vi.fn(async () => {
+        messages = [];
+      }),
+    ),
+    count: anyFn(vi.fn(async () => messages.length)),
+    getStorageType: anyFn(vi.fn(() => 'indexeddb' as const)),
   };
 }
 
