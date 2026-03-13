@@ -58,6 +58,7 @@ export * from '@/providers/query.provider';
 export * from '@/providers/service.provider';
 
 // Service Interfaces
+export * from '@/services/cache/conversation-cache-helper.service';
 export * from '@/services/core/conversation.service';
 export * from '@/services/core/message.service';
 export * from '@/services/core/network.service';
