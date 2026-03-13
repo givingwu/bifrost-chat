@@ -32,7 +32,7 @@ export interface UseComposerLogicOptions {
   onSend?: (
     content: string,
     options?: { templateMetadata?: unknown },
-  ) => void | Promise<void>;
+  ) => unknown | Promise<unknown>;
   onSendAttachment?: (
     attachments: Attachment[],
     text?: string,
@@ -137,6 +137,7 @@ export const useComposerLogic = (
   // ==================== 草稿状态 ====================
   const draft = useComposerDraft({
     conversationId,
+    channel,
     enableDraft,
     clearDraftOnSend: config.clearDraftOnSend,
     keepDraftOnSwitch: config.keepDraftOnSwitch,
@@ -147,14 +148,16 @@ export const useComposerLogic = (
   // ==================== 模板预览 ====================
   const { mutateAsync: previewTemplate } = useTemplatePreview();
   const [isRestoring, setIsRestoring] = useState(false);
-  const processedConversationIdRef = useRef<string | undefined>(undefined);
+  const processedDraftScopeRef = useRef<string | undefined>(undefined);
 
   // 恢复 template 类型的 draft 时，重新 preview 获取最新内容
   useEffect(() => {
     if (!conversationId || !channel) return;
 
+    const draftScopeKey = `${conversationId}:${channel}`;
+
     // 避免重复处理同一个会话
-    if (processedConversationIdRef.current === conversationId) return;
+    if (processedDraftScopeRef.current === draftScopeKey) return;
 
     const draftData = draft.getDraftData();
 
@@ -165,7 +168,7 @@ export const useComposerLogic = (
       draftData.content
     ) {
       setIsRestoring(true);
-      processedConversationIdRef.current = conversationId;
+      processedDraftScopeRef.current = draftScopeKey;
 
       previewTemplate({
         conversationId,
@@ -272,6 +275,14 @@ export const useComposerLogic = (
       if (hasAttachments && onSendAttachment) {
         await onSendAttachment(attachments, messageToSend || undefined);
         setAttachments([]);
+        if (config.clearDraftOnSend) {
+          draft.setValue('');
+          draft.setMessageType(undefined);
+          draft.setTemplateCode(undefined);
+          draft.setTemplateParams(undefined);
+          draft.setTemplateMetadata(undefined);
+          draft.clearDraft();
+        }
       } else if (messageToSend) {
         const options =
           draft.messageType === MessageTypeEnum.Template
@@ -285,20 +296,21 @@ export const useComposerLogic = (
               };
         await draft.handleSend(messageToSend, options);
       }
-
-      // 清空
-      draft.setValue('');
-      draft.setMessageType(undefined);
-      draft.setTemplateCode(undefined);
-      draft.setTemplateParams(undefined);
-      draft.setTemplateMetadata(undefined);
     } catch (error) {
       console.error('[Composer] Failed to send:', error);
       setSendError(error instanceof Error ? error.message : '发送失败');
     } finally {
       setIsSending(false);
     }
-  }, [canSend, disabled, isSending, draft, attachments, onSendAttachment]);
+  }, [
+    canSend,
+    config.clearDraftOnSend,
+    disabled,
+    isSending,
+    draft,
+    attachments,
+    onSendAttachment,
+  ]);
 
   const handleClear = useCallback(() => {
     draft.setValue('');

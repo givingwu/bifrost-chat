@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { MessageTypeEnum } from '@/interfaces/message.interface';
+import type { ChannelTypeEnum } from '@/interfaces/channel.interface';
+import {
+  type MessageSendResult,
+  MessageStatusEnum,
+  type MessageTypeEnum,
+} from '@/interfaces/message.interface';
 
 const DRAFT_KEY_PREFIX = 'bifrost-chat-draft-';
 const DEFAULT_DRAFT_DEBOUNCE_DELAY = 500;
@@ -29,6 +34,7 @@ export interface DraftData {
 
 export interface UseComposerDraftOptions {
   conversationId?: string;
+  channel?: ChannelTypeEnum;
   templateLocked?: boolean;
   enableDraft?: boolean;
   draftDebounceDelay?: number;
@@ -37,7 +43,7 @@ export interface UseComposerDraftOptions {
   onSend?: (
     content: string,
     options?: Record<string, unknown>,
-  ) => void | Promise<void>;
+  ) => unknown | Promise<unknown>;
 }
 
 export interface UseComposerDraftResult {
@@ -122,12 +128,49 @@ function serializeDraftData(data: DraftData): string {
   return JSON.stringify(data);
 }
 
+function buildConversationDraftStorageKey(conversationId: string): string {
+  return `${DRAFT_KEY_PREFIX}conversation-${conversationId}`;
+}
+
+function buildChannelDraftStorageKey(channel: ChannelTypeEnum): string {
+  return `${DRAFT_KEY_PREFIX}channel-${channel}`;
+}
+
+function buildConversationChannelDraftStorageKey(
+  conversationId: string,
+  channel: ChannelTypeEnum,
+): string {
+  return `${buildConversationDraftStorageKey(conversationId)}-channel-${channel}`;
+}
+
+function shouldClearDraftAfterSend(result: unknown): boolean {
+  if (!result || typeof result !== 'object') {
+    return true;
+  }
+
+  const messageSendResult = result as Partial<MessageSendResult>;
+
+  if (messageSendResult.needRollback === true) {
+    return false;
+  }
+
+  if (
+    messageSendResult.status === MessageStatusEnum.Failed ||
+    Boolean(messageSendResult.error)
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
 /**
  * useComposerDraft：管理会话草稿输入值、持久化与发送后清理。
  * 支持缓存消息类型（如 template），刷新后可恢复。
  */
 export function useComposerDraft({
   conversationId,
+  channel,
   templateLocked = false,
   enableDraft = true,
   draftDebounceDelay = DEFAULT_DRAFT_DEBOUNCE_DELAY,
@@ -146,13 +189,28 @@ export function useComposerDraft({
   const loadedDraftKeyRef = useRef<string | null>(null);
   const previousDraftKeyRef = useRef<string | null>(null);
 
-  const draftStorageKey = useMemo(
-    () =>
-      conversationId
-        ? `${DRAFT_KEY_PREFIX}conversation-${conversationId}`
-        : null,
-    [conversationId],
-  );
+  const draftStorageKey = useMemo(() => {
+    if (conversationId && channel) {
+      return buildConversationChannelDraftStorageKey(conversationId, channel);
+    }
+
+    if (conversationId) {
+      return buildConversationDraftStorageKey(conversationId);
+    }
+
+    if (channel) {
+      return buildChannelDraftStorageKey(channel);
+    }
+
+    return null;
+  }, [channel, conversationId]);
+  const legacyDraftStorageKey = useMemo(() => {
+    if (conversationId && channel) {
+      return buildConversationDraftStorageKey(conversationId);
+    }
+
+    return null;
+  }, [channel, conversationId]);
 
   const clearDraftByKey = useCallback((storageKey: string | null) => {
     if (!storageKey || !canUseLocalStorage()) {
@@ -168,25 +226,67 @@ export function useComposerDraft({
 
   const clearDraft = useCallback(() => {
     clearDraftByKey(draftStorageKey);
-  }, [clearDraftByKey, draftStorageKey]);
+    clearDraftByKey(legacyDraftStorageKey);
+  }, [clearDraftByKey, draftStorageKey, legacyDraftStorageKey]);
 
-  const loadDraftData = useCallback((): DraftData => {
-    if (!draftStorageKey || !canUseLocalStorage()) {
-      return { content: '' };
-    }
-
-    try {
-      const raw = window.localStorage.getItem(draftStorageKey);
-
-      if (!raw) {
-        return { content: '' };
+  const readDraftDataByKey = useCallback(
+    (storageKey: string | null): DraftData | null => {
+      if (!storageKey || !canUseLocalStorage()) {
+        return null;
       }
 
-      return parseDraftData(raw);
-    } catch {
+      try {
+        const raw = window.localStorage.getItem(storageKey);
+
+        if (!raw) {
+          return null;
+        }
+
+        return parseDraftData(raw);
+      } catch {
+        return null;
+      }
+    },
+    [],
+  );
+
+  const loadDraftData = useCallback((): DraftData => {
+    if (!canUseLocalStorage()) {
       return { content: '' };
     }
-  }, [draftStorageKey]);
+
+    const currentDraft = readDraftDataByKey(draftStorageKey);
+
+    if (currentDraft) {
+      return currentDraft;
+    }
+
+    const legacyDraft = readDraftDataByKey(legacyDraftStorageKey);
+
+    if (!legacyDraft) {
+      return { content: '' };
+    }
+
+    if (draftStorageKey) {
+      try {
+        window.localStorage.setItem(
+          draftStorageKey,
+          serializeDraftData(legacyDraft),
+        );
+
+        if (
+          legacyDraftStorageKey &&
+          legacyDraftStorageKey !== draftStorageKey
+        ) {
+          window.localStorage.removeItem(legacyDraftStorageKey);
+        }
+      } catch {
+        // 忽略迁移失败，仍返回旧数据
+      }
+    }
+
+    return legacyDraft;
+  }, [draftStorageKey, legacyDraftStorageKey, readDraftDataByKey]);
 
   const loadDraft = useCallback(() => {
     return loadDraftData().content;
@@ -355,15 +455,14 @@ export function useComposerDraft({
 
   const handleSend = useCallback(
     async (content: string, options?: Record<string, unknown>) => {
-      await onSend?.(content, options);
+      const result = await onSend?.(content, options);
 
-      setValue('');
-      setMessageType(undefined);
-      setTemplateCode(undefined);
-      setTemplateParams(undefined);
-      setTemplateMetadata(undefined);
-
-      if (clearDraftOnSend) {
+      if (clearDraftOnSend && shouldClearDraftAfterSend(result)) {
+        setValue('');
+        setMessageType(undefined);
+        setTemplateCode(undefined);
+        setTemplateParams(undefined);
+        setTemplateMetadata(undefined);
         clearDraft();
       }
     },

@@ -205,9 +205,9 @@ export function DefaultChatLayout({
   );
   // 计算 title：优先使用 getConversationDisplayTitle formatter；否则显示 user.name
   const title = activeConversation
-    ? (getConversationDisplayTitle
-        ? getConversationDisplayTitle(activeConversation)
-        : (activeConversation?.user?.name ?? t('conversation.title')))
+    ? getConversationDisplayTitle
+      ? getConversationDisplayTitle(activeConversation)
+      : (activeConversation?.user?.name ?? t('conversation.title'))
     : t('conversation.title');
   // 计算 subtitle：如果有激活的会话，显示"渠道 · 状态"；否则显示当前渠道
   const subtitle = activeConversation
@@ -399,7 +399,14 @@ export function DefaultChatLayout({
         }
       />
     );
-  }, [defaultTopbarExtra, renderTopbar, subtitle, title, renderTopbarMeta, activeConversation]);
+  }, [
+    defaultTopbarExtra,
+    renderTopbar,
+    subtitle,
+    title,
+    renderTopbarMeta,
+    activeConversation,
+  ]);
 
   // 库内订阅 messageService 实时消息/状态，自动维护未读增量（无需订阅方注册）
   useUnreadSync();

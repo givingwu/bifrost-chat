@@ -13,11 +13,9 @@ import {
 import type { ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TopbarTools } from '@/components/toolbar/TopbarTools';
-import { I18nProvider } from '@/providers/I18n.provider';
-import type { LanguageCodeEnum } from '@/interfaces/language.interface';
-import zhCN from '@/locales/zh-CN.json';
 import { AgentStatusEnum } from '@/interfaces/agent.interface';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
+import type { LanguageCodeEnum } from '@/interfaces/language.interface';
 import { MessageTypeDisplayStrategy } from '@/interfaces/message-type-config.interface';
 import {
   NetworkQualityEnum,
@@ -25,6 +23,8 @@ import {
   type NetworkState,
   NetworkStatusEnum,
 } from '@/interfaces/network.interface';
+import zhCN from '@/locales/zh-CN.json';
+import { I18nProvider } from '@/providers/I18n.provider';
 import { ServiceProvider } from '@/providers/service.provider';
 import type { IConversationService } from '@/services/core/conversation.service';
 import type { IMessageService } from '@/services/core/message.service';
