@@ -59,6 +59,11 @@ export interface ConversationListProps {
    * 在人名和最后消息之间渲染
    */
   renderItemMeta?: (conversation: Conversation) => React.ReactNode;
+  /**
+   * 自定义标题 formatter，透传给每个 ConversationItem
+   * @see ConversationItemProps.getConversationDisplayTitle
+   */
+  getConversationDisplayTitle?: (conversation: Conversation) => string;
 }
 
 // ==================== 辅助函数 ====================
@@ -128,6 +133,7 @@ export const ConversationList = memo(
     scrollRef: externalScrollRef,
     enableVirtualization = true,
     renderItemMeta,
+    getConversationDisplayTitle,
   }: ConversationListProps) => {
     const { t } = useTranslation();
 
@@ -347,6 +353,7 @@ export const ConversationList = memo(
                 conversation={conversation}
                 onSelect={onSelect}
                 renderMeta={renderItemMeta}
+                getConversationDisplayTitle={getConversationDisplayTitle}
               />
             </div>
           ))}
@@ -392,6 +399,7 @@ export const ConversationList = memo(
                 conversation={processedConversations[virtualItem.index]}
                 onSelect={onSelect}
                 renderMeta={renderItemMeta}
+                getConversationDisplayTitle={getConversationDisplayTitle}
               />
             </div>
           ))}

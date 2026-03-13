@@ -45,11 +45,13 @@ export interface DefaultChatLayoutRenderTopbarProps {
   extra: React.ReactNode;
   /** 默认的 Topbar 组件，方便在外部包一层再渲染 */
   TopbarComponent: typeof Topbar;
+  /** 当前激活会话（供宿主在 renderTopbar / renderMeta 中访问会话元数据） */
+  conversation?: Conversation;
   /**
    * 自定义渲染元数据区域
    * 在标题和副标题之间渲染
    */
-  renderMeta?: () => React.ReactNode;
+  renderMeta?: (conversation?: Conversation) => React.ReactNode;
 }
 
 export type DefaultChatLayoutRenderTopbar =
@@ -100,20 +102,37 @@ export interface DefaultChatLayoutProps {
   renderConversationItemMeta?: (conversation: Conversation) => React.ReactNode;
   /**
    * 自定义渲染 Topbar 的元数据区域
-   * 在标题和副标题之间渲染
+   * 在标题和副标题之间渲染，接收当前激活会话作为参数。
+   * 旧的无参用法（`() => ReactNode`）运行时不受影响。
    * @example
    * ```tsx
-   * renderTopbarMeta={() => (
+   * renderTopbarMeta={(conversation) => (
    *   <button
    *     className="text-xs text-blue-500 hover:underline"
-   *     onClick={() => navigateToAsset(activeConversation?.metadata?.assetItemNumber)}
+   *     onClick={() => navigateToAsset(conversation?.metadata?.assetItemNumber)}
    *   >
-   *     {activeConversation?.metadata?.assetItemNumber}
+   *     {conversation?.metadata?.assetItemNumber}
    *   </button>
    * )}
    * ```
    */
-  renderTopbarMeta?: () => React.ReactNode;
+  renderTopbarMeta?: (conversation?: Conversation) => React.ReactNode;
+  /**
+   * 自定义会话列表项标题 formatter
+   *
+   * 左侧列表第一行 和 右侧 Topbar 标题同时使用此 formatter，实现两处展示统一。
+   * 未传时回退到 `conversation.user.name`。
+   *
+   * @example
+   * ```tsx
+   * getConversationDisplayTitle={(conv) =>
+   *   conv.metadata?.relationship
+   *     ? `${conv.user.name}（${conv.metadata.relationship}）`
+   *     : conv.user.name
+   * }
+   * ```
+   */
+  getConversationDisplayTitle?: (conversation: Conversation) => string;
 }
 
 /**
@@ -147,6 +166,7 @@ export function DefaultChatLayout({
   profileActions,
   renderConversationItemMeta,
   renderTopbarMeta,
+  getConversationDisplayTitle,
 }: DefaultChatLayoutProps) {
   const actions = useActions();
   const { t } = useTranslation();
@@ -183,9 +203,11 @@ export function DefaultChatLayout({
       ),
     [activeConversationId, conversations],
   );
-  // 计算 title：如果有激活的会话，显示用户名；否则显示默认标题
+  // 计算 title：优先使用 getConversationDisplayTitle formatter；否则显示 user.name
   const title = activeConversation
-    ? (activeConversation?.user?.name ?? t('conversation.title'))
+    ? (getConversationDisplayTitle
+        ? getConversationDisplayTitle(activeConversation)
+        : (activeConversation?.user?.name ?? t('conversation.title')))
     : t('conversation.title');
   // 计算 subtitle：如果有激活的会话，显示"渠道 · 状态"；否则显示当前渠道
   const subtitle = activeConversation
@@ -352,7 +374,10 @@ export function DefaultChatLayout({
         subtitle,
         extra: defaultTopbarExtra,
         TopbarComponent: Topbar,
-        renderMeta: renderTopbarMeta,
+        conversation: activeConversation,
+        renderMeta: renderTopbarMeta
+          ? () => renderTopbarMeta(activeConversation)
+          : undefined,
       });
     }
 
@@ -367,10 +392,14 @@ export function DefaultChatLayout({
         title={title}
         subtitle={subtitle}
         extra={defaultTopbarExtra}
-        renderMeta={renderTopbarMeta}
+        renderMeta={
+          renderTopbarMeta
+            ? () => renderTopbarMeta(activeConversation)
+            : undefined
+        }
       />
     );
-  }, [defaultTopbarExtra, renderTopbar, subtitle, title, renderTopbarMeta]);
+  }, [defaultTopbarExtra, renderTopbar, subtitle, title, renderTopbarMeta, activeConversation]);
 
   // 库内订阅 messageService 实时消息/状态，自动维护未读增量（无需订阅方注册）
   useUnreadSync();
@@ -439,6 +468,7 @@ export function DefaultChatLayout({
             conversations={filteredConversations}
             onSelect={handleSelectConversation}
             renderItemMeta={renderConversationItemMeta}
+            getConversationDisplayTitle={getConversationDisplayTitle}
           />
         </ConversationPanel>
       }

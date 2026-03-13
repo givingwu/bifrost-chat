@@ -27,6 +27,25 @@ export interface ConversationItemProps {
    * )}
    * ```
    */
+  /**
+   * 自定义标题 formatter
+   *
+   * 优先于 `conversation.user.name`，用于格式化第一行展示文案（如「姓名（关系）」）。
+   * 未传时回退到 `conversation.user.name`。
+   *
+   * @example
+   * ```tsx
+   * getConversationDisplayTitle={(conv) =>
+   *   conv.metadata?.relationship
+   *     ? `${conv.user.name}（${conv.metadata.relationship}）`
+   *     : conv.user.name
+   * }
+   * ```
+   */
+  getConversationDisplayTitle?: (conversation: Conversation) => string;
+  /**
+   * 自定义渲染元数据区域（在标题和最后消息之间）
+   */
   renderMeta?: (conversation: Conversation) => React.ReactNode;
 }
 
@@ -62,6 +81,7 @@ export const ConversationItem = memo(
     onSelect,
     className = '',
     renderMeta,
+    getConversationDisplayTitle,
   }: ConversationItemProps) => {
     // 确定使用的样式
     const styles = conversation.isActive
@@ -144,7 +164,9 @@ export const ConversationItem = memo(
                   styles.title,
                 )}
               >
-                {conversation.user.name}
+                {getConversationDisplayTitle
+                  ? getConversationDisplayTitle(conversation)
+                  : conversation.user.name}
               </h4>
               <span className={cn('text-xs shrink-0', styles.time)}>
                 {lastReplyTime}
