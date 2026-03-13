@@ -12,6 +12,20 @@
       "voip": "VoIP",
       "viber": "Viber",
       "ivr": "IVR"
+    },
+    "network": {
+      "unknown": "Unknown",
+      "connected": "Connected",
+      "connecting": "Connecting",
+      "disconnected": "Disconnected",
+      "reconnecting": "Reconnecting",
+      "aria": {
+        "unknown": "Network status unknown",
+        "connected": "Network connected",
+        "connecting": "Network connecting",
+        "disconnected": "Network disconnected",
+        "reconnecting": "Network reconnecting"
+      }
     }
   },
   "composer": {

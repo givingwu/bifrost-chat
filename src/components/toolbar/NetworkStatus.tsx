@@ -1,5 +1,6 @@
 import { memo, useMemo } from 'react';
 import { NetworkStatusEnum } from '@/interfaces/network.interface';
+import { useTranslation } from '@/providers/I18n.provider';
 import { cn } from '@/utils/class.util';
 
 export interface NetworkStatusProps {
@@ -14,58 +15,49 @@ export interface NetworkStatusProps {
 }
 
 /**
- * 网络状态配置接口
+ * 网络状态样式配置接口（仅包含纯样式，文案由 i18n 提供）
  */
-interface NetworkStatusConfig {
-  /** 状态文本标签 */
-  label: string;
+interface NetworkStatusStyleConfig {
   /** 容器样式类名 */
   containerClass: string;
   /** 状态指示点样式类名 */
   dotClass: string;
-  /** ARIA 标签，用于无障碍访问 */
-  ariaLabel: string;
+  /** i18n key 后缀（对应 toolbar.network.xxx） */
+  i18nKey: string;
 }
 
 /**
- * 网络状态到配置的映射表
- * - 使用配置对象模式，便于统一管理和扩展
- * - 包含所有已知的网络状态配置
- * - 使用 as const 确保类型推断的准确性
+ * 网络状态到样式配置的映射表
+ * - label / ariaLabel 已移至 locale JSON，通过 t() 获取
  */
-export const NETWORK_STATUS_CONFIG_MAP: Record<
+export const NETWORK_STATUS_STYLE_MAP: Record<
   NetworkStatusEnum,
-  NetworkStatusConfig
+  NetworkStatusStyleConfig
 > = {
   [NetworkStatusEnum.Unknown]: {
-    label: 'Unknown',
     containerClass: 'bg-muted text-text-muted',
     dotClass: 'bg-text-muted',
-    ariaLabel: '网络状态未知',
+    i18nKey: 'unknown',
   },
   [NetworkStatusEnum.Connected]: {
-    label: 'Connected',
     containerClass: 'bg-success/10 text-success',
     dotClass: 'bg-success',
-    ariaLabel: '网络已连接',
+    i18nKey: 'connected',
   },
   [NetworkStatusEnum.Connecting]: {
-    label: 'Connecting',
     containerClass: 'bg-warning/10 text-warning',
     dotClass: 'bg-warning animate-pulse',
-    ariaLabel: '网络连接中',
+    i18nKey: 'connecting',
   },
   [NetworkStatusEnum.Disconnected]: {
-    label: 'Disconnected',
     containerClass: 'bg-error/10 text-error',
     dotClass: 'bg-error',
-    ariaLabel: '网络已断开',
+    i18nKey: 'disconnected',
   },
   [NetworkStatusEnum.Reconnecting]: {
-    label: 'Reconnecting',
     containerClass: 'bg-info/10 text-info',
     dotClass: 'bg-info animate-pulse',
-    ariaLabel: '网络重连中',
+    i18nKey: 'reconnecting',
   },
 } as const;
 
@@ -83,7 +75,7 @@ const BASE_DOT_CLASS = 'h-2 w-2 rounded-full';
 /**
  * NetworkStatus：网络连接状态指示器。
  * - 显示网络连接状态（已连接、连接中、已断开）。
- * - 使用配置对象模式，便于统一管理和扩展状态样式。
+ * - 使用 i18n 国际化所有文案（label 和 ariaLabel）。
  * - 使用 memo 优化性能，避免不必要的重新渲染。
  * - 支持无障碍访问（ARIA 标签）。
  * - 支持自定义标签和样式。
@@ -95,9 +87,11 @@ export const NetworkStatus = memo(
     showLabel = true,
     label: customLabel,
   }: NetworkStatusProps) => {
+    const { t } = useTranslation();
+
     // 使用 useMemo 缓存配置选择结果
     const config = useMemo(() => {
-      const config = NETWORK_STATUS_CONFIG_MAP[status];
+      const config = NETWORK_STATUS_STYLE_MAP[status];
 
       if (!config) {
         console.warn(`[NetworkStatus] Unknown network status: ${status}`);
@@ -112,9 +106,12 @@ export const NetworkStatus = memo(
       return null;
     }
 
-    const { label: defaultLabel, containerClass, dotClass, ariaLabel } = config;
-    // 使用自定义标签或默认标签
-    const displayLabel = customLabel ?? defaultLabel;
+    const { containerClass, dotClass, i18nKey } = config;
+
+    // 通过 i18n 获取标签和 ARIA 文案
+    const label = customLabel ?? t(`toolbar.network.${i18nKey}`);
+    const ariaLabel = t(`toolbar.network.aria.${i18nKey}`);
+
     // 构建容器类名
     const containerClassName = cn(
       BASE_CONTAINER_CLASS,
@@ -131,7 +128,7 @@ export const NetworkStatus = memo(
         aria-label={ariaLabel}
       >
         <div className={dotClassName} aria-hidden="true" />
-        {showLabel && <span>{displayLabel}</span>}
+        {showLabel && <span>{label}</span>}
       </output>
     );
   },

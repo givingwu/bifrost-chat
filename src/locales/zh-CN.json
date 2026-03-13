@@ -12,6 +12,20 @@
       "voip": "VoIP",
       "viber": "Viber",
       "ivr": "IVR"
+    },
+    "network": {
+      "unknown": "未知",
+      "connected": "已连接",
+      "connecting": "连接中",
+      "disconnected": "已断开",
+      "reconnecting": "重连中",
+      "aria": {
+        "unknown": "网络状态未知",
+        "connected": "网络已连接",
+        "connecting": "网络连接中",
+        "disconnected": "网络已断开",
+        "reconnecting": "网络重连中"
+      }
     }
   },
   "composer": {
