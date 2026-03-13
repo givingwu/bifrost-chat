@@ -68,9 +68,17 @@ describe('useCreateConversation Hook', () => {
       },
     });
 
-    const { result } = renderHook(() => useCreateConversation(true), {
-      wrapper: createTestWrapper(queryClient),
-    });
+    const { result } = renderHook(
+      () =>
+        useCreateConversation<{
+          debtorId: string;
+          contactId: string;
+          channelType: ChannelTypeEnum;
+        }>(true),
+      {
+        wrapper: createTestWrapper(queryClient),
+      },
+    );
 
     await act(async () => {
       await result.current.mutateAsync({
