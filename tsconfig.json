@@ -17,5 +17,12 @@
     }
   },
   "include": ["src", ".storybook", "stories", "vitest.d.ts"],
-  "exclude": ["tests", "node_modules"]
+  "exclude": [
+    "tests",
+    "node_modules",
+    "src/**/*.test.ts",
+    "src/**/*.test.tsx",
+    "src/**/*.spec.ts",
+    "src/**/*.spec.tsx"
+  ]
 }
