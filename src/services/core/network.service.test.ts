@@ -62,6 +62,7 @@ describe('BrowserNetworkService', () => {
   });
 
   afterEach(() => {
+    vi.restoreAllMocks();
     restoreNavigatorProperty('onLine', originalOnLineDescriptor);
     restoreNavigatorProperty('connection', originalConnectionDescriptor);
   });
@@ -153,5 +154,66 @@ describe('BrowserNetworkService', () => {
     });
 
     service.destroy();
+  });
+
+  it('单个监听器抛错时不应影响其他监听器', () => {
+    const consoleErrorSpy = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => {
+        return undefined;
+      });
+    const service = createBrowserNetworkService();
+    const healthyListener = vi.fn();
+
+    service.subscribe(() => {
+      throw new Error('listener failed');
+    });
+    service.subscribe(healthyListener);
+
+    browserOnline = false;
+    window.dispatchEvent(new Event('offline'));
+
+    expect(healthyListener).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: NetworkStatusEnum.Disconnected,
+      }),
+    );
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      '[BrowserNetworkService] Listener callback failed:',
+      expect.any(Error),
+    );
+
+    service.destroy();
+  });
+
+  it('destroy 后不应再响应浏览器与 realtime 状态变化', () => {
+    let realtimeListener: ((status: ConnectionStateEnum) => void) | undefined;
+    const unsubscribeRealtime = vi.fn(() => {
+      realtimeListener = undefined;
+    });
+    const service = createBrowserNetworkService({
+      realtime: {
+        getStatus: () => ConnectionStateEnum.Connecting,
+        subscribe: (listener) => {
+          realtimeListener = listener as (status: ConnectionStateEnum) => void;
+          return unsubscribeRealtime;
+        },
+      },
+    });
+    const listener = vi.fn();
+
+    service.subscribe(listener);
+    service.destroy();
+
+    browserOnline = false;
+    window.dispatchEvent(new Event('offline'));
+    realtimeListener?.(ConnectionStateEnum.Connected);
+
+    expect(listener).not.toHaveBeenCalled();
+    expect(unsubscribeRealtime).toHaveBeenCalledTimes(1);
+    expect(mockConnection.removeEventListener).toHaveBeenCalledWith(
+      'change',
+      expect.any(Function),
+    );
   });
 });

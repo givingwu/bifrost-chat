@@ -144,39 +144,51 @@ export const ComposerToolbar = forwardRef<
   >();
   const [sendError, setSendError] = useState<string | null>(null);
   const inputRef = useRef<ComposerInputRef>(null);
+  const sendErrorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const focusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // 同步 templateLocked prop 的变化到内部状态
   useEffect(() => {
     setIsTemplateLocked(templateLocked);
   }, [templateLocked]);
 
-  // 监听消息发送失败事件，显示错误提示
-  useEffect(() => {
-    const handleMessageSendFailed = (event: Event) => {
-      const customEvent = event as CustomEvent<{
-        conversationId: string;
-        error?: string;
-      }>;
-      const { error } = customEvent.detail;
-
-      if (error) {
-        setSendError(error);
-
-        // 3秒后自动清除错误提示
-        const timer = setTimeout(() => {
-          setSendError(null);
-        }, 3000);
-
-        return () => clearTimeout(timer);
-      }
-    };
-
-    window.addEventListener('messageSendFailed', handleMessageSendFailed);
-
-    return () => {
-      window.removeEventListener('messageSendFailed', handleMessageSendFailed);
-    };
+  const clearSendErrorTimer = useCallback(() => {
+    if (sendErrorTimerRef.current) {
+      clearTimeout(sendErrorTimerRef.current);
+      sendErrorTimerRef.current = null;
+    }
   }, []);
+
+  const clearFocusTimer = useCallback(() => {
+    if (focusTimerRef.current) {
+      clearTimeout(focusTimerRef.current);
+      focusTimerRef.current = null;
+    }
+  }, []);
+
+  const scheduleSendErrorClear = useCallback(() => {
+    clearSendErrorTimer();
+    sendErrorTimerRef.current = setTimeout(() => {
+      setSendError(null);
+      sendErrorTimerRef.current = null;
+    }, 3000);
+  }, [clearSendErrorTimer]);
+
+  const showSendError = useCallback(
+    (error: string) => {
+      setSendError(error);
+      scheduleSendErrorClear();
+    },
+    [scheduleSendErrorClear],
+  );
+
+  const scheduleFocusInput = useCallback(() => {
+    clearFocusTimer();
+    focusTimerRef.current = setTimeout(() => {
+      inputRef.current?.focus();
+      focusTimerRef.current = null;
+    }, 0);
+  }, [clearFocusTimer]);
 
   // 暴露 ref 方法给父组件
   useImperativeHandle(
@@ -221,6 +233,13 @@ export const ComposerToolbar = forwardRef<
       revokeAttachmentPreviews(attachments);
     };
   }, [attachments]);
+
+  useEffect(() => {
+    return () => {
+      clearSendErrorTimer();
+      clearFocusTimer();
+    };
+  }, [clearFocusTimer, clearSendErrorTimer]);
 
   // 根据渠道确定最大长度
   const effectiveMaxLength = useMemo(() => {
@@ -275,6 +294,8 @@ export const ComposerToolbar = forwardRef<
     });
 
     setIsSending(true);
+    clearSendErrorTimer();
+    setSendError(null);
 
     try {
       // 如果有附件，使用附件发送回调
@@ -292,19 +313,14 @@ export const ComposerToolbar = forwardRef<
       setCurrentTemplateId(undefined);
       console.log('[ComposerToolbar] Message sent successfully');
     } catch (error) {
-      // 错误处理由调用方负责，这里只重置状态
       console.error('[ComposerToolbar] Failed to send message:', error);
-      // 可以选择不清空输入框，让用户可以重试
+      showSendError(error instanceof Error ? error.message : '发送失败');
     } finally {
       setIsSending(false);
       console.log(
         '[ComposerToolbar] isSending set to false, focusing input...',
       );
-      // 在状态更新后自动聚焦输入框
-      // 使用 setTimeout 确保 isSending 状态已更新
-      setTimeout(() => {
-        inputRef.current?.focus();
-      }, 0);
+      scheduleFocusInput();
     }
   }, [
     canSend,
@@ -316,6 +332,9 @@ export const ComposerToolbar = forwardRef<
     onSendAttachment,
     handleChange,
     currentTemplateId,
+    clearSendErrorTimer,
+    scheduleFocusInput,
+    showSendError,
   ]);
 
   // 处理附件选择
@@ -338,7 +357,7 @@ export const ComposerToolbar = forwardRef<
         console.error(
           `[ComposerToolbar] Maximum attachments limit reached: ${maxAttachments}`,
         );
-        // TODO: 显示错误提示给用户
+        showSendError(`Only support ${maxAttachments} attachments`);
         return;
       }
 
@@ -350,7 +369,7 @@ export const ComposerToolbar = forwardRef<
           console.error(
             `[ComposerToolbar] File size exceeds limit: ${file.name}`,
           );
-          // TODO: 显示错误提示给用户
+          showSendError(`File ${file.name} exceeds size limit`);
           return;
         }
 
@@ -366,7 +385,7 @@ export const ComposerToolbar = forwardRef<
             console.error(
               `[ComposerToolbar] File type not allowed: ${file.name}`,
             );
-            // TODO: 显示错误提示给用户
+            showSendError(`File type not allowed: ${file.name}`);
             return;
           }
         }
@@ -376,7 +395,7 @@ export const ComposerToolbar = forwardRef<
       const newAttachments = await createAttachments(files);
       setAttachments((prev) => [...prev, ...newAttachments]);
     },
-    [disabled, composerConfig, attachments.length],
+    [disabled, composerConfig, attachments.length, showSendError],
   );
 
   // 处理移除附件
@@ -406,6 +425,8 @@ export const ComposerToolbar = forwardRef<
       }
 
       setIsSending(true);
+      clearSendErrorTimer();
+      setSendError(null);
 
       try {
         await onSendAudio(audio);
@@ -413,11 +434,12 @@ export const ComposerToolbar = forwardRef<
         console.log('[ComposerToolbar] Audio sent successfully');
       } catch (error) {
         console.error('[ComposerToolbar] Failed to send audio:', error);
+        showSendError(error instanceof Error ? error.message : '发送失败');
       } finally {
         setIsSending(false);
       }
     },
-    [onSendAudio],
+    [clearSendErrorTimer, onSendAudio, showSendError],
   );
 
   // 处理取消录音
@@ -430,11 +452,10 @@ export const ComposerToolbar = forwardRef<
     handleChange('');
     setIsTemplateLocked(false);
     setCurrentTemplateId(undefined);
-    // 使用 setTimeout 确保在状态更新后再聚焦
-    setTimeout(() => {
-      inputRef.current?.focus();
-    }, 0);
-  }, [handleChange]);
+    clearSendErrorTimer();
+    setSendError(null);
+    scheduleFocusInput();
+  }, [clearSendErrorTimer, handleChange, scheduleFocusInput]);
 
   // 处理表单提交（防止意外的表单提交）
   const handleSubmit = useCallback(
@@ -503,7 +524,10 @@ export const ComposerToolbar = forwardRef<
             <span>{sendError}</span>
             <button
               type="button"
-              onClick={() => setSendError(null)}
+              onClick={() => {
+                clearSendErrorTimer();
+                setSendError(null);
+              }}
               className="text-error hover:text-error/80 ml-2"
               aria-label="关闭错误提示"
             >

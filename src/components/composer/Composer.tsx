@@ -133,6 +133,7 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(
     const { t } = useTranslation();
     const composerConfig = useComposerConfig();
     const inputRef = useRef<ComposerInputRef>(null);
+    const focusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     // 使用统一的逻辑 hook
     const logic = useComposerLogic({
@@ -180,33 +181,6 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(
       [logic],
     );
 
-    // 监听消息发送失败事件，显示错误提示
-    useEffect(() => {
-      const handleMessageSendFailed = (event: Event) => {
-        const customEvent = event as CustomEvent<{
-          conversationId: string;
-          error?: string;
-        }>;
-        const { error } = customEvent.detail;
-
-        if (error) {
-          // 重新触发错误状态（通过 custom event）
-          window.dispatchEvent(
-            new CustomEvent('composerError', { detail: { error } }),
-          );
-        }
-      };
-
-      window.addEventListener('messageSendFailed', handleMessageSendFailed);
-
-      return () => {
-        window.removeEventListener(
-          'messageSendFailed',
-          handleMessageSendFailed,
-        );
-      };
-    }, []);
-
     // 根据渠道确定最大长度
     const effectiveMaxLength = useMemo(() => {
       if (maxLengthProp) {
@@ -228,6 +202,21 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(
 
       return t('composer.placeholder.default');
     }, [channel, t]);
+
+    const clearFocusTimer = useCallback(() => {
+      if (focusTimerRef.current) {
+        clearTimeout(focusTimerRef.current);
+        focusTimerRef.current = null;
+      }
+    }, []);
+
+    const scheduleFocusInput = useCallback(() => {
+      clearFocusTimer();
+      focusTimerRef.current = setTimeout(() => {
+        inputRef.current?.focus();
+        focusTimerRef.current = null;
+      }, 0);
+    }, [clearFocusTimer]);
 
     // 处理表单提交（防止意外的表单提交）
     const handleSubmit = useCallback(
@@ -267,10 +256,14 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(
     // 处理清空输入框
     const handleClear = useCallback(() => {
       logic.handleClear();
-      setTimeout(() => {
-        inputRef.current?.focus();
-      }, 0);
-    }, [logic]);
+      scheduleFocusInput();
+    }, [logic, scheduleFocusInput]);
+
+    useEffect(() => {
+      return () => {
+        clearFocusTimer();
+      };
+    }, [clearFocusTimer]);
 
     // 根据渠道确定允许的文件类型
     const accept = useMemo(() => {

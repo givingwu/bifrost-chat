@@ -294,8 +294,18 @@ export class OfflineMessageQueueService {
    */
   subscribe(callback: (messages: OfflineMessage[]) => void): () => void {
     this.subscribers.add(callback);
-    // 立即触发一次回调
-    callback(this.currentMessages);
+
+    try {
+      // 立即触发一次回调
+      callback(this.currentMessages);
+    } catch (error) {
+      this.subscribers.delete(callback);
+      console.error(
+        '[OfflineMessageQueueService] Subscriber callback failed:',
+        error,
+      );
+      throw error;
+    }
 
     return () => {
       this.subscribers.delete(callback);
@@ -306,8 +316,17 @@ export class OfflineMessageQueueService {
    * 通知所有订阅者
    */
   private notifySubscribers(): void {
-    for (const callback of this.subscribers) {
-      callback(this.currentMessages);
+    const subscribers = Array.from(this.subscribers);
+
+    for (const callback of subscribers) {
+      try {
+        callback(this.currentMessages);
+      } catch (error) {
+        console.error(
+          '[OfflineMessageQueueService] Subscriber callback failed:',
+          error,
+        );
+      }
     }
   }
 
@@ -391,7 +410,7 @@ export class OfflineMessageQueueService {
     priority: MessagePriorityEnum = MessagePriorityEnum.Normal,
   ): OfflineMessage {
     // 从 StandardMessage 中提取 message 字段（排除 id 和 status）
-    const { id, status, ...messageData } = message;
+    const { id: _id, status: _status, ...messageData } = message;
 
     return {
       id: MessageBuilder.generateUniqueId(),

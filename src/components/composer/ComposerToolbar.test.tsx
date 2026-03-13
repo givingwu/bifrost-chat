@@ -1,5 +1,12 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import { ComposerToolbar } from './ComposerToolbar';
 
@@ -48,6 +55,10 @@ vi.mock('@/store', () => ({
 describe('ComposerToolbar', () => {
   beforeEach(() => {
     cleanup();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it('should render composer with default state', () => {
@@ -201,5 +212,47 @@ describe('ComposerToolbar', () => {
     const attachButton = screen.getByTestId('composer-attach');
 
     expect(attachButton.getAttribute('disabled')).toBeDefined();
+  });
+
+  it('should show send error and auto clear without global events', async () => {
+    const onSend = vi.fn().mockRejectedValue(new Error('发送失败'));
+    render(<ComposerToolbar onSend={onSend} />);
+    const input = screen.getByTestId('composer-input');
+
+    fireEvent.change(input, { target: { value: 'Hello' } });
+
+    const sendButton = screen.getByTestId('composer-send');
+    fireEvent.click(sendButton);
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('发送失败');
+    await waitFor(
+      () => {
+        expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+      },
+      { timeout: 3500 },
+    );
+  });
+
+  it('should clear pending timers on unmount', async () => {
+    vi.useFakeTimers();
+    const onSend = vi.fn().mockRejectedValue(new Error('发送失败'));
+    const { unmount } = render(<ComposerToolbar onSend={onSend} />);
+    const input = screen.getByTestId('composer-input');
+
+    fireEvent.change(input, { target: { value: 'Hello' } });
+
+    const sendButton = screen.getByTestId('composer-send');
+    fireEvent.click(sendButton);
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(screen.getByRole('alert')).toBeInTheDocument();
+    expect(vi.getTimerCount()).toBeGreaterThan(0);
+
+    unmount();
+
+    expect(vi.getTimerCount()).toBe(0);
   });
 });

@@ -49,7 +49,7 @@ export interface BrowserNetworkRealtimeSource {
    */
   subscribe?: (
     listener: (status: RealtimeNetworkStatus) => void,
-  ) => (() => void) | void;
+  ) => (() => void) | undefined;
 }
 
 export interface BrowserNetworkServiceOptions {
@@ -405,8 +405,17 @@ export class BrowserNetworkService implements INetworkService {
   }
 
   private notifyListeners(): void {
-    for (const listener of this.listeners) {
-      listener(this.snapshot);
+    const listeners = Array.from(this.listeners);
+
+    for (const listener of listeners) {
+      try {
+        listener(this.snapshot);
+      } catch (error) {
+        console.error(
+          '[BrowserNetworkService] Listener callback failed:',
+          error,
+        );
+      }
     }
   }
 }
