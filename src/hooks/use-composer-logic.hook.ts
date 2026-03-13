@@ -95,12 +95,11 @@ export interface UseComposerLogicResult {
 /**
  * 渠道最大长度映射
  */
-const MAX_LENGTH_MAP: Record<ChannelTypeEnum, number> = {
+const MAX_LENGTH_MAP: Partial<Record<ChannelTypeEnum, number>> = {
   [ChannelTypeEnum.SMS]: 160,
   [ChannelTypeEnum.Email]: Infinity,
   [ChannelTypeEnum.WhatsApp]: 4096,
   [ChannelTypeEnum.Viber]: 4096,
-  [ChannelTypeEnum.IVR]: 2000,
 };
 
 /**
@@ -232,12 +231,11 @@ export const useComposerLogic = (
 
   const placeholder = useMemo(() => {
     if (channel) {
-      const channelLabels: Record<ChannelTypeEnum, string> = {
+      const channelLabels: Partial<Record<ChannelTypeEnum, string>> = {
         [ChannelTypeEnum.SMS]: 'SMS',
         [ChannelTypeEnum.Email]: 'Email',
         [ChannelTypeEnum.WhatsApp]: 'WhatsApp',
         [ChannelTypeEnum.Viber]: 'Viber',
-        [ChannelTypeEnum.IVR]: 'Voice Call',
       };
       return `Input ${channelLabels[channel] || channel} message...`;
     }

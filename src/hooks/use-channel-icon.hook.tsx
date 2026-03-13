@@ -20,7 +20,6 @@ export const CHANNEL_BRAND_COLOR: Record<ChannelTypeEnum, string> = {
   [ChannelTypeEnum.WhatsApp]: '#22C55E', // green-500（WhatsApp 官方绿）
   [ChannelTypeEnum.Email]: '#F97316', // orange-500
   [ChannelTypeEnum.Viber]: '#8B5CF6', // violet-500（Viber 官方紫）
-  [ChannelTypeEnum.IVR]: '#14B8A6', // teal-500
 };
 
 type IconFactory = (size: number) => React.ReactElement;
@@ -110,30 +109,11 @@ const ViberIcon: IconFactory = (size) => (
   </svg>
 );
 
-/** IVR：电话话筒 */
-const IvrIcon: IconFactory = (size) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth={1.75}
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    aria-hidden="true"
-  >
-    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.28h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 6 6l.94-.94a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" />
-  </svg>
-);
-
 const CHANNEL_ICON_MAP: Partial<Record<ChannelTypeEnum, IconFactory>> = {
   [ChannelTypeEnum.SMS]: SmsIcon,
   [ChannelTypeEnum.WhatsApp]: WhatsAppIcon,
   [ChannelTypeEnum.Email]: EmailIcon,
   [ChannelTypeEnum.Viber]: ViberIcon,
-  [ChannelTypeEnum.IVR]: IvrIcon,
 };
 
 /**

@@ -136,7 +136,6 @@ export const DifferentChannels = () => {
               ChannelTypeEnum.Email,
               ChannelTypeEnum.WhatsApp,
               ChannelTypeEnum.Viber,
-              ChannelTypeEnum.IVR,
             ]}
             activeChannel={activeChannel}
             onChannelChange={setActiveChannel}

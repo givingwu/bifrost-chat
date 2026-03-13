@@ -45,9 +45,7 @@ export const DEFAULT_CHANNEL_MESSAGE_TYPES: Partial<
     MessageTypeEnum.Location,
     MessageTypeEnum.Template,
   ],
-
-  // IVR: 仅支持语音
-  [ChannelTypeEnum.IVR]: [MessageTypeEnum.Audio],
+  // IVR 语音渠道暂不支持（IM 侧不展示）
 };
 
 /**

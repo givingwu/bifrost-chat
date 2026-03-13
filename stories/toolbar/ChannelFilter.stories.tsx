@@ -177,7 +177,6 @@ export const WithUnreadBadge: Story = {
       [ChannelTypeEnum.SMS]: 3,
       [ChannelTypeEnum.WhatsApp]: 10,
       [ChannelTypeEnum.Viber]: 99,
-      [ChannelTypeEnum.IVR]: 120, // → 99+
     },
   },
 };

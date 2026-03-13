@@ -47,12 +47,6 @@ export const Viber = () => (
   </div>
 );
 
-export const IVR = () => (
-  <div className="p-4 bg-muted rounded-lg">
-    <ChannelBadge type={ChannelTypeEnum.IVR} />
-  </div>
-);
-
 /**
  * 所有渠道一览
  */
