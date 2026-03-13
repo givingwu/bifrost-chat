@@ -25,7 +25,10 @@ import {
 import { ServiceProvider } from '@/providers/service.provider';
 import type { IConversationService } from '@/services/core/conversation.service';
 import type { IMessageService } from '@/services/core/message.service';
-import type { INetworkService } from '@/services/core/network.service';
+import {
+  createBrowserNetworkService,
+  type INetworkService,
+} from '@/services/core/network.service';
 import type { ITemplateService } from '@/services/core/template.service';
 import { useChatStore, useNetwork, useStrategy } from '@/store';
 import { DEFAULT_NETWORK_STATE } from '@/store/slices/network.slice';
@@ -135,7 +138,6 @@ describe('ServiceProvider', () => {
   afterEach(() => {
     useChatStore.getState().actions.replaceNetwork(DEFAULT_NETWORK_STATE);
     onlineManager.setOnline(true);
-    vi.mocked(useStrategy).mockReset();
   });
 
   it('应同步 Host 网络快照到 store 与 onlineManager', async () => {
@@ -196,5 +198,32 @@ describe('ServiceProvider', () => {
 
     expect(screen.queryByLabelText('网络已连接')).not.toBeInTheDocument();
     expect(screen.queryByLabelText('网络状态未知')).not.toBeInTheDocument();
+  });
+
+  it('注入默认浏览器 networkService 时应展示网络状态', async () => {
+    queryClient.setQueryData(['conversations', 'whatsapp'], []);
+
+    const networkService = createBrowserNetworkService({
+      enableStatusIndicator: true,
+    });
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <ServiceProvider
+          conversationService={mockConversationService}
+          messageService={mockMessageService}
+          templateService={mockTemplateService}
+          networkService={networkService}
+        >
+          <TopbarTools />
+        </ServiceProvider>
+      </QueryClientProvider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('网络已连接')).toBeInTheDocument();
+    });
+
+    networkService.destroy();
   });
 });
