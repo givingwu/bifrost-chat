@@ -20,3 +20,14 @@ export function seedConversationCache(
     { pages: [conversations], pageParams: [1] },
   );
 }
+
+export function seedPendingConversationCache(
+  queryClient: QueryClient,
+  channel: ChannelTypeEnum,
+  conversations: Conversation[],
+): void {
+  queryClient.setQueryData<Conversation[]>(
+    queryKeys.conversations.pending(channel),
+    conversations,
+  );
+}

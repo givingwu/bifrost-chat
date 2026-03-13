@@ -9,7 +9,10 @@ import {
   MessageTypeEnum,
   type StandardMessage,
 } from '@/interfaces/message.interface';
-import { seedConversationCache } from '@/test-utils/conversation-cache.test-util';
+import {
+  seedConversationCache,
+  seedPendingConversationCache,
+} from '@/test-utils/conversation-cache.test-util';
 import { ConversationCacheHelper } from './conversation-cache-helper.service';
 
 function createMessage(
@@ -272,5 +275,130 @@ describe('ConversationCacheHelper', () => {
       lastMessage: '新摘要',
       channel: ChannelTypeEnum.Email,
     });
+  });
+
+  it('应将 pending 会话写入独立缓存并合并到展示列表顶部', () => {
+    const queryClient = new QueryClient();
+
+    seedConversationCache(queryClient, ChannelTypeEnum.WhatsApp, [
+      {
+        id: 'conv-server',
+        user: {
+          id: 'server-user',
+          name: '服务端会话',
+          status: AgentStatusEnum.Offline,
+        },
+        lastMessage: '服务端消息',
+        lastMessageTime: new Date(1_770_000_000_000).toISOString(),
+        unreadCount: 0,
+        channel: ChannelTypeEnum.WhatsApp,
+      },
+    ]);
+
+    ConversationCacheHelper.upsertPendingConversation(
+      queryClient,
+      {
+        id: 'conv-pending',
+        user: {
+          id: 'pending-user',
+          name: '待确认会话',
+          status: AgentStatusEnum.Online,
+        },
+        lastMessage: '',
+        lastMessageTime: new Date(1_770_000_010_000).toISOString(),
+        unreadCount: 0,
+        channel: ChannelTypeEnum.WhatsApp,
+        metadata: {
+          debtorId: 'debtor-1',
+          contactId: 'contact-1',
+        },
+      },
+      ChannelTypeEnum.WhatsApp,
+    );
+
+    expect(
+      ConversationCacheHelper.getPendingConversations(
+        queryClient,
+        ChannelTypeEnum.WhatsApp,
+      ),
+    ).toEqual([
+      expect.objectContaining({
+        id: 'conv-pending',
+        metadata: expect.objectContaining({
+          localState: 'pending_create',
+          pendingSource: 'create',
+          debtorId: 'debtor-1',
+          contactId: 'contact-1',
+        }),
+      }),
+    ]);
+
+    expect(
+      ConversationCacheHelper.getMergedConversations(
+        queryClient,
+        ChannelTypeEnum.WhatsApp,
+      ).map((conversation) => conversation.id),
+    ).toEqual(['conv-pending', 'conv-server']);
+  });
+
+  it('服务端列表确认后应移除对应 pending 会话', () => {
+    const queryClient = new QueryClient();
+
+    seedPendingConversationCache(queryClient, ChannelTypeEnum.WhatsApp, [
+      {
+        id: 'conv-confirmed',
+        user: {
+          id: 'pending-user',
+          name: '待确认会话',
+          status: AgentStatusEnum.Online,
+        },
+        lastMessage: '',
+        lastMessageTime: new Date(1_770_000_010_000).toISOString(),
+        unreadCount: 0,
+        channel: ChannelTypeEnum.WhatsApp,
+        metadata: {
+          localState: 'pending_create',
+          pendingSince: new Date(1_770_000_010_000).toISOString(),
+          pendingSource: 'create',
+        },
+      },
+    ]);
+
+    ConversationCacheHelper.replaceConversationList(
+      queryClient,
+      [
+        {
+          id: 'conv-confirmed',
+          user: {
+            id: 'server-user',
+            name: '正式会话',
+            status: AgentStatusEnum.Offline,
+          },
+          lastMessage: '服务端消息',
+          lastMessageTime: new Date(1_770_000_020_000).toISOString(),
+          unreadCount: 1,
+          channel: ChannelTypeEnum.WhatsApp,
+        },
+      ],
+      ChannelTypeEnum.WhatsApp,
+    );
+
+    expect(
+      ConversationCacheHelper.getPendingConversations(
+        queryClient,
+        ChannelTypeEnum.WhatsApp,
+      ),
+    ).toEqual([]);
+    expect(
+      ConversationCacheHelper.getMergedConversations(
+        queryClient,
+        ChannelTypeEnum.WhatsApp,
+      ),
+    ).toEqual([
+      expect.objectContaining({
+        id: 'conv-confirmed',
+        lastMessage: '服务端消息',
+      }),
+    ]);
   });
 });

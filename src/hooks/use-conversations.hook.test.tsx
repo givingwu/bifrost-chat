@@ -5,10 +5,13 @@ import { useConversations } from '@/hooks/use-conversations.hook';
 import { AgentStatusEnum } from '@/interfaces/agent.interface';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import type { Conversation } from '@/interfaces/conversation.interface';
+import { queryKeys } from '@/providers/query.provider';
 import { ServiceProvider } from '@/providers/service.provider';
 import type { IConversationService } from '@/services/core/conversation.service';
 import type { IMessageService } from '@/services/core/message.service';
 import type { ITemplateService } from '@/services/core/template.service';
+import { seedPendingConversationCache } from '@/test-utils/conversation-cache.test-util';
+import { resetChatStore } from '@/store';
 
 let listUpdatesCallback: ((conversations: Conversation[]) => void) | undefined;
 const conversationUpdateCallbacks = new Map<
@@ -86,6 +89,7 @@ describe('useConversations Hook', () => {
     vi.clearAllMocks();
     listUpdatesCallback = undefined;
     conversationUpdateCallbacks.clear();
+    resetChatStore();
   });
 
   it('应该成功获取会话列表', async () => {
@@ -184,5 +188,149 @@ describe('useConversations Hook', () => {
         lastMessage: '单会话回灌',
       });
     });
+  });
+
+  it('应将当前渠道的 pending 会话合并到展示列表顶部', async () => {
+    vi.mocked(mockConversationService.list).mockResolvedValue(mockConversations);
+
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+      },
+    });
+
+    seedPendingConversationCache(queryClient, ChannelTypeEnum.SMS, [
+      {
+        id: 'conv-pending',
+        user: {
+          id: 'pending-user',
+          name: '待确认会话',
+          status: AgentStatusEnum.Online,
+        },
+        lastMessage: '',
+        lastMessageTime: new Date(1_770_000_010_000).toISOString(),
+        unreadCount: 0,
+        channel: ChannelTypeEnum.SMS,
+        metadata: {
+          localState: 'pending_create',
+          pendingSince: new Date(1_770_000_010_000).toISOString(),
+          pendingSource: 'create',
+        },
+      },
+    ]);
+
+    const customWrapper = function TestWrapper({
+      children,
+    }: {
+      children: React.ReactNode;
+    }) {
+      return (
+        <QueryClientProvider client={queryClient}>
+          <ServiceProvider
+            conversationService={mockConversationService}
+            messageService={mockMessageService}
+            templateService={mockTemplateService}
+          >
+            {children}
+          </ServiceProvider>
+        </QueryClientProvider>
+      );
+    };
+
+    const { result } = renderHook(() => useConversations(), {
+      wrapper: customWrapper,
+    });
+
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
+
+    expect(result.current.data?.map((conversation) => conversation.id)).toEqual([
+      'conv-pending',
+      'conv-1',
+    ]);
+  });
+
+  it('当服务端返回同 id 会话时应自动移除 pending', async () => {
+    vi.mocked(mockConversationService.list).mockResolvedValue([
+      {
+        id: 'conv-merged',
+        user: {
+          id: 'user-merged',
+          name: '正式会话',
+          status: AgentStatusEnum.Online,
+        },
+        lastMessage: '正式消息',
+        lastMessageTime: new Date(1_770_000_020_000).toISOString(),
+        unreadCount: 1,
+        channel: ChannelTypeEnum.SMS,
+      },
+    ]);
+
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+      },
+    });
+
+    seedPendingConversationCache(queryClient, ChannelTypeEnum.SMS, [
+      {
+        id: 'conv-merged',
+        user: {
+          id: 'pending-user',
+          name: '待确认会话',
+          status: AgentStatusEnum.Online,
+        },
+        lastMessage: '',
+        lastMessageTime: new Date(1_770_000_010_000).toISOString(),
+        unreadCount: 0,
+        channel: ChannelTypeEnum.SMS,
+        metadata: {
+          localState: 'pending_create',
+          pendingSince: new Date(1_770_000_010_000).toISOString(),
+          pendingSource: 'create',
+        },
+      },
+    ]);
+
+    const customWrapper = function TestWrapper({
+      children,
+    }: {
+      children: React.ReactNode;
+    }) {
+      return (
+        <QueryClientProvider client={queryClient}>
+          <ServiceProvider
+            conversationService={mockConversationService}
+            messageService={mockMessageService}
+            templateService={mockTemplateService}
+          >
+            {children}
+          </ServiceProvider>
+        </QueryClientProvider>
+      );
+    };
+
+    const { result } = renderHook(() => useConversations(), {
+      wrapper: customWrapper,
+    });
+
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
+
+    expect(result.current.data).toEqual([
+      expect.objectContaining({
+        id: 'conv-merged',
+        lastMessage: '正式消息',
+      }),
+    ]);
+    expect(
+      queryClient.getQueryData(
+        queryKeys.conversations.pending(ChannelTypeEnum.SMS),
+      ),
+    ).toEqual([]);
   });
 });
