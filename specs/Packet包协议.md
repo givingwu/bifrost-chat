@@ -118,8 +118,9 @@ body.chatInfo 字段为 json 格式，具体内容如下：
 
 ```json
 {
-  "subjectId" : "资产编号",    // 电催场景下是资产编号， 其他业务待定
-  "userName" : "人名（关系）",
-  "chatId" : "会话ID"
+  "subjectId": "资产编号",    // 电催场景下是资产编号， 其他业务待定
+  "userName": "人名（关系）",
+  "chatId": "会话 ID",
+  "debtorId": "债务 ID"
 }
 ```
