@@ -26,6 +26,7 @@
        // 消息内容， 约定的消息格式，自定义消息，
        // 消息内容，提供固定几个模版， ack/ 撤回 这些是固定消息格式
        // 注意：body.type 是消息内容类型（如 text/image/video），与 ptype 不同
+       // 在 chat_message 中有 chatInfo 数据结构
     },
     "ver": "1.0", // 协议版本
     "timestamp": "124324242"， // 服务端生成时间戳
@@ -110,4 +111,15 @@ ack ： ack
 ```
 催收坐席端：fox_collect.waiter / 用户：fox_collect.customer
 Argus 客服客诉坐席：fox_argus.waiter / 用户：fox_argus.customer
+```
+
+## chatInfo 数据结构
+body.chatInfo 字段为 json 格式，具体内容如下：
+
+```json
+{
+  "subjectId" : "资产编号",    // 电催场景下是资产编号， 其他业务待定
+  "userName" : "人名（关系）",
+  "chatId" : "会话ID"
+}
 ```
