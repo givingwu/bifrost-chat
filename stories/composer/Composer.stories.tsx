@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from 'storybook-react-rsbuild';
 import { Composer } from '@/components/composer/Composer';
-import { ChannelTypeEnum } from '@/index';
+import { ChannelTypeEnum, MessageStatusEnum } from '@/index';
 import '@/styles/theme.css';
 
 /**
@@ -124,6 +124,11 @@ export const WithSendCallback: Story = {
       console.log('Sending message:', { content, options });
       await new Promise((resolve) => setTimeout(resolve, 1000));
       console.log('Message sent!');
+      // 返回 MessageSendResult 以匹配组件类型定义
+      return {
+        tempId: `temp-${Date.now()}`,
+        status: MessageStatusEnum.Sent,
+      };
     },
     onSendAttachment: async (attachments, text) => {
       console.log('Sending attachments:', { attachments, text });

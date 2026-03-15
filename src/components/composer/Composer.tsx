@@ -41,7 +41,7 @@ export interface ComposerProps {
   onSend?: (
     content: string,
     options?: { templateMetadata?: unknown },
-  ) => void | Promise<void>;
+  ) => Promise<MessageSendResult | undefined> | undefined;
   /** 发送附件回调 */
   onSendAttachment?: (
     attachments: Attachment[],
@@ -89,6 +89,7 @@ export interface ComposerRef {
   getAttachments: () => Attachment[];
 }
 
+import type { MessageSendResult } from '@/interfaces/message.interface';
 // ==================== 组件实现 ====================
 import { ComposerAttachments } from './ComposerAttachments';
 import { ComposerCharCount } from './ComposerCharCount';
