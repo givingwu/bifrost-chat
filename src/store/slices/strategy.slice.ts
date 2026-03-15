@@ -50,6 +50,8 @@ export interface StrategyState {
   channelMessageTypeConfigs?: Partial<
     Record<ChannelTypeEnum, ChannelMessageTypeConfig>
   >;
+  /** 会话列表是否按 activeChannel 过滤 */
+  channelFilterEnabled: boolean;
 }
 
 export interface StrategySlice {
@@ -110,6 +112,7 @@ export const createStrategySlice: StateCreator<
       ChannelTypeEnum.WhatsApp,
     ),
     messageDisplayStrategy: MessageTypeDisplayStrategy.ShowUnsupported,
+    channelFilterEnabled: true,
   },
   actions: {
     /**

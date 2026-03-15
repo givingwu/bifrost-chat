@@ -29,7 +29,7 @@ export function useConversations<TListParams = Record<string, unknown>>(
   params?: Omit<TListParams, 'channelType' | 'current' | 'pageSize'>,
 ) {
   const { conversationService } = useServices();
-  const { activeChannel } = useStrategy();
+  const { activeChannel, channelFilterEnabled } = useStrategy();
   const queryClient = useQueryClient();
   const { data: pendingConversations = [] } = useQuery({
     queryKey: queryKeys.conversations.pending(activeChannel),
@@ -45,7 +45,7 @@ export function useConversations<TListParams = Record<string, unknown>>(
       if (!conversationService) return [];
       const result = await conversationService.list({
         ...params,
-        ...(activeChannel ? { channelType: activeChannel } : {}),
+        ...(channelFilterEnabled ? { channelType: activeChannel } : {}),
         current: pageParam as number,
         pageSize: 20,
       } as TListParams);
