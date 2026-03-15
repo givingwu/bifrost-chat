@@ -432,17 +432,19 @@ export function useComposerDraft({
   const handleSend = useCallback(
     async (content: string, options?: Record<string, unknown>) => {
       const result = await onSend?.(content, options);
+      const outcome = resolveMessageSendOutcome(result);
 
-      if (
-        clearDraftOnSend &&
-        resolveMessageSendOutcome(result).shouldClearDraft
-      ) {
+      if (clearDraftOnSend && outcome.shouldClearDraft) {
+        // 成功：清空草稿
         setValue('');
         setMessageType(undefined);
         setTemplateCode(undefined);
         setTemplateParams(undefined);
         setTemplateMetadata(undefined);
         clearDraft();
+      } else if (outcome.shouldRollback && content) {
+        // 失败需要回滚：回填内容到输入框，保留模板状态方便用户重新发送
+        setValue(content);
       }
     },
     [clearDraft, clearDraftOnSend, onSend],

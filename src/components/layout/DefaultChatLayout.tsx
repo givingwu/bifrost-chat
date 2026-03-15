@@ -309,7 +309,7 @@ export function DefaultChatLayout({
         return;
       }
 
-      sendMessage.mutateAsync({
+      return sendMessage.mutateAsync({
         conversationId: activeConversationId,
         content,
         options,
