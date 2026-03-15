@@ -5,15 +5,22 @@ import type { Conversation } from '@/interfaces/conversation.interface';
  * 会话元数据基础结构
  * SDK 层使用 supportedChannels，业务数据通过扩展字段传递
  */
+export interface SupportedChannelSession {
+  conversationId: string;
+  channelType: ChannelTypeEnum;
+}
+
 export interface ConversationMetadata
-  extends Pick<Conversation, 'supportedChannels'> {}
+  extends Pick<Conversation, 'supportedChannels'> {
+  supportedChannelSessions?: SupportedChannelSession[];
+}
 
 /**
  * 未读数量查询参数
  */
 export interface UnreadCountParams {
-  /** 会话 ID（可选，不传则查询全部会话） */
-  conversationId?: string;
+  /** 逻辑会话下的全部渠道会话 ID（可选，不传则查询全部会话） */
+  conversationIds?: string[];
   /** 渠道类型（可选，不传则查询全部渠道） */
   channelType?: string;
 }
@@ -132,7 +139,7 @@ export interface IConversationService<
    * @description
    * 对应后端接口 /bifrost-hermod/chat/unread。
    * 业务方在实现时自行注入 app/pin 等鉴权参数；
-   * SDK 只传递可选的 channelType 和 chatId 过滤条件。
+   * SDK 只传递可选的 channelType 和 conversationIds 过滤条件。
    *
    * @param params 查询参数（可选）
    * @returns 未读数量结果

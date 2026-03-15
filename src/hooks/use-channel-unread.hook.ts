@@ -4,6 +4,7 @@ import type { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import { queryKeys } from '@/providers/query.provider';
 import { useServices } from '@/providers/service.provider';
 import type { UnreadCountResult } from '@/services/core/conversation.service';
+import { useConversationMetadata } from './use-conversation-metadata.hook';
 import { useActiveConversationId, useStrategy } from '@/store';
 
 /**
@@ -30,25 +31,40 @@ export function useChannelUnread(
   const { allowedChannels } = useStrategy();
   const targetChannels = channels ?? allowedChannels;
   const activeConversationId = useActiveConversationId();
+  const { data: metadata } = useConversationMetadata(activeConversationId);
+  const conversationIds = useMemo(() => {
+    if (metadata?.supportedChannelSessions?.length) {
+      const ids = metadata.supportedChannelSessions
+        .map(item => item?.conversationId)
+        .filter((id): id is string => !!id);
+
+      if (ids.length > 0) {
+        return Array.from(new Set(ids)).sort();
+      }
+    }
+
+    return activeConversationId ? [activeConversationId] : [];
+  }, [metadata?.supportedChannelSessions, activeConversationId]);
 
   const { data: unreadByChannel, isFetching } = useQuery({
     queryKey: [
       ...queryKeys.conversations.unread({
-        conversationId: activeConversationId,
+        conversationIds,
       }),
       ...targetChannels,
     ],
     queryFn: () =>
       conversationService?.getUnreadCount?.({
-        conversationId: activeConversationId,
+        conversationIds,
       }),
-    enabled: !!conversationService?.getUnreadCount && !!activeConversationId,
+    enabled:
+      !!conversationService?.getUnreadCount && conversationIds.length > 0,
     staleTime: 1000 * 30,
     refetchInterval: 1000 * 60,
   });
 
   return useMemo(() => {
-    if (!unreadByChannel || !isFetching) return {};
+    if (!unreadByChannel || isFetching) return {};
 
     // 只返回 targetChannels 内的渠道
     const result: Partial<Record<ChannelTypeEnum, number>> = {};

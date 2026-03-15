@@ -74,7 +74,7 @@ export const queryKeys = {
     metadata: (conversationId: string) =>
       [...queryKeys.conversations.all, 'metadata', conversationId] as const,
     // 未读数量
-    unread: (params?: { channelType?: string; conversationId?: string }) =>
+    unread: (params?: { channelType?: string; conversationIds?: string[] }) =>
       [...queryKeys.conversations.all, 'unread', params ?? {}] as const,
   },
   // 消息相关
