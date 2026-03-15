@@ -182,6 +182,10 @@ export function DefaultChatLayout({
 
   // Composer ref，用于外部控制输入框
   const composerRef = useRef<ComposerRef>(null);
+  const composerFocusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+  const previousActiveConversationIdRef = useRef(activeConversationId);
   // 使用 useTransition 标记搜索过滤为过渡更新（低优先级）
   const [isPending, startTransition] = useTransition();
 
@@ -279,6 +283,21 @@ export function DefaultChatLayout({
     [actions],
   );
 
+  const clearComposerFocusTimer = useCallback(() => {
+    if (composerFocusTimerRef.current !== null) {
+      clearTimeout(composerFocusTimerRef.current);
+      composerFocusTimerRef.current = null;
+    }
+  }, []);
+
+  const scheduleComposerFocus = useCallback(() => {
+    clearComposerFocusTimer();
+    composerFocusTimerRef.current = setTimeout(() => {
+      composerRef.current?.focus();
+      composerFocusTimerRef.current = null;
+    }, 0);
+  }, [clearComposerFocusTimer]);
+
   /**
    * 统一的消息发送处理函数
    * @param content 消息内容
@@ -290,7 +309,7 @@ export function DefaultChatLayout({
         return;
       }
 
-      return sendMessage.mutateAsync({
+      sendMessage.mutateAsync({
         conversationId: activeConversationId,
         content,
         options,
@@ -416,6 +435,30 @@ export function DefaultChatLayout({
   useEffect(() => {
     onTotalUnreadChange?.(totalUnread);
   }, [totalUnread, onTotalUnreadChange]);
+
+  // 会话切换后延迟聚焦 Composer，确保布局与子组件提交完成。
+  useEffect(() => {
+    const previousActiveConversationId =
+      previousActiveConversationIdRef.current;
+
+    previousActiveConversationIdRef.current = activeConversationId;
+
+    if (
+      !activeConversationId ||
+      previousActiveConversationId === activeConversationId
+    ) {
+      return;
+    }
+
+    scheduleComposerFocus();
+  }, [activeConversationId, scheduleComposerFocus]);
+
+  useEffect(() => {
+    return () => {
+      clearComposerFocusTimer();
+    };
+  }, [clearComposerFocusTimer]);
+
   // 自动选中会话：初始加载或渠道切换时
   // 注意：conversations 已经由 useConversations 按当前渠道过滤
   // 三重幂等守卫，防止无效 store 写入触发循环：

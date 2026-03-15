@@ -434,7 +434,8 @@ export const Default: Story = {
   parameters: {
     docs: {
       description: {
-        story: '展示默认聊天布局的完整结构，包含会话列表、消息区域和输入框。',
+        story:
+          '展示默认聊天布局的完整结构，包含会话列表、消息区域和输入框。切换 active conversation 后，Composer 会在下一轮调度自动聚焦，便于直接输入。',
       },
     },
   },

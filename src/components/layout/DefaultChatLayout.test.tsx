@@ -1,27 +1,86 @@
 import { render } from '@testing-library/react';
 import type { ReactNode } from 'react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import { DefaultChatLayout } from './DefaultChatLayout';
 
 const {
+  composerFocusMock,
   composerOnSendRef,
+  conversationStateRef,
+  conversationsRef,
   mutateAsyncMock,
 } = vi.hoisted(() => ({
+  composerFocusMock: vi.fn(),
   composerOnSendRef: {
     current: undefined as
       | ((content: string, options?: Record<string, unknown>) => unknown)
       | undefined,
   },
+  conversationStateRef: {
+    current: {
+      activeConversationId: 'conv-1',
+      searchQuery: '',
+    },
+  },
+  conversationsRef: {
+    current: [
+      {
+        id: 'conv-1',
+        channel: 'whatsapp',
+        user: {
+          name: '张三',
+        },
+      },
+      {
+        id: 'conv-2',
+        channel: 'whatsapp',
+        user: {
+          name: '李四',
+        },
+      },
+    ],
+  },
   mutateAsyncMock: vi.fn(),
 }));
 
-vi.mock('@/components/composer/Composer', () => ({
-  Composer: ({ onSend }: { onSend?: typeof composerOnSendRef.current }) => {
-    composerOnSendRef.current = onSend;
-    return <div data-testid="composer" />;
-  },
-}));
+vi.mock('@/components/composer/Composer', async () => {
+  const React = await import('react');
+
+  return {
+    Composer: React.forwardRef(function MockComposer(
+      { onSend }: { onSend?: typeof composerOnSendRef.current },
+      ref: React.ForwardedRef<{
+        focus: () => void;
+        setValue: (
+          value: string,
+          templateCode?: string,
+          templateMetadata?: unknown,
+        ) => void;
+        getValue: () => string;
+        clear: () => void;
+        setTemplate: (data: {
+          content: string;
+          templateCode?: string;
+          templateMetadata?: unknown;
+        }) => void;
+        getAttachments: () => [];
+      }>,
+    ) {
+      composerOnSendRef.current = onSend;
+      React.useImperativeHandle(ref, () => ({
+        focus: composerFocusMock,
+        setValue: () => undefined,
+        getValue: () => '',
+        clear: () => undefined,
+        setTemplate: () => undefined,
+        getAttachments: () => [],
+      }));
+
+      return <div data-testid="composer" />;
+    }),
+  };
+});
 
 vi.mock('@/components/conversation/ConversationHeader', () => ({
   ConversationHeader: () => <div />,
@@ -89,15 +148,7 @@ vi.mock('@/providers/I18n.provider', () => ({
 
 vi.mock('@/hooks/use-conversations.hook', () => ({
   useConversations: () => ({
-    data: [
-      {
-        id: 'conv-1',
-        channel: ChannelTypeEnum.WhatsApp,
-        user: {
-          name: '张三',
-        },
-      },
-    ],
+    data: conversationsRef.current,
     isFetching: false,
     isLoading: false,
   }),
@@ -144,10 +195,7 @@ vi.mock('@/store', () => ({
     templateMode: 'edit',
     clearDraftOnSend: true,
   }),
-  useConversation: () => ({
-    activeConversationId: 'conv-1',
-    searchQuery: '',
-  }),
+  useConversation: () => conversationStateRef.current,
   useProfile: () => ({
     profile: null,
   }),
@@ -158,8 +206,35 @@ vi.mock('@/store', () => ({
 
 describe('DefaultChatLayout', () => {
   beforeEach(() => {
+    vi.useFakeTimers();
+    composerFocusMock.mockReset();
     composerOnSendRef.current = undefined;
+    conversationStateRef.current = {
+      activeConversationId: 'conv-1',
+      searchQuery: '',
+    };
+    conversationsRef.current = [
+      {
+        id: 'conv-1',
+        channel: 'whatsapp',
+        user: {
+          name: '张三',
+        },
+      },
+      {
+        id: 'conv-2',
+        channel: 'whatsapp',
+        user: {
+          name: '李四',
+        },
+      },
+    ];
     mutateAsyncMock.mockReset();
+  });
+
+  afterEach(() => {
+    vi.runOnlyPendingTimers();
+    vi.useRealTimers();
   });
 
   it('应把 sendMessage.mutateAsync 的结果返回给 Composer onSend', async () => {
@@ -186,5 +261,22 @@ describe('DefaultChatLayout', () => {
       },
     });
     expect(result).toBe(failedResult);
+  });
+
+  it('应在 activeConversationId 变更后延迟聚焦 Composer', () => {
+    const { rerender } = render(<DefaultChatLayout />);
+
+    expect(composerFocusMock).not.toHaveBeenCalled();
+    conversationStateRef.current = {
+      activeConversationId: 'conv-2',
+      searchQuery: '',
+    };
+
+    rerender(<DefaultChatLayout />);
+
+    expect(composerFocusMock).not.toHaveBeenCalled();
+
+    vi.runAllTimers();
+    expect(composerFocusMock).toHaveBeenCalledTimes(1);
   });
 });
