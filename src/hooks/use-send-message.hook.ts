@@ -33,6 +33,10 @@ import { MessageSyncService } from '@/services/messaging/message-sync.service';
 import { pendingMessageTracker } from '@/services/messaging/pending-message-tracker.service';
 import { useActiveConversationId, useNetwork, useStrategy } from '@/store';
 import { logger } from '@/utils/logger.util';
+import {
+  resolveMessageSendOutcome,
+  shouldPersistMessageFailure,
+} from '@/utils/message-send-result.util';
 import { useConversations } from './use-conversations.hook';
 
 /**
@@ -102,13 +106,6 @@ function registerPendingAckMappings(
       messageIds: uniqueIds,
     });
   }
-}
-
-function shouldPersistFailedMessage(
-  errorType?: MessageFailureTypeEnum,
-  retryable?: boolean,
-) {
-  return errorType === MessageFailureTypeEnum.Network || retryable === true;
 }
 
 function resolveThrownErrorType(error: unknown): MessageFailureTypeEnum {
@@ -309,7 +306,7 @@ export function useSendMessage<
       const errorMessage =
         error instanceof Error ? error.message : String(error);
       const errorType = resolveThrownErrorType(error);
-      const shouldPersist = shouldPersistFailedMessage(errorType);
+      const shouldPersist = shouldPersistMessageFailure(errorType);
       const tempId = context?.tempMessage?.tempId;
 
       if (!context?.tempMessage || !shouldPersist || !offlineMessageQueue) {
@@ -368,19 +365,8 @@ export function useSendMessage<
       const tempId = context?.tempMessage.tempId;
       if (!tempId) return;
 
-      const isFailed =
-        data.status === MessageStatusEnum.Failed || Boolean(data.error);
-      const shouldPersist = shouldPersistFailedMessage(
-        data.errorType,
-        data.retryable,
-      );
-      const shouldRollback =
-        data.needRollback === true ||
-        (isFailed &&
-          !shouldPersist &&
-          (data.retryable === false ||
-            data.errorType !== undefined ||
-            data.retryable === undefined));
+      const { isFailed, shouldPersist, shouldRollback } =
+        resolveMessageSendOutcome(data);
 
       if (isFailed && shouldPersist) {
         if (!offlineMessageQueue) {

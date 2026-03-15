@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import { MessageStatusEnum } from '@/interfaces/message.interface';
 import {
   NetworkQualityEnum,
@@ -9,6 +10,7 @@ import {
   type NetworkState,
   NetworkStatusEnum,
 } from '@/interfaces/network.interface';
+import { queryKeys } from '@/providers/query.provider';
 import { ServiceProvider } from '@/providers/service.provider';
 import type { IConversationService } from '@/services/core/conversation.service';
 import type { IMessageService } from '@/services/core/message.service';
@@ -16,7 +18,10 @@ import type { INetworkService } from '@/services/core/network.service';
 import type { ITemplateService } from '@/services/core/template.service';
 import { useChatStore } from '@/store';
 import { DEFAULT_NETWORK_STATE } from '@/store/slices/network.slice';
-import { useOfflineSync } from './use-offline-sync.hook';
+import {
+  useOfflineSync,
+  useRetryOfflineMessage,
+} from './use-offline-sync.hook';
 
 const mockConversationService: IConversationService = {
   list: vi.fn(),
@@ -44,6 +49,7 @@ const mockMessageService: IMessageService = {
 
 const mockOfflineMessageQueue = {
   getPendingRetry: vi.fn(),
+  getAll: vi.fn(),
   dequeue: vi.fn(),
   update: vi.fn(),
   calculateNextRetry: vi.fn(),
@@ -93,7 +99,28 @@ describe('useOfflineSync', () => {
       {
         id: 'offline-1',
         conversationId: 'conv-1',
-        sendParams: { content: 'hello' },
+        sendParams: {
+          content: 'hello',
+          channelType: ChannelTypeEnum.WhatsApp,
+        },
+        message: {
+          channelType: ChannelTypeEnum.WhatsApp,
+        },
+        retryCount: 0,
+        maxRetries: 3,
+      },
+    ]);
+    mockOfflineMessageQueue.getAll.mockResolvedValue([
+      {
+        id: 'offline-1',
+        conversationId: 'conv-1',
+        sendParams: {
+          content: 'hello',
+          channelType: ChannelTypeEnum.WhatsApp,
+        },
+        message: {
+          channelType: ChannelTypeEnum.WhatsApp,
+        },
         retryCount: 0,
         maxRetries: 3,
       },
@@ -115,6 +142,7 @@ describe('useOfflineSync', () => {
         mutations: { retry: false },
       },
     });
+    const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
 
     const networkService: INetworkService = {
       getSnapshot: vi.fn(() => offlineSnapshot),
@@ -144,8 +172,15 @@ describe('useOfflineSync', () => {
 
     expect(mockSend).toHaveBeenCalledWith('conv-1', {
       content: 'hello',
+      channelType: ChannelTypeEnum.WhatsApp,
     });
     expect(mockOfflineMessageQueue.dequeue).toHaveBeenCalledWith('offline-1');
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+      queryKey: queryKeys.messages.list('conv-1'),
+    });
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+      queryKey: queryKeys.messages.list('conv-1', ChannelTypeEnum.WhatsApp),
+    });
   });
 
   it('未注入 networkService 时不应自动同步离线消息', async () => {
@@ -168,5 +203,35 @@ describe('useOfflineSync', () => {
 
     expect(mockOfflineMessageQueue.getPendingRetry).not.toHaveBeenCalled();
     expect(mockSend).not.toHaveBeenCalled();
+  });
+
+  it('手动重试成功后应同时刷新基础消息缓存和当前渠道分片缓存', async () => {
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+      },
+    });
+    const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
+
+    const { result } = renderHook(() => useRetryOfflineMessage(), {
+      wrapper: createWrapper(queryClient),
+    });
+
+    await act(async () => {
+      await result.current.retryMessage('offline-1');
+    });
+
+    expect(mockSend).toHaveBeenCalledWith('conv-1', {
+      content: 'hello',
+      channelType: ChannelTypeEnum.WhatsApp,
+    });
+    expect(mockOfflineMessageQueue.dequeue).toHaveBeenCalledWith('offline-1');
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+      queryKey: queryKeys.messages.list('conv-1'),
+    });
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+      queryKey: queryKeys.messages.list('conv-1', ChannelTypeEnum.WhatsApp),
+    });
   });
 });

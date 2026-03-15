@@ -1,10 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ChannelTypeEnum } from '@/interfaces/channel.interface';
-import {
-  type MessageSendResult,
-  MessageStatusEnum,
-  type MessageTypeEnum,
-} from '@/interfaces/message.interface';
+import type { MessageTypeEnum } from '@/interfaces/message.interface';
+import { resolveMessageSendOutcome } from '@/utils/message-send-result.util';
 
 const DRAFT_KEY_PREFIX = 'bifrost-chat-draft-';
 const DEFAULT_DRAFT_DEBOUNCE_DELAY = 500;
@@ -141,27 +138,6 @@ function buildConversationChannelDraftStorageKey(
   channel: ChannelTypeEnum,
 ): string {
   return `${buildConversationDraftStorageKey(conversationId)}-channel-${channel}`;
-}
-
-function shouldClearDraftAfterSend(result: unknown): boolean {
-  if (!result || typeof result !== 'object') {
-    return true;
-  }
-
-  const messageSendResult = result as Partial<MessageSendResult>;
-
-  if (messageSendResult.needRollback === true) {
-    return false;
-  }
-
-  if (
-    messageSendResult.status === MessageStatusEnum.Failed ||
-    Boolean(messageSendResult.error)
-  ) {
-    return false;
-  }
-
-  return true;
 }
 
 /**
@@ -457,7 +433,10 @@ export function useComposerDraft({
     async (content: string, options?: Record<string, unknown>) => {
       const result = await onSend?.(content, options);
 
-      if (clearDraftOnSend && shouldClearDraftAfterSend(result)) {
+      if (
+        clearDraftOnSend &&
+        resolveMessageSendOutcome(result).shouldClearDraft
+      ) {
         setValue('');
         setMessageType(undefined);
         setTemplateCode(undefined);

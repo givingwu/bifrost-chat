@@ -353,8 +353,10 @@ export function App() {
 - 协议/实时层兼容导出已恢复：`PacketConverter`、`WebSocketManager`、
   `WebSocketEventTypeEnum`、`MessageBuilder`。
 - 新代码建议显式调用 `resetChatStore()` +
-  `clearQueryCache(queryClient)`，只在需要清理草稿时再传
+  `clearQueryCache(queryClient)`，只在需要清理本地持久化状态时再传
   `clearStorage: true`。
+- `clearStorage: true` 会清理旧版草稿 key 和当前按 channel 分桶的草稿 key。
+- 如宿主同时传入 `offlineMessageQueue`，`clearSDK()` 也会一并清理离线消息队列。
 
 如需对外开放，建议先在 `design/final-architecture.md` 中完成设计评审。
 

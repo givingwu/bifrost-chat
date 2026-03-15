@@ -1,9 +1,39 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useState } from 'react';
+import type { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import { NetworkReachabilityEnum } from '@/interfaces/network.interface';
+import type { OfflineMessage } from '@/interfaces/offline-message.interface';
 import { queryKeys } from '@/providers/query.provider';
 import { useServices } from '@/providers/service.provider';
 import { useNetwork } from '@/store';
+
+function resolveOfflineMessageChannel(
+  offlineMessage: Pick<OfflineMessage, 'message' | 'sendParams'>,
+): ChannelTypeEnum | undefined {
+  const sendParamsChannel = offlineMessage.sendParams.channelType;
+
+  if (typeof sendParamsChannel === 'string') {
+    return sendParamsChannel as ChannelTypeEnum;
+  }
+
+  return offlineMessage.message.channelType;
+}
+
+function invalidateConversationMessages(
+  conversationId: string,
+  queryClient: ReturnType<typeof useQueryClient>,
+  channel?: ChannelTypeEnum,
+) {
+  queryClient.invalidateQueries({
+    queryKey: queryKeys.messages.list(conversationId),
+  });
+
+  if (channel) {
+    queryClient.invalidateQueries({
+      queryKey: queryKeys.messages.list(conversationId, channel),
+    });
+  }
+}
 
 /**
  * 使用离线消息同步的 Hook
@@ -104,9 +134,11 @@ export function useOfflineSync() {
           successCount++;
 
           // 更新 UI
-          queryClient.invalidateQueries({
-            queryKey: queryKeys.messages.list(offlineMsg.conversationId),
-          });
+          invalidateConversationMessages(
+            offlineMsg.conversationId,
+            queryClient,
+            resolveOfflineMessageChannel(offlineMsg),
+          );
         } catch (error) {
           // 更新重试信息
           const nextRetryAt = offlineMessageQueue.calculateNextRetry(
@@ -229,9 +261,11 @@ export function useRetryOfflineMessage() {
         await offlineMessageQueue.dequeue(messageId);
 
         // 更新 UI
-        queryClient.invalidateQueries({
-          queryKey: queryKeys.messages.list(offlineMsg.conversationId),
-        });
+        invalidateConversationMessages(
+          offlineMsg.conversationId,
+          queryClient,
+          resolveOfflineMessageChannel(offlineMsg),
+        );
 
         console.info(`[useRetryOfflineMessage] 消息 ${messageId} 重试成功`);
       } catch (error) {
