@@ -7,6 +7,13 @@
     "search": "Search",
     "clear": "Clear"
   },
+  "time": {
+    "justNow": "just now",
+    "minutesAgo": "{{count}}m ago",
+    "hoursAgo": "{{count}}h ago",
+    "yesterday": "yesterday",
+    "daysAgo": "{{count}}d ago"
+  },
   "toolbar": {
     "channel": {
       "sms": "Interactive SMS",

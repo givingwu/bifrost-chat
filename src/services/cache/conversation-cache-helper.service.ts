@@ -559,6 +559,41 @@ export class ConversationCacheHelper {
   }
 
   /**
+   * 更新会话摘要（lastMessage / lastMessageTime）并置顶
+   */
+  static updateConversationSummary(
+    queryClient: QueryClient,
+    conversationId: string,
+    channel: ChannelTypeEnum,
+    message: StandardMessage,
+  ): Conversation | undefined {
+    let updatedConversation: Conversation | undefined;
+
+    ConversationCacheHelper.updatePages(queryClient, channel, (conversations) => {
+      const targetIndex = conversations.findIndex(
+        (conversation) => conversation.id === conversationId,
+      );
+
+      if (targetIndex === -1) return conversations;
+
+      const target = conversations[targetIndex];
+      updatedConversation = {
+        ...target,
+        lastMessage: getPreviewText(message),
+        lastMessageTime: new Date(message.timestamp).toISOString(),
+      };
+
+      // 将更新后的会话移到列表顶部
+      const rest = conversations.filter(
+        (_, index) => index !== targetIndex,
+      );
+      return [updatedConversation, ...rest];
+    });
+
+    return updatedConversation;
+  }
+
+  /**
    * 单个会话未读数 -amount，最小为 0
    */
   static decrementUnread(

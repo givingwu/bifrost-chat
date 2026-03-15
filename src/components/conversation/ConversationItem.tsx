@@ -4,7 +4,7 @@ import type { Conversation } from '@/interfaces/conversation.interface';
 import { useTranslation } from '@/providers/I18n.provider';
 import { useLanguage } from '@/store';
 import { cn } from '@/utils/class.util';
-import { formatTimestamp } from '@/utils/time.util';
+import { formatRelativeTime } from '@/utils/time.util';
 import { ConversationAvatar } from './ConversationAvatar';
 
 export interface ConversationItemProps {
@@ -97,15 +97,16 @@ export const ConversationItem = memo(
       className,
     );
 
-    // 上次回复时间
+    // 上次回复时间（相对时间）
     const { code: languageCode } = useLanguage();
     const lastReplyTime = useMemo(
       () =>
-        formatTimestamp(
-          new Date(conversation.lastMessageTime).getTime(),
+        formatRelativeTime(
+          conversation.lastMessageTime,
+          t,
           languageCode,
         ),
-      [conversation.lastMessageTime, languageCode],
+      [conversation.lastMessageTime, languageCode, t],
     );
 
     // 处理键盘事件

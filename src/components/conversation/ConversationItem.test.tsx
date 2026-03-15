@@ -13,9 +13,9 @@ vi.mock('@/store', () => ({
   useLanguage: () => ({ code: 'zh-CN' }),
 }));
 
-// Mock formatTimestamp
+// Mock formatRelativeTime
 vi.mock('@/utils/time.util', () => ({
-  formatTimestamp: () => '10:30',
+  formatRelativeTime: () => '刚刚',
 }));
 
 function Wrapper({ children }: { children: React.ReactNode }) {

@@ -60,12 +60,20 @@ export function useUnreadSync(): void {
           return;
         }
 
+        const channel = event.message.channelType;
+
+        // 更新会话摘要（lastMessage + lastMessageTime）并置顶
+        ConversationCacheHelper.updateConversationSummary(
+          queryClient,
+          event.conversationId,
+          channel,
+          event.message,
+        );
+
         if (
           event.message.direction === MessageDirectionEnum.Incoming &&
           event.conversationId !== activeConversationIdRef.current
         ) {
-          const channel = event.message.channelType;
-
           // 会话级 +1（全局/渠道级从 conversation list 派生，自动跟进）
           ConversationCacheHelper.incrementUnread(
             queryClient,
