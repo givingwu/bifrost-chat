@@ -7,6 +7,12 @@ import { queryKeys } from '@/providers/query.provider';
 import { useServices } from '@/providers/service.provider';
 import { useNetwork } from '@/store';
 
+/**
+ * 解析离线消息所属的渠道分片。
+ *
+ * @param offlineMessage 离线消息记录，包含发送参数与消息快照。
+ * @returns 若能解析出渠道则返回对应 `ChannelTypeEnum`，否则返回 `undefined`。
+ */
 function resolveOfflineMessageChannel(
   offlineMessage: Pick<OfflineMessage, 'message' | 'sendParams'>,
 ): ChannelTypeEnum | undefined {
@@ -19,6 +25,14 @@ function resolveOfflineMessageChannel(
   return offlineMessage.message.channelType;
 }
 
+/**
+ * 同时刷新会话的基础消息缓存与指定渠道分片缓存。
+ *
+ * @param conversationId 会话 ID。
+ * @param queryClient 当前 React Query 客户端。
+ * @param channel 需要额外刷新的渠道分片；未传时只刷新基础消息缓存。
+ * @returns void
+ */
 function invalidateConversationMessages(
   conversationId: string,
   queryClient: ReturnType<typeof useQueryClient>,

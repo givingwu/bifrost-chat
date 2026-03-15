@@ -9,6 +9,12 @@ import { resetChatStore } from '@/store';
 const LEGACY_DRAFT_STORAGE_KEY = 'bifrost-chat-draft';
 const DRAFT_STORAGE_KEY_PREFIX = 'bifrost-chat-draft-';
 
+/**
+ * 清理 SDK 写入到浏览器存储中的所有草稿键。
+ *
+ * @param storage 浏览器存储实例。
+ * @returns void
+ */
 function clearDraftStorage(storage: Storage) {
   const draftKeys = new Set<string>();
 
@@ -32,12 +38,17 @@ function clearDraftStorage(storage: Storage) {
   }
 }
 
+/**
+ * `clearSDK` 的可选配置。
+ *
+ * @property queryClient QueryClient 实例；未传时使用默认实例。
+ * @property clearStorage 是否同时清理浏览器存储中的 SDK 缓存。
+ * @property offlineMessageQueue 离线消息队列实例；仅在
+ * `clearStorage=true` 时触发清理。
+ */
 export interface CleanupOptions {
-  /** QueryClient 实例（可选） */
   queryClient?: QueryClient;
-  /** 是否清理 localStorage（默认 false） */
   clearStorage?: boolean;
-  /** 离线消息队列实例（可选，clearStorage=true 时一并清理） */
   offlineMessageQueue?: Pick<OfflineMessageQueueService, 'clear'>;
 }
 
@@ -46,6 +57,8 @@ export interface CleanupOptions {
  *
  * @deprecated 为了兼容既有接入方继续保留。
  * 新接入建议显式组合 `resetChatStore()` 与 `clearQueryCache(queryClient)`。
+ * @param options 清理配置；支持同时清空草稿缓存与离线消息队列。
+ * @returns void
  */
 export function clearSDK(options: CleanupOptions = {}) {
   const {

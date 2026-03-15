@@ -69,6 +69,13 @@ const onlineSnapshot: NetworkState = {
   enableStatusIndicator: true,
 };
 
+/**
+ * 创建离线同步相关 hook 的测试包装器。
+ *
+ * @param queryClient 当前测试使用的 QueryClient 实例。
+ * @param networkService 可选的宿主网络服务桩。
+ * @returns 包含 QueryClient 与 ServiceProvider 的测试包装组件。
+ */
 function createWrapper(
   queryClient: QueryClient,
   networkService?: INetworkService,
