@@ -45,7 +45,7 @@ export function useConversations<TListParams = Record<string, unknown>>(
       if (!conversationService) return [];
       const result = await conversationService.list({
         ...params,
-        channelType: activeChannel,
+        ...(activeChannel ? { channelType: activeChannel } : {}),
         current: pageParam as number,
         pageSize: 20,
       } as TListParams);
