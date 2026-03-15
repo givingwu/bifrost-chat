@@ -1,6 +1,7 @@
 import { ShieldCheck } from 'lucide-react';
 import { memo } from 'react';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
+import { useTranslation } from '@/providers/I18n.provider';
 import { cn } from '@/utils/class.util';
 import {
   BUTTON_SIZES,
@@ -25,7 +26,8 @@ export interface ComposerHintProps {
  * ```
  */
 export const ComposerHint = memo<ComposerHintProps>(({ channel }) => {
-  // 使用映射表获取提示信息，避免多个 if 判断
+  const { t } = useTranslation();
+  // 使用映射表获取提示信息的 i18n key
   const hint = channel
     ? (CHANNEL_HINTS[channel] ?? CHANNEL_HINTS.default)
     : null;
@@ -51,7 +53,7 @@ export const ComposerHint = memo<ComposerHintProps>(({ channel }) => {
           aria-hidden="true"
         />
       )}
-      <span>{hint}</span>
+      <span>{t(hint)}</span>
     </div>
   );
 });
