@@ -73,9 +73,22 @@ export const queryKeys = {
     // 会话元数据
     metadata: (conversationId: string) =>
       [...queryKeys.conversations.all, 'metadata', conversationId] as const,
-    // 未读数量
+    // 未读数量（后端基线）
     unread: (params?: { channelType?: string; conversationIds?: string[] }) =>
       [...queryKeys.conversations.all, 'unread', params ?? {}] as const,
+    // 未读增量映射（前端维护）
+    unreadDeltas: {
+      // 按渠道的增量映射：Partial<Record<ChannelTypeEnum, number>>
+      channel: () =>
+        [...queryKeys.conversations.all, 'unread-delta', 'channel'] as const,
+      // 按会话的增量映射：Record<string, number>
+      conversation: () =>
+        [
+          ...queryKeys.conversations.all,
+          'unread-delta',
+          'conversation',
+        ] as const,
+    },
   },
   // 消息相关
   messages: {

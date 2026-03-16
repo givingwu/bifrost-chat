@@ -7,6 +7,7 @@ export { useComposerDraft } from './use-composer-draft.hook';
 export { useConversationMetadata } from './use-conversation-metadata.hook';
 export { useConversations } from './use-conversations.hook';
 export { useCreateConversation } from './use-create-conversation.hook';
+export { useConversationUnread } from './use-conversation-unread.hook';
 export { useDeleteFailedMessage } from './use-delete-failed-message.hook';
 export { useInViewport } from './use-in-viewport.hook';
 export { useMarkAsRead } from './use-mark-as-read.hook';

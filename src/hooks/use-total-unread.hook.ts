@@ -3,14 +3,17 @@ import { useMemo } from 'react';
 import { AvailableChannels } from '@/interfaces/channel.interface';
 import { queryKeys } from '@/providers/query.provider';
 import { useServices } from '@/providers/service.provider';
+import type { UnreadCountResult } from '@/services/core/conversation.service';
 
 /**
  * useTotalUnread：全局总未读数
  *
  * @description
- * - **全局模式**（不传 conversations）：调用 `conversationService.getUnreadCount()` API
- *   获取服务端精确未读数，对所有 `allowedChannels` 对应渠道的值求和。
- *   若服务未实现 `getUnreadCount`，则返回 0。
+ * - 基于“后端基线 + 前端增量映射”计算总未读：
+ *   - 基线：`conversationService.getUnreadCount()` 返回的按渠道未读数量
+ *   - 增量：由 `useUnreadSync` 维护的按渠道未读增量映射
+ *   - 展示值：对所有渠道的 `max(0, base + delta)` 求和
+ *   若服务未实现 `getUnreadCount`，则仅使用增量映射（通常为 0）。
  *
  * @param conversations 可选，直接传入会话列表（优先于 API 调用）
  * @returns 全量未读总数
@@ -20,21 +23,38 @@ export function useTotalUnread(): {
 } {
   const { conversationService } = useServices();
 
-  const { data: unreadByChannel = 0 } = useQuery({
+  // 渠道级未读基线（来自服务端）
+  const { data: baseUnreadByChannel } = useQuery<UnreadCountResult>({
     queryKey: queryKeys.conversations.unread(),
-    queryFn: () => conversationService?.getUnreadCount?.(),
+    // 在 enabled 为 false 时不会执行 queryFn
+    // biome-ignore lint/style/noNonNullAssertion: 已通过 enabled 保护
+    queryFn: () => conversationService!.getUnreadCount!(),
     enabled: !!conversationService?.getUnreadCount,
     staleTime: 1000 * 30, // 30 秒内视为新鲜
     refetchInterval: 1000 * 60, // 每分钟后台轮询一次
+    refetchOnWindowFocus: true,
+  });
+
+  // 渠道级未读增量映射（前端维护，可为负数）
+  const { data: deltaUnreadByChannel } = useQuery<UnreadCountResult>({
+    queryKey: queryKeys.conversations.unreadDeltas.channel(),
+    // 纯前端状态，queryFn 仅提供一个空对象作为初始值
+    queryFn: async () => ({}),
+    staleTime: Infinity,
+    gcTime: Infinity,
   });
 
   const totalUnread = useMemo(() => {
-    if (!unreadByChannel) return 0;
+    const base = baseUnreadByChannel ?? {};
+    const delta = deltaUnreadByChannel ?? {};
 
     return AvailableChannels.reduce((sum, channel) => {
-      return sum + Math.max(0, unreadByChannel[channel] ?? 0);
+      const baseCount = base[channel] ?? 0;
+      const deltaCount = delta[channel] ?? 0;
+      const effective = Math.max(0, baseCount + deltaCount);
+      return sum + effective;
     }, 0);
-  }, [unreadByChannel]);
+  }, [baseUnreadByChannel, deltaUnreadByChannel]);
 
   return { totalUnread };
 }

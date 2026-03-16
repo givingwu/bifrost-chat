@@ -1,5 +1,6 @@
 import { type KeyboardEvent, memo, useCallback, useMemo } from 'react';
 import { Button } from '@/components/Button';
+import { useConversationUnread } from '@/hooks';
 import type { Conversation } from '@/interfaces/conversation.interface';
 import { useTranslation } from '@/providers/I18n.provider';
 import { useLanguage } from '@/store';
@@ -125,6 +126,11 @@ export const ConversationItem = memo(
       return renderMeta?.(conversation);
     }, [conversation, renderMeta]);
 
+    const effectiveUnreadCount = useConversationUnread(
+      conversation.id,
+      conversation.unreadCount,
+    );
+
     return (
       <Button
         type="button"
@@ -134,7 +140,7 @@ export const ConversationItem = memo(
         aria-pressed={conversation.isActive}
         aria-label={t('conversation.ariaLabel', {
           name: conversation.user.name,
-          count: conversation.unreadCount,
+          count: effectiveUnreadCount,
         })}
       >
         <div className="flex w-full items-start gap-3">
@@ -144,11 +150,9 @@ export const ConversationItem = memo(
               src={conversation.user.avatarUrl}
               name={conversation.user.name}
             />
-            {conversation.unreadCount > 0 && !conversation.isActive && (
+            {effectiveUnreadCount > 0 && !conversation.isActive && (
               <span className="absolute -right-1 -top-1 flex min-w-4.5 h-4.5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white leading-none">
-                {conversation.unreadCount > 99
-                  ? '99+'
-                  : conversation.unreadCount}
+                {effectiveUnreadCount > 99 ? '99+' : effectiveUnreadCount}
               </span>
             )}
           </div>
