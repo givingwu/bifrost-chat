@@ -30,15 +30,13 @@ export const TopbarTools = memo(({ extra = null }: ITopbarTools) => {
   return (
     <div className="flex items-center gap-4">
       {/* 渠道切换器 */}
-      {allowedChannels.length > 1 && (
-        <ChannelFilter
-          channels={allowedChannels}
-          activeChannel={activeChannel}
-          onChannelClick={setActiveChannel}
-          unreadByChannel={unreadByChannel}
-          showTooltip
-        />
-      )}
+      <ChannelFilter
+        channels={allowedChannels}
+        activeChannel={activeChannel}
+        onChannelClick={setActiveChannel}
+        unreadByChannel={unreadByChannel}
+        showTooltip
+      />
 
       {/* 网络状态 */}
       {showNetworkStatus && <NetworkStatus status={status} />}
