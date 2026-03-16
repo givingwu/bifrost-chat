@@ -10,7 +10,7 @@ import { ServiceProvider } from '@/providers/service.provider';
 import type { IConversationService } from '@/services/core/conversation.service';
 import type { IMessageService } from '@/services/core/message.service';
 import type { ITemplateService } from '@/services/core/template.service';
-import { resetChatStore } from '@/store';
+import { resetChatStore, useChatStore } from '@/store';
 import { seedPendingConversationCache } from '@/test-utils/conversation-cache.test-util';
 
 let listUpdatesCallback: ((conversations: Conversation[]) => void) | undefined;
@@ -53,6 +53,36 @@ const mockConversations: Conversation[] = [
     isActive: true,
   },
 ];
+const mockMixedChannelConversations: Conversation[] = [
+  {
+    id: 'conv-sms',
+    user: {
+      id: 'user-sms',
+      name: '短信客户',
+      avatarUrl: 'https://example.com/avatar-sms.jpg',
+      status: AgentStatusEnum.Online,
+    },
+    lastMessage: '短信消息',
+    lastMessageTime: new Date(1_770_000_030_000).toISOString(),
+    unreadCount: 1,
+    channel: ChannelTypeEnum.SMS,
+    isActive: true,
+  },
+  {
+    id: 'conv-wa',
+    user: {
+      id: 'user-wa',
+      name: 'WhatsApp 客户',
+      avatarUrl: 'https://example.com/avatar-wa.jpg',
+      status: AgentStatusEnum.Online,
+    },
+    lastMessage: 'WhatsApp 消息',
+    lastMessageTime: new Date(1_770_000_040_000).toISOString(),
+    unreadCount: 3,
+    channel: ChannelTypeEnum.WhatsApp,
+    isActive: true,
+  },
+];
 
 const mockMessageService = null as unknown as IMessageService;
 const mockTemplateService = null as unknown as ITemplateService;
@@ -90,6 +120,16 @@ describe('useConversations Hook', () => {
     listUpdatesCallback = undefined;
     conversationUpdateCallbacks.clear();
     resetChatStore();
+    useChatStore.getState().actions.setStrategy({
+      allowedChannels: [
+        ChannelTypeEnum.SMS,
+        ChannelTypeEnum.WhatsApp,
+        ChannelTypeEnum.Email,
+        ChannelTypeEnum.Viber,
+      ],
+      activeChannel: ChannelTypeEnum.SMS,
+      channelFilterEnabled: true,
+    });
   });
 
   it('应该成功获取会话列表', async () => {
@@ -121,6 +161,86 @@ describe('useConversations Hook', () => {
     });
 
     expect(result.current.error).toEqual(error);
+  });
+
+  it('system 模式应拉取全渠道会话但只展示当前 activeChannel', async () => {
+    useChatStore.getState().actions.setStrategy({
+      allowedChannels: [ChannelTypeEnum.SMS, ChannelTypeEnum.WhatsApp],
+      activeChannel: ChannelTypeEnum.WhatsApp,
+      channelFilterEnabled: false,
+    });
+    vi.mocked(mockConversationService.list).mockResolvedValue(
+      mockMixedChannelConversations,
+    );
+
+    const { result } = renderHook(() => useConversations(), {
+      wrapper: createTestWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
+
+    const firstCallParams = vi.mocked(mockConversationService.list).mock
+      .calls[0]?.[0] as Record<string, unknown>;
+
+    expect(firstCallParams).toMatchObject({
+      current: 1,
+      pageSize: 20,
+    });
+    expect(firstCallParams).not.toHaveProperty('channelType');
+    expect(result.current.data).toEqual([
+      expect.objectContaining({
+        id: 'conv-wa',
+        channel: ChannelTypeEnum.WhatsApp,
+      }),
+    ]);
+  });
+
+  it('system 模式切换渠道后应展示目标渠道会话', async () => {
+    useChatStore.getState().actions.setStrategy({
+      allowedChannels: [ChannelTypeEnum.SMS, ChannelTypeEnum.WhatsApp],
+      activeChannel: ChannelTypeEnum.WhatsApp,
+      channelFilterEnabled: false,
+    });
+    vi.mocked(mockConversationService.list).mockResolvedValue(
+      mockMixedChannelConversations,
+    );
+
+    const { result } = renderHook(() => useConversations(), {
+      wrapper: createTestWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(result.current.data).toEqual([
+        expect.objectContaining({
+          id: 'conv-wa',
+          channel: ChannelTypeEnum.WhatsApp,
+        }),
+      ]);
+    });
+
+    act(() => {
+      useChatStore.getState().actions.setActiveChannel(ChannelTypeEnum.SMS);
+    });
+
+    await waitFor(() => {
+      expect(result.current.data).toEqual([
+        expect.objectContaining({
+          id: 'conv-sms',
+          channel: ChannelTypeEnum.SMS,
+        }),
+      ]);
+    });
+
+    const secondCallParams = vi.mocked(mockConversationService.list).mock
+      .calls[1]?.[0] as Record<string, unknown>;
+
+    expect(secondCallParams).toMatchObject({
+      current: 1,
+      pageSize: 20,
+    });
+    expect(secondCallParams).not.toHaveProperty('channelType');
   });
 
   it('宿主推送会话列表更新时应替换当前列表', async () => {

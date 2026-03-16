@@ -50,7 +50,7 @@ export interface StrategyState {
   channelMessageTypeConfigs?: Partial<
     Record<ChannelTypeEnum, ChannelMessageTypeConfig>
   >;
-  /** 会话列表是否按 activeChannel 过滤 */
+  /** 会话列表请求是否按 activeChannel 过滤；关闭时仅跳过请求过滤，UI 仍按 activeChannel 展示 */
   channelFilterEnabled: boolean;
 }
 

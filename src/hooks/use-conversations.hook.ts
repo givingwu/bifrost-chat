@@ -11,13 +11,45 @@ import { ConversationCacheHelper } from '@/services/cache/conversation-cache-hel
 import { useStrategy } from '@/store';
 
 /**
+ * 计算当前界面应展示的会话列表。
+ *
+ * @description
+ * - 当宿主启用 `channelFilterEnabled` 时，请求层已经按 `activeChannel`
+ *   过滤，直接返回合并后的结果。
+ * - 当宿主关闭 `channelFilterEnabled` 时，请求层会拉取全渠道会话；
+ *   SDK 仍保留全量缓存和订阅，但返回给 UI 的 `data` 只暴露当前
+ *   `activeChannel` 对应的会话，避免 system 模式直接渲染全量列表。
+ *
+ * @param conversations - 已合并 pending 的会话列表
+ * @param activeChannel - 当前激活渠道
+ * @param channelFilterEnabled - 是否由请求层执行渠道过滤
+ * @returns 当前界面应展示的会话列表
+ */
+function getVisibleConversations(
+  conversations: Conversation[],
+  activeChannel: Conversation['channel'],
+  channelFilterEnabled: boolean,
+) {
+  if (channelFilterEnabled) {
+    return conversations;
+  }
+
+  return conversations.filter(
+    (conversation) => conversation.channel === activeChannel,
+  );
+}
+
+/**
  * 使用会话列表分页 Hook（Infinite Query 版本）
  *
  * @description
  * - 使用 `useInfiniteQuery` 实现滚动分页加载，首页自动请求，
  *   触底时调用 `fetchNextPage()` 加载更多。
- * - queryKey 包含 `activeChannel`，切换渠道自动重新拉取对应渠道会话。
- * - 宿主 `list()` 需透传 `channelType` 和 `current` 参数。
+ * - queryKey 包含 `activeChannel`，切换渠道时会重建当前列表查询与订阅。
+ * - 当 `channelFilterEnabled=true` 时，宿主 `list()` 需透传
+ *   `channelType` 和 `current` 参数。
+ * - 当 `channelFilterEnabled=false` 时，宿主可返回全渠道会话，SDK
+ *   会在返回给 UI 的 `data` 上按 `activeChannel` 做展示过滤。
  *
  * @example
  * ```tsx
@@ -75,6 +107,15 @@ export function useConversations<TListParams = Record<string, unknown>>(
         pendingConversations,
       ),
     [pendingConversations, serverConversations],
+  );
+  const visibleConversations = useMemo(
+    () =>
+      getVisibleConversations(
+        conversations,
+        activeChannel,
+        channelFilterEnabled,
+      ),
+    [activeChannel, channelFilterEnabled, conversations],
   );
 
   useEffect(() => {
@@ -145,8 +186,8 @@ export function useConversations<TListParams = Record<string, unknown>>(
 
   return {
     ...query,
-    /** 扁平化后的全部会话（所有已加载页合并） */
-    data: conversations,
+    /** 当前界面可见的会话列表 */
+    data: visibleConversations,
     /** 是否还有下一页 */
     hasNextPage: query.hasNextPage,
     /** 加载下一页 */
