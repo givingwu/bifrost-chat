@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { AgentStatusEnum } from '@/interfaces/agent.interface';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import {
   MessageDirectionEnum,
@@ -17,6 +18,28 @@ import type { IMessageService } from '@/services/core/message.service';
 import type { ITemplateService } from '@/services/core/template.service';
 import { messageQueue } from '@/services/messaging/message-queue.service';
 import { useMarkAsRead } from './use-mark-as-read.hook';
+
+const { currentUserRef } = vi.hoisted(() => ({
+  currentUserRef: {
+    current: {
+      app: 'fox_collect.waiter',
+      pin: 'agent-001',
+      status: 'online',
+    },
+  },
+}));
+
+vi.mock('@/store', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/store')>();
+
+  return {
+    ...actual,
+    useStrategy: () => ({
+      ...actual.useStrategy(),
+      currentUser: currentUserRef.current,
+    }),
+  };
+});
 
 const mockConversationService: IConversationService = {
   list: vi.fn(),
@@ -119,6 +142,11 @@ describe('useMarkAsRead Hook', () => {
     vi.clearAllMocks();
     messageQueue.clear();
     mockMessageService.markAsRead = vi.fn();
+    currentUserRef.current = {
+      app: 'fox_collect.waiter',
+      pin: 'agent-001',
+      status: AgentStatusEnum.Online,
+    };
   });
 
   it('旧宿主应继续乐观更新，并透传 meta.requestId', async () => {
@@ -293,5 +321,52 @@ describe('useMarkAsRead Hook', () => {
     const meta = strictCalls[0]?.[1] as { requestId?: string } | undefined;
     expect(meta?.requestId).toBeTruthy();
     expect(messageQueue.findById(meta?.requestId ?? '')).toBeDefined();
+  });
+
+  it('坐席自己发送的消息不应发送 msg_read_ack', async () => {
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+      },
+    });
+    const conversationId = 'conv-self';
+    const selfSentMessage: StandardMessage = {
+      ...createMessage('msg-self', MessageStatusEnum.Delivered),
+      sender: {
+        app: 'fox_collect.waiter',
+        pin: 'agent-001',
+      },
+      receiver: {
+        app: 'fox_collect.customer',
+        pin: 'customer-001',
+      },
+    };
+
+    seedConversationMessages(queryClient, conversationId, [selfSentMessage]);
+
+    const { result } = renderHook(() => useMarkAsRead(), {
+      wrapper: createTestWrapper(queryClient),
+    });
+
+    await act(async () => {
+      await result.current.mutateAsync({
+        conversationId,
+        messageIds: ['msg-self'],
+      });
+    });
+
+    expect(mockMessageService.markAsRead).not.toHaveBeenCalled();
+    expect(getMessageStatus(queryClient, conversationId, 'msg-self')).toBe(
+      MessageStatusEnum.Delivered,
+    );
+    expect(
+      getMessageStatus(
+        queryClient,
+        conversationId,
+        'msg-self',
+        ChannelTypeEnum.WhatsApp,
+      ),
+    ).toBe(MessageStatusEnum.Delivered);
   });
 });

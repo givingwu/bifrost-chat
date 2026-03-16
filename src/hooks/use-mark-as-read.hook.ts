@@ -13,6 +13,7 @@ import type {
 } from '@/services/core/message.service';
 import { MessageBuilder } from '@/services/messaging/message-builder.service';
 import { messageQueue } from '@/services/messaging/message-queue.service';
+import { useStrategy } from '@/store';
 
 export interface MarkAsReadParams {
   conversationId: string;
@@ -39,6 +40,11 @@ interface MessagesQueryData {
     [key: string]: unknown;
   }>;
   [key: string]: unknown;
+}
+
+interface AckEligibleCurrentUser {
+  app?: string;
+  pin?: string;
 }
 
 function isMessagesQueryData(data: unknown): data is MessagesQueryData {
@@ -152,9 +158,29 @@ function buildAckPacketBody(
   };
 }
 
+function isSelfSentMessage(
+  message: StandardMessage,
+  currentUser: AckEligibleCurrentUser,
+): boolean {
+  const currentUserPin = currentUser.pin?.trim();
+
+  if (!currentUserPin || message.sender.pin !== currentUserPin) {
+    return false;
+  }
+
+  const currentUserApp = currentUser.app?.trim();
+
+  if (!currentUserApp) {
+    return true;
+  }
+
+  return message.sender.app === currentUserApp;
+}
+
 function extractMessagesToMark(
   querySnapshots: MessageQuerySnapshot[],
   targetIds: Set<string>,
+  currentUser: AckEligibleCurrentUser,
 ): StandardMessage[] {
   const allMessages = querySnapshots.flatMap((snapshot) =>
     snapshot.data.pages.flatMap((page) => page.items),
@@ -162,7 +188,11 @@ function extractMessagesToMark(
 
   return MessageCacheHelper.dedupeMessages(allMessages).filter((message) => {
     const messageId = String(message.id || message.tempId || '');
-    return !!messageId && targetIds.has(messageId);
+    return (
+      !!messageId &&
+      targetIds.has(messageId) &&
+      !isSelfSentMessage(message, currentUser)
+    );
   });
 }
 
@@ -181,6 +211,7 @@ function resolveAckRequestId(
 export function useMarkAsRead() {
   const queryClient = useQueryClient();
   const { messageService } = useServices();
+  const { currentUser } = useStrategy();
 
   return useMutation<
     MarkAsReadMutationResult,
@@ -216,6 +247,7 @@ export function useMarkAsRead() {
       const messagesToMark = extractMessagesToMark(
         querySnapshots,
         readMessageIds,
+        currentUser,
       );
       const errors: Array<{ messageId: string; error: unknown }> = [];
       const fallbackMessageIds: string[] = [];
@@ -300,12 +332,20 @@ export function useMarkAsRead() {
         queryClient,
         conversationId,
       );
+      const messagesToMark = extractMessagesToMark(
+        snapshots,
+        new Set(messageIds.map(String)),
+        currentUser,
+      );
+      const eligibleMessageIds = new Set(
+        messagesToMark.map((message) => String(message.id || message.tempId)),
+      );
 
-      if (!supportsStrictAck && snapshots.length > 0) {
+      if (!supportsStrictAck && eligibleMessageIds.size > 0) {
         updateQueriesForMessages(
           queryClient,
           snapshots,
-          new Set(messageIds.map(String)),
+          eligibleMessageIds,
           MessageStatusEnum.Read,
         );
       }

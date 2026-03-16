@@ -4,8 +4,8 @@ import type { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import { queryKeys } from '@/providers/query.provider';
 import { useServices } from '@/providers/service.provider';
 import type { UnreadCountResult } from '@/services/core/conversation.service';
-import { useConversationMetadata } from './use-conversation-metadata.hook';
 import { useActiveConversationId, useStrategy } from '@/store';
+import { useConversationMetadata } from './use-conversation-metadata.hook';
 
 /**
  * useChannelUnread：各渠道未读数量
@@ -35,7 +35,7 @@ export function useChannelUnread(
   const conversationIds = useMemo(() => {
     if (metadata?.supportedChannelSessions?.length) {
       const ids = metadata.supportedChannelSessions
-        .map(item => item?.conversationId)
+        .map((item) => item?.conversationId)
         .filter((id): id is string => !!id);
 
       if (ids.length > 0) {

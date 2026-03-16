@@ -17,7 +17,7 @@ import { useChannelUnread } from './use-channel-unread.hook';
 function createDeferred<T>() {
   let resolve!: (value: T) => void;
 
-  const promise = new Promise<T>(resolver => {
+  const promise = new Promise<T>((resolver) => {
     resolve = resolver;
   });
 

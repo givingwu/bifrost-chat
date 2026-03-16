@@ -100,12 +100,7 @@ export const ConversationItem = memo(
     // 上次回复时间（相对时间）
     const { code: languageCode } = useLanguage();
     const lastReplyTime = useMemo(
-      () =>
-        formatRelativeTime(
-          conversation.lastMessageTime,
-          t,
-          languageCode,
-        ),
+      () => formatRelativeTime(conversation.lastMessageTime, t, languageCode),
       [conversation.lastMessageTime, languageCode, t],
     );
 
