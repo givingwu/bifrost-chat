@@ -6,9 +6,37 @@ import {
   screen,
   waitFor,
 } from '@testing-library/react';
+import { createRef } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { AudioOutputFormatEnum } from '@/interfaces/audio.interface';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
+import type { IComposerConfig } from '@/interfaces/composer.interface';
+import type { ComposerToolbarRef } from './ComposerToolbar';
 import { ComposerToolbar } from './ComposerToolbar';
+
+const createMockComposerConfig = (): IComposerConfig => ({
+  enableAttachments: true,
+  enableAudioInput: true,
+  enableDraft: true,
+  draftDebounceDelay: 500,
+  clearDraftOnSend: true,
+  keepDraftOnSwitch: true,
+  maxAttachments: 10,
+  maxAttachmentSize: 10 * 1024 * 1024,
+  allowedFileTypes: undefined,
+  maxAudioDuration: 300,
+  customMessageMaxLength: undefined,
+  ignoreMaxLengthForTemplateMessages: true,
+  audioOutputFormat: AudioOutputFormatEnum.Raw,
+  showChannelSwitcher: true,
+  showCharCount: true,
+  showHint: true,
+  showEmojiButton: true,
+  templateMode: 'edit',
+  allowTemplateEdit: false,
+});
+
+let mockComposerConfig: IComposerConfig = createMockComposerConfig();
 
 // Mock the translation provider
 vi.mock('@/providers/I18n.provider', () => ({
@@ -24,25 +52,7 @@ vi.mock('@/providers/I18n.provider', () => ({
 
 // Mock the composer config to enable all features for testing
 vi.mock('@/store', () => ({
-  useComposerConfig: () => ({
-    enableAttachments: true,
-    enableAudioInput: true,
-    enableDraft: true,
-    draftDebounceDelay: 500,
-    clearDraftOnSend: true,
-    keepDraftOnSwitch: true,
-    maxAttachments: 10,
-    maxAttachmentSize: 10 * 1024 * 1024,
-    allowedFileTypes: undefined,
-    maxAudioDuration: 300,
-    audioOutputFormat: 'raw',
-    showChannelSwitcher: true,
-    showCharCount: true,
-    showHint: true,
-    showEmojiButton: true,
-    templateMode: 'edit',
-    allowTemplateEdit: false,
-  }),
+  useComposerConfig: () => mockComposerConfig,
   useStrategy: () => ({
     allowedChannels: ['sms', 'whatsapp', 'email', 'viber', 'ivr'],
     activeChannel: 'whatsapp',
@@ -55,6 +65,7 @@ vi.mock('@/store', () => ({
 describe('ComposerToolbar', () => {
   beforeEach(() => {
     cleanup();
+    mockComposerConfig = createMockComposerConfig();
   });
 
   afterEach(() => {
@@ -192,6 +203,76 @@ describe('ComposerToolbar', () => {
 
     expect(input.getAttribute('maxlength')).toBe('500');
     expect(charCount.textContent).toContain('500');
+  });
+
+  it('should use composer customMessageMaxLength for custom message', () => {
+    mockComposerConfig.customMessageMaxLength = 120;
+
+    render(<ComposerToolbar channel={ChannelTypeEnum.WhatsApp} />);
+    const input = screen.getByTestId('composer-input');
+    const charCount = screen.getByTestId('composer-char-count');
+
+    expect(input.getAttribute('maxlength')).toBe('120');
+    expect(charCount.textContent).toContain('120');
+  });
+
+  it('should ignore maxLength for template message by default', async () => {
+    mockComposerConfig.customMessageMaxLength = 10;
+    const ref = createRef<ComposerToolbarRef>();
+
+    render(
+      <ComposerToolbar
+        ref={ref}
+        channel={ChannelTypeEnum.WhatsApp}
+        onSend={vi.fn()}
+      />,
+    );
+
+    act(() => {
+      ref.current?.setValue('Template content exceeds limit', 'template-1');
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('composer-input')).toHaveValue(
+        'Template content exceeds limit',
+      );
+    });
+
+    const input = screen.getByTestId('composer-input');
+    const charCount = screen.getByTestId('composer-char-count');
+
+    expect(input.getAttribute('maxlength')).toBeNull();
+    expect(charCount.textContent).toBe(
+      String('Template content exceeds limit'.length),
+    );
+  });
+
+  it('should still limit template message when ignore config is disabled', async () => {
+    mockComposerConfig.customMessageMaxLength = 10;
+    mockComposerConfig.ignoreMaxLengthForTemplateMessages = false;
+    const ref = createRef<ComposerToolbarRef>();
+
+    render(
+      <ComposerToolbar
+        ref={ref}
+        channel={ChannelTypeEnum.WhatsApp}
+        onSend={vi.fn()}
+      />,
+    );
+
+    act(() => {
+      ref.current?.setValue('Template content exceeds limit', 'template-1');
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('composer-input')).toHaveValue('Template c');
+    });
+
+    const input = screen.getByTestId('composer-input');
+    const charCount = screen.getByTestId('composer-char-count');
+
+    expect(input.getAttribute('maxlength')).toBe('10');
+    expect(charCount.textContent).toBe('10 / 10');
   });
 
   it('should call onSendAttachment when files are selected and sent', () => {

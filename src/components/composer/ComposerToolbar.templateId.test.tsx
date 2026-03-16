@@ -25,6 +25,8 @@ vi.mock('@/store', () => ({
     showCharCount: false,
     showChannelSwitcher: false,
     showHint: false,
+    customMessageMaxLength: undefined,
+    ignoreMaxLengthForTemplateMessages: true,
     templateMode: 'edit',
     allowTemplateEdit: false,
   }),

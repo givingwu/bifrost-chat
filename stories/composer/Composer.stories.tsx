@@ -1,6 +1,9 @@
+import { useEffect, useRef } from 'react';
 import type { Meta, StoryObj } from 'storybook-react-rsbuild';
+import type { ComposerRef } from '@/components/composer/Composer';
 import { Composer } from '@/components/composer/Composer';
 import { ChannelTypeEnum, MessageStatusEnum } from '@/index';
+import { ConfigProvider } from '@/providers/config.provider';
 import '@/styles/theme.css';
 
 /**
@@ -135,5 +138,43 @@ export const WithSendCallback: Story = {
       await new Promise((resolve) => setTimeout(resolve, 1000));
       console.log('Attachments sent!');
     },
+  },
+};
+
+/**
+ * 模板编辑态默认不受字数限制
+ */
+export const TemplateIgnoresLengthLimit: Story = {
+  render: () => {
+    const ref = useRef<ComposerRef>(null);
+
+    useEffect(() => {
+      ref.current?.setTemplate({
+        content: '模板内容模板内容模板内容模板内容模板内容',
+        templateCode: 'template-long',
+      });
+    }, []);
+
+    return (
+      <ConfigProvider
+        config={{
+          composer: {
+            customMessageMaxLength: 10,
+            ignoreMaxLengthForTemplateMessages: true,
+          },
+        }}
+      >
+        <div className="space-y-3">
+          <p className="text-sm text-text-muted">
+            自定义消息最多 10 字；模板回填到 Composer 后不截断。
+          </p>
+          <Composer
+            ref={ref}
+            conversationId="conv-template-limit"
+            channel={ChannelTypeEnum.WhatsApp}
+          />
+        </div>
+      </ConfigProvider>
+    );
   },
 };

@@ -10,7 +10,8 @@ import {
 } from 'react';
 import { useTranslation } from '@/providers/I18n.provider';
 import { cn } from '@/utils/class.util';
-import { INPUT_LIMITS, TEST_IDS, TEXT_SIZES } from './composer.constants';
+import { TEST_IDS, TEXT_SIZES } from './composer.constants';
+import { clampComposerValue } from './composer-length.util';
 
 /**
  * ComposerInput 暴露的 ref 接口
@@ -92,7 +93,7 @@ export const ComposerInput = forwardRef<ComposerInputRef, ComposerInputProps>(
       onEnter,
       disabled = false,
       readOnly = false,
-      maxLength = INPUT_LIMITS.DEFAULT_MAX_LENGTH,
+      maxLength,
       autoFocus = false,
       onBlur,
       onFocus,
@@ -163,20 +164,26 @@ export const ComposerInput = forwardRef<ComposerInputRef, ComposerInputProps>(
     const handleChange = useCallback(
       (event: ChangeEvent<HTMLTextAreaElement>) => {
         const newValue = event.target.value;
+        const normalizedValue = clampComposerValue(newValue, maxLength);
 
         // 检查是否达到最大长度
-        if (newValue.length >= maxLength && value.length < maxLength) {
+        if (
+          maxLength !== undefined &&
+          normalizedValue.length >= maxLength &&
+          value.length < maxLength
+        ) {
           onMaxLengthReached?.();
         }
 
-        onChange(newValue);
+        onChange(normalizedValue);
       },
       [maxLength, onChange, onMaxLengthReached, value.length],
     );
 
     // 输入框是否接近或达到最大长度
-    const isNearMaxLength = value.length >= maxLength * 0.9;
-    const isAtMaxLength = value.length >= maxLength;
+    const isNearMaxLength =
+      maxLength !== undefined && value.length >= maxLength * 0.9;
+    const isAtMaxLength = maxLength !== undefined && value.length >= maxLength;
 
     return (
       <fieldset className="border-0 p-0 m-0">

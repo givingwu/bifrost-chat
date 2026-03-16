@@ -255,6 +255,12 @@ export function App() {
           allowedChannels: [ChannelTypeEnum.WhatsApp, ChannelTypeEnum.Email],
           activeChannel: ChannelTypeEnum.WhatsApp,
         },
+        composer: {
+          // 自定义消息最多 500 字
+          customMessageMaxLength: 500,
+          // 默认开启：模板消息不受字数限制
+          ignoreMaxLengthForTemplateMessages: true,
+        },
       }}
     >
       <QueryProvider>
@@ -298,6 +304,8 @@ export function App() {
 
 **当前已实现（As-Is）**
 
+- `composer.customMessageMaxLength` 可配置自定义消息字数上限
+- `composer.ignoreMaxLengthForTemplateMessages` 默认 `true`，即模板消息默认不受字数限制
 - Composer 草稿按 `conversationId + channel` 做分桶缓存；没有
   `conversationId` 时退化为 `channel` 级缓存
 - 旧的 conversation 级草稿 key 会在首次读取时迁移到新的

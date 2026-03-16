@@ -27,7 +27,12 @@ import { ComposerCharCount } from './ComposerCharCount';
 import { ComposerHint } from './ComposerHint';
 import { ComposerInput, type ComposerInputRef } from './ComposerInput';
 import { ComposerVoice } from './ComposerVoice';
-import { INPUT_LIMITS, TEST_IDS } from './composer.constants';
+import { TEST_IDS } from './composer.constants';
+import {
+  clampComposerValue,
+  resolveCustomMessageMaxLength,
+  shouldIgnoreComposerMaxLength,
+} from './composer-length.util';
 
 /**
  * ComposerToolbar 暴露的 ref 接口
@@ -76,16 +81,6 @@ export interface ComposerToolbarProps {
 }
 
 /**
- * 最大长度数量
- */
-export const MAX_LENGTH_MAP: Record<ChannelTypeEnum, number> = {
-  [ChannelTypeEnum.SMS]: INPUT_LIMITS.SMS_MAX_LENGTH,
-  [ChannelTypeEnum.Email]: INPUT_LIMITS.DEFAULT_MAX_LENGTH,
-  [ChannelTypeEnum.WhatsApp]: INPUT_LIMITS.WHATSAPP_MAX_LENGTH,
-  [ChannelTypeEnum.Viber]: INPUT_LIMITS.WHATSAPP_MAX_LENGTH,
-};
-
-/**
  * ComposerToolbar 组件
  *
  * 输入框策略工具栏，根据不同渠道展示不同的交互方式
@@ -124,17 +119,6 @@ export const ComposerToolbar = forwardRef<
   const [internalValue, setInternalValue] = useState('');
   const value = controlledValue !== undefined ? controlledValue : internalValue;
 
-  const handleChange = useCallback(
-    (newValue: string) => {
-      if (controlledOnChange) {
-        controlledOnChange(newValue);
-      } else {
-        setInternalValue(newValue);
-      }
-    },
-    [controlledOnChange],
-  );
-
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [isRecording, setIsRecording] = useState(false);
   const [isSending, setIsSending] = useState(false);
@@ -146,6 +130,52 @@ export const ComposerToolbar = forwardRef<
   const inputRef = useRef<ComposerInputRef>(null);
   const sendErrorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const focusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const customMessageMaxLength = useMemo(
+    () =>
+      resolveCustomMessageMaxLength({
+        channel,
+        maxLength,
+        customMessageMaxLength: composerConfig.customMessageMaxLength,
+      }),
+    [channel, composerConfig.customMessageMaxLength, maxLength],
+  );
+  const effectiveMaxLength = useMemo(() => {
+    const shouldBypass = shouldIgnoreComposerMaxLength({
+      isTemplateMessage: !!currentTemplateId,
+      ignoreMaxLengthForTemplateMessages:
+        composerConfig.ignoreMaxLengthForTemplateMessages,
+    });
+
+    return shouldBypass ? undefined : customMessageMaxLength;
+  }, [
+    composerConfig.ignoreMaxLengthForTemplateMessages,
+    currentTemplateId,
+    customMessageMaxLength,
+  ]);
+  const handleChange = useCallback(
+    (newValue: string, templateId?: string) => {
+      const nextMaxLength = shouldIgnoreComposerMaxLength({
+        isTemplateMessage: !!(templateId ?? currentTemplateId),
+        ignoreMaxLengthForTemplateMessages:
+          composerConfig.ignoreMaxLengthForTemplateMessages,
+      })
+        ? undefined
+        : customMessageMaxLength;
+      const normalizedValue = clampComposerValue(newValue, nextMaxLength);
+
+      if (controlledOnChange) {
+        controlledOnChange(normalizedValue);
+      } else {
+        setInternalValue(normalizedValue);
+      }
+    },
+    [
+      composerConfig.ignoreMaxLengthForTemplateMessages,
+      controlledOnChange,
+      currentTemplateId,
+      customMessageMaxLength,
+    ],
+  );
 
   // 同步 templateLocked prop 的变化到内部状态
   useEffect(() => {
@@ -195,11 +225,11 @@ export const ComposerToolbar = forwardRef<
     ref,
     () => ({
       setValue: (newValue: string, templateId?: string) => {
-        handleChange(newValue);
         // 设置模板 ID
         if (templateId) {
           setCurrentTemplateId(templateId);
         }
+        handleChange(newValue, templateId);
         // 当设置新值时，如果是模板模式且不允许编辑，则锁定输入框
         if (
           composerConfig.templateMode === 'edit' &&
@@ -240,19 +270,6 @@ export const ComposerToolbar = forwardRef<
       clearFocusTimer();
     };
   }, [clearFocusTimer, clearSendErrorTimer]);
-
-  // 根据渠道确定最大长度
-  const effectiveMaxLength = useMemo(() => {
-    if (maxLength) {
-      return maxLength;
-    }
-
-    if (channel) {
-      return MAX_LENGTH_MAP[channel];
-    }
-
-    return INPUT_LIMITS.DEFAULT_MAX_LENGTH;
-  }, [channel, maxLength]);
 
   // 计算占位符文本
   const placeholder = useMemo(() => {

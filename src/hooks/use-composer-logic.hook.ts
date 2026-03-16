@@ -3,6 +3,11 @@ import {
   createAttachments,
   revokeAttachmentPreviews,
 } from '@/components/composer/AttachmentPreview';
+import {
+  clampComposerValue,
+  resolveCustomMessageMaxLength,
+  shouldIgnoreComposerMaxLength,
+} from '@/components/composer/composer-length.util';
 import { useComposerDraft } from '@/hooks/use-composer-draft.hook';
 import { useTemplatePreview } from '@/hooks/use-template-preview.hook';
 import type { Attachment } from '@/interfaces/attachment.interface';
@@ -64,7 +69,7 @@ export interface UseComposerLogicResult {
   config: ResolvedComposerConfig;
 
   // 计算值
-  effectiveMaxLength: number;
+  effectiveMaxLength?: number;
   placeholder: string;
   canSend: boolean;
 
@@ -91,16 +96,6 @@ export interface UseComposerLogicResult {
 }
 
 // ==================== Hook 实现 ====================
-
-/**
- * 渠道最大长度映射
- */
-const MAX_LENGTH_MAP: Partial<Record<ChannelTypeEnum, number>> = {
-  [ChannelTypeEnum.SMS]: 160,
-  [ChannelTypeEnum.Email]: Infinity,
-  [ChannelTypeEnum.WhatsApp]: 4096,
-  [ChannelTypeEnum.Viber]: 4096,
-};
 
 /**
  * useComposerLogic - Composer 核心逻辑 Hook
@@ -144,6 +139,34 @@ export const useComposerLogic = (
     draftDebounceDelay: config.draftDebounceDelay,
     onSend: onSendProp,
   });
+  const customMessageMaxLength = useMemo(
+    () =>
+      resolveCustomMessageMaxLength({
+        channel,
+        maxLength: maxLengthProp,
+        customMessageMaxLength: config.customMessageMaxLength,
+      }),
+    [channel, config.customMessageMaxLength, maxLengthProp],
+  );
+  const effectiveMaxLength = useMemo(() => {
+    const shouldBypass = shouldIgnoreComposerMaxLength({
+      isTemplateMessage: draft.messageType === MessageTypeEnum.Template,
+      ignoreMaxLengthForTemplateMessages:
+        config.ignoreMaxLengthForTemplateMessages,
+    });
+
+    return shouldBypass ? undefined : customMessageMaxLength;
+  }, [
+    config.ignoreMaxLengthForTemplateMessages,
+    customMessageMaxLength,
+    draft.messageType,
+  ]);
+  const setComposerValue = useCallback(
+    (nextValue: string) => {
+      draft.setValue(clampComposerValue(nextValue, effectiveMaxLength));
+    },
+    [draft, effectiveMaxLength],
+  );
 
   // ==================== 模板预览 ====================
   const { mutateAsync: previewTemplate } = useTemplatePreview();
@@ -178,7 +201,7 @@ export const useComposerLogic = (
         .then((previewed) => {
           // 使用最新的 content
           const newContent = previewed.previewContent ?? draftData.content;
-          draft.setValue(newContent);
+          setComposerValue(newContent);
 
           // 更新 draft 数据
           const stringParams = previewed.params
@@ -198,13 +221,13 @@ export const useComposerLogic = (
         .catch((error) => {
           console.warn('[Composer] Failed to preview template draft:', error);
           // fallback: 使用缓存的 content
-          draft.setValue(draftData.content);
+          setComposerValue(draftData.content);
         })
         .finally(() => {
           setIsRestoring(false);
         });
     }
-  }, [channel, conversationId, draft, previewTemplate]);
+  }, [channel, conversationId, draft, previewTemplate, setComposerValue]);
 
   // ==================== 附件状态 ====================
   const [attachments, setAttachments] = useState<Attachment[]>([]);
@@ -222,15 +245,6 @@ export const useComposerLogic = (
 
   // ==================== 错误状态 ====================
   const [sendError, setSendError] = useState<string | null>(null);
-
-  // ==================== 计算值 ====================
-  const effectiveMaxLength = useMemo(() => {
-    if (maxLengthProp) return maxLengthProp;
-    if (channel) {
-      return MAX_LENGTH_MAP[channel] || 2000;
-    }
-    return 2000;
-  }, [channel, maxLengthProp]);
 
   const placeholder = useMemo(() => {
     if (channel) {
@@ -313,12 +327,12 @@ export const useComposerLogic = (
   ]);
 
   const handleClear = useCallback(() => {
-    draft.setValue('');
+    setComposerValue('');
     draft.setMessageType(undefined);
     draft.setTemplateCode(undefined);
     draft.setTemplateParams(undefined);
     setSendError(null);
-  }, [draft]);
+  }, [draft, setComposerValue]);
 
   const handleAttachmentSelect = useCallback(
     async (files: File[]) => {
@@ -392,12 +406,12 @@ export const useComposerLogic = (
       templateCode?: string;
       templateMetadata?: unknown;
     }) => {
-      draft.setValue(data.content);
+      setComposerValue(data.content);
       draft.setMessageType(MessageTypeEnum.Template);
       draft.setTemplateCode(data.templateCode);
       draft.setTemplateMetadata(data.templateMetadata);
     },
-    [draft],
+    [draft, setComposerValue],
   );
 
   // ==================== Ref 支持 ====================
@@ -439,7 +453,7 @@ export const useComposerLogic = (
     canSend,
 
     // 操作
-    setValue: draft.setValue,
+    setValue: setComposerValue,
     handleSend,
     handleClear,
     handleAttachmentSelect,

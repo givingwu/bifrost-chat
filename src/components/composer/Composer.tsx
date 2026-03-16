@@ -95,9 +95,8 @@ import { ComposerAttachments } from './ComposerAttachments';
 import { ComposerCharCount } from './ComposerCharCount';
 import { ComposerHint } from './ComposerHint';
 import { ComposerInput, type ComposerInputRef } from './ComposerInput';
-import { MAX_LENGTH_MAP } from './ComposerToolbar';
 import { ComposerVoice } from './ComposerVoice';
-import { INPUT_LIMITS, TEST_IDS } from './composer.constants';
+import { TEST_IDS } from './composer.constants';
 
 /**
  * Composer 组件
@@ -144,6 +143,7 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(
       onSendAttachment,
       onSendAudio,
       disabled,
+      maxLength: maxLengthProp,
     });
 
     // 暴露 ref 方法给父组件
@@ -181,28 +181,6 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(
       }),
       [logic],
     );
-
-    // 根据渠道确定最大长度
-    const effectiveMaxLength = useMemo(() => {
-      if (maxLengthProp) {
-        return maxLengthProp;
-      }
-
-      if (channel) {
-        return MAX_LENGTH_MAP[channel];
-      }
-
-      return INPUT_LIMITS.DEFAULT_MAX_LENGTH;
-    }, [channel, maxLengthProp]);
-
-    // 计算占位符文本
-    const placeholder = useMemo(() => {
-      if (channel) {
-        return t('composer.placeholder.channel', { channel });
-      }
-
-      return t('composer.placeholder.default');
-    }, [channel, t]);
 
     const clearFocusTimer = useCallback(() => {
       if (focusTimerRef.current) {
@@ -292,6 +270,8 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(
       isTemplateLocked,
       sendError,
       canSend,
+      effectiveMaxLength,
+      placeholder,
     } = logic;
 
     return (

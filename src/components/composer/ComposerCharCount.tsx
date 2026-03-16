@@ -5,8 +5,8 @@ import { TEST_IDS, TEXT_SIZES } from './composer.constants';
 export interface ComposerCharCountProps {
   /** 当前输入长度 */
   currentLength: number;
-  /** 最大长度 */
-  maxLength: number;
+  /** 最大长度；为空时表示当前消息不受字数限制 */
+  maxLength?: number;
 }
 
 /**
@@ -24,17 +24,21 @@ export interface ComposerCharCountProps {
  */
 export const ComposerCharCount = memo<ComposerCharCountProps>(
   ({ currentLength, maxLength }) => {
+    const isOverLimit = maxLength !== undefined && currentLength > maxLength;
+
     return (
       <span
         className={cn(
           TEXT_SIZES.HINT,
           'text-gray-400 dark:text-gray-500',
           'transition-colors duration-200',
-          currentLength > maxLength && 'text-destructive',
+          isOverLimit && 'text-destructive',
         )}
         data-testid={TEST_IDS.COMPOSER_CHAR_COUNT}
       >
-        {currentLength} / {maxLength}
+        {maxLength === undefined
+          ? currentLength
+          : `${currentLength} / ${maxLength}`}
       </span>
     );
   },

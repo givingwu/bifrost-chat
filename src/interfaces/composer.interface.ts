@@ -95,6 +95,29 @@ export interface IComposerConfig {
   maxAudioDuration?: number;
 
   /**
+   * 自定义消息最大字数
+   *
+   * @description
+   * 仅用于普通自定义消息；模板消息是否受此限制由
+   * `ignoreMaxLengthForTemplateMessages` 决定。
+   * 未配置时回退到 SDK 按渠道提供的默认限制。
+   *
+   * @default undefined
+   */
+  customMessageMaxLength?: number;
+
+  /**
+   * 模板消息是否忽略字数限制
+   *
+   * @description
+   * - `true`: 模板消息不受 `customMessageMaxLength` 或 `maxLength` 约束
+   * - `false`: 模板消息与自定义消息共用同一套字数限制
+   *
+   * @default true
+   */
+  ignoreMaxLengthForTemplateMessages?: boolean;
+
+  /**
    * 音频输出格式
    * @default AudioOutputFormatEnum.Raw
    */

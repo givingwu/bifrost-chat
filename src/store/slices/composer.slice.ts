@@ -42,6 +42,8 @@ const DEFAULT_COMPOSER_CONFIG: IComposerConfig = {
   maxAttachmentSize: 10 * 1024 * 1024, // 10MB
   allowedFileTypes: undefined,
   maxAudioDuration: 300, // 5分钟
+  customMessageMaxLength: undefined,
+  ignoreMaxLengthForTemplateMessages: true,
   audioOutputFormat: AudioOutputFormatEnum.Raw,
   // UI 显示配置
   showChannelSwitcher: true,

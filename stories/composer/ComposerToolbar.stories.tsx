@@ -1,6 +1,9 @@
-import { useState } from 'react';
-import type { Meta, StoryObj } from 'storybook-react-rsbuild';
-import { ComposerToolbar } from '@/components/composer/ComposerToolbar';
+import { useEffect, useRef, useState } from 'react';
+import type { Meta } from 'storybook-react-rsbuild';
+import {
+  ComposerToolbar,
+  type ComposerToolbarRef,
+} from '@/components/composer/ComposerToolbar';
 import {
   AvailableChannels,
   ChannelTypeEnum,
@@ -37,7 +40,6 @@ const meta: Meta<typeof ComposerToolbar> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof ComposerToolbar>;
 
 /**
  * WhatsApp 渠道
@@ -224,5 +226,41 @@ export const Disabled = () => {
         onSend={(content) => console.log('Send:', content)}
       />
     </div>
+  );
+};
+
+/**
+ * 模板消息默认不受字数限制，自定义消息继续受限
+ */
+export const TemplateIgnoresLengthLimit = () => {
+  const ref = useRef<ComposerToolbarRef>(null);
+
+  useEffect(() => {
+    ref.current?.setValue(
+      '模板内容模板内容模板内容模板内容模板内容',
+      'template-long',
+    );
+  }, []);
+
+  return (
+    <ConfigProvider
+      config={{
+        composer: {
+          customMessageMaxLength: 10,
+          ignoreMaxLengthForTemplateMessages: true,
+        },
+      }}
+    >
+      <div className="space-y-3 p-4 bg-muted rounded-lg">
+        <p className="text-sm text-text-muted">
+          自定义消息最多 10 字；当前通过模板注入的内容不会被截断。
+        </p>
+        <ComposerToolbar
+          ref={ref}
+          channel={ChannelTypeEnum.WhatsApp}
+          onSend={(content) => console.log('Send:', content)}
+        />
+      </div>
+    </ConfigProvider>
   );
 };
