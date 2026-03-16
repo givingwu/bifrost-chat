@@ -121,7 +121,10 @@ export class AckPacketHandler extends BasePacketHandler {
       ackData.body.chatId,
     );
 
-    if (!conversationId) {
+    if (
+      !conversationId &&
+      packet.ptype !== PacketMessageTypeEnum.ClientHeartbeat
+    ) {
       console.warn('[AckPacketHandler] 无法确定 conversationId，跳过状态更新', {
         messageId,
         packetChatId: packet.chatId,
