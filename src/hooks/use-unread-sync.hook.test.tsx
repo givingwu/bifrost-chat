@@ -230,7 +230,8 @@ describe('useUnreadSync', () => {
     expect(conversations[0]).toMatchObject({
       id: 'conv-active',
       lastMessage: '当前会话新消息',
-      unreadCount: 0,
+      // 新方案下激活会话同样会先增加未读，由滚动已读流程精确扣回
+      unreadCount: 1,
     });
   });
 

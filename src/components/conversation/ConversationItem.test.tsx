@@ -13,6 +13,16 @@ vi.mock('@/store', () => ({
   useLanguage: () => ({ code: 'zh-CN' }),
 }));
 
+// Mock useConversationUnread：在测试中直接回退到基线 unreadCount
+vi.mock('@/hooks', async () => {
+  const actual = await vi.importActual<typeof import('@/hooks')>('@/hooks');
+  return {
+    ...actual,
+    useConversationUnread: (_conversationId: string, baseUnreadCount: number) =>
+      baseUnreadCount,
+  };
+});
+
 // Mock formatRelativeTime
 vi.mock('@/utils/time.util', () => ({
   formatRelativeTime: () => '刚刚',
