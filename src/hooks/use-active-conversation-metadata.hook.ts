@@ -5,7 +5,36 @@ import {
 } from '@/interfaces/channel.interface';
 import { useConfig } from '@/providers/config.provider';
 import { useActions, useActiveConversationId, useStrategy } from '@/store';
+import { normalizeAllowedChannels } from '@/store/slices/strategy.slice';
 import { useConversationMetadata } from './use-conversation-metadata.hook';
+
+/**
+ * 稳定化数组引用的辅助函数
+ * 当数组内容相同时返回旧引用，避免不必要的重新计算
+ */
+function useStableArray<T>(
+  array: T[] | readonly T[] | undefined,
+): T[] | readonly T[] | undefined {
+  const ref = useRef<T[] | readonly T[] | undefined>(array);
+
+  if (array === undefined) {
+    ref.current = undefined;
+    return undefined;
+  }
+
+  // 比较数组内容是否相同
+  const prev = ref.current;
+  if (
+    prev &&
+    prev.length === array.length &&
+    prev.every((item, i) => item === array[i])
+  ) {
+    return prev; // 返回旧引用
+  }
+
+  ref.current = [...array]; // 存储新副本
+  return ref.current;
+}
 
 /**
  * 活跃会话元数据同步 Hook
@@ -21,41 +50,36 @@ export function useActiveConversationMetadata() {
   const { data: metadata, isFetching } =
     useConversationMetadata(activeConversationId);
 
-  // 稳定化 fallback
-  const fallbackChannels = useMemo(
-    () =>
-      allowedChannels ?? config?.strategy?.allowedChannels ?? AvailableChannels,
-    [allowedChannels, config?.strategy?.allowedChannels],
+  // 稳定化 fallback（使用 ref 避免循环依赖）
+  const fallbackRef = useRef<readonly ChannelTypeEnum[]>(
+    allowedChannels ?? config?.strategy?.allowedChannels ?? AvailableChannels,
   );
+  // 仅当 allowedChannels 真正变化时更新 fallback
+  const prevAllowedRef = useRef(allowedChannels);
+  if (prevAllowedRef.current !== allowedChannels) {
+    prevAllowedRef.current = allowedChannels;
+    fallbackRef.current =
+      allowedChannels ?? config?.strategy?.allowedChannels ?? AvailableChannels;
+  }
 
-  // 计算目标渠道列表
+  // 稳定化 metadata.supportedChannels 引用
+  const stableSupportedChannels = useStableArray(metadata?.supportedChannels);
+
+  // 计算目标渠道列表（使用 normalizeAllowedChannels 去重和规范化）
   const nextChannels = useMemo(() => {
-    if (isFetching) return fallbackChannels;
-    else {
-      if (activeConversationId && metadata?.supportedChannels?.length) {
-        // DEBUG: 记录 metadata.supportedChannels 的使用
-        console.log(
-          '[DEBUG useActiveConversationMetadata] computing nextChannels from metadata',
-          {
-            conversationId: activeConversationId,
-            supportedChannels: metadata.supportedChannels,
-          },
-        );
-        return [...metadata.supportedChannels].sort(
-          (a, b) =>
-            AvailableChannels.indexOf(a as ChannelTypeEnum) -
-            AvailableChannels.indexOf(b as ChannelTypeEnum),
-        ) as readonly ChannelTypeEnum[];
-      }
+    if (isFetching) return fallbackRef.current;
 
-      return fallbackChannels;
+    if (activeConversationId && stableSupportedChannels?.length) {
+      // 使用 normalizeAllowedChannels 进行去重和规范化
+      return normalizeAllowedChannels(
+        stableSupportedChannels as readonly ChannelTypeEnum[],
+        fallbackRef.current,
+      );
     }
-  }, [
-    isFetching,
-    activeConversationId,
-    metadata?.supportedChannels,
-    fallbackChannels,
-  ]);
+
+    return fallbackRef.current;
+  }, [isFetching, activeConversationId, stableSupportedChannels]);
+  // 注意：fallbackRef.current 不放入依赖，避免循环
 
   // 用 ref 访问最新值，避免放进 useEffect 依赖导致循环
   const latestRef = useRef({
