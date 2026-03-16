@@ -84,7 +84,8 @@ class MyConversationService implements IConversationService {
   }
 
   async create(params: unknown) {
-    const response = await fetch('/api/conversations', {
+    // 电催新接口：创建会话也统一走 /chat/v2/session/info
+    const response = await fetch('/chat/v2/session/info', {
       method: 'POST',
       body: JSON.stringify(params),
       headers: { 'Content-Type': 'application/json' },
@@ -93,12 +94,26 @@ class MyConversationService implements IConversationService {
   }
 
   async query(params: unknown) {
-    const response = await fetch('/api/conversations/query', {
+    const response = await fetch('/chat/v2/session/query', {
       method: 'POST',
       body: JSON.stringify(params),
       headers: { 'Content-Type': 'application/json' },
     });
     return (await response.json()) as Conversation | null;
+  }
+
+  async getMetadata(params: { id: string }) {
+    const response = await fetch('/chat/v2/session/info', {
+      method: 'POST',
+      body: JSON.stringify({ chatId: params.id }),
+      headers: { 'Content-Type': 'application/json' },
+    });
+    return (await response.json()) as {
+      supportedChannels?: string[];
+      customerPin?: string;
+      assetFromApp?: string;
+      whatsappFreeTemplate?: string;
+    };
   }
 }
 
@@ -116,14 +131,24 @@ class MyMessageService implements IMessageService {
   }
 
   async send(conversationId: string, params: unknown) {
-    const response = await fetch(
-      `/api/conversations/${conversationId}/messages/send`,
-      {
-        method: 'POST',
-        body: JSON.stringify(params),
-        headers: { 'Content-Type': 'application/json' },
-      },
-    );
+    // 电催宿主通常在 send 内部先做频次检查，再真正发送
+    await fetch('/chat/v2/message/check', {
+      method: 'POST',
+      body: JSON.stringify({
+        chatId: conversationId,
+        ...params,
+      }),
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    const response = await fetch('/chat/v2/message/send', {
+      method: 'POST',
+      body: JSON.stringify({
+        chatId: conversationId,
+        ...params,
+      }),
+      headers: { 'Content-Type': 'application/json' },
+    });
     return (await response.json()) as MessageSendResult;
   }
 
@@ -164,7 +189,7 @@ class MyMessageService implements IMessageService {
 
 class MyTemplateService implements ITemplateService {
   async list(params: unknown) {
-    const response = await fetch('/api/templates/list', {
+    const response = await fetch('/chat/v2/template/query', {
       method: 'POST',
       body: JSON.stringify(params),
       headers: { 'Content-Type': 'application/json' },
@@ -172,22 +197,21 @@ class MyTemplateService implements ITemplateService {
     return (await response.json()) as Template[];
   }
 
-  async send(params: unknown) {
-    const response = await fetch('/api/templates/send', {
+  async preview(params: {
+    conversationId: string;
+    currentChannel: string;
+    templateCode: string;
+  }) {
+    const response = await fetch('/chat/v2/template/render', {
       method: 'POST',
-      body: JSON.stringify(params),
+      body: JSON.stringify({
+        chatId: params.conversationId,
+        channelType: params.currentChannel,
+        template: params.templateCode,
+      }),
       headers: { 'Content-Type': 'application/json' },
     });
-    return (await response.json()) as MessageSendResult;
-  }
-
-  async preview(templateId: string, variables: Record<string, string>) {
-    const response = await fetch(`/api/templates/${templateId}/preview`, {
-      method: 'POST',
-      body: JSON.stringify(variables),
-      headers: { 'Content-Type': 'application/json' },
-    });
-    return (await response.text()) as string;
+    return (await response.json()) as Template;
   }
 }
 ```

@@ -120,6 +120,12 @@ export interface IMessageService<
 
   /**
    * 发送消息
+   *
+   * @description
+   * 电催场景下，宿主通常会在该实现内部先执行
+   * `POST /chat/v2/message/check` 频次校验，再调用
+   * `POST /chat/v2/message/send`。
+   *
    * @param conversationId 会话 ID
    * @param params 发送参数
    * @returns 发送结果

@@ -181,10 +181,15 @@ export class HeartbeatManager {
 #### ITemplateService
 
 ```typescript
-export interface ITemplateService<TListParams = unknown, TSendParams = unknown> {
+export interface ITemplateService<
+  TListParams = unknown,
+  TPreviewParams = unknown,
+> {
   list(params?: TListParams): Promise<Template[]>;
-  send(params: TSendParams): Promise<MessageSendResult>;
-  preview?(templateId: string, variables: Record<string, string>): Promise<string>;
+  preview(params: TPreviewParams): Promise<{
+    previewContent: string;
+    params: Record<string, string>;
+  }>;
 }
 ```
 
@@ -374,7 +379,7 @@ function App() {
 | **DTO 映射** | Packet ↔ StandardMessage | REST DTO ↔ StandardMessage | 自定义 |
 | **from.app** | `fox_collect.waiter` | `fox_argus.waiter` | 自定义 |
 | **to.app** | `im.waiter` | `fox_argus.customer` | 自定义 |
-| **Session ID** | 债务 ID | 用户 ID（身份证+包） | 会话 ID |
+| **Session ID** | `chatId`（由 `session/info/query` 返回） | 用户 ID（身份证+包） | 会话 ID |
 
 ### 接入差异架构图
 
@@ -415,7 +420,7 @@ graph TB
 **业务特点**：
 - 坐席向客户发送催收消息
 - 需要频次检查，防止过度骚扰
-- Session ID 使用债务 ID
+- 会话标识使用 `chatId`，创建时通过 `debtorId/contactId/channelType` 或 `sourceChatId/channelType` 换取
 - 支持多种渠道（WhatsApp、SMS、Email）
 
 **接口差异**：
@@ -423,7 +428,7 @@ graph TB
 | 接口 | 路径 | 特点 |
 |------|------|------|
 | 会话查询 | `POST /chat/v2/session/query` | 使用 chatId/customerPin |
-| 会话创建 | `POST /chat/v2/session/create` | 使用 debtorId/contactId |
+| 会话创建 | `POST /chat/v2/session/info` | 创建和渠道切换统一走 info，使用 debtorId/contactId/sourceChatId |
 | 消息检查 | `POST /chat/v2/message/check` | 频次检查 |
 | 消息发送 | `POST /chat/v2/message/send` | 模板消息 |
 | 模板查询 | `POST /chat/v2/template/query` | 按渠道类型 |

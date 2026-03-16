@@ -12,6 +12,7 @@ import {
   ConnectionTimeoutError,
   SendFailedError,
 } from '@/errors/websocket.errors';
+import type { Conversation } from '@/interfaces/conversation.interface';
 import {
   MessageFailureTypeEnum,
   MessagePriorityEnum,
@@ -134,6 +135,78 @@ function resolveThrownErrorType(error: unknown): MessageFailureTypeEnum {
   return MessageFailureTypeEnum.Network;
 }
 
+/**
+ * 从会话 metadata 中提取字符串字段。
+ *
+ * @param conversation 会话对象
+ * @param keys 候选字段名，按顺序兜底
+ * @returns 第一个可用的字符串值
+ */
+function pickConversationMetadataString(
+  conversation: Pick<Conversation, 'metadata'> | undefined,
+  keys: readonly string[],
+): string | undefined {
+  const metadata = conversation?.metadata;
+
+  if (!metadata || typeof metadata !== 'object') {
+    return undefined;
+  }
+
+  for (const key of keys) {
+    const value = metadata[key];
+
+    if (typeof value === 'string' && value.trim()) {
+      return value.trim();
+    }
+  }
+
+  return undefined;
+}
+
+/**
+ * 解析发送消息时的默认接收方。
+ *
+ * @description
+ * 电催新接口 `session/info` 会返回 `customerPin` / `customerApp`。
+ * SDK 优先使用这些字段，避免宿主未手动覆盖 receiver 时仍沿用旧兜底。
+ *
+ * @param conversation 当前激活会话
+ * @param fallbackApp 兜底 app
+ * @param fallbackPin 兜底 pin
+ * @param channelType 当前渠道
+ * @param clientType 当前客户端类型
+ * @returns 标准化接收方
+ */
+function resolveDefaultReceiver(
+  conversation: Pick<Conversation, 'metadata' | 'user'> | undefined,
+  fallbackApp: string,
+  fallbackPin: string,
+  channelType: SendMessageOptions['channelType'],
+  clientType?: StandardMessage['receiver']['clientType'],
+) {
+  const receiverPin =
+    pickConversationMetadataString(conversation, [
+      'customerPin',
+      'receiverPin',
+      'toPin',
+    ]) ??
+    conversation?.user?.id ??
+    fallbackPin;
+  const receiverApp =
+    pickConversationMetadataString(conversation, [
+      'customerApp',
+      'receiverApp',
+      'toApp',
+    ]) ?? fallbackApp;
+
+  return {
+    app: receiverApp,
+    pin: receiverPin,
+    clientType,
+    channelType,
+  };
+}
+
 export function useSendMessage<
   CMType = Record<string, unknown>,
   TMType = unknown,
@@ -220,17 +293,20 @@ export function useSendMessage<
         );
       }
 
+      const defaultReceiver = resolveDefaultReceiver(
+        activeConversation,
+        currentUser.app,
+        '',
+        activeChannel ?? allowedChannels[0],
+        currentUser.clientType,
+      );
+
       const options: SendMessageOptions<CMType, TMType> = {
         // 1. 默认选项（初始化时传入）
         ...defaultOptions,
         // 2. 内置默认值
         content: params.content,
-        receiver: {
-          app: currentUser.app,
-          pin: activeConversation?.user?.id ?? '',
-          clientType: currentUser.clientType,
-          channelType: activeChannel ?? allowedChannels[0],
-        },
+        receiver: defaultReceiver,
         channelType: activeChannel ?? allowedChannels[0],
         // 3. 调用时的选项（优先级最高）
         ...params.options,
@@ -257,6 +333,13 @@ export function useSendMessage<
 
       // 保存旧数据，以便在出错时回滚
       const previousMessages = queryClient.getQueryData(messageQueryKey);
+      const defaultReceiver = resolveDefaultReceiver(
+        activeConversation,
+        currentUser.app,
+        params.conversationId,
+        activeChannel ?? allowedChannels[0],
+        currentUser.clientType,
+      );
 
       // 创建临时消息
       const tempMessage: StandardMessage = MessageBuilder.buildTextMessage(
@@ -264,8 +347,8 @@ export function useSendMessage<
         {
           fromApp: currentUser.app,
           fromPin: currentUser.pin,
-          // Issue 1: toPin 应为联系人的手机号（user.id），而非 conversationId（会话 SID）
-          toPin: activeConversation?.user?.id ?? params.conversationId,
+          toApp: defaultReceiver.app,
+          toPin: defaultReceiver.pin,
           channelType: activeChannel ?? allowedChannels[0],
           clientType: currentUser.clientType,
           conversationId: params.conversationId,

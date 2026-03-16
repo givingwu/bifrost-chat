@@ -18,7 +18,7 @@ export interface ITemplateListParams {
  * 模板预览参数
  */
 export interface TemplatePreviewParams extends Required<ITemplateListParams> {
-  /** 模板 code */
+  /** 模板 code（电催场景映射到 `/chat/v2/template/render` 的 `template` 字段） */
   templateCode: Template['code'];
 }
 
@@ -63,6 +63,7 @@ export interface ITemplateService<
    * 预览模板（获取参数替换后的预览内容）
    * - 返回完整模板信息供 UI 显示
    * - 返回 params 供发送时使用
+   * - 电催场景通常映射到 `POST /chat/v2/template/render`
    *
    * @param params 预览参数
    * @returns 预览结果（包含模板信息和参数）
@@ -76,7 +77,7 @@ export interface ITemplateService<
    * });
    * // result - 完整模板对象
    * // result.params - 模板参数（用于发送）
-   * // result.content - 预览内容
+   * // result.previewContent - 参数替换后的预览内容
    * ```
    */
   preview(params: TPreviewParams): Promise<TemplatePreviewResult>;

@@ -130,8 +130,18 @@ class FoxCollectTemplateService
   /**
    * 预览模板
    */
-  async preview(templateId: string, variables: Record<string, string>): Promise<string> {
-    return `模板 ${templateId} 的预览`;
+  async preview(params: {
+    conversationId: string;
+    currentChannel: string;
+    templateCode: string;
+  }): Promise<{
+    previewContent: string;
+    params: Record<string, string>;
+  }> {
+    return {
+      previewContent: `模板 ${params.templateCode} 的预览`,
+      params: {},
+    };
   }
 }
 

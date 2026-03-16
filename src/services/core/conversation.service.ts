@@ -84,6 +84,12 @@ export interface IConversationService<
 
   /**
    * 创建会话
+   *
+   * @description
+   * 对电催新接口，宿主通常将该能力映射到 `POST /chat/v2/session/info`：
+   * - 新建入口：传 `debtorId/contactId/channelType`
+   * - 渠道切换：传 `sourceChatId/channelType`
+   *
    * @param params 创建参数
    * @returns 新创建的会话
    */
@@ -91,6 +97,12 @@ export interface IConversationService<
 
   /**
    * 查询会话
+   *
+   * @description
+   * 宿主可按场景映射到：
+   * - `POST /chat/v2/session/query`：IM 上行消息反查会话
+   * - `POST /chat/v2/session/info`：前端按 chatId 查询当前会话详情
+   *
    * @param params 查询参数
    * @returns 会话详情，如果不存在返回 null
    */
@@ -126,9 +138,9 @@ export interface IConversationService<
    *
    * @example
    * ```typescript
-   * const metadata = await conversationService.getMetadata({ conversationId: 'conv-123' });
+   * const metadata = await conversationService.getMetadata({ id: 'conv-123' });
    * // metadata.supportedChannels - SDK 使用
-   * // metadata.agentPin, metadata.customerPin... - 业务数据
+   * // metadata.customerPin, metadata.assetFromApp, metadata.whatsappFreeTemplate... - 业务数据
    * ```
    */
   getMetadata?(params: TMetadataParams): Promise<TConversationMetadata>;

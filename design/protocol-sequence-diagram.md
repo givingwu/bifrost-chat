@@ -10,7 +10,7 @@
 
 | 字段 | 值 | 说明 |
 |------|-----|------|
-| SESSION ID | 债务 ID | 会话标识使用债务 ID |
+| SESSION ID | `chatId` | 由 `session/info/query` 返回的会话标识 |
 | from.app | `fox_collect.waiter` | 催收坐席 |
 | to.app | `im.waiter` | 用户 |
 | entry | `fox.collect.detail` | 电催详情入口 |

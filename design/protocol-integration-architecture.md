@@ -24,10 +24,12 @@ SDK 已实现以下核心协议：
 
 ```typescript
 // src/services/template.service.ts
-interface ITemplateService<TListParams, TSendParams> {
+interface ITemplateService<TListParams, TPreviewParams> {
   list(params?: TListParams): Promise<Template[]>;
-  send(params: TSendParams): Promise<MessageSendResult>;
-  preview(templateId: string, variables: Record<string, string>): Promise<string>;
+  preview(params: TPreviewParams): Promise<{
+    previewContent: string;
+    params: Record<string, string>;
+  }>;
 }
 
 // src/services/message.service.ts
@@ -196,7 +198,7 @@ flowchart TD
 
 | 特性 | 电催场景 | 客服场景 | 通用场景 |
 |------|----------|----------|----------|
-| **Session ID** | 债务 ID | 用户 ID（身份证+包） | 会话 ID |
+| **Session ID** | `chatId`（由 `session/info/query` 返回） | 用户 ID（身份证+包） | 会话 ID |
 | **from.app** | `fox_collect.waiter` | `fox_argus.waiter` | 自定义 |
 | **to.app** | `im.waiter` | `fox_argus.customer` | 自定义 |
 | **entry** | `fox.collect.detail` | `fox.system` | 自定义 |
@@ -204,7 +206,7 @@ flowchart TD
 | **消息检查** | `/chat/v2/message/check`<br/>（频次检查） | 待定义<br/>（敏感词检查） | 可选 |
 | **消息发送** | `/chat/v2/message/send` | 待定义 | `/conversations/{id}/messages` |
 | **会话查询** | `/chat/v2/session/query` | 待定义 | `/conversations` |
-| **会话创建** | `/chat/v2/session/create` | 待定义 | `/conversations` |
+| **会话创建** | `/chat/v2/session/info` | 待定义 | `/conversations` |
 
 ### 关键接口定义
 
@@ -259,21 +261,17 @@ export interface FoxCollectTemplateService {
   }): Promise<Template[]>;
   
   /**
-   * 发送模板消息
-   * 接口: POST /chat/v2/message/send
+   * 预览模板
+   * 接口: POST /chat/v2/template/render
    */
-  send(params: {
+  preview(params: {
     chatId: string;
     channelType: ChannelTypeEnum;
-    clientType?: string;
-    templateCode: string;
-    variables?: Record<string, string>;
-  }): Promise<MessageSendResult>;
-  
-  /**
-   * 预览模板（本地）
-   */
-  preview(templateId: string, variables: Record<string, string>): Promise<string>;
+    template: string;
+  }): Promise<{
+    previewContent: string;
+    params: Record<string, string>;
+  }>;
 }
 
 /**
@@ -299,10 +297,13 @@ export interface ArgusTemplateService {
     variables: Record<string, string>;
   }): Promise<MessageSendResult>;
   
-  /**
-   * 预览模板（本地）
-   */
-  preview(templateId: string, variables: Record<string, string>): Promise<string>;
+  preview(params: {
+    conversationId: string;
+    templateCode: string;
+  }): Promise<{
+    previewContent: string;
+    params: Record<string, string>;
+  }>;
 }
 ```
 

@@ -154,11 +154,18 @@ class MockConversationService implements IConversationService {
     return conversation;
   }
 
-  async create() {
+  async create(params?: {
+    debtorId?: number;
+    contactId?: number;
+    sourceChatId?: string;
+    channelType?: ChannelTypeEnum;
+  }) {
     const conversation: Conversation = {
-      id: 'conv-new',
+      id: params?.sourceChatId
+        ? `${params.sourceChatId}-${params.channelType ?? 'whatsapp'}`
+        : 'conv-new',
       user: {
-        id: 'user-new',
+        id: '13800000000',
         name: '新用户',
         avatarUrl: 'https://i.pravatar.cc/150?img=3',
         status: AgentStatusEnum.Online,
@@ -166,8 +173,22 @@ class MockConversationService implements IConversationService {
       lastMessage: '',
       lastMessageTime: new Date().toISOString(),
       unreadCount: 0,
-      channel: ChannelTypeEnum.WhatsApp,
+      channel: params?.channelType ?? ChannelTypeEnum.WhatsApp,
       isActive: true,
+      supportedChannels: [
+        ChannelTypeEnum.WhatsApp,
+        ChannelTypeEnum.SMS,
+        ChannelTypeEnum.Email,
+      ],
+      metadata: {
+        debtorId: params?.debtorId ?? 10001,
+        contactId: params?.contactId ?? 20001,
+        customerPin: '13800000000',
+        customerApp: 'fox_collect.customer',
+        assetFromApp: 'fox.collect',
+        whatsappFreeTemplate: 'WA_FREE_TEXT',
+        uplinkSmsFreeTemplate: 'SMS_FREE_TEXT',
+      },
     };
     return conversation;
   }
@@ -305,6 +326,7 @@ class MockTemplateService implements ITemplateService {
       {
         id: '1',
         name: '问候',
+        code: 'TPL_GREETING',
         content: '您好，有什么可以帮助您的吗？',
         category: '常用',
         tags: ['问候', '开场'],
@@ -314,6 +336,7 @@ class MockTemplateService implements ITemplateService {
       {
         id: '2',
         name: '感谢',
+        code: 'TPL_THANKS',
         content: '非常感谢您的支持！',
         category: '常用',
         tags: ['感谢', '礼貌'],
@@ -323,6 +346,7 @@ class MockTemplateService implements ITemplateService {
       {
         id: '3',
         name: '跟进',
+        code: 'TPL_FOLLOW_UP',
         content: '您好，我想跟进一下我们之前的沟通，请问您还有什么疑问吗？',
         category: '销售',
         tags: ['跟进', '销售'],
@@ -332,6 +356,7 @@ class MockTemplateService implements ITemplateService {
       {
         id: '4',
         name: '预约',
+        code: 'TPL_BOOKING',
         content: '您好，请问您方便安排一个时间进行详细沟通吗？',
         category: '业务',
         tags: ['预约', '沟通'],
@@ -341,6 +366,7 @@ class MockTemplateService implements ITemplateService {
       {
         id: '5',
         name: '结束语',
+        code: 'TPL_CLOSING',
         content: '祝您生活愉快！',
         category: '常用',
         tags: ['结束语', '礼貌'],
@@ -356,7 +382,7 @@ class MockTemplateService implements ITemplateService {
     currentChannel: string;
     templateCode: string;
   }) {
-    // Mock preview implementation - returns a template with preview content
+    // Mock preview implementation - 模拟 /chat/v2/template/render
     const templates = await this.list();
     const template = templates.find((t) => t.code === params.templateCode);
     if (!template) {
@@ -364,8 +390,10 @@ class MockTemplateService implements ITemplateService {
     }
     return {
       ...template,
-      params: {},
-      previewContent: template.content || '',
+      params: {
+        debtorName: '张三',
+      },
+      previewContent: `${template.content}（渠道: ${params.currentChannel}）`,
     };
   }
 }

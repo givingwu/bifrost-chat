@@ -63,10 +63,14 @@ interface IMessageService<
 ### 3.3 ITemplateService
 
 ```ts
-interface ITemplateService<TListParams = any, TSendParams = any> {
+interface ITemplateService<TListParams = any, TPreviewParams = any> {
   list(params: TListParams): Promise<Template[]>;
-  send(params: TSendParams): Promise<MessageSendResult>;
-  preview?(templateId: string, variables: Record<string, string>): Promise<string>;
+  preview(
+    params: TPreviewParams,
+  ): Promise<{
+    previewContent: string;
+    params: Record<string, string>;
+  }>;
 }
 ```
 

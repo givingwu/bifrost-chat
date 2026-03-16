@@ -3,6 +3,8 @@ import { act, renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AgentStatusEnum } from '@/interfaces/agent.interface';
+import { ChannelTypeEnum } from '@/interfaces/channel.interface';
+import type { Conversation } from '@/interfaces/conversation.interface';
 import {
   MessageFailureTypeEnum,
   type MessageSendResult,
@@ -103,6 +105,16 @@ function getMessages(queryClient: QueryClient, conversationId: string) {
       }
     | undefined;
   return data?.pages.flatMap((page) => page.items) ?? [];
+}
+
+function seedConversations(
+  queryClient: QueryClient,
+  conversations: Conversation[],
+) {
+  queryClient.setQueryData(queryKeys.conversations.list(ACTIVE_CHANNEL), {
+    pageParams: [1],
+    pages: [conversations],
+  });
 }
 
 describe('useSendMessage Hook', () => {
@@ -216,6 +228,79 @@ describe('useSendMessage Hook', () => {
         clientType: undefined,
       },
     });
+  });
+
+  it('应优先使用会话 metadata 中的 customerPin/customerApp 作为默认接收方', async () => {
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+      },
+    });
+    const conversationId = 'conv-1';
+
+    seedConversations(queryClient, [
+      {
+        id: conversationId,
+        user: {
+          id: 'fallback-user-id',
+          name: '王五',
+          status: AgentStatusEnum.Online,
+        },
+        lastMessage: '',
+        lastMessageTime: new Date(1_770_000_000_000).toISOString(),
+        unreadCount: 0,
+        channel: ChannelTypeEnum.WhatsApp,
+        metadata: {
+          customerPin: 'customer-13800000000',
+          customerApp: 'fox_collect.customer',
+        },
+      },
+    ]);
+
+    queryClient.setQueryData(
+      queryKeys.messages.list(conversationId, ACTIVE_CHANNEL),
+      {
+        pages: [{ items: [] }],
+        pageParams: [1],
+      },
+    );
+
+    vi.mocked(mockMessageService.send).mockResolvedValue({
+      tempId: 'server-temp-id',
+      messageId: 'server-message-id',
+      status: MessageStatusEnum.Sent,
+    } satisfies MessageSendResult);
+
+    const { result } = renderHook(() => useSendMessage(), {
+      wrapper: createTestWrapper(queryClient),
+    });
+
+    await act(async () => {
+      await result.current.mutateAsync({
+        conversationId,
+        content: '电催模板消息',
+      });
+    });
+
+    expect(mockMessageService.send).toHaveBeenCalledWith(conversationId, {
+      content: '电催模板消息',
+      channelType: 'whatsapp',
+      receiver: {
+        app: 'fox_collect.customer',
+        pin: 'customer-13800000000',
+        channelType: 'whatsapp',
+        clientType: undefined,
+      },
+    });
+
+    const optimisticMessage = getMessages(queryClient, conversationId)[0];
+    expect(optimisticMessage?.receiver).toEqual(
+      expect.objectContaining({
+        app: 'fox_collect.customer',
+        pin: 'customer-13800000000',
+      }),
+    );
   });
 
   it('未提供离线队列时，服务返回失败状态应回滚临时消息', async () => {
