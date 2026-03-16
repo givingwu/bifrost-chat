@@ -197,7 +197,7 @@ function extractMessagesToMark(
 }
 
 function resolveAckRequestId(
-  result: void | MarkAsReadResult,
+  result: MarkAsReadResult | undefined,
 ): string | undefined {
   if (!result || typeof result !== 'object') {
     return undefined;
@@ -283,7 +283,7 @@ export function useMarkAsRead() {
 
         try {
           const result = await messageService.markAsRead(ackPacketBody, meta);
-          const ackRequestId = resolveAckRequestId(result);
+          const ackRequestId = resolveAckRequestId(result ?? undefined);
 
           if (ackRequestId) {
             void messageQueue.rekeyReceiptAck(requestId, ackRequestId);
