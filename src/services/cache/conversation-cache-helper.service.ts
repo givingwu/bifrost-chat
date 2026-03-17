@@ -426,6 +426,7 @@ export class ConversationCacheHelper {
       queryClient,
       conversation,
       conversation.channel,
+      { moveToTop: false }, // 点击切换会话时不置顶
     );
 
     return ConversationCacheHelper.setConversationDetail(
@@ -466,6 +467,13 @@ export class ConversationCacheHelper {
     channel: ChannelTypeEnum,
     options?: {
       preserveUnreadCount?: boolean;
+      /**
+       * 是否将会话移动到列表顶部
+       * - true（默认）：已有会话更新后移动到顶部（收到新消息场景）
+       * - false：已有会话保持原位置（点击切换会话场景）
+       * - 新会话始终添加到顶部
+       */
+      moveToTop?: boolean;
     },
   ): Conversation {
     ConversationCacheHelper.confirmPendingConversation(
@@ -475,23 +483,39 @@ export class ConversationCacheHelper {
     );
 
     let nextConversation = conversation;
+    const shouldMoveToTop = options?.moveToTop !== false;
 
     ConversationCacheHelper.updatePages(
       queryClient,
       channel,
       (conversations) => {
-        const existingConversation = conversations.find(
+        const existingIndex = conversations.findIndex(
           (item) => item.id === conversation.id,
         );
+        const existingConversation =
+          existingIndex >= 0 ? conversations[existingIndex] : undefined;
 
         nextConversation = existingConversation
           ? mergeConversation(existingConversation, conversation, options)
           : conversation;
 
-        const rest = conversations.filter(
-          (item) => item.id !== conversation.id,
-        );
-        return [nextConversation, ...rest];
+        if (existingIndex >= 0) {
+          // 已有会话
+          if (shouldMoveToTop) {
+            // 移动到顶部（收到新消息场景）
+            const rest = conversations.filter(
+              (item) => item.id !== conversation.id,
+            );
+            return [nextConversation, ...rest];
+          }
+          // 保持原位置，只更新内容（点击切换会话场景）
+          const updated = [...conversations];
+          updated[existingIndex] = nextConversation;
+          return updated;
+        }
+
+        // 新会话：添加到最前面（置顶）
+        return [nextConversation, ...conversations];
       },
     );
 
