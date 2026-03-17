@@ -155,6 +155,7 @@ function buildAckPacketBody(
     mid: message.id,
     chatId: conversationId,
     timestamp: Date.now(),
+    channelType: message.channelType,
   };
 }
 

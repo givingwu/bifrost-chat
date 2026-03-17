@@ -269,6 +269,11 @@ export interface AckPacketBody {
   chatId: string;
   /** 消息时间戳 */
   timestamp: number;
+  /**
+   * 渠道类型（可选）
+   * 用于 msg_read_ack：放入 from 发送，后端据此识别已读所属渠道并对对应渠道未读数 -1
+   */
+  channelType?: string;
 }
 
 /**

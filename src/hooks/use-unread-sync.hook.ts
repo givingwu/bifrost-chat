@@ -9,7 +9,7 @@ import { useServices } from '@/providers/service.provider';
 import { ConversationCacheHelper } from '@/services/cache/conversation-cache-helper.service';
 import type { UnreadCountResult } from '@/services/core/conversation.service';
 import { MessageSyncService } from '@/services/messaging/message-sync.service';
-import { useActiveConversationId } from '@/store';
+import { useActiveConversationId, useStrategy } from '@/store';
 
 /**
  * 未读同步 Hook：库内订阅 IMessageService 的实时消息与状态更新，并直接维护会话缓存。
@@ -33,6 +33,13 @@ export function useUnreadSync(): void {
   const queryClient = useQueryClient();
   const { messageService } = useServices();
   const activeConversationId = useActiveConversationId();
+  const { activeChannel } = useStrategy();
+  const activeChannelRef = useRef(activeChannel);
+
+  useEffect(() => {
+    activeChannelRef.current = activeChannel;
+  }, [activeChannel]);
+
   const messageSyncService = useMemo(
     () => new MessageSyncService(queryClient),
     [queryClient],
@@ -111,10 +118,13 @@ export function useUnreadSync(): void {
       (event) => {
         // useMessageStatusSync 负责更新消息缓存；
         // 此处只处理未读计数：Read ACK → 会话/渠道增量 -1
-        if (event.status === MessageStatusEnum.Read && event.channelType) {
-          const channel = event.channelType;
-          const conversationId = event.conversationId;
-
+        const channel = event.channelType ?? activeChannelRef.current;
+        const conversationId = event.conversationId;
+        if (
+          event.status === MessageStatusEnum.Read &&
+          channel &&
+          conversationId
+        ) {
           // 会话缓存层：未读数 -1（不小于 0）
           ConversationCacheHelper.decrementUnread(
             queryClient,

@@ -1,3 +1,4 @@
+import type { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import {
   ClientTypeEnum,
   MessageStatusEnum,
@@ -112,6 +113,7 @@ export class AckHandler {
         app: params.app,
         pin: params.sender,
         clientType: ClientTypeEnum.Web,
+        channelType: params.channelType as ChannelTypeEnum,
       },
       to: {
         app: '',
