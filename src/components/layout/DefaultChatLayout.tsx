@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query';
 import {
   useCallback,
   useEffect,
@@ -26,6 +27,7 @@ import { useUnreadSync } from '@/hooks/use-unread-sync.hook';
 import type { Conversation } from '@/interfaces/conversation.interface';
 import type { Template } from '@/interfaces/template.interface';
 import { useTranslation } from '@/providers/I18n.provider';
+import { ConversationCacheHelper } from '@/services/cache/conversation-cache-helper.service';
 import type { TemplatePreviewResult } from '@/services/core/template.service';
 import {
   useActions,
@@ -205,13 +207,21 @@ export function DefaultChatLayout({
   const { metadata: conversationMetadata } = useActiveConversationMetadata();
   // 初始化 useSendMessage 时传入 conversationMetadata
   const sendMessage = useSendMessage({ conversationMetadata });
-  // 从会话列表中找到当前激活的会话
+  const queryClient = useQueryClient();
+  // 从会话列表中找到当前激活的会话；
+  // 找不到时从详情缓存兜底（customer 模式下会话只写入详情缓存，不在列表里）。
   const activeConversation = useMemo(
     () =>
       conversations?.find(
         (conversation) => conversation.id === activeConversationId,
-      ),
-    [activeConversationId, conversations],
+      ) ??
+      (activeConversationId
+        ? ConversationCacheHelper.findConversation(
+            queryClient,
+            activeConversationId,
+          )
+        : undefined),
+    [activeConversationId, conversations, queryClient],
   );
   // 计算 title：优先使用 getConversationDisplayTitle formatter；否则显示 user.name
   const title = activeConversation
