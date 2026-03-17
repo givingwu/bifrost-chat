@@ -177,8 +177,8 @@ describe('ConversationCacheHelper', () => {
     expect(updatedConversation?.unreadCount).toBe(8);
     expect(updatedConversation?.channel).toBe(ChannelTypeEnum.Email);
     expect(updatedConversation?.supportedChannels).toEqual([
-      ChannelTypeEnum.WhatsApp,
       ChannelTypeEnum.Email,
+      ChannelTypeEnum.WhatsApp,
     ]);
     expect(updatedConversation?.metadata).toEqual({
       synthetic: false,
