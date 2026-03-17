@@ -239,18 +239,29 @@ function mergeConversation(
     ...existingConversation,
     ...incomingConversation,
     user: mergeUser(existingConversation.user, incomingConversation.user),
-    unreadCount: options?.preserveUnreadCount
-      ? (existingConversation.unreadCount ?? incomingConversation.unreadCount)
-      : incomingConversation.unreadCount,
+    // 摘要字段：incoming 为空/零时保留 existing 的真实数据。
+    // get 类接口（如 /session/info）不包含消息摘要，会用空占位值调用此函数，
+    // 不应覆盖 list 接口已有的正确内容。
+    lastMessage:
+      incomingConversation.lastMessage || existingConversation.lastMessage,
+    lastMessageTime:
+      incomingConversation.lastMessageTime ||
+      existingConversation.lastMessageTime,
+    unreadCount:
+      options?.preserveUnreadCount ||
+      (incomingConversation.unreadCount === 0 &&
+        existingConversation.unreadCount > 0)
+        ? (existingConversation.unreadCount ?? incomingConversation.unreadCount)
+        : incomingConversation.unreadCount,
     isActive: existingConversation.isActive,
-    status: existingConversation.status ?? incomingConversation.status,
-    priority: existingConversation.priority ?? incomingConversation.priority,
+    status: incomingConversation.status ?? existingConversation.status,
+    priority: incomingConversation.priority ?? existingConversation.priority,
     createdAt: existingConversation.createdAt ?? incomingConversation.createdAt,
     updatedAt: incomingConversation.updatedAt ?? existingConversation.updatedAt,
     metadata: mergedMetadata,
     supportedChannels: mergeSupportedChannels(
-      existingConversation.supportedChannels as ChannelTypeEnum[] | undefined,
       incomingConversation.supportedChannels as ChannelTypeEnum[] | undefined,
+      existingConversation.supportedChannels as ChannelTypeEnum[] | undefined,
     ),
   };
 }
