@@ -38,7 +38,9 @@ export function isServerMessageStatus(
 ): value is ServerMessageStatus {
   return (
     typeof value === 'string' &&
-    SERVER_MESSAGE_STATUSES.includes(value as ServerMessageStatus)
+    SERVER_MESSAGE_STATUSES.includes(
+      value.toUpperCase() as ServerMessageStatus,
+    )
   );
 }
 
@@ -46,8 +48,9 @@ export function isServerMessageStatus(
  * 服务端 MessageStatus → SDK MessageStatusEnum 映射
  */
 export function mapServerMessageStatusToLocal(
-  serverStatus: ServerMessageStatus,
+  serverStatus: ServerMessageStatus | Lowercase<ServerMessageStatus>,
 ): MessageStatusEnum {
+  const normalized = serverStatus.toUpperCase() as ServerMessageStatus;
   const mapping: Record<ServerMessageStatus, MessageStatusEnum> = {
     UN_SEND: MessageStatusEnum.Sending,
     SEND_FAIL: MessageStatusEnum.Failed,
@@ -58,7 +61,7 @@ export function mapServerMessageStatusToLocal(
     DELETE: MessageStatusEnum.Deleted,
   };
 
-  return mapping[serverStatus] ?? MessageStatusEnum.Sending;
+  return mapping[normalized] ?? MessageStatusEnum.Sending;
 }
 
 /**

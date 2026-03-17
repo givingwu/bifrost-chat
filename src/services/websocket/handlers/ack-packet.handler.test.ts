@@ -398,5 +398,49 @@ describe('AckPacketHandler', () => {
 
       expect(getStatusEventData(result).status).toBe(MessageStatusEnum.Failed);
     });
+
+    it('应处理 message_status_ack（小写 send_fail → Failed，修复实际下发场景）', () => {
+      const packet = {
+        id: 'cce59932ec6643d8bfb25bc09e1a82cf',
+        chatId: null as unknown as string,
+        ptype: PacketMessageTypeEnum.MessageStatusAck,
+        from: {
+          app: 'fox_collect.waiter',
+          pin: '@im.kn.com',
+          channelType: ChannelTypeEnum.SMS,
+        },
+        to: {
+          app: 'fox_collect.waiter',
+          pin: '927d6623454d4015b7057f3678149a9c',
+          channelType: ChannelTypeEnum.SMS,
+        },
+        body: {
+          mid: 0,
+          app: 'fox_collect.waiter',
+          sender: '927d6623454d4015b7057f3678149a9c',
+          id: '1a2e88ee-69ae-48d8-8098-e2022590007a',
+          chatId: 'fox_collect_u37366',
+          status: 'send_fail', // 服务端实际下发小写
+          timestamp: 1773735173760,
+          errorInfo: 'SMS submit failed',
+        },
+        ver: '1.0',
+        timestamp: 1773735173760,
+      } as unknown as RawPacket;
+
+      const result = handler.handle({ packet });
+
+      expect(result.eventData).not.toBeNull();
+      expect(getStatusEventData(result).status).toBe(MessageStatusEnum.Failed);
+      expect(getStatusEventData(result).conversationId).toBe(
+        'fox_collect_u37366',
+      );
+      expect(getStatusEventData(result).messageId).toBe(
+        '1a2e88ee-69ae-48d8-8098-e2022590007a',
+      );
+      expect(
+        (result.eventData?.data as MessageStatusUpdatedEvent).error,
+      ).toBe('SMS submit failed');
+    });
   });
 });
