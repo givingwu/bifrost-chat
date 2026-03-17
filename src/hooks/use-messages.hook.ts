@@ -1,10 +1,10 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { useConversationDetail } from '@/hooks/use-conversation-detail.hook';
 import type { StandardMessage } from '@/interfaces/message.interface';
 import { queryKeys } from '@/providers/query.provider';
 import { useServices } from '@/providers/service.provider';
 import type { IMessageListParams } from '@/services/core/message.service';
 import { MessageMerger } from '@/services/messaging/message-merger.service';
-import { useConversationSwitching } from '@/store';
 import { logger } from '@/utils/logger.util';
 
 /**
@@ -88,7 +88,10 @@ export function useMessages<TParams extends UseMessagesParams>(
 ) {
   const services = useServices();
   const { conversationId, currentChannel } = params;
-  const isConversationSwitching = useConversationSwitching();
+  // 使用 useConversationDetail 的 isPending 状态替代手动的 isSwitching
+  // 当会话详情正在加载时，暂停消息查询以避免竞态条件
+  const { isPending: isConversationDetailLoading } =
+    useConversationDetail(conversationId);
 
   // 获取离线队列中的失败消息
   const { data: offlineMessages = [] } = useQuery({
@@ -110,7 +113,7 @@ export function useMessages<TParams extends UseMessagesParams>(
     enabled:
       !!conversationId &&
       !!services?.offlineMessageQueue &&
-      !isConversationSwitching,
+      !isConversationDetailLoading,
   });
 
   return useInfiniteQuery({
@@ -162,6 +165,6 @@ export function useMessages<TParams extends UseMessagesParams>(
     enabled:
       !!conversationId &&
       !!services?.messageService &&
-      !isConversationSwitching, // 只有当会话切换完成后才执行查询
+      !isConversationDetailLoading, // 只有当会话切换完成后才执行查询
   });
 }

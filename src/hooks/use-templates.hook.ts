@@ -2,7 +2,8 @@ import { useQuery } from '@tanstack/react-query';
 import { queryKeys } from '@/providers/query.provider';
 import { useServices } from '@/providers/service.provider';
 import type { ITemplateListParams } from '@/services/core/template.service';
-import { useConversationSwitching } from '@/store';
+import { useActiveConversationId } from '@/store';
+import { useConversationDetail } from './use-conversation-detail.hook';
 
 /**
  * 使用模板列表的 Hook
@@ -41,8 +42,11 @@ export interface UseTemplatesParams extends ITemplateListParams {}
 
 export function useTemplates(params?: UseTemplatesParams) {
   const { templateService } = useServices();
+  const activeConversationId = useActiveConversationId();
   const { conversationId, currentChannel } = params || {};
-  const isConversationSwitching = useConversationSwitching();
+  const { isPending: isConversationDetailLoading } = useConversationDetail(
+    conversationId ?? activeConversationId,
+  );
 
   return useQuery({
     queryKey: queryKeys.templates.list(conversationId, currentChannel),
@@ -54,6 +58,6 @@ export function useTemplates(params?: UseTemplatesParams) {
       return templateService.list(params ?? ({} as never));
     },
     staleTime: 1000 * 60 * 5, // 5 分钟
-    enabled: !!templateService && !isConversationSwitching, // 会话切换完成后再查询模板
+    enabled: !!templateService && !isConversationDetailLoading, // 会话切换完成后再查询模板
   });
 }

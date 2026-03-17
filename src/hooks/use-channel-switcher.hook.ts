@@ -107,11 +107,7 @@ export function useChannelSwitcher(
   const { conversationService } = useServices();
   const { t } = useTranslation();
   const { allowedChannels, activeChannel: globalActiveChannel } = useStrategy();
-  const {
-    setActiveChannel,
-    setActiveConversationId,
-    setConversationSwitching,
-  } = useActions();
+  const { setActiveChannel, setActiveConversationId } = useActions();
   const activeConversationId = useActiveConversationId();
   const { data: activeConversationMetadata } =
     useConversationMetadata(activeConversationId);
@@ -212,7 +208,6 @@ export function useChannelSwitcher(
         return;
       }
 
-      setConversationSwitching(true);
       setSwitchingChannel(channel);
 
       try {
@@ -241,7 +236,6 @@ export function useChannelSwitcher(
         setActiveChannel(channel);
         setActiveConversationId(nextConversation.id);
       } finally {
-        setConversationSwitching(false);
         setSwitchingChannel(null);
       }
     },
@@ -255,7 +249,6 @@ export function useChannelSwitcher(
       queryClient,
       setActiveChannel,
       setActiveConversationId,
-      setConversationSwitching,
       supportedChannelSessionMap,
     ],
   );

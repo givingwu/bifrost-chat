@@ -1,4 +1,3 @@
-import { useQueryClient } from '@tanstack/react-query';
 import {
   useCallback,
   useEffect,
@@ -17,6 +16,7 @@ import { TemplatePanel } from '@/components/template/TemplatePanel';
 import { Topbar } from '@/components/toolbar/Topbar';
 import { TopbarTools } from '@/components/toolbar/TopbarTools';
 import { useActiveConversationMetadata } from '@/hooks/use-active-conversation-metadata.hook';
+import { useConversationDetail } from '@/hooks/use-conversation-detail.hook';
 import { useConversations } from '@/hooks/use-conversations.hook';
 import { useMessageStatusSync } from '@/hooks/use-message-status-sync.hook';
 import { useSendMessage } from '@/hooks/use-send-message.hook';
@@ -26,8 +26,6 @@ import { useUnreadSync } from '@/hooks/use-unread-sync.hook';
 import type { Conversation } from '@/interfaces/conversation.interface';
 import type { Template } from '@/interfaces/template.interface';
 import { useTranslation } from '@/providers/I18n.provider';
-import { useServices } from '@/providers/service.provider';
-import { ConversationCacheHelper } from '@/services/cache/conversation-cache-helper.service';
 import type { TemplatePreviewResult } from '@/services/core/template.service';
 import {
   useActions,
@@ -172,8 +170,6 @@ export function DefaultChatLayout({
   getConversationDisplayTitle,
 }: DefaultChatLayoutProps) {
   const actions = useActions();
-  const queryClient = useQueryClient();
-  const { conversationService } = useServices();
   const { t } = useTranslation();
   const { profile } = useProfile();
   const { activeChannel } = useStrategy();
@@ -184,6 +180,11 @@ export function DefaultChatLayout({
     isLoading: isConversationsLoading,
   } = useConversations();
   const { activeConversationId, searchQuery } = useConversation();
+
+  // 使用 useConversationDetail 获取会话详情和加载状态
+  // RQ 会自动管理缓存和后台刷新，点击会话时只需设置 activeConversationId
+  const { isPending: isConversationDetailLoading } =
+    useConversationDetail(activeConversationId);
 
   // Composer ref，用于外部控制输入框
   const composerRef = useRef<ComposerRef>(null);
@@ -261,25 +262,12 @@ export function DefaultChatLayout({
   // 全量未读总数（基于完整会话列表，不随搜索筛选变化）
   const { totalUnread } = useTotalUnread();
 
-  // 选会话时：先获取完整详情并回写缓存，再切换激活会话。
+  // 选会话时：直接设置 activeConversationId，RQ 会自动获取详情并缓存
   const handleSelectConversation = useCallback(
-    async (conversationId: string) => {
-      actions.setConversationSwitching(true);
-
-      try {
-        const conversation = await conversationService.get(conversationId);
-
-        if (!conversation) {
-          return;
-        }
-
-        ConversationCacheHelper.cacheConversation(queryClient, conversation);
-        actions.setActiveConversationId(conversation.id);
-      } finally {
-        actions.setConversationSwitching(false);
-      }
+    (conversationId: string) => {
+      actions.setActiveConversationId(conversationId);
     },
-    [actions, conversationService, queryClient],
+    [actions],
   );
 
   // 搜索回调（使用 startTransition 标记为过渡更新）
@@ -566,6 +554,10 @@ export function DefaultChatLayout({
     >
       {/* 消息区域由 MessageList 渲染 */}
       <InfiniteMessageList
+        className={cn(
+          'transition-opacity duration-300',
+          isConversationDetailLoading && 'opacity-70 animate-pulse',
+        )}
         conversationId={activeConversationId as string}
         currentChannel={activeChannel}
       />
