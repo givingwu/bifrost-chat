@@ -1,20 +1,33 @@
-import { render } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import { DefaultChatLayout } from './DefaultChatLayout';
 
 const {
+  cacheConversationMock,
   composerFocusMock,
   composerOnSendRef,
+  conversationGetMock,
+  conversationListOnSelectRef,
   conversationStateRef,
   conversationsRef,
   mutateAsyncMock,
+  queryClientRef,
+  setActiveConversationIdMock,
+  setConversationSwitchingMock,
 } = vi.hoisted(() => ({
+  cacheConversationMock: vi.fn(),
   composerFocusMock: vi.fn(),
   composerOnSendRef: {
     current: undefined as
       | ((content: string, options?: Record<string, unknown>) => unknown)
+      | undefined,
+  },
+  conversationGetMock: vi.fn(),
+  conversationListOnSelectRef: {
+    current: undefined as
+      | ((conversationId: string) => Promise<void>)
       | undefined,
   },
   conversationStateRef: {
@@ -42,7 +55,23 @@ const {
     ],
   },
   mutateAsyncMock: vi.fn(),
+  queryClientRef: {
+    current: {} as object,
+  },
+  setActiveConversationIdMock: vi.fn(),
+  setConversationSwitchingMock: vi.fn(),
 }));
+
+vi.mock('@tanstack/react-query', async () => {
+  const actual = await vi.importActual<typeof import('@tanstack/react-query')>(
+    '@tanstack/react-query',
+  );
+
+  return {
+    ...actual,
+    useQueryClient: () => queryClientRef.current,
+  };
+});
 
 vi.mock('@/components/composer/Composer', async () => {
   const React = await import('react');
@@ -87,7 +116,25 @@ vi.mock('@/components/conversation/ConversationHeader', () => ({
 }));
 
 vi.mock('@/components/conversation/ConversationList', () => ({
-  ConversationList: () => <div />,
+  ConversationList: ({
+    onSelect,
+  }: {
+    onSelect?: (conversationId: string) => Promise<void>;
+  }) => {
+    conversationListOnSelectRef.current = onSelect;
+
+    return (
+      <button
+        data-testid="conversation-item-conv-2"
+        type="button"
+        onClick={() => {
+          void onSelect?.('conv-2');
+        }}
+      >
+        conv-2
+      </button>
+    );
+  },
 }));
 
 vi.mock('@/components/conversation/ConversationPanel', () => ({
@@ -186,10 +233,25 @@ vi.mock('@/hooks/use-message-status-sync.hook', () => ({
   useMessageStatusSync: () => undefined,
 }));
 
+vi.mock('@/providers/service.provider', () => ({
+  useServices: () => ({
+    conversationService: {
+      get: conversationGetMock,
+    },
+  }),
+}));
+
+vi.mock('@/services/cache/conversation-cache-helper.service', () => ({
+  ConversationCacheHelper: {
+    cacheConversation: cacheConversationMock,
+  },
+}));
+
 vi.mock('@/store', () => ({
   useActions: () => ({
     setSearchQuery: vi.fn(),
-    setActiveConversationId: vi.fn(),
+    setActiveConversationId: setActiveConversationIdMock,
+    setConversationSwitching: setConversationSwitchingMock,
   }),
   useComposerConfig: () => ({
     templateMode: 'edit',
@@ -207,8 +269,11 @@ vi.mock('@/store', () => ({
 describe('DefaultChatLayout', () => {
   beforeEach(() => {
     vi.useFakeTimers();
+    cacheConversationMock.mockReset();
     composerFocusMock.mockReset();
     composerOnSendRef.current = undefined;
+    conversationGetMock.mockReset();
+    conversationListOnSelectRef.current = undefined;
     conversationStateRef.current = {
       activeConversationId: 'conv-1',
       searchQuery: '',
@@ -230,6 +295,8 @@ describe('DefaultChatLayout', () => {
       },
     ];
     mutateAsyncMock.mockReset();
+    setActiveConversationIdMock.mockReset();
+    setConversationSwitchingMock.mockReset();
   });
 
   afterEach(() => {
@@ -278,5 +345,32 @@ describe('DefaultChatLayout', () => {
 
     vi.runAllTimers();
     expect(composerFocusMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('应在点击会话列表项时先获取详情并激活会话', async () => {
+    const nextConversation = {
+      id: 'conv-2',
+      channel: ChannelTypeEnum.SMS,
+      user: {
+        name: '李四',
+      },
+    };
+    conversationGetMock.mockResolvedValue(nextConversation);
+
+    render(<DefaultChatLayout />);
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('conversation-item-conv-2'));
+      await Promise.resolve();
+    });
+
+    expect(conversationGetMock).toHaveBeenCalledWith('conv-2');
+    expect(cacheConversationMock).toHaveBeenCalledWith(
+      queryClientRef.current,
+      nextConversation,
+    );
+    expect(setActiveConversationIdMock).toHaveBeenCalledWith('conv-2');
+    expect(setConversationSwitchingMock).toHaveBeenCalledWith(true);
+    expect(setConversationSwitchingMock).toHaveBeenCalledWith(false);
   });
 });

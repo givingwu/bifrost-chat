@@ -62,6 +62,20 @@ vi.mock('@/store', () => ({
   }),
 }));
 
+vi.mock('./ChannelBadgeSwitcher', () => ({
+  ChannelBadgeSwitcher: ({
+    supportedChannels,
+  }: {
+    supportedChannels?: string[];
+  }) => (
+    <div data-testid="channel-badge-switcher">
+      {(supportedChannels ?? []).map((channel) => (
+        <button key={channel} data-channel={channel} type="button" />
+      ))}
+    </div>
+  ),
+}));
+
 describe('ComposerToolbar', () => {
   beforeEach(() => {
     cleanup();

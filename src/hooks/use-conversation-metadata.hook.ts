@@ -1,7 +1,32 @@
-import { useQuery } from '@tanstack/react-query';
-import { queryKeys } from '@/providers/query.provider';
-import { useServices } from '@/providers/service.provider';
+import { useQueryClient } from '@tanstack/react-query';
+import { useMemo } from 'react';
+import type { Conversation } from '@/interfaces/conversation.interface';
+import { ConversationCacheHelper } from '@/services/cache/conversation-cache-helper.service';
 import type { ConversationMetadata } from '@/services/core/conversation.service';
+import { useConversationDetail } from './use-conversation-detail.hook';
+
+function toConversationMetadata<
+  TConversationMetadata extends ConversationMetadata = ConversationMetadata,
+>(conversation: Conversation | null | undefined): TConversationMetadata | null {
+  if (!conversation) {
+    return null;
+  }
+
+  const metadataRecord =
+    conversation.metadata && typeof conversation.metadata === 'object'
+      ? conversation.metadata
+      : {};
+  const metadata = metadataRecord as TConversationMetadata;
+  const supportedChannels =
+    conversation.supportedChannels && conversation.supportedChannels.length > 0
+      ? conversation.supportedChannels
+      : metadata.supportedChannels;
+
+  return {
+    ...metadata,
+    supportedChannels,
+  } as TConversationMetadata;
+}
 
 /**
  * 使用会话元数据的 Hook
@@ -33,24 +58,22 @@ import type { ConversationMetadata } from '@/services/core/conversation.service'
 export function useConversationMetadata<
   TConversationMetadata extends ConversationMetadata = ConversationMetadata,
 >(conversationId: string) {
-  const { conversationService } = useServices();
+  const queryClient = useQueryClient();
+  const detailQuery = useConversationDetail(conversationId);
 
-  return useQuery<TConversationMetadata | null>({
-    queryKey: queryKeys.conversations.metadata(conversationId),
-    queryFn: async () => {
-      // 检查服务是否实现了 getMetadata 方法
-      if (!conversationService?.getMetadata) {
-        console.warn(
-          '[useConversationMetadata] getMetadata method not implemented on conversationService',
-        );
-        return null;
-      }
+  const fallbackConversation = conversationId
+    ? ConversationCacheHelper.findConversation(queryClient, conversationId)
+    : undefined;
+  const data = useMemo(
+    () =>
+      toConversationMetadata<TConversationMetadata>(
+        detailQuery.data ?? fallbackConversation,
+      ),
+    [detailQuery.data, fallbackConversation],
+  );
 
-      return conversationService.getMetadata({
-        id: conversationId,
-      }) as Promise<TConversationMetadata>;
-    },
-    enabled: !!conversationService?.getMetadata && !!conversationId,
-    staleTime: 1000 * 60 * 5, // 5 分钟
-  });
+  return {
+    ...detailQuery,
+    data,
+  };
 }

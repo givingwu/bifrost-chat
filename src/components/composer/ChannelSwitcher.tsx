@@ -48,12 +48,18 @@ export const ChannelSwitcher = memo(
     onChannelChange,
     compact = false,
   }: ChannelSwitcherProps) => {
-    const { channels, activeChannel, handleChannelChange, shouldRender } =
-      useChannelSwitcher({
-        supportedChannels,
-        activeChannel: propActiveChannel,
-        onChannelChange,
-      });
+    const {
+      channels,
+      activeChannel,
+      channelStates,
+      switchingChannel,
+      handleChannelChange,
+      shouldRender,
+    } = useChannelSwitcher({
+      supportedChannels,
+      activeChannel: propActiveChannel,
+      onChannelChange,
+    });
 
     const getLabel = useChannelLabel();
     const getIcon = useChannelIcon('sm');
@@ -68,15 +74,19 @@ export const ChannelSwitcher = memo(
       >
         {channels.map((channel) => {
           const isActive = channel === activeChannel;
+          const isDisabled = !!channelStates[channel]?.disabled;
           const icon = getIcon(channel);
           const label = getLabel(channel);
+          const tooltip = channelStates[channel]?.tooltip ?? label;
 
           return (
             <Button
               type="button"
               data-channel={channel}
               key={channel}
-              onClick={() => handleChannelChange(channel)}
+              onClick={() => {
+                void handleChannelChange(channel);
+              }}
               className={cn(
                 'flex items-center transition-all duration-200',
                 compact
@@ -85,8 +95,11 @@ export const ChannelSwitcher = memo(
                 isActive
                   ? 'bg-blue-500 text-white shadow-sm'
                   : 'bg-gray-200 dark:bg-white/10 text-gray-600 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-white/20',
+                isDisabled && 'cursor-not-allowed opacity-50 hover:bg-gray-200',
+                switchingChannel === channel && 'opacity-70',
               )}
-              title={compact ? label : undefined}
+              aria-disabled={isDisabled || undefined}
+              title={compact ? tooltip : undefined}
             >
               <span className="transition-all duration-200">{icon}</span>
               {!compact && <span className="text-xs">{label}</span>}

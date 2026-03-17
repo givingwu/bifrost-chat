@@ -35,7 +35,6 @@ export type UnreadCountResult = Partial<Record<ChannelTypeEnum, number>>;
  * @template TListParams 列表查询参数类型
  * @template TCreateParams 创建参数类型
  * @template TQueryParams 查询参数类型
- * @template TMetadataParams 获取元数据的参数类型
  *
  * @description
  * SDK 定义接口，调用方提供实现。
@@ -65,8 +64,6 @@ export interface IConversationService<
   TListParams = any,
   TCreateParams = any,
   TQueryParams = any,
-  TMetadataParams extends Pick<Conversation, 'id'> = Pick<Conversation, 'id'>,
-  TConversationMetadata extends ConversationMetadata = ConversationMetadata,
 > {
   /**
    * 获取会话列表
@@ -77,6 +74,11 @@ export interface IConversationService<
 
   /**
    * 获取会话详情
+   *
+   * @description
+   * 用于“已知 chatId，获取完整会话 info”的场景。
+   * 宿主可将其映射到 `POST /chat/v2/session/info`。
+   *
    * @param conversationId 会话 ID
    * @returns 会话详情，如果不存在返回 null
    */
@@ -127,23 +129,6 @@ export interface IConversationService<
     conversationId: string,
     callback: (conversation: Conversation) => void,
   ): () => void;
-
-  /**
-   * 获取会话元数据
-   * - SDK 层使用 supportedChannels
-   * - 业务数据通过返回值的扩展字段传递
-   *
-   * @param params 查询参数
-   * @returns 会话元数据（包含 supportedChannels 和业务 metadata）
-   *
-   * @example
-   * ```typescript
-   * const metadata = await conversationService.getMetadata({ id: 'conv-123' });
-   * // metadata.supportedChannels - SDK 使用
-   * // metadata.customerPin, metadata.assetFromApp, metadata.whatsappFreeTemplate... - 业务数据
-   * ```
-   */
-  getMetadata?(params: TMetadataParams): Promise<TConversationMetadata>;
 
   /**
    * 获取未读数量

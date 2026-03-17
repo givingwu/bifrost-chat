@@ -48,7 +48,8 @@
     },
     "channelFilter": {
       "ariaLabel": "渠道筛选",
-      "unread": "{{count}} 条未读"
+      "unread": "{{count}} 条未读",
+      "unsupportedCurrentConversation": "当前会话暂不支持 {{channel}}"
     }
   },
   "composer": {

@@ -199,6 +199,29 @@ export const WithoutUnreadBadge: Story = {
 };
 
 /**
+ * 禁用态渠道
+ */
+export const WithDisabledChannels: Story = {
+  args: {
+    channels: AvailableChannels,
+    activeChannel: ChannelTypeEnum.WhatsApp,
+    onChannelClick: () => {},
+    compact: true,
+    showTooltip: true,
+    channelStates: {
+      [ChannelTypeEnum.Email]: {
+        disabled: true,
+        tooltip: '当前会话暂不支持 Email',
+      },
+      [ChannelTypeEnum.Viber]: {
+        disabled: true,
+        tooltip: '当前会话暂不支持 Viber',
+      },
+    },
+  },
+};
+
+/**
  * 大量未读（测试 99+ 截断）
  */
 export const UnreadOverflow: Story = {

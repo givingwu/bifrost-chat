@@ -15,7 +15,6 @@ const mockConversationService: IConversationService = {
   get: vi.fn(),
   create: vi.fn(),
   query: vi.fn(),
-  getMetadata: vi.fn(),
   getUnreadCount: vi.fn(),
 };
 

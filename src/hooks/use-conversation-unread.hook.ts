@@ -14,9 +14,7 @@ export function useConversationUnread(
   conversationId: string,
   baseUnreadCount: number,
 ): number {
-  const { data: deltaUnreadByConversation } = useQuery<
-    Record<string, number>
-  >({
+  const { data: deltaUnreadByConversation } = useQuery<Record<string, number>>({
     queryKey: queryKeys.conversations.unreadDeltas.conversation(),
     // 纯前端状态，queryFn 仅提供一个空对象作为初始值
     queryFn: async () => ({}),
@@ -30,4 +28,3 @@ export function useConversationUnread(
     return effective;
   }, [baseUnreadCount, conversationId, deltaUnreadByConversation]);
 }
-

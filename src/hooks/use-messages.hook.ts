@@ -4,6 +4,7 @@ import { queryKeys } from '@/providers/query.provider';
 import { useServices } from '@/providers/service.provider';
 import type { IMessageListParams } from '@/services/core/message.service';
 import { MessageMerger } from '@/services/messaging/message-merger.service';
+import { useConversationSwitching } from '@/store';
 import { logger } from '@/utils/logger.util';
 
 /**
@@ -87,6 +88,7 @@ export function useMessages<TParams extends UseMessagesParams>(
 ) {
   const services = useServices();
   const { conversationId, currentChannel } = params;
+  const isConversationSwitching = useConversationSwitching();
 
   // 获取离线队列中的失败消息
   const { data: offlineMessages = [] } = useQuery({
@@ -105,7 +107,10 @@ export function useMessages<TParams extends UseMessagesParams>(
       }
     },
     staleTime: 0, // 始终重新获取
-    enabled: !!conversationId && !!services?.offlineMessageQueue,
+    enabled:
+      !!conversationId &&
+      !!services?.offlineMessageQueue &&
+      !isConversationSwitching,
   });
 
   return useInfiniteQuery({
@@ -154,6 +159,9 @@ export function useMessages<TParams extends UseMessagesParams>(
         }),
       };
     },
-    enabled: !!conversationId && !!services?.messageService, // 只有当 conversationId 和服务都存在时才执行查询
+    enabled:
+      !!conversationId &&
+      !!services?.messageService &&
+      !isConversationSwitching, // 只有当会话切换完成后才执行查询
   });
 }

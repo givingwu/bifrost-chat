@@ -48,7 +48,8 @@
     },
     "channelFilter": {
       "ariaLabel": "Channel Filter",
-      "unread": "{{count}} unread"
+      "unread": "{{count}} unread",
+      "unsupportedCurrentConversation": "Current conversation does not support {{channel}}"
     }
   },
   "composer": {

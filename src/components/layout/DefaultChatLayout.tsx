@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query';
 import {
   useCallback,
   useEffect,
@@ -25,6 +26,8 @@ import { useUnreadSync } from '@/hooks/use-unread-sync.hook';
 import type { Conversation } from '@/interfaces/conversation.interface';
 import type { Template } from '@/interfaces/template.interface';
 import { useTranslation } from '@/providers/I18n.provider';
+import { useServices } from '@/providers/service.provider';
+import { ConversationCacheHelper } from '@/services/cache/conversation-cache-helper.service';
 import type { TemplatePreviewResult } from '@/services/core/template.service';
 import {
   useActions,
@@ -169,6 +172,8 @@ export function DefaultChatLayout({
   getConversationDisplayTitle,
 }: DefaultChatLayoutProps) {
   const actions = useActions();
+  const queryClient = useQueryClient();
+  const { conversationService } = useServices();
   const { t } = useTranslation();
   const { profile } = useProfile();
   const { activeChannel } = useStrategy();
@@ -256,12 +261,25 @@ export function DefaultChatLayout({
   // 全量未读总数（基于完整会话列表，不随搜索筛选变化）
   const { totalUnread } = useTotalUnread();
 
-  // 选会话时：仅设置激活 ID；未读数完全由 socket ACK 驱动（msg_receive_ack +1 / msg_read_ack -1）
+  // 选会话时：先获取完整详情并回写缓存，再切换激活会话。
   const handleSelectConversation = useCallback(
-    (conversationId: string) => {
-      actions.setActiveConversationId(conversationId);
+    async (conversationId: string) => {
+      actions.setConversationSwitching(true);
+
+      try {
+        const conversation = await conversationService.get(conversationId);
+
+        if (!conversation) {
+          return;
+        }
+
+        ConversationCacheHelper.cacheConversation(queryClient, conversation);
+        actions.setActiveConversationId(conversation.id);
+      } finally {
+        actions.setConversationSwitching(false);
+      }
     },
-    [actions],
+    [actions, conversationService, queryClient],
   );
 
   // 搜索回调（使用 startTransition 标记为过渡更新）

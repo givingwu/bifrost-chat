@@ -1,12 +1,6 @@
 import { memo, type ReactNode } from 'react';
-import { useChannelUnread } from '@/hooks';
-import {
-  useActions,
-  useLanguage,
-  useNetwork,
-  useStrategy,
-  useTheme,
-} from '@/store';
+import { useChannelSwitcher, useChannelUnread } from '@/hooks';
+import { useActions, useLanguage, useNetwork, useTheme } from '@/store';
 import { ChannelFilter } from './ChannelFilter';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { NetworkStatus } from './NetworkStatus';
@@ -21,19 +15,23 @@ export interface ITopbarTools {
  */
 export const TopbarTools = memo(({ extra = null }: ITopbarTools) => {
   const { status, enableStatusIndicator: showNetworkStatus } = useNetwork();
-  const { activeChannel, allowedChannels } = useStrategy();
+  const { channels, activeChannel, channelStates, handleChannelChange } =
+    useChannelSwitcher();
   const { mode, enableSwitcher: showThemeSwitcher } = useTheme();
   const { code, enableSwitcher: showLanguageSwitcher } = useLanguage();
-  const { setTheme, setLanguage, setActiveChannel } = useActions();
-  const unreadByChannel = useChannelUnread(allowedChannels);
+  const { setTheme, setLanguage } = useActions();
+  const unreadByChannel = useChannelUnread(channels);
 
   return (
     <div className="flex items-center gap-4">
       {/* 渠道切换器 */}
       <ChannelFilter
-        channels={allowedChannels}
+        channels={channels}
         activeChannel={activeChannel}
-        onChannelClick={setActiveChannel}
+        onChannelClick={(channel) => {
+          void handleChannelChange(channel);
+        }}
+        channelStates={channelStates}
         unreadByChannel={unreadByChannel}
         showTooltip
       />
@@ -42,7 +40,7 @@ export const TopbarTools = memo(({ extra = null }: ITopbarTools) => {
       {showNetworkStatus && <NetworkStatus status={status} />}
 
       {/* 分隔线 */}
-      {(allowedChannels.length > 1 || showNetworkStatus || extra) && (
+      {(channels.length > 1 || showNetworkStatus || extra) && (
         <div className="h-6 w-px bg-gray-200 dark:bg-white/10 mx-2"></div>
       )}
 

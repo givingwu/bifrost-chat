@@ -1,6 +1,9 @@
 import type { InfiniteData, QueryClient } from '@tanstack/react-query';
 import { AgentStatusEnum } from '@/interfaces/agent.interface';
-import type { ChannelTypeEnum } from '@/interfaces/channel.interface';
+import {
+  AvailableChannels,
+  type ChannelTypeEnum,
+} from '@/interfaces/channel.interface';
 import {
   type Conversation,
   ConversationStatusEnum,
@@ -331,6 +334,106 @@ export class ConversationCacheHelper {
     );
   }
 
+  /**
+   * 获取单个会话详情缓存。
+   *
+   * @param queryClient React Query 客户端
+   * @param conversationId 会话 ID
+   * @returns 缓存中的完整会话，未命中返回 undefined
+   */
+  static getConversationDetail(
+    queryClient: QueryClient,
+    conversationId: string,
+  ): Conversation | undefined {
+    return queryClient.getQueryData<Conversation>(
+      queryKeys.conversations.detail(conversationId),
+    );
+  }
+
+  /**
+   * 在详情缓存与各渠道列表缓存中查找单个会话。
+   *
+   * @param queryClient React Query 客户端
+   * @param conversationId 会话 ID
+   * @returns 命中的会话，未命中返回 undefined
+   */
+  static findConversation(
+    queryClient: QueryClient,
+    conversationId: string,
+  ): Conversation | undefined {
+    const cachedDetail = ConversationCacheHelper.getConversationDetail(
+      queryClient,
+      conversationId,
+    );
+
+    if (cachedDetail) {
+      return cachedDetail;
+    }
+
+    for (const channel of AvailableChannels) {
+      const conversation = ConversationCacheHelper.getMergedConversations(
+        queryClient,
+        channel,
+      ).find((item) => item.id === conversationId);
+
+      if (conversation) {
+        return conversation;
+      }
+    }
+
+    return undefined;
+  }
+
+  /**
+   * 写入单个会话详情缓存。
+   *
+   * @param queryClient React Query 客户端
+   * @param conversation 会话详情
+   * @returns 合并后的会话详情
+   */
+  static setConversationDetail(
+    queryClient: QueryClient,
+    conversation: Conversation,
+  ): Conversation {
+    const currentConversation = ConversationCacheHelper.getConversationDetail(
+      queryClient,
+      conversation.id,
+    );
+    const nextConversation = currentConversation
+      ? mergeConversation(currentConversation, conversation)
+      : conversation;
+
+    queryClient.setQueryData(
+      queryKeys.conversations.detail(conversation.id),
+      nextConversation,
+    );
+
+    return nextConversation;
+  }
+
+  /**
+   * 将完整会话详情同时写回详情缓存和对应渠道列表缓存。
+   *
+   * @param queryClient React Query 客户端
+   * @param conversation 会话详情
+   * @returns 合并后的会话详情
+   */
+  static cacheConversation(
+    queryClient: QueryClient,
+    conversation: Conversation,
+  ): Conversation {
+    const nextConversation = ConversationCacheHelper.upsertConversation(
+      queryClient,
+      conversation,
+      conversation.channel,
+    );
+
+    return ConversationCacheHelper.setConversationDetail(
+      queryClient,
+      nextConversation,
+    );
+  }
+
   static buildSyntheticConversation(message: StandardMessage): Conversation {
     const peer = getPeerParticipant(message);
     const isoTimestamp = new Date(message.timestamp).toISOString();
@@ -392,7 +495,10 @@ export class ConversationCacheHelper {
       },
     );
 
-    return nextConversation;
+    return ConversationCacheHelper.setConversationDetail(
+      queryClient,
+      nextConversation,
+    );
   }
 
   static upsertPendingConversation(
@@ -425,7 +531,10 @@ export class ConversationCacheHelper {
       },
     );
 
-    return nextConversation;
+    return ConversationCacheHelper.setConversationDetail(
+      queryClient,
+      nextConversation,
+    );
   }
 
   static confirmPendingConversation(
@@ -522,6 +631,11 @@ export class ConversationCacheHelper {
         pageParams: old?.pageParams ?? [1],
       }),
     );
+
+    for (const conversation of conversations) {
+      ConversationCacheHelper.setConversationDetail(queryClient, conversation);
+    }
+
     return conversations;
   }
 
@@ -554,6 +668,13 @@ export class ConversationCacheHelper {
         return nextConversation;
       }),
     );
+
+    if (nextConversation) {
+      ConversationCacheHelper.setConversationDetail(
+        queryClient,
+        nextConversation,
+      );
+    }
 
     return nextConversation;
   }
@@ -592,6 +713,13 @@ export class ConversationCacheHelper {
       },
     );
 
+    if (updatedConversation) {
+      ConversationCacheHelper.setConversationDetail(
+        queryClient,
+        updatedConversation,
+      );
+    }
+
     return updatedConversation;
   }
 
@@ -617,6 +745,13 @@ export class ConversationCacheHelper {
       }),
     );
 
+    if (nextConversation) {
+      ConversationCacheHelper.setConversationDetail(
+        queryClient,
+        nextConversation,
+      );
+    }
+
     return nextConversation;
   }
 
@@ -634,6 +769,13 @@ export class ConversationCacheHelper {
         return nextConversation;
       }),
     );
+
+    if (nextConversation) {
+      ConversationCacheHelper.setConversationDetail(
+        queryClient,
+        nextConversation,
+      );
+    }
 
     return nextConversation;
   }
@@ -656,6 +798,13 @@ export class ConversationCacheHelper {
         return nextConversation;
       }),
     );
+
+    if (nextConversation) {
+      ConversationCacheHelper.setConversationDetail(
+        queryClient,
+        nextConversation,
+      );
+    }
 
     return nextConversation;
   }

@@ -101,20 +101,6 @@ class MyConversationService implements IConversationService {
     });
     return (await response.json()) as Conversation | null;
   }
-
-  async getMetadata(params: { id: string }) {
-    const response = await fetch('/chat/v2/session/info', {
-      method: 'POST',
-      body: JSON.stringify({ chatId: params.id }),
-      headers: { 'Content-Type': 'application/json' },
-    });
-    return (await response.json()) as {
-      supportedChannels?: string[];
-      customerPin?: string;
-      assetFromApp?: string;
-      whatsappFreeTemplate?: string;
-    };
-  }
 }
 
 class MyMessageService implements IMessageService {

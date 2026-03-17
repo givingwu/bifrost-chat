@@ -52,6 +52,11 @@ export function useCreateConversation<TParams = Conversation>(
     mutationFn: (params: TParams) => conversationService.create(params),
 
     onSuccess: (newConversation) => {
+      ConversationCacheHelper.setConversationDetail(
+        queryClient,
+        newConversation,
+      );
+
       // 从返回的会话中获取 channel，确保更新到正确的渠道列表
       const channel = newConversation.channel;
 

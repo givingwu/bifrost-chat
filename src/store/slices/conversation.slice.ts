@@ -9,6 +9,8 @@ import type { StateCreator } from 'zustand';
 export interface ConversationState {
   /** 当前激活的会话 ID（用于 UI 高亮，不是数据源） */
   activeConversationId: string;
+  /** 当前是否正在切换会话 */
+  isSwitching: boolean;
   /** 会话列表搜索关键词 */
   searchQuery: string;
 }
@@ -20,6 +22,7 @@ export interface ConversationSlice {
   conversation: ConversationState;
   actions: {
     setActiveConversationId: (conversationId: string) => void;
+    setConversationSwitching: (isSwitching: boolean) => void;
     setSearchQuery: (query: string) => void;
   };
 }
@@ -32,6 +35,7 @@ export const createConversationSlice: StateCreator<
 > = (set) => ({
   conversation: {
     activeConversationId: '',
+    isSwitching: false,
     searchQuery: '',
   },
   actions: {
@@ -40,6 +44,13 @@ export const createConversationSlice: StateCreator<
         conversation: {
           ...state.conversation,
           activeConversationId: conversationId,
+        },
+      })),
+    setConversationSwitching: (isSwitching: boolean) =>
+      set((state) => ({
+        conversation: {
+          ...state.conversation,
+          isSwitching,
         },
       })),
     setSearchQuery: (query: string) =>

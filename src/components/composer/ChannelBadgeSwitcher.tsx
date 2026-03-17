@@ -38,23 +38,33 @@ export const ChannelBadgeSwitcher = memo(
     activeChannel: propActiveChannel,
     onChannelChange,
   }: ChannelBadgeSwitcherProps) => {
-    const { channels, activeChannel, handleChannelChange, shouldRender } =
-      useChannelSwitcher({
-        supportedChannels,
-        activeChannel: propActiveChannel,
-        onChannelChange,
-      });
+    const {
+      channels,
+      activeChannel,
+      channelStates,
+      switchingChannel,
+      handleChannelChange,
+      shouldRender,
+    } = useChannelSwitcher({
+      supportedChannels,
+      activeChannel: propActiveChannel,
+      onChannelChange,
+    });
 
     const [isOpen, setIsOpen] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
 
     // 处理渠道选择
     const handleChannelClick = useCallback(
-      (channel: ChannelTypeEnum) => {
-        handleChannelChange(channel);
+      async (channel: ChannelTypeEnum) => {
+        if (channelStates[channel]?.disabled) {
+          return;
+        }
+
+        await handleChannelChange(channel);
         setIsOpen(false);
       },
-      [handleChannelChange],
+      [channelStates, handleChannelChange],
     );
 
     // 处理触发按钮点击
@@ -141,14 +151,18 @@ export const ChannelBadgeSwitcher = memo(
             <div className="p-1">
               {channels.map((channel) => {
                 const isActive = channel === activeChannel;
+                const isDisabled = !!channelStates[channel]?.disabled;
                 const icon = getIcon(channel);
                 const label = getLabel(channel);
+                const tooltip = channelStates[channel]?.tooltip ?? label;
 
                 return (
                   <button
                     type="button"
                     key={channel}
-                    onClick={() => handleChannelClick(channel)}
+                    onClick={() => {
+                      void handleChannelClick(channel);
+                    }}
                     className={cn(
                       'flex items-center gap-2 px-3 py-2 rounded-lg',
                       'w-full text-left transition-all duration-150',
@@ -156,9 +170,14 @@ export const ChannelBadgeSwitcher = memo(
                       isActive
                         ? 'bg-primary text-primary-foreground'
                         : 'hover:bg-muted text-text',
+                      isDisabled &&
+                        'cursor-not-allowed opacity-50 hover:bg-transparent',
+                      switchingChannel === channel && 'opacity-70',
                     )}
                     role="menuitem"
                     aria-current={isActive ? 'true' : undefined}
+                    aria-disabled={isDisabled || undefined}
+                    title={tooltip}
                   >
                     <span className="transition-all duration-200">{icon}</span>
                     <span className="text-xs">{label}</span>

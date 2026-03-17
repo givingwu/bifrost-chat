@@ -4,13 +4,12 @@ import {
   MessageDirectionEnum,
   MessageStatusEnum,
 } from '@/interfaces/message.interface';
-
-import { useServices } from '@/providers/service.provider';
 import { queryKeys } from '@/providers/query.provider';
+import { useServices } from '@/providers/service.provider';
 import { ConversationCacheHelper } from '@/services/cache/conversation-cache-helper.service';
+import type { UnreadCountResult } from '@/services/core/conversation.service';
 import { MessageSyncService } from '@/services/messaging/message-sync.service';
 import { useActiveConversationId } from '@/store';
-import type { UnreadCountResult } from '@/services/core/conversation.service';
 
 /**
  * 未读同步 Hook：库内订阅 IMessageService 的实时消息与状态更新，并直接维护会话缓存。

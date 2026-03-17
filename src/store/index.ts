@@ -229,6 +229,13 @@ export const useActiveConversationId = () =>
   useChatStore((state) => state.conversation.activeConversationId);
 
 /**
+ * 当前是否正在切换会话
+ * @returns
+ */
+export const useConversationSwitching = () =>
+  useChatStore((state) => state.conversation.isSwitching);
+
+/**
  * Profile 状态选择器
  * 返回客户画像相关的状态（客户信息等）
  *
@@ -282,6 +289,7 @@ export const resetChatStore = () => {
     // 重置 conversation 状态
     const conversation: ConversationState = {
       activeConversationId: '',
+      isSwitching: false,
       searchQuery: '',
     };
 
