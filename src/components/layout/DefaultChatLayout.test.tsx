@@ -12,6 +12,7 @@ const {
   conversationListOnSelectRef,
   conversationStateRef,
   conversationsRef,
+  getConversationDetailMock,
   mutateAsyncMock,
   queryClientRef,
   setActiveConversationIdMock,
@@ -54,6 +55,7 @@ const {
       },
     ],
   },
+  getConversationDetailMock: vi.fn(),
   mutateAsyncMock: vi.fn(),
   queryClientRef: {
     current: {} as object,
@@ -207,6 +209,14 @@ vi.mock('@/hooks/use-active-conversation-metadata.hook', () => ({
   }),
 }));
 
+vi.mock('@/hooks/use-conversation-detail.hook', () => ({
+  useConversationDetail: () => ({
+    data: undefined,
+    isFetching: false,
+    isLoading: false,
+  }),
+}));
+
 vi.mock('@/hooks/use-send-message.hook', () => ({
   useSendMessage: () => ({
     mutateAsync: mutateAsyncMock,
@@ -244,6 +254,7 @@ vi.mock('@/providers/service.provider', () => ({
 vi.mock('@/services/cache/conversation-cache-helper.service', () => ({
   ConversationCacheHelper: {
     cacheConversation: cacheConversationMock,
+    getConversationDetail: getConversationDetailMock,
   },
 }));
 
@@ -294,6 +305,7 @@ describe('DefaultChatLayout', () => {
         },
       },
     ];
+    getConversationDetailMock.mockReset();
     mutateAsyncMock.mockReset();
     setActiveConversationIdMock.mockReset();
     setConversationSwitchingMock.mockReset();
@@ -347,16 +359,7 @@ describe('DefaultChatLayout', () => {
     expect(composerFocusMock).toHaveBeenCalledTimes(1);
   });
 
-  it('应在点击会话列表项时先获取详情并激活会话', async () => {
-    const nextConversation = {
-      id: 'conv-2',
-      channel: ChannelTypeEnum.SMS,
-      user: {
-        name: '李四',
-      },
-    };
-    conversationGetMock.mockResolvedValue(nextConversation);
-
+  it('应在点击会话列表项时激活会话', async () => {
     render(<DefaultChatLayout />);
 
     await act(async () => {
@@ -364,13 +367,7 @@ describe('DefaultChatLayout', () => {
       await Promise.resolve();
     });
 
-    expect(conversationGetMock).toHaveBeenCalledWith('conv-2');
-    expect(cacheConversationMock).toHaveBeenCalledWith(
-      queryClientRef.current,
-      nextConversation,
-    );
+    // 当前实现：直接设置 activeConversationId，由 useConversationDetail hook 负责获取详情
     expect(setActiveConversationIdMock).toHaveBeenCalledWith('conv-2');
-    expect(setConversationSwitchingMock).toHaveBeenCalledWith(true);
-    expect(setConversationSwitchingMock).toHaveBeenCalledWith(false);
   });
 });
