@@ -4,11 +4,11 @@ import {
   useChannelIcon,
 } from '@/hooks/use-channel-icon.hook';
 import { useChannelLabel } from '@/hooks/use-channel-label.hook';
-import type { ChannelStateDescriptor } from '@/hooks/use-channel-switcher.hook';
 import type { AgentStatusEnum } from '@/interfaces/agent.interface';
 import type { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import { useTranslation } from '@/providers/I18n.provider';
 import { cn } from '@/utils/class.util';
+import type { ChannelStateDescriptor } from './TopbarTools';
 
 export interface ChannelFilterProps {
   /** 坐席状态（in_call 时触发互斥逻辑） */

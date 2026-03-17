@@ -17,7 +17,6 @@ import { useComposerConfig } from '@/store';
 import { cn } from '@/utils/class.util';
 import { AttachmentPreview } from './AttachmentPreview';
 import { AudioRecorder } from './AudioRecorder';
-import { ChannelBadgeSwitcher } from './ChannelBadgeSwitcher';
 import { ComposerActions } from './ComposerActions';
 
 // ==================== 类型定义 ====================
@@ -341,12 +340,6 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(
           <div className="flex items-center justify-between">
             {/* 左侧：渠道相关 */}
             <div className="flex items-center gap-1">
-              {composerConfig.showChannelSwitcher && (
-                <ChannelBadgeSwitcher
-                  activeChannel={channel}
-                  data-testid={TEST_IDS.COMPOSER_CHANNEL_SWITCHER}
-                />
-              )}
               {composerConfig.showHint && <ComposerHint channel={channel} />}
               {composerConfig.showCharCount && (
                 <ComposerCharCount

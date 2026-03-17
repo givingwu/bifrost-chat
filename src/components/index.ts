@@ -3,7 +3,6 @@ export { Avatar } from './Avatar';
 export { Button, CircularButton } from './Button';
 // Composer Components
 export { AttachmentPreview } from './composer/AttachmentPreview';
-export { ChannelSwitcher } from './composer/ChannelSwitcher';
 export { Composer } from './composer/Composer';
 export { ComposerActions } from './composer/ComposerActions';
 export { ComposerAttachments } from './composer/ComposerAttachments';

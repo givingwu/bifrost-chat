@@ -2,16 +2,36 @@ import type { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import type { Conversation } from '@/interfaces/conversation.interface';
 
 /**
- * 会话元数据基础结构
- * SDK 层使用 supportedChannels，业务数据通过扩展字段传递
+ * 支持的渠道会话信息
+ *
+ * @description
+ * 用于描述一个会话在各渠道下的状态：
+ * - channelType: 渠道类型
+ * - conversationId: 该渠道下的会话ID
+ *
+ * 宿主层在传入 SDK 前需要将 chatId 转换为 conversationId。
  */
 export interface SupportedChannelSession {
+  /** 会话ID（SDK 统一命名） */
   conversationId: string;
+  /** 渠道类型 */
   channelType: ChannelTypeEnum;
 }
 
-export interface ConversationMetadata
-  extends Pick<Conversation, 'supportedChannels'> {
+/**
+ * 会话元数据基础结构
+ *
+ * @description
+ * - supportedChannels: 支持的渠道类型列表（用于 UI 渲染渠道图标）
+ * - supportedChannelSessions: 支持的渠道会话详情（用于渠道切换时获取 chatId）
+ *
+ * 注意：宿主层可能直接在 metadata.supportedChannels 中传递对象数组，
+ * useConversationMetadata hook 会自动处理这种格式。
+ */
+export interface ConversationMetadata {
+  /** 支持的渠道类型列表 */
+  supportedChannels?: ChannelTypeEnum[];
+  /** 支持的渠道会话详情 */
   supportedChannelSessions?: SupportedChannelSession[];
 }
 

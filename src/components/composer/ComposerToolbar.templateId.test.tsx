@@ -23,7 +23,6 @@ vi.mock('@/store', () => ({
     enableAudioInput: false,
     showEmojiButton: false,
     showCharCount: false,
-    showChannelSwitcher: false,
     showHint: false,
     customMessageMaxLength: undefined,
     ignoreMaxLengthForTemplateMessages: true,

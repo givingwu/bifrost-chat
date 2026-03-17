@@ -159,6 +159,7 @@ export const ConversationList = memo(
 
     // 触底加载：IntersectionObserver 监听底部哨兵元素
     const sentinelRef = useRef<HTMLDivElement>(null);
+
     useEffect(() => {
       if (!shouldAutoFetch || !hasNextPage) return;
       const sentinel = sentinelRef.current;

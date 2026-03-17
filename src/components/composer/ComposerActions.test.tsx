@@ -20,7 +20,6 @@ const mockComposerConfig = {
   allowedFileTypes: undefined,
   maxAudioDuration: 300,
   audioOutputFormat: AudioOutputFormatEnum.Raw,
-  showChannelSwitcher: false,
   showCharCount: false,
   showHint: false,
   showEmojiButton: true,

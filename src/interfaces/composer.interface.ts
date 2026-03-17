@@ -19,7 +19,6 @@ import type { AudioOutputFormatEnum } from './audio.interface';
  *   maxAudioDuration: 60, // 60秒
  *   audioOutputFormat: AudioOutputFormatEnum.Raw,
  *   // UI 显示配置
- *   showChannelSwitcher: true,
  *   showCharCount: true,
  *   showHint: true,
  *   showEmojiButton: true,
@@ -124,12 +123,6 @@ export interface IComposerConfig {
   audioOutputFormat?: AudioOutputFormatEnum;
 
   // ==================== UI 显示配置 ====================
-
-  /**
-   * 是否显示渠道切换器
-   * @default true
-   */
-  showChannelSwitcher?: boolean;
 
   /**
    * 是否显示字符计数

@@ -1,7 +1,6 @@
 // ==================== Hooks 导出 ====================
 export { useActiveConversationMetadata } from './use-active-conversation-metadata.hook';
 export { useAudioRecorder } from './use-audio-recorder.hook';
-export { useChannelSwitcher } from './use-channel-switcher.hook';
 export { useChannelUnread } from './use-channel-unread.hook';
 export { useComposerDraft } from './use-composer-draft.hook';
 export { useConversationMetadata } from './use-conversation-metadata.hook';

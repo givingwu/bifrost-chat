@@ -46,7 +46,6 @@ const DEFAULT_COMPOSER_CONFIG: IComposerConfig = {
   ignoreMaxLengthForTemplateMessages: true,
   audioOutputFormat: AudioOutputFormatEnum.Raw,
   // UI 显示配置
-  showChannelSwitcher: true,
   showCharCount: true,
   showHint: true,
   showEmojiButton: true,

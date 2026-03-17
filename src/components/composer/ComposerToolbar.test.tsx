@@ -28,7 +28,6 @@ const createMockComposerConfig = (): IComposerConfig => ({
   customMessageMaxLength: undefined,
   ignoreMaxLengthForTemplateMessages: true,
   audioOutputFormat: AudioOutputFormatEnum.Raw,
-  showChannelSwitcher: true,
   showCharCount: true,
   showHint: true,
   showEmojiButton: true,

@@ -19,7 +19,6 @@ vi.mock('@/store', () => ({
   useComposerConfig: () => ({
     enableAttachments: false,
     enableAudioInput: false,
-    showChannelSwitcher: false,
     showHint: false,
     showCharCount: false,
     customMessageMaxLength: undefined,
