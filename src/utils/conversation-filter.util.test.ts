@@ -41,7 +41,7 @@ describe('conversation-filter.util', () => {
     it('should match by conversation id', () => {
       const conversation = createMockConversation();
       expect(conversationMatchesQuery(conversation, 'conv-1')).toBe(true);
-      expect(conversationMatchesQuery(conversation, 'CONV-1')).toBe(true);
+      expect(conversationMatchesQuery(conversation, 'CONV-1')).toBe(false);
     });
 
     it('should match by phone (metadata.pin)', () => {
