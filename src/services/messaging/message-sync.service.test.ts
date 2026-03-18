@@ -202,8 +202,6 @@ describe('MessageSyncService', () => {
       queryClient,
       'conv-1',
       {
-        id: 'msg-1',
-        tempId: 'tmp-1',
         status: MessageStatusEnum.Delivered,
       },
       'msg-1',
@@ -231,8 +229,6 @@ describe('MessageSyncService', () => {
       queryClient,
       'conv-1',
       {
-        id: 'msg-1',
-        tempId: 'tmp-1',
         status: MessageStatusEnum.Delivered,
       },
       'msg-1',
@@ -243,8 +239,6 @@ describe('MessageSyncService', () => {
       queryClient,
       'conv-1',
       {
-        id: 'msg-1',
-        tempId: 'tmp-1',
         status: MessageStatusEnum.Delivered,
       },
       'msg-1',
@@ -271,8 +265,6 @@ describe('MessageSyncService', () => {
       queryClient,
       'conv-1',
       {
-        id: 'msg-1',
-        tempId: undefined,
         status: MessageStatusEnum.Failed,
         error: 'provider rejected',
       },
@@ -299,14 +291,44 @@ describe('MessageSyncService', () => {
       queryClient,
       'conv-1',
       {
-        id: 'msg-1',
-        tempId: 'tmp-1',
         status: MessageStatusEnum.Delivered,
       },
       'msg-1',
       'tmp-1',
     );
     expect(updateSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('状态回执命中 tempId 时不应覆盖消息 id（避免误伤上一条消息）', () => {
+    const syncService = new MessageSyncService(queryClient);
+
+    const existing = createMessage('server-mid-1', {
+      tempId: 'uuid-1',
+      status: MessageStatusEnum.Sent,
+    });
+
+    queryClient.setQueryData(queryKeys.messages.list('conv-1'), {
+      pages: [{ items: [existing] }],
+      pageParams: [undefined],
+    });
+
+    syncService.updateMessageStatus({
+      conversationId: 'conv-1',
+      messageId: 'uuid-1',
+      status: MessageStatusEnum.Failed,
+      error: 'SMS submit failed',
+      timestamp: Date.now(),
+    });
+
+    const data = queryClient.getQueryData<{
+      pages: Array<{ items: StandardMessage[] }>;
+    }>(queryKeys.messages.list('conv-1'));
+
+    const msg = data?.pages?.[0]?.items?.[0];
+    expect(msg?.id).toBe('server-mid-1');
+    expect(msg?.tempId).toBe('uuid-1');
+    expect(msg?.status).toBe(MessageStatusEnum.Failed);
+    expect(msg?.error).toBe('SMS submit failed');
   });
 
   it('状态回调不应新增重复模板消息，只应更新现有消息', () => {
