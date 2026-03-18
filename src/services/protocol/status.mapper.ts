@@ -38,9 +38,7 @@ export function isServerMessageStatus(
 ): value is ServerMessageStatus {
   return (
     typeof value === 'string' &&
-    SERVER_MESSAGE_STATUSES.includes(
-      value.toUpperCase() as ServerMessageStatus,
-    )
+    SERVER_MESSAGE_STATUSES.includes(value.toUpperCase() as ServerMessageStatus)
   );
 }
 

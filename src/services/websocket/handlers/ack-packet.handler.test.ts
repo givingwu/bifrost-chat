@@ -438,9 +438,9 @@ describe('AckPacketHandler', () => {
       expect(getStatusEventData(result).messageId).toBe(
         '1a2e88ee-69ae-48d8-8098-e2022590007a',
       );
-      expect(
-        (result.eventData?.data as MessageStatusUpdatedEvent).error,
-      ).toBe('SMS submit failed');
+      expect((result.eventData?.data as MessageStatusUpdatedEvent).error).toBe(
+        'SMS submit failed',
+      );
     });
   });
 });

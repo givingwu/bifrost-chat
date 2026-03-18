@@ -14,7 +14,10 @@ import {
 import { AgentStatusEnum } from '@/interfaces/agent.interface';
 import type { SendAttachmentResult } from '@/interfaces/attachment.interface';
 import type { SendAudioResult } from '@/interfaces/audio.interface';
-import { ChannelTypeEnum } from '@/interfaces/channel.interface';
+import {
+  AvailableChannels,
+  ChannelTypeEnum,
+} from '@/interfaces/channel.interface';
 import type { Conversation } from '@/interfaces/conversation.interface';
 import { LanguageCodeEnum } from '@/interfaces/language.interface';
 import type {
@@ -37,121 +40,113 @@ import type { Template } from '@/interfaces/template.interface';
  * - 不同语言
  */
 
+// 共享数据源
+const MOCK_NAMES = [
+  '张三',
+  '李四',
+  '王五',
+  '赵六',
+  '钱七',
+  '孙八',
+  '周九',
+  '吴十',
+  '郑十一',
+  '冯十二',
+  '陈十三',
+  '褚十四',
+  '卫十五',
+  '蒋十六',
+  '沈十七',
+  '韩十八',
+  '杨十九',
+  '朱二十',
+  '秦二十一',
+  '尤二十二',
+  '许二十三',
+  '何二十四',
+  '吕二十五',
+  '施二十六',
+  '张二十七',
+  '孔二十八',
+  '曹二十九',
+  '严三十',
+  '华三十一',
+  '金三十二',
+  '魏三十三',
+  '陶三十四',
+  '姜三十五',
+  '戚三十六',
+  '谢三十七',
+  '邹三十八',
+  '喻三十九',
+  '柏四十',
+  '窦四十一',
+];
+
+const MOCK_MESSAGES = [
+  '你好，请问有什么可以帮助您的？',
+  '好的，谢谢',
+  '请问产品价格是多少？',
+  '我想了解一下产品详情',
+  '什么时候可以发货？',
+  '收到，谢谢您的回复',
+  '请问还有其他问题吗？',
+  '好的，我稍后联系您',
+  '请问有什么优惠活动吗？',
+  '感谢您的耐心解答',
+  '我需要咨询一下售后服务',
+  '请问支持哪些支付方式？',
+  '好的，我明白了',
+  '请问可以开发票吗？',
+  '感谢您的支持',
+  '请问产品有保修吗？',
+  '好的，我会考虑的',
+  '请问什么时候有货？',
+  '感谢您的反馈',
+  '请问可以退货吗？',
+];
+
+const MOCK_STATUSES = [
+  AgentStatusEnum.Online,
+  AgentStatusEnum.Offline,
+  AgentStatusEnum.Away,
+  AgentStatusEnum.Busy,
+];
+
+function generateMockConversations(): Conversation[] {
+  return Array.from({ length: 40 }, (_, i) => {
+    const id = i + 1;
+    return {
+      id: `conv-${id}`,
+      user: {
+        id: `user-${id}`,
+        name: MOCK_NAMES[i % MOCK_NAMES.length],
+        avatarUrl: `https://i.pravatar.cc/150?img=${id}`,
+        status: MOCK_STATUSES[i % MOCK_STATUSES.length],
+      },
+      lastMessage: MOCK_MESSAGES[i % MOCK_MESSAGES.length],
+      lastMessageTime: new Date(Date.now() - i * 60000 * 5).toISOString(),
+      unreadCount: i % 5 === 0 ? Math.floor(Math.random() * 10) + 1 : 0,
+      channel: AvailableChannels[i % AvailableChannels.length],
+      supportedChannels: [...AvailableChannels],
+      isActive: i === 0,
+    };
+  });
+}
+
+// 全局共享会话存储
+const mockConversationStore = generateMockConversations();
+
 // Mock 服务实现
 class MockConversationService implements IConversationService {
   async list() {
-    // 生成 40 条会话数据用于测试虚拟滚动
-    const conversations: Conversation[] = Array.from({ length: 40 }, (_, i) => {
-      const id = i + 1;
-      const channels = [
-        ChannelTypeEnum.WhatsApp,
-        ChannelTypeEnum.SMS,
-        ChannelTypeEnum.Email,
-      ];
-      const statuses = [
-        AgentStatusEnum.Online,
-        AgentStatusEnum.Offline,
-        AgentStatusEnum.Away,
-        AgentStatusEnum.Busy,
-      ];
-      const names = [
-        '张三',
-        '李四',
-        '王五',
-        '赵六',
-        '钱七',
-        '孙八',
-        '周九',
-        '吴十',
-        '郑十一',
-        '冯十二',
-        '陈十三',
-        '褚十四',
-        '卫十五',
-        '蒋十六',
-        '沈十七',
-        '韩十八',
-        '杨十九',
-        '朱二十',
-        '秦二十一',
-        '尤二十二',
-        '许二十三',
-        '何二十四',
-        '吕二十五',
-        '施二十六',
-        '张二十七',
-        '孔二十八',
-        '曹二十九',
-        '严三十',
-        '华三十一',
-        '金三十二',
-        '魏三十三',
-        '陶三十四',
-        '姜三十五',
-        '戚三十六',
-        '谢三十七',
-        '邹三十八',
-        '喻三十九',
-        '柏四十',
-        '窦四十一',
-      ];
-      const messages = [
-        '你好，请问有什么可以帮助您的？',
-        '好的，谢谢',
-        '请问产品价格是多少？',
-        '我想了解一下产品详情',
-        '什么时候可以发货？',
-        '收到，谢谢您的回复',
-        '请问还有其他问题吗？',
-        '好的，我稍后联系您',
-        '请问有什么优惠活动吗？',
-        '感谢您的耐心解答',
-        '我需要咨询一下售后服务',
-        '请问支持哪些支付方式？',
-        '好的，我明白了',
-        '请问可以开发票吗？',
-        '感谢您的支持',
-        '请问产品有保修吗？',
-        '好的，我会考虑的',
-        '请问什么时候有货？',
-        '感谢您的反馈',
-        '请问可以退货吗？',
-      ];
-
-      return {
-        id: `conv-${id}`,
-        user: {
-          id: `user-${id}`,
-          name: names[i % names.length],
-          avatarUrl: `https://i.pravatar.cc/150?img=${id}`,
-          status: statuses[i % statuses.length],
-        },
-        lastMessage: messages[i % messages.length],
-        lastMessageTime: new Date(Date.now() - i * 60000 * 5).toISOString(),
-        unreadCount: i % 5 === 0 ? Math.floor(Math.random() * 10) + 1 : 0,
-        channel: channels[i % channels.length],
-        isActive: i === 0,
-      };
-    });
-    return conversations;
+    return [...mockConversationStore];
   }
 
   async get(conversationId: string) {
-    const conversation: Conversation = {
-      id: conversationId,
-      user: {
-        id: 'user-1',
-        name: '张三',
-        avatarUrl: 'https://i.pravatar.cc/150?img=1',
-        status: AgentStatusEnum.Online,
-      },
-      lastMessage: '你好，请问有什么可以帮助您的？',
-      lastMessageTime: new Date().toISOString(),
-      unreadCount: 2,
-      channel: ChannelTypeEnum.WhatsApp,
-      isActive: true,
-    };
-    return conversation;
+    return mockConversationStore.find(
+      (c) => c.id === conversationId,
+    ) as Conversation;
   }
 
   async create(params?: {
@@ -160,10 +155,12 @@ class MockConversationService implements IConversationService {
     sourceChatId?: string;
     channelType?: ChannelTypeEnum;
   }) {
-    const conversation: Conversation = {
-      id: params?.sourceChatId
-        ? `${params.sourceChatId}-${params.channelType ?? 'whatsapp'}`
-        : 'conv-new',
+    const newId = params?.sourceChatId
+      ? `${params.sourceChatId}-${params.channelType ?? 'whatsapp'}`
+      : `conv-${mockConversationStore.length + 1}`;
+
+    const newConversation: Conversation = {
+      id: newId,
       user: {
         id: '13800000000',
         name: '新用户',
@@ -190,25 +187,20 @@ class MockConversationService implements IConversationService {
         uplinkSmsFreeTemplate: 'SMS_FREE_TEXT',
       },
     };
-    return conversation;
+
+    // 添加到共享存储
+    mockConversationStore.unshift(newConversation);
+    return newConversation;
   }
 
-  async query() {
-    const conversation: Conversation = {
-      id: 'conv-1',
-      user: {
-        id: 'user-1',
-        name: '张三',
-        avatarUrl: 'https://i.pravatar.cc/150?img=1',
-        status: AgentStatusEnum.Online,
-      },
-      lastMessage: '你好，请问有什么可以帮助您的？',
-      lastMessageTime: new Date().toISOString(),
-      unreadCount: 2,
-      channel: ChannelTypeEnum.WhatsApp,
-      isActive: true,
-    };
-    return conversation;
+  async query(params?: { conversationId?: string }) {
+    const conversationId = params?.conversationId;
+
+    if (conversationId) {
+      return this.get(conversationId);
+    }
+
+    return mockConversationStore[0] ?? null;
   }
 }
 
