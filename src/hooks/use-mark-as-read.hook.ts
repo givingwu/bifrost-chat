@@ -141,17 +141,17 @@ function buildAckPacketBody(
   message: StandardMessage,
   conversationId: string,
 ): AckPacketBody | null {
-  const receiverApp = message.receiver.app;
-  const receiverPin = message.receiver.pin;
+  const senderApp = message.sender.app;
+  const senderPin = message.sender.pin;
 
-  if (!receiverApp || !receiverPin) {
+  if (!senderApp || !senderPin) {
     console.warn('[markAsRead] Message missing sender info:', message.id);
     return null;
   }
 
   return {
-    sender: message.receiver.pin,
-    app: message.receiver.app,
+    sender: senderPin,
+    app: senderApp,
     mid: message.id,
     chatId: conversationId,
     timestamp: Date.now(),

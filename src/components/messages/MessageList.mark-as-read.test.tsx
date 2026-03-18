@@ -202,8 +202,8 @@ describe('MessageList markAsRead', () => {
     // 验证调用了 markAsRead，参数格式为 AckPacketBody
     expect(mockMessageService.markAsRead).toHaveBeenCalledWith(
       expect.objectContaining({
-        sender: 'agent-001',
-        app: 'fox_collect.waiter',
+        sender: 'customer-msg-visible',
+        app: 'fox_collect.customer',
         mid: 'msg-visible',
         chatId: 'conv-mark-read',
         timestamp: expect.any(Number),
