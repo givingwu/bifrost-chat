@@ -486,7 +486,18 @@ export function DefaultChatLayout({
 
     if (!conversations || conversations.length === 0) {
       if (activeConversationId !== '') {
-        actions.setActiveConversationId('');
+        // 列表为空时，不要盲目清空 activeId：
+        // - 宿主可能走“临时创建会话/仅详情模式”，会话只写入 detail cache
+        // - 若此处清空，会与宿主 setActiveConversationId 形成抖动循环，
+        //   进而触发 useConversationDetail 频繁请求
+        const cached = ConversationCacheHelper.findConversation(
+          queryClient,
+          activeConversationId,
+        );
+
+        if (!cached) {
+          actions.setActiveConversationId('');
+        }
       }
       return;
     }
@@ -502,7 +513,13 @@ export function DefaultChatLayout({
         actions.setActiveConversationId(firstId);
       }
     }
-  }, [conversations, activeConversationId, actions, isConversationsFetching]);
+  }, [
+    conversations,
+    activeConversationId,
+    actions,
+    isConversationsFetching,
+    queryClient,
+  ]);
 
   return (
     <ChatLayout
