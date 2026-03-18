@@ -86,20 +86,20 @@ export class PacketConverter {
    *
    * @param packet RawPacket
    * @param direction 消息方向
-   * @param currentPin 当前用户 pin（用于判断消息方向）
+   * @param currentApp 当前用户 app（用于判断消息方向）
    * @returns StandardMessage
    */
   static toStandardMessage(
     packet: RawPacket,
     direction?: MessageDirectionEnum,
-    currentPin?: string,
+    currentApp?: string,
   ): StandardMessage {
     // 自动判断消息方向（如果未指定）
     let messageDirection = direction;
 
-    if (!messageDirection && currentPin) {
+    if (!messageDirection && currentApp) {
       messageDirection =
-        packet.from.pin === currentPin
+        packet.from.app === currentApp
           ? MessageDirectionEnum.Outgoing
           : MessageDirectionEnum.Incoming;
     }

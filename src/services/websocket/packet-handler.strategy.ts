@@ -33,7 +33,7 @@ import type { WebSocketManager } from './websocket-manager.service';
  * const strategy = new PacketHandlerStrategy(wsManager);
  * const result = strategy.handle({
  *   packet: rawPacket,
- *   currentPin: 'user-123',
+ *   currentApp: 'fox_collect.waiter',
  * });
  * ```
  */

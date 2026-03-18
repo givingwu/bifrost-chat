@@ -667,6 +667,7 @@ export class WebSocketManager {
         const protocolResult = this.packetHandler.handle({
           packet: data,
           currentPin: this.config.currentPin,
+          currentApp: this.config.fromApp,
         });
 
         if (protocolResult) {

@@ -47,13 +47,13 @@ export class ChatMessageHandler extends BasePacketHandler {
    * 处理聊天消息数据包
    */
   handle(context: PacketHandlerContext): PacketHandlerResult {
-    const { packet, currentPin } = context;
+    const { packet, currentApp } = context;
 
     // 确保 packet 是 RawPacket
     const message = PacketConverter.toStandardMessage(
       packet as RawPacket,
       undefined,
-      currentPin,
+      currentApp,
     );
 
     // 自动发送 msg_receive_ack

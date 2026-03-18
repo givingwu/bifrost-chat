@@ -153,6 +153,8 @@ export interface PacketHandlerResult {
 export interface PacketHandlerContext {
   /** 当前用户 PIN（用于方向判断） */
   currentPin?: string;
+  /** 当前用户 app（用于方向判断） */
+  currentApp?: string;
   /** 数据包 */
   packet: RawPacket | AckRawPacket;
 }
