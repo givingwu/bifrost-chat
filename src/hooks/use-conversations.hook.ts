@@ -8,7 +8,7 @@ import type { Conversation } from '@/interfaces/conversation.interface';
 import { queryKeys } from '@/providers/query.provider';
 import { useServices } from '@/providers/service.provider';
 import { ConversationCacheHelper } from '@/services/cache/conversation-cache-helper.service';
-import { useStrategy } from '@/store';
+import { useActiveConversationId, useStrategy } from '@/store';
 
 /**
  * 计算当前界面应展示的会话列表。
@@ -117,6 +117,60 @@ export function useConversations<TListParams = Record<string, unknown>>(
       ),
     [activeChannel, channelFilterEnabled, conversations],
   );
+
+  const activeConversationId = useActiveConversationId();
+
+  // 订阅会话列表更新
+  useEffect(() => {
+    if (
+      !conversationService?.subscribeToListUpdates ||
+      query.isLoading ||
+      !query.data
+    ) {
+      return;
+    }
+
+    const unsubscribe = conversationService.subscribeToListUpdates(
+      (updatedConversations: Conversation[]) => {
+        ConversationCacheHelper.replaceConversationList(
+          queryClient,
+          updatedConversations,
+          activeChannel,
+        );
+      },
+    );
+
+    return unsubscribe;
+  }, [
+    activeChannel,
+    conversationService,
+    query.isLoading,
+    query.data,
+    queryClient,
+  ]);
+
+  // 订阅当前会话的更新
+  useEffect(() => {
+    if (
+      !conversationService?.subscribeToConversationUpdates ||
+      !activeConversationId
+    ) {
+      return;
+    }
+
+    const unsubscribe = conversationService.subscribeToConversationUpdates(
+      activeConversationId,
+      (updatedConversation: Conversation) => {
+        ConversationCacheHelper.replaceConversation(
+          queryClient,
+          updatedConversation,
+          activeChannel,
+        );
+      },
+    );
+
+    return unsubscribe;
+  }, [activeChannel, activeConversationId, conversationService, queryClient]);
 
   useEffect(() => {
     if (pendingConversations.length === 0 || serverConversations.length === 0) {

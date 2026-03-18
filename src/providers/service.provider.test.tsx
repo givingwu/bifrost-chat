@@ -136,6 +136,7 @@ describe('ServiceProvider', () => {
       allowedMessageTypes: [],
       messageDisplayStrategy: MessageTypeDisplayStrategy.ShowUnsupported,
       channelFilterEnabled: true,
+      autoSelectFirstConversation: false,
     });
   });
 

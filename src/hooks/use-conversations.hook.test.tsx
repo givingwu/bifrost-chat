@@ -284,6 +284,9 @@ describe('useConversations Hook', () => {
       mockConversations,
     );
 
+    // 设置 activeConversationId 以触发订阅
+    useChatStore.getState().actions.setActiveConversationId('conv-1');
+
     const { result } = renderHook(() => useConversations(), {
       wrapper: createTestWrapper(),
     });

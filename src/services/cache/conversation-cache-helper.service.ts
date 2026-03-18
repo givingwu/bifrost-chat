@@ -925,7 +925,7 @@ export class ConversationCacheHelper {
     conversations: Conversation[],
     pendingConversations: Conversation[],
   ): Conversation[] {
-    return mergePendingConversations(conversations, pendingConversations);
+    return mergePendingConversations(pendingConversations, conversations);
   }
 
   /**
