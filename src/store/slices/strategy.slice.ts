@@ -99,7 +99,7 @@ export const createStrategySlice: StateCreator<
 > = (set) => ({
   strategy: {
     allowedChannels: AvailableChannels,
-    activeChannel: ChannelTypeEnum.SMS,
+    activeChannel: AvailableChannels[0],
     // currentUser 在宿主调用 configureChatStore / setCurrentUser 之前为空默认值。
     // 注意：pin 为空字符串时 SDK 不应发送协议消息，宿主需在使用前完成初始化。
     currentUser: {
@@ -140,9 +140,7 @@ export const createStrategySlice: StateCreator<
         // 取 payload 中的目标值（或保持当前值），
         // 若不在最终 allowedChannels 中，自动取首位
         const rawActiveChannel = payload.activeChannel ?? current.activeChannel;
-        const activeChannel = (allowedChannels as readonly string[]).includes(
-          rawActiveChannel,
-        )
+        const activeChannel = allowedChannels.includes(rawActiveChannel)
           ? rawActiveChannel
           : allowedChannels[0];
 
@@ -163,9 +161,11 @@ export const createStrategySlice: StateCreator<
     setActiveChannel: (channel: ChannelTypeEnum) =>
       set((state) => {
         const { allowedChannels } = state.strategy;
-        if (!(allowedChannels as readonly string[]).includes(channel)) {
+
+        if (!allowedChannels.includes(channel)) {
           return state;
         }
+
         return {
           strategy: { ...state.strategy, activeChannel: channel },
         };
