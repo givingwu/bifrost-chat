@@ -48,7 +48,7 @@ export const Topbar = ({ title, subTitle, avatarUrl, extra }: TopbarProps) => {
             {title ?? t('conversation.title')}
           </div>
 
-          {/* 第三行：副标题（渠道 · 状态） */}
+          {/* 第二行：副标题（渠道 · 状态） */}
           {subTitle && (
             <div className="text-xs text-gray-400 dark:text-gray-500">
               {subTitle}
