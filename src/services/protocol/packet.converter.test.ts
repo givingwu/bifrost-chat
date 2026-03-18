@@ -118,7 +118,7 @@ describe('PacketConverter', () => {
       const standardMessage = PacketConverter.toStandardMessage(
         rawPacket,
         MessageDirectionEnum.Incoming,
-        'agent-123',
+        'fox_collect.waiter',
       );
 
       expect(standardMessage).toBeDefined();
@@ -162,7 +162,7 @@ describe('PacketConverter', () => {
       const message = PacketConverter.toStandardMessage(
         rawPacket,
         undefined,
-        'agent-123',
+        'fox_collect.waiter',
       );
 
       expect(message.direction).toBe(MessageDirectionEnum.Outgoing);

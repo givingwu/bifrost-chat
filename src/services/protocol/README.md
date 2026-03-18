@@ -47,7 +47,7 @@ graph TB
 **主要方法：**
 
 - `toRawPacket(message, fromApp, fromPin)` - 将 StandardMessage 转换为 RawPacket（发送）
-- `toStandardMessage(packet, direction?, currentPin?)` - 将 RawPacket 转换为 StandardMessage（接收）
+- `toStandardMessage(packet, direction?, currentApp?)` - 将 RawPacket 转换为 StandardMessage（接收）
 
 **使用示例：**
 
@@ -107,7 +107,7 @@ const incomingPacket = {
 const standardMessage = PacketConverter.toStandardMessage(
   incomingPacket,
   MessageDirectionEnum.Incoming,
-  'agent-123'
+  'fox_collect.waiter'
 );
 ```
 
@@ -251,7 +251,7 @@ class FoxCollectMessageService implements IMessageService {
       const standardMessage = PacketConverter.toStandardMessage(
         data,
         MessageDirectionEnum.Incoming,
-        this.config.agentPin,
+        this.config.fromApp,
       );
       
       // 触发消息接收事件

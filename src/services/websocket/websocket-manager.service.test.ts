@@ -537,7 +537,7 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
         chatId: 'chat-789',
         from: {
           app: 'test-app',
-          pin: 'test-pin', // 与 currentPin 相同，应该是 Outgoing
+          pin: 'test-pin', // from.app 与 currentApp 相同，应该是 Outgoing
           channelType: ChannelTypeEnum.WhatsApp,
         },
         to: {
