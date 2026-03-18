@@ -4,32 +4,13 @@ import { cn } from '@/utils/class.util';
 
 export interface TopbarProps {
   /** 当前会话标题（人名） */
-  title?: string;
+  title?: React.ReactNode;
   /** 当前会话副标题（渠道 · 状态） */
-  subtitle?: string;
+  subTitle?: React.ReactNode;
   /** 会话头像 */
   avatarUrl?: string;
   /** 附加内容 */
   extra?: React.ReactNode;
-  /**
-   * 自定义渲染元数据区域（在标题和副标题之间）
-   * @returns ReactNode 或 null
-   * @example
-   * ```tsx
-   * renderMeta={() => (
-   *   <div className="flex flex-col gap-0.5">
-   *     <span className="text-xs text-gray-500">({relationship})</span>
-   *     <button
-   *       className="text-xs text-blue-500 hover:underline"
-   *       onClick={() => navigateToAsset(assetNumber)}
-   *     >
-   *       {assetNumber}
-   *     </button>
-   *   </div>
-   * )}
-   * ```
-   */
-  renderMeta?: () => React.ReactNode;
 }
 
 /**
@@ -37,13 +18,7 @@ export interface TopbarProps {
  * - 显示标题、副标题
  * - 支持通过 renderMeta 自定义渲染元数据区域
  */
-export const Topbar = ({
-  title,
-  subtitle,
-  avatarUrl,
-  extra,
-  renderMeta,
-}: TopbarProps) => {
+export const Topbar = ({ title, subTitle, avatarUrl, extra }: TopbarProps) => {
   const { t } = useTranslation();
 
   return (
@@ -61,7 +36,7 @@ export const Topbar = ({
           <div className="relative">
             <ConversationAvatar
               src={avatarUrl}
-              name={title ?? 'conversation'}
+              name={(title as string) ?? 'conversation'}
               className="h-10 w-10 rounded-full object-cover shadow-soft"
             />
             <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-card bg-success" />
@@ -72,12 +47,11 @@ export const Topbar = ({
           <div className="text-sm font-semibold text-gray-600 dark:text-gray-400">
             {title ?? t('conversation.title')}
           </div>
-          {/* 第二行：自定义元数据区域（由业务层渲染） */}
-          {renderMeta?.()}
+
           {/* 第三行：副标题（渠道 · 状态） */}
-          {subtitle && (
+          {subTitle && (
             <div className="text-xs text-gray-400 dark:text-gray-500">
-              {subtitle}
+              {subTitle}
             </div>
           )}
         </div>

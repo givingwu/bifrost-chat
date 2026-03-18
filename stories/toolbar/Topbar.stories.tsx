@@ -16,7 +16,7 @@ const meta: Meta<typeof Topbar> = {
       control: 'text',
       description: '当前会话标题',
     },
-    subtitle: {
+    subTitle: {
       control: 'text',
       description: '当前会话副标题',
     },
@@ -48,7 +48,7 @@ export const WithExtra = () => {
       <Topbar
         avatarUrl="/logo.jpeg"
         title="Conversation"
-        subtitle="Hello World!"
+        subTitle="Hello World!"
         extra={<TopbarTools />}
       />
     </div>
