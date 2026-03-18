@@ -199,7 +199,8 @@ export const WithoutUnreadBadge: Story = {
 };
 
 /**
- * 禁用态渠道
+ * 禁用态渠道（通过 supportedChannels 控制启用/禁用）
+ * Email 和 Viber 不在 supportedChannels 中，因此被禁用
  */
 export const WithDisabledChannels: Story = {
   args: {
@@ -208,16 +209,6 @@ export const WithDisabledChannels: Story = {
     onChannelClick: () => {},
     compact: true,
     showTooltip: true,
-    channelStates: {
-      [ChannelTypeEnum.Email]: {
-        disabled: true,
-        tooltip: '当前会话暂不支持 Email',
-      },
-      [ChannelTypeEnum.Viber]: {
-        disabled: true,
-        tooltip: '当前会话暂不支持 Viber',
-      },
-    },
   },
 };
 

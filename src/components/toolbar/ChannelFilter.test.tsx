@@ -72,28 +72,6 @@ describe('ChannelFilter', () => {
     expect(mockOnChannelClick).toHaveBeenCalledWith(ChannelTypeEnum.SMS);
   });
 
-  it('应该在禁用渠道时显示提示且不触发切换', () => {
-    renderWithProviders(
-      <ChannelFilter
-        {...defaultProps}
-        channelStates={{
-          [ChannelTypeEnum.Email]: {
-            disabled: true,
-            tooltip: '当前会话暂不支持 Email',
-          },
-        }}
-      />,
-    );
-
-    const emailButton = getChannelButton(ChannelTypeEnum.Email);
-
-    fireEvent.click(emailButton);
-
-    expect(emailButton).toHaveAttribute('aria-disabled', 'true');
-    expect(emailButton).toHaveAttribute('title', '当前会话暂不支持 Email');
-    expect(mockOnChannelClick).not.toHaveBeenCalledWith(ChannelTypeEnum.Email);
-  });
-
   it('应该在紧凑模式下仅显示图标', () => {
     renderWithProviders(
       <ChannelFilter {...defaultProps} compact={true} showTooltip={false} />,

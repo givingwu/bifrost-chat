@@ -1,10 +1,7 @@
-import { memo, type ReactNode, useMemo } from 'react';
-import { useActiveConversationMetadata, useChannelUnread } from '@/hooks';
-import type { ChannelTypeEnum } from '@/interfaces/channel.interface';
-import { useTranslation } from '@/providers/I18n.provider';
+import { memo, type ReactNode } from 'react';
+import { useChannelUnread } from '@/hooks';
 import {
   useActions,
-  useConversation,
   useLanguage,
   useNetwork,
   useStrategy,
@@ -19,55 +16,17 @@ export interface ITopbarTools {
   extra?: ReactNode;
 }
 
-export interface ChannelStateDescriptor {
-  disabled: boolean;
-  tooltip: string;
-}
-
 /**
  * TopbarTools：会话顶部栏右侧工具集合。
  */
 export const TopbarTools = memo(({ extra = null }: ITopbarTools) => {
-  const { t } = useTranslation();
-  const { activeConversationId } = useConversation();
   const { activeChannel, allowedChannels } = useStrategy();
   const { mode, enableSwitcher: showThemeSwitcher } = useTheme();
-  const { metadata, isFetching } = useActiveConversationMetadata();
   const { code, enableSwitcher: showLanguageSwitcher } = useLanguage();
   const { status, enableStatusIndicator: showNetworkStatus } = useNetwork();
 
   const unreadByChannel = useChannelUnread();
   const { setTheme, setLanguage, setActiveChannel } = useActions();
-
-  const channelStates = useMemo(() => {
-    if (!isFetching || !activeConversationId) {
-      return {};
-    }
-
-    const supportedChannels = new Set(metadata?.supportedChannels ?? []);
-
-    return allowedChannels.reduce<
-      Partial<Record<ChannelTypeEnum, ChannelStateDescriptor>>
-    >((accumulator, channel) => {
-      if (supportedChannels.has(channel)) {
-        return accumulator;
-      }
-
-      accumulator[channel] = {
-        disabled: true,
-        tooltip: t('toolbar.channelFilter.unsupportedCurrentConversation', {
-          channel: t(`toolbar.channel.${channel}`),
-        }),
-      };
-      return accumulator;
-    }, {});
-  }, [
-    activeConversationId,
-    t,
-    allowedChannels.reduce,
-    metadata?.supportedChannels,
-    isFetching,
-  ]);
 
   return (
     <div className="flex items-center gap-4">
@@ -76,7 +35,6 @@ export const TopbarTools = memo(({ extra = null }: ITopbarTools) => {
         channels={allowedChannels}
         activeChannel={activeChannel}
         onChannelClick={setActiveChannel}
-        channelStates={channelStates}
         unreadByChannel={unreadByChannel}
         showTooltip
       />

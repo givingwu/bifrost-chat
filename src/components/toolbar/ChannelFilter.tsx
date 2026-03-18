@@ -8,7 +8,6 @@ import type { AgentStatusEnum } from '@/interfaces/agent.interface';
 import type { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import { useTranslation } from '@/providers/I18n.provider';
 import { cn } from '@/utils/class.util';
-import type { ChannelStateDescriptor } from './TopbarTools';
 
 export interface ChannelFilterProps {
   /** 坐席状态（in_call 时触发互斥逻辑） */
@@ -19,8 +18,6 @@ export interface ChannelFilterProps {
   activeChannel: ChannelTypeEnum;
   /** 点击渠道按钮回调 */
   onChannelClick?: (type: ChannelTypeEnum) => void;
-  /** 各渠道禁用态与提示信息 */
-  channelStates?: Partial<Record<ChannelTypeEnum, ChannelStateDescriptor>>;
   /** 是否显示工具提示 */
   showTooltip?: boolean;
   /** 紧凑模式（仅图标） */
@@ -69,21 +66,19 @@ export const ChannelFilter = memo(
     channels,
     activeChannel,
     onChannelClick,
-    channelStates,
     showTooltip = true,
     compact = true,
     unreadByChannel,
     className,
     style,
   }: ChannelFilterProps) => {
+    const { t } = useTranslation();
     const getLabel = useChannelLabel();
     const getIcon = useChannelIcon('sm');
     const activeIndex = useMemo(
       () => channels.indexOf(activeChannel),
       [channels, activeChannel],
     );
-
-    const { t } = useTranslation();
 
     return (
       <fieldset
@@ -109,12 +104,9 @@ export const ChannelFilter = memo(
         {/* Channel buttons */}
         {channels.map((channel) => {
           const isActive = channel === activeChannel;
-          const state = channelStates?.[channel];
-          const isDisabled = !!state?.disabled;
           const icon = getIcon(channel);
           const label = getLabel(channel);
           const count = unreadByChannel?.[channel] ?? 0;
-          const tooltipContent = state?.tooltip ?? label;
 
           return (
             <button
@@ -122,30 +114,23 @@ export const ChannelFilter = memo(
               data-channel={channel}
               key={channel}
               onClick={() => {
-                if (isDisabled) {
-                  return;
-                }
                 onChannelClick?.(channel);
               }}
               aria-label={label}
               aria-pressed={isActive}
-              aria-disabled={isDisabled || undefined}
               className={cn(
                 'relative z-10 flex items-center justify-center px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-300 group',
                 'min-w-10',
                 isActive
-                  ? 'text-white font-semibold'
+                  ? 'text-white font-semibold cursor-pointer'
                   : 'text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200',
-                isDisabled &&
-                  'cursor-not-allowed opacity-50 hover:text-gray-500',
-                !isDisabled && 'cursor-pointer',
               )}
               style={
                 isActive
                   ? { backgroundColor: CHANNEL_BRAND_COLOR[channel] }
                   : undefined
               }
-              title={tooltipContent}
+              title={label}
             >
               <span className="transition-all duration-200">{icon}</span>
               {/* Unread badge：有数据且 > 0 才显示 */}
@@ -175,7 +160,7 @@ export const ChannelFilter = memo(
                     'group-hover:opacity-100',
                   )}
                 >
-                  {tooltipContent}
+                  {label}
                 </span>
               )}
             </button>
