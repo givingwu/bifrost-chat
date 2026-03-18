@@ -1,4 +1,5 @@
 import { type CSSProperties, memo, useMemo } from 'react';
+import { Button } from '@/components/Button';
 import {
   CHANNEL_BRAND_COLOR,
   useChannelIcon,
@@ -109,7 +110,7 @@ export const ChannelFilter = memo(
           const count = unreadByChannel?.[channel] ?? 0;
 
           return (
-            <button
+            <Button
               type="button"
               data-channel={channel}
               key={channel}
@@ -163,7 +164,7 @@ export const ChannelFilter = memo(
                   {label}
                 </span>
               )}
-            </button>
+            </Button>
           );
         })}
       </fieldset>

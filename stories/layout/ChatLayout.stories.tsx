@@ -209,7 +209,7 @@ export const FullLayout = () => {
               topbar={
                 <Topbar
                   title="张三"
-                  subtitle="在线"
+                  subTitle="在线"
                   avatarUrl="https://i.pravatar.cc/150?img=1"
                   extra={
                     <div className="flex items-center gap-2">
@@ -307,7 +307,7 @@ export const WithTopbarAndComposer = () => {
               topbar={
                 <Topbar
                   title="张三"
-                  subtitle="在线"
+                  subTitle="在线"
                   avatarUrl="https://i.pravatar.cc/150?img=1"
                   extra={
                     <div className="flex items-center gap-2">
@@ -397,7 +397,7 @@ export const CustomStyled = () => {
               topbar={
                 <Topbar
                   title="自定义样式示例"
-                  subtitle="使用内置组件"
+                  subTitle="使用内置组件"
                   extra={
                     <div className="flex items-center gap-2">
                       <ThemeSwitcher
@@ -458,7 +458,7 @@ export const Responsive = () => {
               topbar={
                 <Topbar
                   title="响应式布局"
-                  subtitle="调整窗口大小查看效果"
+                  subTitle="调整窗口大小查看效果"
                   extra={
                     <NetworkStatus
                       status={NetworkStatusEnum.Connected}

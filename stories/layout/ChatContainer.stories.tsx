@@ -214,7 +214,7 @@ export const ChineseLocale = () => {
               topbar={
                 <Topbar
                   title="中文聊天界面"
-                  subtitle="使用内置组件"
+                  subTitle="使用内置组件"
                   avatarUrl="https://i.pravatar.cc/150?img=1"
                   extra={
                     <div className="flex items-center gap-2">
@@ -265,7 +265,7 @@ export const EnglishLocale = () => {
               topbar={
                 <Topbar
                   title="English Chat Interface"
-                  subtitle="Using built-in components"
+                  subTitle="Using built-in components"
                   avatarUrl="https://i.pravatar.cc/150?img=1"
                   extra={
                     <div className="flex items-center gap-2">
@@ -359,7 +359,7 @@ export const RenderPropsMode = () => {
                 topbar={
                   <Topbar
                     title="Render Props 模式"
-                    subtitle="访问全局状态"
+                    subTitle="访问全局状态"
                     extra={
                       <div className="flex items-center gap-2">
                         <span className="rounded-lg bg-primary/10 px-2 py-1 text-xs text-primary">
@@ -431,7 +431,7 @@ export const FullChatInterface = () => {
               topbar={
                 <Topbar
                   title="张三"
-                  subtitle="在线"
+                  subTitle="在线"
                   avatarUrl="https://i.pravatar.cc/150?img=1"
                   extra={
                     <div className="flex items-center gap-2">
@@ -492,7 +492,7 @@ export const LanguageComparison = () => {
                 topbar={
                   <Topbar
                     title="中文界面"
-                    subtitle="locale=zh-CN"
+                    subTitle="locale=zh-CN"
                     extra={
                       <LanguageSwitcher
                         value={LanguageCodeEnum.ZhCN}
@@ -528,7 +528,7 @@ export const LanguageComparison = () => {
                 topbar={
                   <Topbar
                     title="English Interface"
-                    subtitle="locale=en-US"
+                    subTitle="locale=en-US"
                     extra={
                       <LanguageSwitcher
                         value={LanguageCodeEnum.EnUS}
@@ -579,7 +579,7 @@ export const CustomStyled = () => {
               topbar={
                 <Topbar
                   title="自定义样式"
-                  subtitle="使用内置组件"
+                  subTitle="使用内置组件"
                   extra={
                     <ThemeSwitcher
                       value={ThemeModeEnum.Light}
@@ -633,7 +633,7 @@ export const NestedContainers = () => {
               <div className="flex h-full flex-col rounded-3xl border border-border bg-card/80 p-6 shadow-xl">
                 <Topbar
                   title="中文容器"
-                  subtitle="locale=zh-CN"
+                  subTitle="locale=zh-CN"
                   extra={
                     <LanguageSwitcher
                       value={LanguageCodeEnum.ZhCN}
@@ -658,7 +658,7 @@ export const NestedContainers = () => {
               <div className="flex h-full flex-col rounded-3xl border border-border bg-card/80 p-6 shadow-xl">
                 <Topbar
                   title="English Container"
-                  subtitle="locale=en-US"
+                  subTitle="locale=en-US"
                   extra={
                     <LanguageSwitcher
                       value={LanguageCodeEnum.EnUS}
