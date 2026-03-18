@@ -71,9 +71,9 @@ export class MessageSyncService {
    * @returns
    */
   updateMessageStatus(event: MessageStatusUpdatedEvent) {
+    // 状态回执只应更新状态字段，不应覆盖消息 identity（id/tempId）
+    // 否则在 ACK 的 messageId 命中 tempId 等场景会导致“错条消息被改 id”。
     const updates = {
-      id: event.messageId,
-      tempId: event.tempId,
       status: event.status,
       ...(event.error !== undefined ? { error: event.error } : {}),
     };
