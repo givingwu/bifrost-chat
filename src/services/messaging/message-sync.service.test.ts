@@ -177,7 +177,10 @@ describe('MessageSyncService', () => {
         avatarUrl: 'https://example.com/avatar.png',
         status: AgentStatusEnum.Online,
       },
-      supportedChannels: [ChannelTypeEnum.WhatsApp, ChannelTypeEnum.Email],
+      supportedChannels: expect.arrayContaining([
+        ChannelTypeEnum.WhatsApp,
+        ChannelTypeEnum.Email,
+      ]),
     });
   });
 

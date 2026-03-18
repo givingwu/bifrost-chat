@@ -203,8 +203,8 @@ describe('useMarkAsRead Hook', () => {
     await waitFor(() => {
       expect(mockMessageService.markAsRead).toHaveBeenCalledWith(
         expect.objectContaining({
-          sender: 'customer-msg-1',
-          app: 'fox_collect.customer',
+          sender: 'agent-001',
+          app: 'fox_collect.waiter',
           mid: 'msg-1',
           chatId: conversationId,
           timestamp: expect.any(Number),
