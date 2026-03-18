@@ -52,6 +52,8 @@ export interface StrategyState {
   >;
   /** 会话列表请求是否按 activeChannel 过滤；关闭时仅跳过请求过滤，UI 仍按 activeChannel 展示 */
   channelFilterEnabled: boolean;
+  /** 是否自动选中列表第一条会话；customer 模式下由 useConversationInitializer 管理激活，应设为 false */
+  autoSelectFirstConversation: boolean;
 }
 
 export interface StrategySlice {
@@ -113,6 +115,7 @@ export const createStrategySlice: StateCreator<
     ),
     messageDisplayStrategy: MessageTypeDisplayStrategy.ShowUnsupported,
     channelFilterEnabled: true,
+    autoSelectFirstConversation: true,
   },
   actions: {
     /**

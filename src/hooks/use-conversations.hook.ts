@@ -130,60 +130,6 @@ export function useConversations<TListParams = Record<string, unknown>>(
     );
   }, [activeChannel, pendingConversations, queryClient, serverConversations]);
 
-  // 推导扁平会话列表（所有页合并）
-  // 使用 useMemo 稳定化数组引用，避免每次渲染都创建新数组
-  const conversationIdsKey = useMemo(() => {
-    if (conversations.length === 0) return '';
-
-    return conversations.map((conversation) => conversation.id).join('|');
-  }, [conversations]);
-
-  useEffect(() => {
-    if (!conversationService?.subscribeToListUpdates) {
-      return;
-    }
-
-    return conversationService.subscribeToListUpdates((nextConversations) => {
-      ConversationCacheHelper.replaceConversationList(
-        queryClient,
-        nextConversations,
-        activeChannel,
-      );
-    });
-  }, [activeChannel, conversationService, queryClient]);
-
-  useEffect(() => {
-    const conversationIds = conversationIdsKey
-      ? conversationIdsKey.split('|')
-      : [];
-
-    if (
-      !conversationService?.subscribeToConversationUpdates ||
-      conversationIds.length === 0
-    ) {
-      return;
-    }
-
-    const unsubscribeCallbacks = conversationIds.map((conversationId) =>
-      conversationService.subscribeToConversationUpdates?.(
-        conversationId,
-        (conversation) => {
-          ConversationCacheHelper.replaceConversation(
-            queryClient,
-            conversation,
-            activeChannel,
-          );
-        },
-      ),
-    );
-
-    return () => {
-      for (const unsubscribe of unsubscribeCallbacks) {
-        unsubscribe?.();
-      }
-    };
-  }, [activeChannel, conversationIdsKey, conversationService, queryClient]);
-
   return {
     ...query,
     /** 当前界面可见的会话列表 */

@@ -2,7 +2,7 @@ import type { QueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import type { Conversation } from '@/interfaces/conversation.interface';
 import { ConversationCacheHelper } from '@/services/cache/conversation-cache-helper.service';
-import { useActions } from '@/store';
+import { useActions, useStrategy } from '@/store';
 
 /**
  * 管理会话自动选择的 Hook Options
@@ -54,8 +54,11 @@ export function useConversationAutoSelect({
   queryClient,
 }: UseConversationAutoSelectOptions): void {
   const actions = useActions();
+  const { autoSelectFirstConversation } = useStrategy();
 
   useEffect(() => {
+    // customer 模式下由 useConversationInitializer 管理激活，跳过 auto-select
+    if (!autoSelectFirstConversation) return;
     // 跳过正在获取数据的状态（渠道切换竞态）
     if (isConversationsFetching) return;
 
@@ -91,6 +94,7 @@ export function useConversationAutoSelect({
       }
     }
   }, [
+    autoSelectFirstConversation,
     conversations,
     activeConversationId,
     actions,
