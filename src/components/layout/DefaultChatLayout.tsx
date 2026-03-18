@@ -223,6 +223,13 @@ export function DefaultChatLayout({
         : undefined),
     [activeConversationId, conversations, queryClient],
   );
+  // 判断当前激活渠道是否被会话支持；不支持时 Composer 区域显示提示
+  const isChannelSupported = useMemo(() => {
+    if (!activeConversation) return true;
+    const supported = activeConversation.supportedChannels;
+    if (!supported || supported.length === 0) return true;
+    return supported.includes(activeChannel);
+  }, [activeConversation, activeChannel]);
   // 计算 title：优先使用 getConversationDisplayTitle formatter；否则显示 user.name
   const title = activeConversation
     ? getConversationDisplayTitle
@@ -539,13 +546,33 @@ export function DefaultChatLayout({
         </ConversationPanel>
       }
       composer={
-        activeConversationId ? (
+        activeConversationId && isChannelSupported ? (
           <Composer
             ref={composerRef}
             conversationId={activeConversationId}
             channel={activeChannel}
             onSend={handleSend}
           />
+        ) : activeConversationId && !isChannelSupported ? (
+          <div className="flex items-center justify-center px-4 py-3 bg-amber-50/80 dark:bg-amber-900/20 border-t border-amber-200/50 dark:border-amber-700/30 text-amber-700 dark:text-amber-400 text-sm">
+            <svg
+              className="w-4 h-4 mr-2 shrink-0"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              />
+            </svg>
+            {t('toolbar.channelFilter.unsupportedCurrentConversation', {
+              channel: t(`toolbar.channel.${activeChannel}`),
+            })}
+          </div>
         ) : null
       }
       profilePanel={

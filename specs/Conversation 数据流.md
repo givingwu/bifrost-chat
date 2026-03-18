@@ -19,6 +19,7 @@
 2. 在 ConversationList 获取到列表时候我们拿到会话的第一条数据 firstConversation，获取过程中即 RQ 的 isPending 过程中我们啥都不干
 3. 拿到 firstConversation 后我们需要判断是否需要 setActiveConversationId 和 setActiveChannel 更新客户端状态
 4. 同时因为 activeChannel 的变更我们需要更新 ConversationList 渲染的会话列表，因为它是按照 activeChannel 过滤的，当切换 activeChannel 的时候也是同样的逻辑，我们需要拿所有的 ConversationList 做按 activeChannel 的 filter 筛选
+5. 如果当前用户在 ConversationList 下已存在有效的 conversation 则直接 active，若不存在则调用 ConversationService.create 接口创建基于当前 activeChannel 活跃渠道的会话，它会返回该会话的元信息 metadata，并将该会话临时插入 RQ 的当前渠道 activeChannel 的渠道列表中去并跟现有的渠道列表  RQ Cache 做合并 merge
 
 ## customer 用户级别打开弹窗：
 
@@ -39,6 +40,7 @@ sequenceDiagram
     participant Host as 宿主应用
     participant SDK as SDK DefaultChatLayout
     participant RQ as React Query
+    participant Store as Zustand Store
     participant Service as IConversationService
 
     Host->>SDK: 打开 FoxChat Modal
@@ -53,6 +55,16 @@ sequenceDiagram
 
     Note over SDK: channelFilterEnabled = false<br/>SDK 客户端按 activeChannel 过滤
     SDK->>SDK: 渲染过滤后的 ConversationList
+
+    Note over SDK: 步骤5: 检查当前用户是否有有效会话
+    alt ConversationList 中已存在有效会话
+        SDK->>Store: 直接激活已有会话
+    else ConversationList 中不存在有效会话
+        SDK->>Service: create 创建新会话
+        Service-->>SDK: 返回会话元信息 metadata
+        SDK->>RQ: upsertPendingConversation 插入首位
+        SDK->>Store: setActiveConversationId
+    end
 ```
 
 ### 关键实现位置
@@ -107,7 +119,7 @@ sequenceDiagram
 
 | 问题 | 优先级 | 状态 |
 |------|--------|------|
-| customer 模式 setActiveChannel 缺失 | 🔴 高 | 待修复 |
-| supportedChannelSessions 判断缺失 | 🟡 中 | 待修复 |
+| customer 模式 setActiveChannel 缺失 | 🔴 高 | ✅ 已修复 |
+| supportedChannelSessions 判断缺失 | 🟡 中 | ✅ 已修复 |
 
 详见 [`design/conversation-dataflow-review.md`](../design/conversation-dataflow-review.md)
