@@ -150,8 +150,8 @@ function buildAckPacketBody(
   }
 
   return {
-    sender: message.sender.pin,
-    app: message.sender.app,
+    sender: senderPin,
+    app: senderApp,
     mid: message.id,
     chatId: conversationId,
     timestamp: Date.now(),

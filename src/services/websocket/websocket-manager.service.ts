@@ -25,6 +25,7 @@ import {
   ParseError,
   SendFailedError,
 } from '@/errors/websocket.errors';
+import type { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import {
   ClientTypeEnum,
   MessageStatusEnum,
@@ -444,9 +445,28 @@ export class WebSocketManager {
       channelType?: StandardMessage['channelType'];
     },
   ): AckRawPacket {
-    const packet = AckHandler.createReadAck(params, {
-      requestId: options?.requestId,
-    });
+    const { fromApp, fromPin } = this.config;
+    const channelType =
+      params.channelType ??
+      (options?.channelType
+        ? MessageBuilder.channelTypeToString(options.channelType)
+        : undefined);
+
+    const packet = AckHandler.createReadAck(
+      {
+        app: fromApp,
+        pin: fromPin,
+        clientType: ClientTypeEnum.Web,
+        channelType: channelType as ChannelTypeEnum | undefined,
+      },
+      {
+        ...params,
+        channelType,
+      },
+      {
+        requestId: options?.requestId,
+      },
+    );
 
     const targetMessageId =
       options?.targetMessageId ?? String(params.mid ?? packet.id);
@@ -487,9 +507,19 @@ export class WebSocketManager {
       channelType?: StandardMessage['channelType'];
     },
   ): AckRawPacket {
-    const packet = AckHandler.createReceiveAck(params, {
-      requestId: options?.requestId,
-    });
+    const { fromApp, fromPin } = this.config;
+    const packet = AckHandler.createReceiveAck(
+      {
+        app: fromApp,
+        pin: fromPin,
+        channelType: options?.channelType,
+        clientType: ClientTypeEnum.Web,
+      },
+      params,
+      {
+        requestId: options?.requestId,
+      },
+    );
 
     const targetMessageId =
       options?.targetMessageId ?? String(params.mid ?? packet.id);

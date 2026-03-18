@@ -7,6 +7,7 @@ import type {
   AckPacketBody,
   AckRawPacket,
 } from '@/interfaces/protocol.interface';
+import type { MessageParticipant } from '@/interfaces/message.interface';
 import {
   AckMessageTypeEnum,
   isPacketBodyRecord,
@@ -46,6 +47,12 @@ export interface AckData {
 
 interface AckCreateOptions {
   requestId?: string;
+}
+
+export interface AckFromParticipant
+  extends Pick<MessageParticipant, 'app' | 'pin'> {
+  clientType?: ClientTypeEnum;
+  channelType?: ChannelTypeEnum;
 }
 
 /**
@@ -99,10 +106,12 @@ export class AckHandler {
    * @description
    * 创建上行已读 ACK 消息，ptype 为 `msg_read_ack`
    *
+   * @param ackFrom ACK 发送方（socket 包发送方）
    * @param params 已读 ACK 参数
    * @returns RawPacket
    */
   static createReadAck(
+    ackFrom: AckFromParticipant,
     params: AckPacketBody,
     options?: AckCreateOptions,
   ): AckRawPacket {
@@ -110,10 +119,10 @@ export class AckHandler {
       id: options?.requestId ?? MessageBuilder.generateUniqueId(),
       chatId: params.chatId,
       from: {
-        app: params.app,
-        pin: params.sender,
-        clientType: ClientTypeEnum.Web,
-        channelType: params.channelType as ChannelTypeEnum,
+        app: ackFrom.app,
+        pin: ackFrom.pin,
+        clientType: ackFrom.clientType ?? ClientTypeEnum.Web,
+        channelType: ackFrom.channelType,
       },
       to: {
         app: '',
@@ -135,10 +144,12 @@ export class AckHandler {
    * @description
    * 创建上行收到消息 ACK 消息，ptype 为 `msg_receive_ack`
    *
+   * @param ackFrom ACK 发送方（socket 包发送方）
    * @param params 收到 ACK 参数
    * @returns RawPacket
    */
   static createReceiveAck(
+    ackFrom: AckFromParticipant,
     params: AckPacketBody,
     options?: AckCreateOptions,
   ): AckRawPacket {
@@ -146,9 +157,10 @@ export class AckHandler {
       id: options?.requestId ?? MessageBuilder.generateUniqueId(),
       chatId: params.chatId,
       from: {
-        app: params.app,
-        pin: params.sender,
-        clientType: ClientTypeEnum.Web,
+        app: ackFrom.app,
+        pin: ackFrom.pin,
+        clientType: ackFrom.clientType ?? ClientTypeEnum.Web,
+        channelType: ackFrom.channelType,
       },
       to: {
         app: '',
