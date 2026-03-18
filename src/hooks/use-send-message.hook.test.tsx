@@ -117,6 +117,24 @@ function seedConversations(
   });
 }
 
+function getConversationIds(queryClient: QueryClient) {
+  const data = queryClient.getQueryData(queryKeys.conversations.list(ACTIVE_CHANNEL)) as
+    | {
+        pages: Conversation[][];
+      }
+    | undefined;
+  return data?.pages.flat().map((conversation) => conversation.id) ?? [];
+}
+
+function getConversationById(queryClient: QueryClient, conversationId: string) {
+  const data = queryClient.getQueryData(queryKeys.conversations.list(ACTIVE_CHANNEL)) as
+    | {
+        pages: Conversation[][];
+      }
+    | undefined;
+  return data?.pages.flat().find((conversation) => conversation.id === conversationId);
+}
+
 describe('useSendMessage Hook', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -228,6 +246,79 @@ describe('useSendMessage Hook', () => {
         clientType: undefined,
       },
     });
+  });
+
+  it('发送成功后应更新会话摘要并将会话置顶', async () => {
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+      },
+    });
+
+    const conversationA = {
+      id: 'conv-a',
+      user: {
+        id: 'user-a',
+        name: 'A',
+        status: AgentStatusEnum.Online,
+      },
+      lastMessage: 'A old',
+      lastMessageTime: new Date('2020-01-01T00:00:00.000Z').toISOString(),
+      unreadCount: 0,
+      channel: ChannelTypeEnum.WhatsApp,
+    } satisfies Conversation;
+
+    const conversationB = {
+      id: 'conv-b',
+      user: {
+        id: 'user-b',
+        name: 'B',
+        status: AgentStatusEnum.Online,
+      },
+      lastMessage: 'B newer',
+      lastMessageTime: new Date('2021-01-01T00:00:00.000Z').toISOString(),
+      unreadCount: 0,
+      channel: ChannelTypeEnum.WhatsApp,
+    } satisfies Conversation;
+
+    // 初始顺序：B 在前，A 在后
+    seedConversations(queryClient, [conversationB, conversationA]);
+
+    queryClient.setQueryData(queryKeys.messages.list('conv-a', ACTIVE_CHANNEL), {
+      pages: [{ items: [] }],
+      pageParams: [1],
+    });
+
+    vi.mocked(mockMessageService.send).mockResolvedValue({
+      tempId: 'server-temp-id',
+      messageId: 'msg-a-1',
+      status: MessageStatusEnum.Sent,
+    } satisfies MessageSendResult);
+
+    const { result } = renderHook(() => useSendMessage(), {
+      wrapper: createTestWrapper(queryClient),
+    });
+
+    await act(async () => {
+      await result.current.mutateAsync({
+        conversationId: 'conv-a',
+        content: 'hello A',
+      });
+    });
+
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
+
+    expect(getConversationIds(queryClient)).toEqual(['conv-a', 'conv-b']);
+
+    const updatedA = getConversationById(queryClient, 'conv-a');
+    expect(updatedA?.lastMessage).toBe('hello A');
+    expect(updatedA?.lastMessageTime).toBeTruthy();
+    expect(Date.parse(updatedA?.lastMessageTime ?? '')).toBeGreaterThan(
+      Date.parse(conversationB.lastMessageTime),
+    );
   });
 
   it('应优先使用会话 metadata 中的 customerPin/customerApp 作为默认接收方', async () => {

@@ -27,6 +27,7 @@ import {
 } from '@/interfaces/network.interface';
 import { queryKeys } from '@/providers/query.provider';
 import { useServices } from '@/providers/service.provider';
+import { ConversationCacheHelper } from '@/services/cache/conversation-cache-helper.service';
 import { MessageCacheHelper } from '@/services/cache/message-cache-helper.service';
 import { MessageBuilder } from '@/services/messaging/message-builder.service';
 import { messageQueue } from '@/services/messaging/message-queue.service';
@@ -541,6 +542,20 @@ export function useSendMessage<
         messageQueue.dequeue(tempId);
         return;
       }
+
+      // 更新会话摘要并置顶（发送成功后）
+      // 仅依赖本地临时消息即可生成 preview 文本；timestamp 用发送完成时刻。
+      ConversationCacheHelper.updateConversationSummary(
+        queryClient,
+        variables.conversationId,
+        (activeChannel ?? allowedChannels[0]) as Conversation['channel'],
+        {
+          ...context.tempMessage,
+          id: data.messageId ?? context.tempMessage.id,
+          status: data.status ?? context.tempMessage.status,
+          timestamp: Date.now(),
+        },
+      );
 
       if (data.messageId) {
         const replayedEvents = messageQueue.bindServerMessageId(
