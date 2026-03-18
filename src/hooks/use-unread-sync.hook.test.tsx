@@ -3,7 +3,6 @@ import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AgentStatusEnum } from '@/interfaces/agent.interface';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
-import type { Conversation } from '@/interfaces/conversation.interface';
 import {
   MessageDirectionEnum,
   MessageStatusEnum,
@@ -15,6 +14,7 @@ import { queryKeys } from '@/providers/query.provider';
 import { ServiceProvider } from '@/providers/service.provider';
 import { ConversationCacheHelper } from '@/services/cache/conversation-cache-helper.service';
 import type { IConversationService } from '@/services/core/conversation.service';
+import type { UnreadCountResult } from '@/services/core/conversation.service';
 import type {
   IMessageService,
   MessageReceivedEvent,
@@ -124,6 +124,14 @@ describe('useUnreadSync', () => {
       queryClient,
       ChannelTypeEnum.WhatsApp,
     );
+    const deltaByConversation =
+      queryClient.getQueryData<Record<string, number>>(
+        queryKeys.conversations.unreadDeltas.conversation(),
+      ) ?? {};
+    const deltaByChannel =
+      queryClient.getQueryData<UnreadCountResult>(
+        queryKeys.conversations.unreadDeltas.channel(),
+      ) ?? {};
     const messages = queryClient.getQueryData<{
       pages: Array<{ items: StandardMessage[] }>;
     }>(queryKeys.messages.list('conv-new', ChannelTypeEnum.WhatsApp));
@@ -131,7 +139,7 @@ describe('useUnreadSync', () => {
     expect(conversations[0]).toMatchObject({
       id: 'conv-new',
       lastMessage: '来自陌生会话的新消息',
-      unreadCount: 1,
+      unreadCount: 0,
       channel: ChannelTypeEnum.WhatsApp,
       status: 'active',
       user: {
@@ -140,6 +148,8 @@ describe('useUnreadSync', () => {
         status: AgentStatusEnum.Offline,
       },
     });
+    expect(deltaByConversation['conv-new']).toBe(1);
+    expect(deltaByChannel[ChannelTypeEnum.WhatsApp]).toBe(1);
     expect(messages?.pages[0]?.items).toEqual([message]);
   });
 
@@ -176,8 +186,18 @@ describe('useUnreadSync', () => {
       queryClient,
       ChannelTypeEnum.WhatsApp,
     );
+    const deltaByConversation =
+      queryClient.getQueryData<Record<string, number>>(
+        queryKeys.conversations.unreadDeltas.conversation(),
+      ) ?? {};
+    const deltaByChannel =
+      queryClient.getQueryData<UnreadCountResult>(
+        queryKeys.conversations.unreadDeltas.channel(),
+      ) ?? {};
 
-    expect(conversations[0]?.unreadCount).toBe(1);
+    expect(conversations[0]?.unreadCount).toBe(0);
+    expect(deltaByConversation['conv-dup']).toBe(1);
+    expect(deltaByChannel[ChannelTypeEnum.WhatsApp]).toBe(1);
   });
 
   it('当前激活会话收到 incoming 消息时不应增加未读', () => {
@@ -226,13 +246,22 @@ describe('useUnreadSync', () => {
       queryClient,
       ChannelTypeEnum.WhatsApp,
     );
+    const deltaByConversation =
+      queryClient.getQueryData<Record<string, number>>(
+        queryKeys.conversations.unreadDeltas.conversation(),
+      ) ?? {};
+    const deltaByChannel =
+      queryClient.getQueryData<UnreadCountResult>(
+        queryKeys.conversations.unreadDeltas.channel(),
+      ) ?? {};
 
     expect(conversations[0]).toMatchObject({
       id: 'conv-active',
       lastMessage: '当前会话新消息',
-      // 新方案下激活会话同样会先增加未读，由滚动已读流程精确扣回
-      unreadCount: 1,
+      unreadCount: 0,
     });
+    expect(deltaByConversation['conv-active']).toBe(1);
+    expect(deltaByChannel[ChannelTypeEnum.WhatsApp]).toBe(1);
   });
 
   it('收到 Read 状态事件时应减少会话未读 -1 并更新消息状态', () => {
@@ -294,9 +323,18 @@ describe('useUnreadSync', () => {
       queryClient,
       ChannelTypeEnum.WhatsApp,
     );
+    const deltaByConversation =
+      queryClient.getQueryData<Record<string, number>>(
+        queryKeys.conversations.unreadDeltas.conversation(),
+      ) ?? {};
+    const deltaByChannel =
+      queryClient.getQueryData<UnreadCountResult>(
+        queryKeys.conversations.unreadDeltas.channel(),
+      ) ?? {};
 
-    // useUnreadSync 只负责未读计数：Read ACK -1（3 → 2）
-    // 消息状态更新由 useMessageStatusSync 负责，本测试不关注它
-    expect(conversations[0]?.unreadCount).toBe(2);
+    // base 不变，delta -1（3 + (-1) = 2）
+    expect(conversations[0]?.unreadCount).toBe(3);
+    expect(deltaByConversation['conv-status']).toBe(-1);
+    expect(deltaByChannel[ChannelTypeEnum.WhatsApp]).toBe(-1);
   });
 });
