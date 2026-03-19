@@ -13,8 +13,10 @@ import {
 import { queryKeys } from '@/providers/query.provider';
 import { ServiceProvider } from '@/providers/service.provider';
 import { ConversationCacheHelper } from '@/services/cache/conversation-cache-helper.service';
-import type { IConversationService } from '@/services/core/conversation.service';
-import type { UnreadCountResult } from '@/services/core/conversation.service';
+import type {
+  IConversationService,
+  UnreadCountResult,
+} from '@/services/core/conversation.service';
 import type {
   IMessageService,
   MessageReceivedEvent,

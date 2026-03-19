@@ -118,7 +118,9 @@ function seedConversations(
 }
 
 function getConversationIds(queryClient: QueryClient) {
-  const data = queryClient.getQueryData(queryKeys.conversations.list(ACTIVE_CHANNEL)) as
+  const data = queryClient.getQueryData(
+    queryKeys.conversations.list(ACTIVE_CHANNEL),
+  ) as
     | {
         pages: Conversation[][];
       }
@@ -127,12 +129,16 @@ function getConversationIds(queryClient: QueryClient) {
 }
 
 function getConversationById(queryClient: QueryClient, conversationId: string) {
-  const data = queryClient.getQueryData(queryKeys.conversations.list(ACTIVE_CHANNEL)) as
+  const data = queryClient.getQueryData(
+    queryKeys.conversations.list(ACTIVE_CHANNEL),
+  ) as
     | {
         pages: Conversation[][];
       }
     | undefined;
-  return data?.pages.flat().find((conversation) => conversation.id === conversationId);
+  return data?.pages
+    .flat()
+    .find((conversation) => conversation.id === conversationId);
 }
 
 describe('useSendMessage Hook', () => {
@@ -284,11 +290,19 @@ describe('useSendMessage Hook', () => {
 
     // 初始顺序：B 在前，A 在后
     seedConversations(queryClient, [conversationB, conversationA]);
+    // useSendMessage 会挂载 useConversations；staleTime:0 会触发 list 拉取，需与 seed 一致否则会覆盖为空
+    vi.mocked(mockConversationService.list).mockResolvedValue([
+      conversationB,
+      conversationA,
+    ]);
 
-    queryClient.setQueryData(queryKeys.messages.list('conv-a', ACTIVE_CHANNEL), {
-      pages: [{ items: [] }],
-      pageParams: [1],
-    });
+    queryClient.setQueryData(
+      queryKeys.messages.list('conv-a', ACTIVE_CHANNEL),
+      {
+        pages: [{ items: [] }],
+        pageParams: [1],
+      },
+    );
 
     vi.mocked(mockMessageService.send).mockResolvedValue({
       tempId: 'server-temp-id',

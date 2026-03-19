@@ -1,4 +1,5 @@
 import type { ChannelTypeEnum } from '@/interfaces/channel.interface';
+import type { MessageParticipant } from '@/interfaces/message.interface';
 import {
   ClientTypeEnum,
   MessageStatusEnum,
@@ -7,7 +8,6 @@ import type {
   AckPacketBody,
   AckRawPacket,
 } from '@/interfaces/protocol.interface';
-import type { MessageParticipant } from '@/interfaces/message.interface';
 import {
   AckMessageTypeEnum,
   isPacketBodyRecord,

@@ -10,7 +10,7 @@ import type { UnreadCountResult } from '@/services/core/conversation.service';
  *
  * @description
  * - 基于“后端基线 + 前端增量映射”计算总未读：
- *   - 基线：`conversationService.getUnreadCount()` 返回的按渠道未读数量
+ *   - 基线：`conversationService.getUnreadCount()` 返回的按渠道未读数量（与 useChannelUnread 同键，仅初始化拉取一次）
  *   - 增量：由 `useUnreadSync` 维护的按渠道未读增量映射
  *   - 展示值：对所有渠道的 `max(0, base + delta)` 求和
  *   若服务未实现 `getUnreadCount`，则仅使用增量映射（通常为 0）。
@@ -30,9 +30,9 @@ export function useTotalUnread(): {
     // biome-ignore lint/style/noNonNullAssertion: 已通过 enabled 保护
     queryFn: () => conversationService!.getUnreadCount!(),
     enabled: !!conversationService?.getUnreadCount,
-    staleTime: 1000 * 30, // 30 秒内视为新鲜
-    refetchInterval: 1000 * 60, // 每分钟后台轮询一次
-    refetchOnWindowFocus: true,
+    staleTime: Infinity,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 
   // 渠道级未读增量映射（前端维护，可为负数）

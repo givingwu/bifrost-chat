@@ -66,9 +66,6 @@ describe('MessageBubble', () => {
     );
 
     expect(screen.getByText('SMS submit failed')).toBeInTheDocument();
-    expect(
-      screen.queryByRole('button', { name: 'message.retry' }),
-    ).toBeNull();
+    expect(screen.queryByRole('button', { name: 'message.retry' })).toBeNull();
   });
 });
-
