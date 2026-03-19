@@ -93,21 +93,38 @@ export function useConversations<TListParams = Record<string, unknown>>(
     },
     initialPageParam: 1,
     getNextPageParam: (lastPage, allPages) => {
+      // 处理 lastPage 可能是数组的情况（来自缓存更新）
+      const lastPageData = Array.isArray(lastPage)
+        ? lastPage
+        : (lastPage as PaginatedResponse<Conversation>).data;
+      const lastPageTotal = Array.isArray(lastPage)
+        ? lastPage.length
+        : (lastPage as PaginatedResponse<Conversation>).total;
+
       // 如果最后一页数据量少于 pageSize，说明没有更多数据了
-      if (lastPage.data.length < 20) {
+      if (lastPageData.length < 20) {
         return undefined;
       }
 
       // 使用 total 判断是否还有下一页
-      const fetched = allPages.flatMap((page) => page.data).length;
-      return fetched < lastPage.total ? allPages.length + 1 : undefined;
+      const fetched = allPages.flatMap((page) =>
+        Array.isArray(page)
+          ? page
+          : (page as PaginatedResponse<Conversation>).data,
+      ).length;
+      return fetched < lastPageTotal ? allPages.length + 1 : undefined;
     },
     enabled: (options?.enabled ?? true) && !!conversationService,
     staleTime: 1000 * 30, // 30s 内视为新鲜
   });
 
   const serverConversations = useMemo(
-    () => query.data?.pages.flatMap((page) => page.data) ?? [],
+    () =>
+      query.data?.pages.flatMap((page) =>
+        Array.isArray(page)
+          ? page
+          : (page as PaginatedResponse<Conversation>).data,
+      ) ?? [],
     [query.data],
   );
 

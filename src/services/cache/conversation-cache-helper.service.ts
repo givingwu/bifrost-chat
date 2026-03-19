@@ -16,6 +16,7 @@ import {
   type StandardMessage,
 } from '@/interfaces/message.interface';
 import { queryKeys } from '@/providers/query.provider';
+import type { PaginatedResponse } from '@/services/core/conversation.service';
 
 // ============================================================================
 // Constants
@@ -496,10 +497,10 @@ export class ConversationCacheHelper {
   private static getPages(
     queryClient: QueryClient,
     channel: ChannelTypeEnum,
-  ): InfiniteData<Conversation[], number> | undefined {
-    return queryClient.getQueryData<InfiniteData<Conversation[], number>>(
-      queryKeys.conversations.list(channel),
-    );
+  ): InfiniteData<PaginatedResponse<Conversation>, number> | undefined {
+    return queryClient.getQueryData<
+      InfiniteData<PaginatedResponse<Conversation>, number>
+    >(queryKeys.conversations.list(channel));
   }
 
   /**
@@ -515,13 +516,21 @@ export class ConversationCacheHelper {
     channel: ChannelTypeEnum,
     updater: (conversations: Conversation[]) => Conversation[],
   ): void {
-    queryClient.setQueryData<InfiniteData<Conversation[], number>>(
-      queryKeys.conversations.list(channel),
-      (old) => {
-        const existing = old ?? { pages: [[]], pageParams: [1] };
-        return { ...existing, pages: existing.pages.map(updater) };
-      },
-    );
+    queryClient.setQueryData<
+      InfiniteData<PaginatedResponse<Conversation>, number>
+    >(queryKeys.conversations.list(channel), (old) => {
+      const existing = old ?? {
+        pages: [{ current: 1, data: [], total: 0, size: 20 }],
+        pageParams: [1],
+      };
+      return {
+        ...existing,
+        pages: existing.pages.map((page) => ({
+          ...page,
+          data: updater(page.data ?? []),
+        })),
+      };
+    });
   }
 
   /**
@@ -612,7 +621,7 @@ export class ConversationCacheHelper {
     channel: ChannelTypeEnum,
   ): Conversation[] {
     const data = ConversationCacheHelper.getPages(queryClient, channel);
-    return data?.pages.flat() ?? [];
+    return data?.pages.flatMap((page) => page.data) ?? [];
   }
 
   /**
@@ -1032,12 +1041,22 @@ export class ConversationCacheHelper {
     );
 
     // Replace the entire first page, preserving pageParams structure
-    queryClient.setQueryData<InfiniteData<Conversation[], number>>(
+    // Note: We store as PaginatedResponse format to match useInfiniteQuery expectations
+    const paginatedResponse: PaginatedResponse<Conversation> = {
+      current: 1,
+      data: conversations,
+      total: conversations.length,
+      size: 20,
+    };
+    queryClient.setQueryData<
+      InfiniteData<PaginatedResponse<Conversation>, number>
+    >(
       queryKeys.conversations.list(channel),
-      (old) => ({
-        pages: [conversations],
-        pageParams: old?.pageParams ?? [1],
-      }),
+      (old) =>
+        ({
+          pages: [paginatedResponse],
+          pageParams: old?.pageParams ?? [1],
+        }) as InfiniteData<PaginatedResponse<Conversation>, number>,
     );
 
     // Sync each conversation to detail cache

@@ -5,7 +5,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AgentStatusEnum } from '@/interfaces/agent.interface';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import type { Conversation } from '@/interfaces/conversation.interface';
-import type { PaginatedResponse } from '@/services/core/conversation.service';
 import {
   MessageFailureTypeEnum,
   type MessageSendResult,
@@ -19,7 +18,10 @@ import {
 } from '@/interfaces/network.interface';
 import { queryKeys } from '@/providers/query.provider';
 import { ServiceProvider } from '@/providers/service.provider';
-import type { IConversationService } from '@/services/core/conversation.service';
+import type {
+  IConversationService,
+  PaginatedResponse,
+} from '@/services/core/conversation.service';
 import type { IMessageService } from '@/services/core/message.service';
 import type { ITemplateService } from '@/services/core/template.service';
 import { messageQueue } from '@/services/messaging/message-queue.service';
@@ -131,7 +133,7 @@ function seedConversations(
 ) {
   queryClient.setQueryData(queryKeys.conversations.list(ACTIVE_CHANNEL), {
     pageParams: [1],
-    pages: [conversations],
+    pages: [mockPaginatedResponse(conversations)],
   });
 }
 
@@ -140,10 +142,10 @@ function getConversationIds(queryClient: QueryClient) {
     queryKeys.conversations.list(ACTIVE_CHANNEL),
   ) as
     | {
-        pages: Conversation[][];
+        pages: PaginatedResponse<Conversation>[];
       }
     | undefined;
-  return data?.pages.flat().map((conversation) => conversation.id) ?? [];
+  return data?.pages.flatMap((page) => page.data.map((c) => c.id)) ?? [];
 }
 
 function getConversationById(queryClient: QueryClient, conversationId: string) {
@@ -151,11 +153,11 @@ function getConversationById(queryClient: QueryClient, conversationId: string) {
     queryKeys.conversations.list(ACTIVE_CHANNEL),
   ) as
     | {
-        pages: Conversation[][];
+        pages: PaginatedResponse<Conversation>[];
       }
     | undefined;
   return data?.pages
-    .flat()
+    .flatMap((page) => page.data)
     .find((conversation) => conversation.id === conversationId);
 }
 
