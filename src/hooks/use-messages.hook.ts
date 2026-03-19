@@ -141,7 +141,7 @@ export function useMessages<TParams extends UseMessagesParams>(
     },
     initialPageParam: 1,
     getNextPageParam: (lastPage) => lastPage.nextCursor,
-    staleTime: 1000 * 60 * 5, // 5 分钟
+    staleTime: 0, // 始终重新获取（消息具有强实时性，不缓存）
     select: (data) => {
       if (offlineMessages.length === 0 || data.pages.length === 0) {
         return data;
