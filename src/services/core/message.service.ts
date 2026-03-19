@@ -139,7 +139,7 @@ export interface IMessageService<
   markAsRead(
     params: TReadParams,
     meta?: MarkAsReadMeta,
-  ): Promise<void | MarkAsReadResult>;
+  ): Promise<undefined | MarkAsReadResult>;
 
   /**
    * 订阅实时消息

@@ -81,7 +81,8 @@ export function useConversations<TListParams = Record<string, unknown>>(
           data: [],
           total: 0,
           size: 20,
-        } as PaginatedResponse<Conversation>;
+          nextCursor: undefined,
+        } as PaginatedResponse<Conversation> & { nextCursor?: number };
       }
       const result = await conversationService.list({
         ...params,
@@ -89,30 +90,21 @@ export function useConversations<TListParams = Record<string, unknown>>(
         current: pageParam as number,
         pageSize: 20,
       } as TListParams);
-      return result;
+
+      // 在 queryFn 中计算 nextCursor，参考 useMessages 的实现
+      const hasNextPage =
+        result.data.length >= 20 && result.data.length < result.total;
+      return {
+        ...result,
+        nextCursor: hasNextPage ? (pageParam as number) + 1 : undefined,
+      } as PaginatedResponse<Conversation> & { nextCursor?: number };
     },
     initialPageParam: 1,
-    getNextPageParam: (lastPage, allPages) => {
-      // 处理 lastPage 可能是数组的情况（来自缓存更新）
-      const lastPageData = Array.isArray(lastPage)
-        ? lastPage
-        : (lastPage as PaginatedResponse<Conversation>).data;
-      const lastPageTotal = Array.isArray(lastPage)
-        ? lastPage.length
-        : (lastPage as PaginatedResponse<Conversation>).total;
-
-      // 如果最后一页数据量少于 pageSize，说明没有更多数据了
-      if (lastPageData.length < 20) {
-        return undefined;
-      }
-
-      // 使用 total 判断是否还有下一页
-      const fetched = allPages.flatMap((page) =>
-        Array.isArray(page)
-          ? page
-          : (page as PaginatedResponse<Conversation>).data,
-      ).length;
-      return fetched < lastPageTotal ? allPages.length + 1 : undefined;
+    getNextPageParam: (lastPage) => {
+      const page = lastPage as PaginatedResponse<Conversation> & {
+        nextCursor?: number;
+      };
+      return page.nextCursor;
     },
     enabled: (options?.enabled ?? true) && !!conversationService,
     staleTime: 1000 * 30, // 30s 内视为新鲜
@@ -120,10 +112,8 @@ export function useConversations<TListParams = Record<string, unknown>>(
 
   const serverConversations = useMemo(
     () =>
-      query.data?.pages.flatMap((page) =>
-        Array.isArray(page)
-          ? page
-          : (page as PaginatedResponse<Conversation>).data,
+      query.data?.pages.flatMap(
+        (page) => (page as PaginatedResponse<Conversation>).data,
       ) ?? [],
     [query.data],
   );

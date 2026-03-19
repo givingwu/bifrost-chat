@@ -1,5 +1,8 @@
 import type { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import type { Conversation } from '@/interfaces/conversation.interface';
+import type { IMessageListParams } from './message.service';
+
+export interface IConversationParams extends IMessageListParams {}
 
 /**
  * 支持的渠道会话信息
@@ -61,20 +64,22 @@ export type UnreadCountResult = Partial<Record<ChannelTypeEnum, number>>;
  * @example
  * ```typescript
  * const response: PaginatedResponse<Conversation> = {
+ *   current: 1,
  *   data: [...],
- *   total: 100
+ *   total: 100,
+ *   size: 20
  * };
  * ```
  */
 export interface PaginatedResponse<T> {
   /** The current page number */
-  current?: number;
+  current: number;
   /** 数据列表 */
   data: T[];
   /** 总记录数 */
   total: number;
   /** The page size */
-  size?: number;
+  size: number;
 }
 
 /**
@@ -116,7 +121,7 @@ export interface PaginatedResponse<T> {
  * ```
  */
 export interface IConversationService<
-  TListParams = unknown,
+  TListParams = Record<string, unknown>,
   TCreateParams = unknown,
   TQueryParams = unknown,
 > {
