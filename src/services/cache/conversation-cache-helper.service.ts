@@ -369,15 +369,20 @@ function mergeConversation(
   options?: MergeOptions,
 ): Conversation {
   const existingMetadata = existingConversation.metadata;
-  const mergedMetadata =
-    existingMetadata &&
-    typeof existingMetadata === 'object' &&
-    existingMetadata.synthetic !== true
-      ? existingMetadata
-      : {
-          ...incomingConversation.metadata,
-          ...existingConversation.metadata,
-        };
+  const incomingMetadata = incomingConversation.metadata;
+
+  let mergedMetadata: Conversation['metadata'];
+
+  if (!existingMetadata || typeof existingMetadata !== 'object') {
+    // 没有现有 metadata, incoming 直接覆盖
+    mergedMetadata = incomingMetadata;
+  } else {
+    // existing 是 synthetic, incoming优先级更高 (覆盖 synthetic 数据)
+    mergedMetadata = {
+      ...incomingMetadata,
+      ...existingMetadata,
+    };
+  }
 
   // Summary fields: preserve existing data when incoming is empty/zero.
   // GET endpoints (e.g., /session/info) may not include message summaries,
