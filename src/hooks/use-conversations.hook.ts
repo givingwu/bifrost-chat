@@ -92,7 +92,7 @@ export function useConversations<TListParams = Record<string, unknown>>(
       return fetched < total ? allPages.length + 1 : undefined;
     },
     enabled: (options?.enabled ?? true) && !!conversationService,
-    staleTime: 1000 * 60 * 5,
+    staleTime: 0,
   });
 
   const serverConversations = useMemo(

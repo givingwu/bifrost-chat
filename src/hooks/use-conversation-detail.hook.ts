@@ -44,6 +44,6 @@ export function useConversationDetail(conversationId: string) {
     },
     enabled: !!conversationId,
     initialData: cachedDetail ?? undefined,
-    staleTime: 1000 * 60 * 5,
+    staleTime: 0,
   });
 }
