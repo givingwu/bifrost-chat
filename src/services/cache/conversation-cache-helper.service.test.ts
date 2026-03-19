@@ -189,6 +189,65 @@ describe('ConversationCacheHelper', () => {
     });
   });
 
+  it('列表 metadata 空字符串不应覆盖详情拉取的非空字段', () => {
+    const queryClient = new QueryClient();
+
+    seedConversationCache(queryClient, ChannelTypeEnum.WhatsApp, [
+      {
+        id: 'conv-merge-meta',
+        user: {
+          id: 'pin-1',
+          name: '列表名',
+          status: AgentStatusEnum.Offline,
+        },
+        lastMessage: 'hi',
+        lastMessageTime: new Date(1_770_000_000_000).toISOString(),
+        unreadCount: 1,
+        channel: ChannelTypeEnum.WhatsApp,
+        metadata: {
+          name: '',
+          assetFromApp: '',
+          owner: 'kept-from-list',
+        },
+      },
+    ]);
+
+    ConversationCacheHelper.cacheConversation(queryClient, {
+      id: 'conv-merge-meta',
+      user: {
+        id: 'pin-1',
+        name: '详情名',
+        status: AgentStatusEnum.Offline,
+      },
+      lastMessage: 'hi',
+      lastMessageTime: new Date(1_770_000_000_000).toISOString(),
+      unreadCount: 1,
+      channel: ChannelTypeEnum.WhatsApp,
+      metadata: {
+        name: '张三',
+        assetFromApp: 'fox.collect',
+        customerPin: 'pin-1',
+      },
+    });
+
+    const fromList = ConversationCacheHelper.getConversations(
+      queryClient,
+      ChannelTypeEnum.WhatsApp,
+    )[0];
+    const fromDetail = ConversationCacheHelper.getConversationDetail(
+      queryClient,
+      'conv-merge-meta',
+    );
+
+    expect(fromList?.metadata).toMatchObject({
+      name: '张三',
+      assetFromApp: 'fox.collect',
+      customerPin: 'pin-1',
+      owner: 'kept-from-list',
+    });
+    expect(fromDetail?.metadata).toEqual(fromList?.metadata);
+  });
+
   it('应支持直接增加和清空会话未读数', () => {
     const queryClient = new QueryClient();
 

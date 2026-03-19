@@ -212,7 +212,9 @@ vi.mock('@/hooks/use-conversations.hook', () => ({
 
 vi.mock('@/hooks/use-active-conversation-metadata.hook', () => ({
   useActiveConversationMetadata: () => ({
-    metadata: null,
+    metadata: {
+      supportedChannels: [ChannelTypeEnum.WhatsApp],
+    },
   }),
 }));
 

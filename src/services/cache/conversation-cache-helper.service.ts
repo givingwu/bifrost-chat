@@ -302,6 +302,69 @@ function isMetadataRecord(
 }
 
 /**
+ * Merges `conversation.metadata` when combining list cache with newer payloads.
+ *
+ * - List APIs often return empty-string placeholders; detail/get must not lose
+ *   non-empty values to those placeholders.
+ * - Non-empty strings win over empty/whitespace-only strings on the same key.
+ * - When both sides are non-empty strings, incoming wins (newer fetch).
+ * - A confirmed real conversation (`synthetic: false`) stays non-synthetic when
+ *   merging WebSocket synthetic rows that set `synthetic: true`.
+ */
+function mergeConversationMetadata(
+  existing: Conversation['metadata'],
+  incoming: Conversation['metadata'],
+): Conversation['metadata'] {
+  if (!isMetadataRecord(existing)) {
+    return incoming;
+  }
+  if (!isMetadataRecord(incoming)) {
+    return existing;
+  }
+
+  const ex = existing;
+  const inc = incoming;
+  const keys = new Set([...Object.keys(ex), ...Object.keys(inc)]);
+  const out: Record<string, unknown> = {};
+
+  for (const key of keys) {
+    const ev = ex[key];
+    const iv = inc[key];
+
+    if (key === 'synthetic' && ev === false && iv === true) {
+      out[key] = false;
+      continue;
+    }
+
+    const evIsStr = typeof ev === 'string';
+    const ivIsStr = typeof iv === 'string';
+    if (evIsStr && ivIsStr) {
+      const et = ev.trim();
+      const it = iv.trim();
+      if (et.length > 0 && it.length === 0) {
+        out[key] = ev;
+        continue;
+      }
+      if (it.length > 0) {
+        out[key] = iv;
+        continue;
+      }
+      out[key] = iv;
+      continue;
+    }
+
+    if (iv !== undefined) {
+      out[key] = iv;
+      continue;
+    }
+
+    out[key] = ev;
+  }
+
+  return out as Conversation['metadata'];
+}
+
+/**
  * Converts a conversation to pending state with appropriate metadata.
  *
  * @param conversation - The conversation to convert
@@ -368,21 +431,10 @@ function mergeConversation(
   incomingConversation: Conversation,
   options?: MergeOptions,
 ): Conversation {
-  const existingMetadata = existingConversation.metadata;
-  const incomingMetadata = incomingConversation.metadata;
-
-  let mergedMetadata: Conversation['metadata'];
-
-  if (!existingMetadata || typeof existingMetadata !== 'object') {
-    // 没有现有 metadata, incoming 直接覆盖
-    mergedMetadata = incomingMetadata;
-  } else {
-    // existing 是 synthetic, incoming优先级更高 (覆盖 synthetic 数据)
-    mergedMetadata = {
-      ...incomingMetadata,
-      ...existingMetadata,
-    };
-  }
+  const mergedMetadata = mergeConversationMetadata(
+    existingConversation.metadata,
+    incomingConversation.metadata,
+  );
 
   // Summary fields: preserve existing data when incoming is empty/zero.
   // GET endpoints (e.g., /session/info) may not include message summaries,
