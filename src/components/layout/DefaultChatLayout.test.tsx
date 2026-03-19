@@ -45,6 +45,7 @@ const {
         user: {
           name: '张三',
         },
+        supportedChannels: ['whatsapp'] as string[],
       },
       {
         id: 'conv-2',
@@ -52,8 +53,14 @@ const {
         user: {
           name: '李四',
         },
+        supportedChannels: ['whatsapp'] as string[],
       },
-    ],
+    ] as Array<{
+      id: string;
+      channel: string;
+      user: { name: string };
+      supportedChannels?: string[];
+    }>,
   },
   getConversationDetailMock: vi.fn(),
   mutateAsyncMock: vi.fn(),
@@ -296,6 +303,7 @@ describe('DefaultChatLayout', () => {
         user: {
           name: '张三',
         },
+        supportedChannels: [ChannelTypeEnum.WhatsApp],
       },
       {
         id: 'conv-2',
@@ -303,6 +311,7 @@ describe('DefaultChatLayout', () => {
         user: {
           name: '李四',
         },
+        supportedChannels: [ChannelTypeEnum.WhatsApp],
       },
     ];
     getConversationDetailMock.mockReset();

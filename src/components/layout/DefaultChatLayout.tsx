@@ -21,7 +21,6 @@ import { TopbarTools } from '@/components/toolbar/TopbarTools';
 import { useActiveConversationMetadata } from '@/hooks/use-active-conversation-metadata.hook';
 import { useComposerFocus } from '@/hooks/use-composer-focus.hook';
 import { useConversationAutoSelect } from '@/hooks/use-conversation-auto-select.hook';
-import { useConversationDetail } from '@/hooks/use-conversation-detail.hook';
 import { useConversations } from '@/hooks/use-conversations.hook';
 import { useMessageStatusSync } from '@/hooks/use-message-status-sync.hook';
 import { useSendMessage } from '@/hooks/use-send-message.hook';
@@ -200,11 +199,12 @@ export function DefaultChatLayout({
   } = useConversations();
 
   const { activeConversationId, searchQuery } = useConversation();
-  const { isPending: isConversationDetailLoading } =
-    useConversationDetail(activeConversationId);
 
-  // 后台静默同步会话元数据
-  const { metadata: conversationMetadata } = useActiveConversationMetadata();
+  // 后台静默同步会话元数据（内部已调用 useConversationDetail，无需重复调用）
+  const {
+    metadata: conversationMetadata,
+    isPending: isConversationDetailLoading,
+  } = useActiveConversationMetadata();
   const sendMessage = useSendMessage({ conversationMetadata });
 
   // 使用 useTransition 标记搜索过滤为过渡更新（低优先级）
@@ -536,6 +536,7 @@ export function DefaultChatLayout({
           activeChannel={activeChannel}
           renderingTemplateId={renderingTemplateId}
           onTemplateSelect={handleTemplateSelect}
+          isChannelSupported={isChannelSupported}
         />
       }
     >
