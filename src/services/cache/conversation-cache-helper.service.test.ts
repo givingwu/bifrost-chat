@@ -182,6 +182,10 @@ describe('ConversationCacheHelper', () => {
     expect(updatedConversation?.metadata).toEqual({
       synthetic: false,
       owner: 'agent-1',
+      peerApp: 'mail-app',
+      peerPin: 'customer@example.com',
+      seedMessageId: 'msg-3',
+      source: 'websocket',
     });
   });
 
