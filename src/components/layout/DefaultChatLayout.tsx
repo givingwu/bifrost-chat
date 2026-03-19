@@ -467,11 +467,7 @@ export function DefaultChatLayout({
   );
 
   const messageListClassName = useMemo(
-    () =>
-      cn(
-        'transition-opacity duration-300',
-        isConversationDetailLoading && 'opacity-70 animate-pulse',
-      ),
+    () => cn(isConversationDetailLoading && 'animate-pulse'),
     [isConversationDetailLoading],
   );
 
