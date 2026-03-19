@@ -54,35 +54,6 @@ export interface UnreadCountParams {
 export type UnreadCountResult = Partial<Record<ChannelTypeEnum, number>>;
 
 /**
- * 分页响应结构
- *
- * @description
- * 标准分页响应格式，用于列表查询 API。
- *
- * @template T 数据项类型
- *
- * @example
- * ```typescript
- * const response: PaginatedResponse<Conversation> = {
- *   current: 1,
- *   data: [...],
- *   total: 100,
- *   size: 20
- * };
- * ```
- */
-export interface PaginatedResponse<T> {
-  /** The current page number */
-  current: number;
-  /** 数据列表 */
-  data: T[];
-  /** 总记录数 */
-  total: number;
-  /** The page size */
-  size: number;
-}
-
-/**
  * 会话服务接口 (泛型版本)
  * @template TListParams 列表查询参数类型
  * @template TCreateParams 创建参数类型
@@ -97,7 +68,7 @@ export interface PaginatedResponse<T> {
  * // 业务方实现接口
  * class MyConversationService
  *   implements IConversationService<MyListParams, MyCreateParams, MyQueryParams> {
- *   async list(params?: MyListParams): Promise<PaginatedResponse<Conversation>> {
+ *   async list(params?: MyListParams): Promise<Conversation[]> {
  *     const response = await fetch('/api/conversations', {
  *       method: 'POST',
  *       body: JSON.stringify(params)
@@ -135,7 +106,7 @@ export interface IConversationService<
    * @param params 查询参数（可选）
    * @returns 分页响应，包含数据列表和总记录数
    */
-  list(params?: TListParams): Promise<PaginatedResponse<Conversation>>;
+  list(params?: TListParams): Promise<Conversation[]>;
 
   /**
    * 获取会话详情
