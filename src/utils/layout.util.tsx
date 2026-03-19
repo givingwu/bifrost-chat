@@ -24,7 +24,7 @@ export function checkChannelSupport(
   channel: ChannelTypeEnum,
 ): boolean {
   if (!channel) return false;
-  if (!supportedChannels || supportedChannels.length === 0) return true;
+  if (!supportedChannels || supportedChannels.length === 0) return false;
 
   return supportedChannels.includes(channel);
 }
