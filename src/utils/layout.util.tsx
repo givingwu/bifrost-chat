@@ -20,12 +20,12 @@ export const TRANSLATION_KEYS = {
  * @returns 渠道是否被支持
  */
 export function checkChannelSupport(
-  conversation: Conversation | undefined,
+  supportedChannels: ChannelTypeEnum[],
   channel: ChannelTypeEnum,
 ): boolean {
-  if (!conversation) return true;
-  const { supportedChannels } = conversation;
+  if (!channel) return false;
   if (!supportedChannels || supportedChannels.length === 0) return true;
+
   return supportedChannels.includes(channel);
 }
 

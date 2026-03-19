@@ -195,14 +195,17 @@ export function DefaultChatLayout({
 
   const {
     data: conversations = [],
-    isFetching: isConversationsFetching,
-    isLoading: isConversationsLoading,
+    isFetching: isConversationsFetching, // isFetching：当发起获取请求时，始终为 True，适用于背景加载指示器
+    isLoading: isConversationsLoading, // isLoading: 当查询处于加载状态且没有可用的缓存数据时为 True，非常适合初始加载旋转器
   } = useConversations();
 
   const { activeConversationId, searchQuery } = useConversation();
-
   const { isPending: isConversationDetailLoading } =
     useConversationDetail(activeConversationId);
+
+  // 后台静默同步会话元数据
+  const { metadata: conversationMetadata } = useActiveConversationMetadata();
+  const sendMessage = useSendMessage({ conversationMetadata });
 
   // 使用 useTransition 标记搜索过滤为过渡更新（低优先级）
   const [isSearchPending, startTransition] = useTransition();
@@ -212,10 +215,6 @@ export function DefaultChatLayout({
   const [renderingTemplateId, setRenderingTemplateId] = useState<
     string | number | undefined
   >();
-
-  // 后台静默同步会话元数据
-  const { metadata: conversationMetadata } = useActiveConversationMetadata();
-  const sendMessage = useSendMessage({ conversationMetadata });
 
   // Composer ref
   const composerRef = useRef<ComposerRef>(null);
@@ -241,8 +240,18 @@ export function DefaultChatLayout({
 
   // 检查当前渠道是否被会话支持
   const isChannelSupported = useMemo(
-    () => checkChannelSupport(activeConversation, activeChannel),
-    [activeConversation, activeChannel],
+    () =>
+      checkChannelSupport(
+        conversationMetadata?.supportedChannels ??
+          activeConversation?.supportedChannels ??
+          [],
+        activeChannel,
+      ),
+    [
+      activeConversation,
+      activeChannel,
+      conversationMetadata?.supportedChannels,
+    ],
   );
 
   // 计算 title
