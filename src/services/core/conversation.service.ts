@@ -51,6 +51,33 @@ export interface UnreadCountParams {
 export type UnreadCountResult = Partial<Record<ChannelTypeEnum, number>>;
 
 /**
+ * 分页响应结构
+ *
+ * @description
+ * 标准分页响应格式，用于列表查询 API。
+ *
+ * @template T 数据项类型
+ *
+ * @example
+ * ```typescript
+ * const response: PaginatedResponse<Conversation> = {
+ *   data: [...],
+ *   total: 100
+ * };
+ * ```
+ */
+export interface PaginatedResponse<T> {
+  /** The current page number */
+  current?: number;
+  /** 数据列表 */
+  data: T[];
+  /** 总记录数 */
+  total: number;
+  /** The page size */
+  size?: number;
+}
+
+/**
  * 会话服务接口 (泛型版本)
  * @template TListParams 列表查询参数类型
  * @template TCreateParams 创建参数类型
@@ -65,8 +92,16 @@ export type UnreadCountResult = Partial<Record<ChannelTypeEnum, number>>;
  * // 业务方实现接口
  * class MyConversationService
  *   implements IConversationService<MyListParams, MyCreateParams, MyQueryParams> {
- *   async list(params?: MyListParams): Promise<Conversation[]> {
- *     // 自定义实现
+ *   async list(params?: MyListParams): Promise<PaginatedResponse<Conversation>> {
+ *     const response = await fetch('/api/conversations', {
+ *       method: 'POST',
+ *       body: JSON.stringify(params)
+ *     });
+ *     const json = await response.json();
+ *     return {
+ *       data: json.data,
+ *       total: json.total
+ *     };
  *   }
  *   async get(conversationId: string): Promise<Conversation | null> {
  *     // 自定义实现
@@ -81,16 +116,21 @@ export type UnreadCountResult = Partial<Record<ChannelTypeEnum, number>>;
  * ```
  */
 export interface IConversationService<
-  TListParams = any,
-  TCreateParams = any,
-  TQueryParams = any,
+  TListParams = unknown,
+  TCreateParams = unknown,
+  TQueryParams = unknown,
 > {
   /**
-   * 获取会话列表
+   * 获取会话列表（分页）
+   *
+   * @description
+   * 返回标准的分页响应格式，包含数据列表和总记录数。
+   * SDK 使用 `total` 字段判断是否还有下一页。
+   *
    * @param params 查询参数（可选）
-   * @returns 会话列表
+   * @returns 分页响应，包含数据列表和总记录数
    */
-  list(params?: TListParams): Promise<Conversation[]>;
+  list(params?: TListParams): Promise<PaginatedResponse<Conversation>>;
 
   /**
    * 获取会话详情

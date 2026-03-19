@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AgentStatusEnum } from '@/interfaces/agent.interface';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import type { Conversation } from '@/interfaces/conversation.interface';
+import type { PaginatedResponse } from '@/services/core/conversation.service';
 import {
   MessageFailureTypeEnum,
   type MessageSendResult,
@@ -25,6 +26,23 @@ import { messageQueue } from '@/services/messaging/message-queue.service';
 import { pendingMessageTracker } from '@/services/messaging/pending-message-tracker.service';
 import type { CurrentUser } from '@/store';
 import { useSendMessage } from './use-send-message.hook';
+
+/**
+ * 将会话数组包装为分页响应格式
+ */
+function mockPaginatedResponse(
+  conversations: Conversation[],
+  total = conversations.length,
+  current = 1,
+  size = 20,
+): PaginatedResponse<Conversation> {
+  return {
+    current,
+    data: conversations,
+    total,
+    size,
+  };
+}
 
 // Mock useStrategy
 const mockCurrentUser: CurrentUser = {
@@ -152,7 +170,9 @@ describe('useSendMessage Hook', () => {
       quality: NetworkQualityEnum.Good,
       enableStatusIndicator: true,
     };
-    vi.mocked(mockConversationService.list).mockResolvedValue([]);
+    vi.mocked(mockConversationService.list).mockResolvedValue(
+      mockPaginatedResponse([]),
+    );
   });
 
   afterEach(() => {
@@ -291,10 +311,9 @@ describe('useSendMessage Hook', () => {
     // 初始顺序：B 在前，A 在后
     seedConversations(queryClient, [conversationB, conversationA]);
     // useSendMessage 会挂载 useConversations；staleTime:0 会触发 list 拉取，需与 seed 一致否则会覆盖为空
-    vi.mocked(mockConversationService.list).mockResolvedValue([
-      conversationB,
-      conversationA,
-    ]);
+    vi.mocked(mockConversationService.list).mockResolvedValue(
+      mockPaginatedResponse([conversationB, conversationA]),
+    );
 
     queryClient.setQueryData(
       queryKeys.messages.list('conv-a', ACTIVE_CHANNEL),

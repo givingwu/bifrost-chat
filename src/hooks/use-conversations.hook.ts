@@ -8,6 +8,7 @@ import type { Conversation } from '@/interfaces/conversation.interface';
 import { queryKeys } from '@/providers/query.provider';
 import { useServices } from '@/providers/service.provider';
 import { ConversationCacheHelper } from '@/services/cache/conversation-cache-helper.service';
+import type { PaginatedResponse } from '@/services/core/conversation.service';
 import { useActiveConversationId, useStrategy } from '@/store';
 
 /**
@@ -74,7 +75,14 @@ export function useConversations<TListParams = Record<string, unknown>>(
   const query = useInfiniteQuery({
     queryKey: queryKeys.conversations.list(activeChannel),
     queryFn: async ({ pageParam = 1 }) => {
-      if (!conversationService) return [];
+      if (!conversationService) {
+        return {
+          current: 1,
+          data: [],
+          total: 0,
+          size: 20,
+        } as PaginatedResponse<Conversation>;
+      }
       const result = await conversationService.list({
         ...params,
         ...(channelFilterEnabled ? { channelType: activeChannel } : {}),
@@ -85,18 +93,21 @@ export function useConversations<TListParams = Record<string, unknown>>(
     },
     initialPageParam: 1,
     getNextPageParam: (lastPage, allPages) => {
-      // 宿主层会在返回数组上挂载 total 字段
-      const total =
-        (lastPage as Conversation[] & { total?: number }).total ?? 0;
-      const fetched = allPages.flat().length;
-      return fetched < total ? allPages.length + 1 : undefined;
+      // 如果最后一页数据量少于 pageSize，说明没有更多数据了
+      if (lastPage.data.length < 20) {
+        return undefined;
+      }
+
+      // 使用 total 判断是否还有下一页
+      const fetched = allPages.flatMap((page) => page.data).length;
+      return fetched < lastPage.total ? allPages.length + 1 : undefined;
     },
     enabled: (options?.enabled ?? true) && !!conversationService,
     staleTime: 1000 * 30, // 30s 内视为新鲜
   });
 
   const serverConversations = useMemo(
-    () => query.data?.pages.flat() ?? [],
+    () => query.data?.pages.flatMap((page) => page.data) ?? [],
     [query.data],
   );
 

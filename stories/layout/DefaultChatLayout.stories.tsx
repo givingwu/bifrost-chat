@@ -11,6 +11,7 @@ import {
   type ITemplateService,
   ServiceProvider,
 } from '@/index';
+import type { PaginatedResponse } from '@/services/core/conversation.service';
 import { AgentStatusEnum } from '@/interfaces/agent.interface';
 import type { SendAttachmentResult } from '@/interfaces/attachment.interface';
 import type { SendAudioResult } from '@/interfaces/audio.interface';
@@ -140,7 +141,12 @@ const mockConversationStore = generateMockConversations();
 // Mock 服务实现
 class MockConversationService implements IConversationService {
   async list() {
-    return [...mockConversationStore];
+    return {
+      current: 1,
+      data: [...mockConversationStore],
+      total: mockConversationStore.length,
+      size: 20,
+    } as PaginatedResponse<Conversation>;
   }
 
   async get(conversationId: string) {
