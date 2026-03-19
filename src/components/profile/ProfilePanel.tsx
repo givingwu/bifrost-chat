@@ -20,6 +20,8 @@ export interface ProfilePanelProps {
   renderingTemplateId: string | number | undefined;
   /** 模板选择回调 */
   onTemplateSelect: (template: Template) => void;
+  /** 当前渠道是否被会话支持 */
+  isChannelSupported?: boolean;
 }
 
 /**
@@ -34,6 +36,7 @@ export function ProfilePanel({
   activeChannel,
   renderingTemplateId,
   onTemplateSelect,
+  isChannelSupported = true,
 }: ProfilePanelProps) {
   return (
     <aside className="flex flex-col w-75 shrink-0 border-l border-gray-200/50 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 divide-y divide-gray-200/50 dark:divide-white/10">
@@ -44,6 +47,7 @@ export function ProfilePanel({
           conversationId={activeConversationId}
           currentChannel={activeChannel}
           renderingTemplateId={renderingTemplateId}
+          isChannelSupported={isChannelSupported}
         />
       </div>
     </aside>

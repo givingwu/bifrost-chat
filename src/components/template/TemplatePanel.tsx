@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState, useTransition } from 'react';
 import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { LoadingState } from '@/components/LoadingState';
+import { UnsupportedChannelWarning } from '@/components/layout/UnsupportedChannelWarning';
 import { useTemplates } from '@/hooks/use-templates.hook';
 import type { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import type { Template } from '@/interfaces/template.interface';
@@ -27,6 +28,8 @@ export interface TemplatePanelProps {
   currentChannel?: ChannelTypeEnum;
   /** 正在渲染的模板 ID（用于显示 loading 状态） */
   renderingTemplateId?: string | number;
+  /** 当前渠道是否被会话支持 */
+  isChannelSupported?: boolean;
 }
 
 /**
@@ -53,11 +56,12 @@ export const TemplatePanel = ({
   conversationId,
   currentChannel,
   renderingTemplateId,
+  isChannelSupported = true,
 }: TemplatePanelProps) => {
   const { t } = useTranslation();
 
-  // 仅在未提供自定义模板时才调用 useTemplates
-  const shouldFetchFromServer = !customTemplates;
+  // 仅在未提供自定义模板且渠道支持时才调用 useTemplates
+  const shouldFetchFromServer = !customTemplates && isChannelSupported;
 
   const {
     data: serverTemplates,
@@ -176,7 +180,12 @@ export const TemplatePanel = ({
         aria-live="polite"
         aria-busy={isLoading || isPending}
       >
-        {error ? (
+        {!isChannelSupported && currentChannel ? (
+          <UnsupportedChannelWarning
+            channel={currentChannel}
+            variant="vertical"
+          />
+        ) : error ? (
           <ErrorState
             message={t('template.panel.loadFailed')}
             onRetry={handleRetry}
