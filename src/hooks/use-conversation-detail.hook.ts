@@ -44,7 +44,5 @@ export function useConversationDetail(conversationId: string) {
     },
     enabled: !!conversationId,
     initialData: cachedDetail ?? undefined,
-    staleTime: 30 * 1000, // 30 seconds - prevent immediate refetch
-    gcTime: 5 * 60 * 1000, // 5 minutes - keep in cache
   });
 }
