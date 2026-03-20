@@ -37,7 +37,7 @@ describe('status.mapper', () => {
   describe('mapServerMessageStatusToLocal', () => {
     it('大写状态应映射正确', () => {
       expect(mapServerMessageStatusToLocal('UN_SEND')).toBe(
-        MessageStatusEnum.Sending,
+        MessageStatusEnum.Sent,
       );
       expect(mapServerMessageStatusToLocal('SEND_FAIL')).toBe(
         MessageStatusEnum.Failed,

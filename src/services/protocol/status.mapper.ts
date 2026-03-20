@@ -50,7 +50,7 @@ export function mapServerMessageStatusToLocal(
 ): MessageStatusEnum {
   const normalized = serverStatus.toUpperCase() as ServerMessageStatus;
   const mapping: Record<ServerMessageStatus, MessageStatusEnum> = {
-    UN_SEND: MessageStatusEnum.Sending,
+    UN_SEND: MessageStatusEnum.Sent,
     SEND_FAIL: MessageStatusEnum.Failed,
     DELIVER_FAIL: MessageStatusEnum.Failed,
     UN_READ: MessageStatusEnum.Delivered,

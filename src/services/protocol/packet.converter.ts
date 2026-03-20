@@ -1,3 +1,5 @@
+import type { ServerMessageStatus } from '@/index';
+import { mapServerMessageStatusToLocal } from '@/index';
 import {
   ClientTypeEnum,
   MessageDirectionEnum,
@@ -134,7 +136,14 @@ export class PacketConverter {
       conversationId: packet.chatId,
       direction: messageDirection || MessageDirectionEnum.Incoming,
       channelType,
-      status: MessageStatusEnum.Sent,
+      status: packet.status
+        ? mapServerMessageStatusToLocal(
+            packet.status?.toUpperCase() as ServerMessageStatus,
+          )
+        : (messageDirection || MessageDirectionEnum.Incoming) ===
+            MessageDirectionEnum.Incoming
+          ? MessageStatusEnum.Sent
+          : MessageStatusEnum.Created,
       timestamp: packet.timestamp,
       type: MessageBuilder.packetBodyToMessageType(packet.body),
       content: MessageBuilder.packetBodyToMessageContent(packet.body),
