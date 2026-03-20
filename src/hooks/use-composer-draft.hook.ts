@@ -30,8 +30,8 @@ export interface DraftData {
 }
 
 export interface UseComposerDraftOptions {
-  conversationId?: string;
-  channel?: ChannelTypeEnum;
+  conversationId: string;
+  channel: ChannelTypeEnum;
   templateLocked?: boolean;
   enableDraft?: boolean;
   draftDebounceDelay?: number;
@@ -98,7 +98,7 @@ function parseDraftData(raw: string): DraftData {
   // 尝试解析 JSON 格式
   if (raw.startsWith('{')) {
     try {
-      const parsed = JSON.parse(raw);
+      const parsed = JSON.parse(raw) as DraftData;
       // 验证是否为有效的 DraftData 结构
       if (typeof parsed.content === 'string') {
         return {
@@ -125,19 +125,11 @@ function serializeDraftData(data: DraftData): string {
   return JSON.stringify(data);
 }
 
-function buildConversationDraftStorageKey(conversationId: string): string {
-  return `${DRAFT_KEY_PREFIX}conversation-${conversationId}`;
-}
-
-function buildChannelDraftStorageKey(channel: ChannelTypeEnum): string {
-  return `${DRAFT_KEY_PREFIX}channel-${channel}`;
-}
-
-function buildConversationChannelDraftStorageKey(
+function buildConversationDraftStorageKey(
   conversationId: string,
   channel: ChannelTypeEnum,
 ): string {
-  return `${buildConversationDraftStorageKey(conversationId)}-channel-${channel}`;
+  return `${DRAFT_KEY_PREFIX}conversation-${conversationId}-${channel}`;
 }
 
 /**
@@ -167,22 +159,7 @@ export function useComposerDraft({
 
   const draftStorageKey = useMemo(() => {
     if (conversationId && channel) {
-      return buildConversationChannelDraftStorageKey(conversationId, channel);
-    }
-
-    if (conversationId) {
-      return buildConversationDraftStorageKey(conversationId);
-    }
-
-    if (channel) {
-      return buildChannelDraftStorageKey(channel);
-    }
-
-    return null;
-  }, [channel, conversationId]);
-  const legacyDraftStorageKey = useMemo(() => {
-    if (conversationId && channel) {
-      return buildConversationDraftStorageKey(conversationId);
+      return buildConversationDraftStorageKey(conversationId, channel);
     }
 
     return null;
@@ -202,8 +179,7 @@ export function useComposerDraft({
 
   const clearDraft = useCallback(() => {
     clearDraftByKey(draftStorageKey);
-    clearDraftByKey(legacyDraftStorageKey);
-  }, [clearDraftByKey, draftStorageKey, legacyDraftStorageKey]);
+  }, [clearDraftByKey, draftStorageKey]);
 
   const readDraftDataByKey = useCallback(
     (storageKey: string | null): DraftData | null => {
@@ -237,32 +213,8 @@ export function useComposerDraft({
       return currentDraft;
     }
 
-    const legacyDraft = readDraftDataByKey(legacyDraftStorageKey);
-
-    if (!legacyDraft) {
-      return { content: '' };
-    }
-
-    if (draftStorageKey) {
-      try {
-        window.localStorage.setItem(
-          draftStorageKey,
-          serializeDraftData(legacyDraft),
-        );
-
-        if (
-          legacyDraftStorageKey &&
-          legacyDraftStorageKey !== draftStorageKey
-        ) {
-          window.localStorage.removeItem(legacyDraftStorageKey);
-        }
-      } catch {
-        // 忽略迁移失败，仍返回旧数据
-      }
-    }
-
-    return legacyDraft;
-  }, [draftStorageKey, legacyDraftStorageKey, readDraftDataByKey]);
+    return { content: '' };
+  }, [draftStorageKey, readDraftDataByKey]);
 
   const loadDraft = useCallback(() => {
     return loadDraftData().content;

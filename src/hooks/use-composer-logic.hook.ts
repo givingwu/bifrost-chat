@@ -31,8 +31,8 @@ export type ResolvedComposerConfig = IComposerConfig & {
  * useComposerLogic Hook 选项
  */
 export interface UseComposerLogicOptions {
-  conversationId?: string;
-  channel?: ChannelTypeEnum;
+  conversationId: string;
+  channel: ChannelTypeEnum;
   enableDraft?: boolean;
   onSend?: (
     content: string,

@@ -28,6 +28,7 @@ describe('useComposerDraft', () => {
     const { result } = renderHook(() =>
       useComposerDraft({
         conversationId: 'conv-load',
+        channel: ChannelTypeEnum.SMS,
       }),
     );
 
@@ -41,6 +42,7 @@ describe('useComposerDraft', () => {
     const { result } = renderHook(() =>
       useComposerDraft({
         conversationId: 'conv-save',
+        channel: ChannelTypeEnum.SMS,
         draftDebounceDelay: 200,
       }),
     );
@@ -94,6 +96,7 @@ describe('useComposerDraft', () => {
     const { result } = renderHook(() =>
       useComposerDraft({
         conversationId: 'conv-send',
+        channel: ChannelTypeEnum.SMS,
         onSend,
         clearDraftOnSend: true,
       }),
@@ -196,6 +199,7 @@ describe('useComposerDraft', () => {
       const { result } = renderHook(() =>
         useComposerDraft({
           conversationId: 'conv-type',
+          channel: ChannelTypeEnum.SMS,
           draftDebounceDelay: 200,
         }),
       );
@@ -235,6 +239,7 @@ describe('useComposerDraft', () => {
       const { result } = renderHook(() =>
         useComposerDraft({
           conversationId: 'conv-batch',
+          channel: ChannelTypeEnum.SMS,
           draftDebounceDelay: 200,
         }),
       );
@@ -258,6 +263,7 @@ describe('useComposerDraft', () => {
       const { result } = renderHook(() =>
         useComposerDraft({
           conversationId: 'conv-get',
+          channel: ChannelTypeEnum.SMS,
         }),
       );
 
@@ -295,6 +301,7 @@ describe('useComposerDraft', () => {
       const { result } = renderHook(() =>
         useComposerDraft({
           conversationId: 'conv-restore',
+          channel: ChannelTypeEnum.SMS,
         }),
       );
 
@@ -350,6 +357,7 @@ describe('useComposerDraft', () => {
       const { result } = renderHook(() =>
         useComposerDraft({
           conversationId: 'conv-clear-type',
+          channel: ChannelTypeEnum.SMS,
           onSend,
           clearDraftOnSend: true,
         }),
@@ -386,6 +394,7 @@ describe('useComposerDraft', () => {
       const { result } = renderHook(() =>
         useComposerDraft({
           conversationId: 'conv-legacy',
+          channel: ChannelTypeEnum.SMS,
         }),
       );
 

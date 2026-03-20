@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { forwardRef, useImperativeHandle } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import { Composer } from './Composer';
 
 const mockUseComposerLogic = vi.fn();
@@ -128,7 +129,9 @@ describe('Composer', () => {
       }),
     );
 
-    render(<Composer />);
+    render(
+      <Composer channel={ChannelTypeEnum.Email} conversationId="conv-1" />,
+    );
 
     expect(screen.getByRole('alert')).toHaveTextContent('发送失败');
   });
@@ -136,7 +139,7 @@ describe('Composer', () => {
   it('should not register messageSendFailed listener on window', () => {
     const addEventListenerSpy = vi.spyOn(window, 'addEventListener');
 
-    render(<Composer />);
+    render(<Composer channel={ChannelTypeEnum.SMS} conversationId="conv-1" />);
 
     expect(
       addEventListenerSpy.mock.calls.some(

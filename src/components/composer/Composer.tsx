@@ -27,9 +27,9 @@ import { ComposerActions } from './ComposerActions';
 export interface ComposerProps {
   // 核心配置
   /** 会话 ID（用于草稿存储） */
-  conversationId?: string;
+  conversationId: string;
   /** 当前激活渠道 */
-  channel?: ChannelTypeEnum;
+  channel: ChannelTypeEnum;
 
   // 功能开关
   /** 是否启用草稿功能 */
