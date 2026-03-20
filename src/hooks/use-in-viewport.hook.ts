@@ -107,7 +107,8 @@ function subscribeToOpacityChanges(
       // 只在 `opacity` 接近 0 的时候轮询：保证 0->1 的过渡能被捕获
       // 同时避免在可见状态下无意义轮询。
       const shouldPoll =
-        forceStart || getComputedOpacity(opacityRootElement) <= DEFAULT_OPACITY_THRESHOLD;
+        forceStart ||
+        getComputedOpacity(opacityRootElement) <= DEFAULT_OPACITY_THRESHOLD;
       if (!shouldPoll || recordRef.intervalId != null) return;
 
       recordRef.intervalId = window.setInterval(() => {
@@ -196,8 +197,7 @@ export function useInViewport(
         : DEFAULT_OPACITY_THRESHOLD;
 
     const opacityRootElement =
-      resolveTarget(options.opacityRoot) ??
-      inferOpacityRootFromTarget(element);
+      resolveTarget(options.opacityRoot) ?? inferOpacityRootFromTarget(element);
 
     lastIntersectionRef.current = null;
 
