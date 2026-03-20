@@ -8,7 +8,10 @@ import {
   resolveCustomMessageMaxLength,
   shouldIgnoreComposerMaxLength,
 } from '@/components/composer/composer-length.util';
-import { useComposerDraft } from '@/hooks/use-composer-draft.hook';
+import {
+  buildConversationDraftStorageKey,
+  useComposerDraft,
+} from '@/hooks/use-composer-draft.hook';
 import { useTemplatePreview } from '@/hooks/use-template-preview.hook';
 import type { Attachment } from '@/interfaces/attachment.interface';
 import type { AudioData } from '@/interfaces/audio.interface';
@@ -177,7 +180,10 @@ export const useComposerLogic = (
   useEffect(() => {
     if (!conversationId || !channel) return;
 
-    const draftScopeKey = `${conversationId}:${channel}`;
+    const draftScopeKey = buildConversationDraftStorageKey(
+      conversationId,
+      channel,
+    );
 
     // 避免重复处理同一个会话
     if (processedDraftScopeRef.current === draftScopeKey) return;

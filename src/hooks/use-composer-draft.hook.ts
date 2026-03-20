@@ -125,7 +125,7 @@ function serializeDraftData(data: DraftData): string {
   return JSON.stringify(data);
 }
 
-function buildConversationDraftStorageKey(
+export function buildConversationDraftStorageKey(
   conversationId: string,
   channel: ChannelTypeEnum,
 ): string {
