@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { createContext, useContext, useEffect, useMemo, useRef } from 'react';
 import {
   type ChatStoreInitialState,
+  type ChatStoreState,
   configureChatStore,
   useChatStore,
 } from '@/store';
@@ -20,6 +21,34 @@ export interface ConfigProviderProps {
 }
 
 /**
+ * Reset config settings - 重置默认配置
+ * @param config
+ * @param initialState
+ * @returns
+ */
+export const resetConfigSettings = (
+  config: IConfigSettings,
+  initialState: ChatStoreState,
+) => {
+  if (
+    config.strategy &&
+    config.strategy?.activeChannel !== initialState.strategy.activeChannel
+  ) {
+    const allowChannel = config.strategy.allowedChannels;
+
+    if (allowChannel?.length) {
+      config.strategy = {
+        ...initialState.strategy,
+        ...config.strategy,
+        activeChannel: allowChannel[0],
+      };
+    }
+  }
+
+  return config;
+};
+
+/**
  * ConfigProvider 组件
  *
  * @description
@@ -31,9 +60,11 @@ export const ConfigProvider = ({ children, config }: ConfigProviderProps) => {
   const configSignature = useMemo(() => JSON.stringify(config), [config]);
 
   if (appliedSignatureRef.current === undefined) {
-    useChatStore.setState(useChatStore.getInitialState(), true);
-    configureChatStore(config);
+    const initialState = useChatStore.getInitialState();
+
+    useChatStore.setState(initialState, true);
     appliedSignatureRef.current = configSignature;
+    configureChatStore(resetConfigSettings(config, initialState));
   }
 
   useEffect(() => {
@@ -41,9 +72,11 @@ export const ConfigProvider = ({ children, config }: ConfigProviderProps) => {
       return;
     }
 
-    useChatStore.setState(useChatStore.getInitialState(), true);
-    configureChatStore(config);
+    const initialState = useChatStore.getInitialState();
+
+    useChatStore.setState(initialState, true);
     appliedSignatureRef.current = configSignature;
+    configureChatStore(resetConfigSettings(config, initialState));
   }, [config, configSignature]);
 
   return (
