@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import {
   MessageDirectionEnum,
   MessageStatusEnum,
+  type StandardMessage,
 } from '@/interfaces/message.interface';
 import { queryKeys } from '@/providers/query.provider';
 import { useServices } from '@/providers/service.provider';
@@ -34,6 +35,27 @@ export function useUnreadSync(): void {
   const { messageService } = useServices();
   const { activeChannel } = useStrategy();
   const activeChannelRef = useRef(activeChannel);
+
+  /**
+   * 后端在“离线推送”场景会标记消息为 imPushStatus='offline'。
+   * 这类消息即使是 incoming，也不应计入前端未读增量（-增量 delta +1）。
+   */
+  function isOfflineIncomingMessage(message: StandardMessage): boolean {
+    const m = message as unknown as {
+      chatInfo?: { imPushStatus?: unknown };
+      metadata?: {
+        imPushStatus?: unknown;
+        chatInfo?: { imPushStatus?: unknown };
+      };
+    };
+
+    const imPushStatus =
+      m.chatInfo?.imPushStatus ??
+      m.metadata?.chatInfo?.imPushStatus ??
+      m.metadata?.imPushStatus;
+
+    return imPushStatus === 'offline';
+  }
 
   useEffect(() => {
     activeChannelRef.current = activeChannel;
@@ -72,6 +94,11 @@ export function useUnreadSync(): void {
         );
 
         if (event.message.direction === MessageDirectionEnum.Incoming) {
+          if (isOfflineIncomingMessage(event.message)) {
+            // 离线推送只用于补齐消息列表，不计入未读增量
+            return;
+          }
+
           // 渠道级未读增量 +1
           queryClient.setQueryData<UnreadCountResult>(
             queryKeys.conversations.unreadDeltas.channel(),

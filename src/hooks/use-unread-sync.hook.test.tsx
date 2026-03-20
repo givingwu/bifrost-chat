@@ -155,6 +155,55 @@ describe('useUnreadSync', () => {
     expect(messages?.pages[0]?.items).toEqual([message]);
   });
 
+  it('收到 imPushStatus=offline 的离线推送消息时不应增加未读', () => {
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: {
+          retry: false,
+        },
+      },
+    });
+
+    renderHook(() => useUnreadSync(), {
+      wrapper: createWrapper(queryClient),
+    });
+
+    const message = createMessage('msg-offline', {
+      conversationId: 'conv-offline',
+      metadata: {
+        chatInfo: {
+          imPushStatus: 'offline',
+        },
+      },
+      content: { text: '离线推送消息' },
+    });
+
+    act(() => {
+      messageCallback?.({
+        conversationId: 'conv-offline',
+        message,
+      });
+    });
+
+    const deltaByConversation =
+      queryClient.getQueryData<Record<string, number>>(
+        queryKeys.conversations.unreadDeltas.conversation(),
+      ) ?? {};
+    const deltaByChannel =
+      queryClient.getQueryData<UnreadCountResult>(
+        queryKeys.conversations.unreadDeltas.channel(),
+      ) ?? {};
+
+    expect(deltaByConversation['conv-offline']).toBeUndefined();
+    expect(deltaByChannel[ChannelTypeEnum.WhatsApp]).toBeUndefined();
+
+    const messages = queryClient.getQueryData<{
+      pages: Array<{ items: StandardMessage[] }>;
+    }>(queryKeys.messages.list('conv-offline', ChannelTypeEnum.WhatsApp));
+
+    expect(messages?.pages[0]?.items).toEqual([message]);
+  });
+
   it('重复推送同一消息时不应重复增加未读', () => {
     const queryClient = new QueryClient({
       defaultOptions: {
