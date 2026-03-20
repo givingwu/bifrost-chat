@@ -139,10 +139,13 @@ export const ConversationList = memo(
 
     // ==================== 状态获取 ====================
     const activeConversationId = useActiveConversationId();
+    const hasAutoScrolledForActiveIdRef = useRef<string | null>(null);
 
     // ==================== 数据获取 ====================
-    // 判断是否应该自动获取数据
-    const shouldAutoFetch = autoFetch && externalConversations === undefined;
+    const hasExternalConversations = externalConversations !== undefined;
+    const enablePagination = autoFetch;
+    // 只有在外部未提供 conversations 时，才展示内部查询的 loading/error
+    const showQueryLoadingAndError = !hasExternalConversations;
 
     // 使用 React Query 获取会话列表（InfiniteQuery 版本）
     const {
@@ -154,14 +157,14 @@ export const ConversationList = memo(
       fetchNextPage,
       isFetchingNextPage,
     } = useConversations({
-      enabled: shouldAutoFetch,
+      enabled: enablePagination,
     });
 
     // 触底加载：IntersectionObserver 监听底部哨兵元素
     const sentinelRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-      if (!shouldAutoFetch || !hasNextPage) return;
+      if (!enablePagination || !hasNextPage) return;
       const sentinel = sentinelRef.current;
       if (!sentinel) return;
       const observer = new IntersectionObserver(
@@ -178,7 +181,7 @@ export const ConversationList = memo(
       );
       observer.observe(sentinel);
       return () => observer.disconnect();
-    }, [shouldAutoFetch, hasNextPage, isFetchingNextPage, fetchNextPage]);
+    }, [enablePagination, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
     // ==================== 数据处理 ====================
     // 确定最终使用的会话列表
@@ -188,7 +191,7 @@ export const ConversationList = memo(
     );
 
     // 确定最终的加载状态
-    const isLoading = shouldAutoFetch ? isFetching : externalIsLoading;
+    const isLoading = showQueryLoadingAndError ? isFetching : externalIsLoading;
 
     // 处理会话列表，解析激活状态
     const processedConversations = useMemo(() => {
@@ -264,6 +267,18 @@ export const ConversationList = memo(
         return;
       }
 
+      // 列表为空（例如切换渠道/重新加载）时，允许下一次把滚动定位到激活会话
+      if (processedConversations.length === 0) {
+        hasAutoScrolledForActiveIdRef.current = null;
+        return;
+      }
+
+      // 分页加载会导致 processedConversations 变化；这里需要避免在用户滚动后
+      // 触发对激活会话的重新定位，从而造成“滚动被拉回顶部”的体验问题。
+      if (hasAutoScrolledForActiveIdRef.current === activeConversationId) {
+        return;
+      }
+
       // 找到激活会话在列表中的索引
       const activeIndex = processedConversations.findIndex(
         (conversation) => conversation.id === activeConversationId,
@@ -273,6 +288,7 @@ export const ConversationList = memo(
         // 使用虚拟滚动的 scrollToIndex 方法滚动到该位置
         // align: 'center' 将会话项滚动到视图中心
         virtualizer.scrollToIndex(activeIndex, { align: 'auto' });
+        hasAutoScrolledForActiveIdRef.current = activeConversationId;
       }
     }, [
       activeConversationId,
@@ -314,7 +330,7 @@ export const ConversationList = memo(
     );
 
     // 错误状态（仅在自动获取时显示）
-    if (error && shouldAutoFetch) {
+    if (error && showQueryLoadingAndError) {
       return (
         <output className={containerClassName} aria-live="polite">
           <ErrorState
@@ -359,7 +375,7 @@ export const ConversationList = memo(
             </div>
           ))}
           {/* 触底加载哨兵 */}
-          {shouldAutoFetch && (
+          {enablePagination && hasNextPage && (
             <div ref={sentinelRef} className="h-4" aria-hidden />
           )}
           {isFetchingNextPage && (
@@ -406,7 +422,7 @@ export const ConversationList = memo(
           ))}
         </div>
         {/* 触底加载哨兵（虚拟滚动模式） */}
-        {shouldAutoFetch && (
+        {enablePagination && hasNextPage && (
           <div ref={sentinelRef} className="h-4" aria-hidden />
         )}
         {isFetchingNextPage && (
