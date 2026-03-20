@@ -16,7 +16,20 @@ import {
   type StandardMessage,
 } from '@/interfaces/message.interface';
 import { queryKeys } from '@/providers/query.provider';
-import type { PaginatedResponse } from '@/services/core/conversation.service';
+
+// ============================================================================
+// Internal Page Type
+// ============================================================================
+
+/**
+ * Internal page shape for the infinite query cache.
+ * Mirrors ConversationsPage in use-conversations.hook, but defined here
+ * to avoid a service → hook dependency inversion.
+ */
+interface ConversationListPage {
+  items: Conversation[];
+  nextCursor?: number;
+}
 
 // ============================================================================
 // Constants
@@ -497,10 +510,10 @@ export class ConversationCacheHelper {
   private static getPages(
     queryClient: QueryClient,
     channel: ChannelTypeEnum,
-  ): InfiniteData<PaginatedResponse<Conversation>, number> | undefined {
-    return queryClient.getQueryData<
-      InfiniteData<PaginatedResponse<Conversation>, number>
-    >(queryKeys.conversations.list(channel));
+  ): InfiniteData<ConversationListPage, number> | undefined {
+    return queryClient.getQueryData<InfiniteData<ConversationListPage, number>>(
+      queryKeys.conversations.list(channel),
+    );
   }
 
   /**
@@ -516,21 +529,22 @@ export class ConversationCacheHelper {
     channel: ChannelTypeEnum,
     updater: (conversations: Conversation[]) => Conversation[],
   ): void {
-    queryClient.setQueryData<
-      InfiniteData<PaginatedResponse<Conversation>, number>
-    >(queryKeys.conversations.list(channel), (old) => {
-      const existing = old ?? {
-        pages: [{ current: 1, data: [], total: 0, size: 20 }],
-        pageParams: [1],
-      };
-      return {
-        ...existing,
-        pages: existing.pages.map((page) => ({
-          ...page,
-          data: updater(page.data ?? []),
-        })),
-      };
-    });
+    queryClient.setQueryData<InfiniteData<ConversationListPage, number>>(
+      queryKeys.conversations.list(channel),
+      (old) => {
+        const existing = old ?? {
+          pages: [{ items: [], nextCursor: undefined }],
+          pageParams: [1],
+        };
+        return {
+          ...existing,
+          pages: existing.pages.map((page) => ({
+            ...page,
+            items: updater(page.items ?? []),
+          })),
+        };
+      },
+    );
   }
 
   /**
@@ -621,7 +635,7 @@ export class ConversationCacheHelper {
     channel: ChannelTypeEnum,
   ): Conversation[] {
     const data = ConversationCacheHelper.getPages(queryClient, channel);
-    return data?.pages.flatMap((page) => page.data) ?? [];
+    return data?.pages.flatMap((page) => page.items) ?? [];
   }
 
   /**
@@ -1041,22 +1055,16 @@ export class ConversationCacheHelper {
     );
 
     // Replace the entire first page, preserving pageParams structure
-    // Note: We store as PaginatedResponse format to match useInfiniteQuery expectations
-    const paginatedResponse: PaginatedResponse<Conversation> = {
-      current: 1,
-      data: conversations,
-      total: conversations.length,
-      size: 20,
+    const page: ConversationListPage = {
+      items: conversations,
+      nextCursor: undefined,
     };
-    queryClient.setQueryData<
-      InfiniteData<PaginatedResponse<Conversation>, number>
-    >(
+    queryClient.setQueryData<InfiniteData<ConversationListPage, number>>(
       queryKeys.conversations.list(channel),
-      (old) =>
-        ({
-          pages: [paginatedResponse],
-          pageParams: old?.pageParams ?? [1],
-        }) as InfiniteData<PaginatedResponse<Conversation>, number>,
+      (old) => ({
+        pages: [page],
+        pageParams: old?.pageParams ?? [1],
+      }),
     );
 
     // Sync each conversation to detail cache

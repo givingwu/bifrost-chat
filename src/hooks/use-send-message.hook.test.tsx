@@ -20,7 +20,6 @@ import { queryKeys } from '@/providers/query.provider';
 import { ServiceProvider } from '@/providers/service.provider';
 import type {
   IConversationService,
-  PaginatedResponse,
 } from '@/services/core/conversation.service';
 import type { IMessageService } from '@/services/core/message.service';
 import type { ITemplateService } from '@/services/core/template.service';
@@ -29,22 +28,6 @@ import { pendingMessageTracker } from '@/services/messaging/pending-message-trac
 import type { CurrentUser } from '@/store';
 import { useSendMessage } from './use-send-message.hook';
 
-/**
- * 将会话数组包装为分页响应格式
- */
-function mockPaginatedResponse(
-  conversations: Conversation[],
-  total = conversations.length,
-  current = 1,
-  size = 20,
-): PaginatedResponse<Conversation> {
-  return {
-    current,
-    data: conversations,
-    total,
-    size,
-  };
-}
 
 // Mock useStrategy
 const mockCurrentUser: CurrentUser = {
@@ -133,7 +116,7 @@ function seedConversations(
 ) {
   queryClient.setQueryData(queryKeys.conversations.list(ACTIVE_CHANNEL), {
     pageParams: [1],
-    pages: [mockPaginatedResponse(conversations)],
+    pages: [{ items: conversations, nextCursor: undefined }],
   });
 }
 
@@ -142,10 +125,10 @@ function getConversationIds(queryClient: QueryClient) {
     queryKeys.conversations.list(ACTIVE_CHANNEL),
   ) as
     | {
-        pages: PaginatedResponse<Conversation>[];
+        pages: Array<{ items: Conversation[] }>;
       }
     | undefined;
-  return data?.pages.flatMap((page) => page.data.map((c) => c.id)) ?? [];
+  return data?.pages.flatMap((page) => page.items.map((c) => c.id)) ?? [];
 }
 
 function getConversationById(queryClient: QueryClient, conversationId: string) {
@@ -153,11 +136,11 @@ function getConversationById(queryClient: QueryClient, conversationId: string) {
     queryKeys.conversations.list(ACTIVE_CHANNEL),
   ) as
     | {
-        pages: PaginatedResponse<Conversation>[];
+        pages: Array<{ items: Conversation[] }>;
       }
     | undefined;
   return data?.pages
-    .flatMap((page) => page.data)
+    .flatMap((page) => page.items)
     .find((conversation) => conversation.id === conversationId);
 }
 
@@ -172,9 +155,7 @@ describe('useSendMessage Hook', () => {
       quality: NetworkQualityEnum.Good,
       enableStatusIndicator: true,
     };
-    vi.mocked(mockConversationService.list).mockResolvedValue(
-      mockPaginatedResponse([]),
-    );
+    vi.mocked(mockConversationService.list).mockResolvedValue([]);
   });
 
   afterEach(() => {
@@ -314,7 +295,7 @@ describe('useSendMessage Hook', () => {
     seedConversations(queryClient, [conversationB, conversationA]);
     // useSendMessage 会挂载 useConversations；staleTime:0 会触发 list 拉取，需与 seed 一致否则会覆盖为空
     vi.mocked(mockConversationService.list).mockResolvedValue(
-      mockPaginatedResponse([conversationB, conversationA]),
+      [conversationB, conversationA],
     );
 
     queryClient.setQueryData(

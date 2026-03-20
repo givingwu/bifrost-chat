@@ -92,7 +92,7 @@ export type UnreadCountResult = Partial<Record<ChannelTypeEnum, number>>;
  * ```
  */
 export interface IConversationService<
-  TListParams = Record<string, unknown>,
+  TListParams = IConversationParams,
   TCreateParams = unknown,
   TQueryParams = unknown,
 > {

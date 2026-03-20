@@ -166,8 +166,8 @@ describe('useMarkAsRead Hook', () => {
     let resolveMarkAsRead: (() => void) | null = null;
     mockMessageService.markAsRead = vi.fn(
       () =>
-        new Promise<void>((resolve) => {
-          resolveMarkAsRead = resolve;
+        new Promise<undefined>((resolve) => {
+          resolveMarkAsRead = resolve as () => void;
         }),
     );
 
@@ -235,7 +235,7 @@ describe('useMarkAsRead Hook', () => {
     let rejectMarkAsRead: ((error: Error) => void) | null = null;
     mockMessageService.markAsRead = vi.fn(
       () =>
-        new Promise<void>((_, reject) => {
+        new Promise<undefined>((_, reject) => {
           rejectMarkAsRead = reject;
         }),
     );

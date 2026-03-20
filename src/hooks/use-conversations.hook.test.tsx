@@ -5,7 +5,6 @@ import { useConversations } from '@/hooks/use-conversations.hook';
 import { AgentStatusEnum } from '@/interfaces/agent.interface';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import type { Conversation } from '@/interfaces/conversation.interface';
-import type { PaginatedResponse } from '@/services/core/conversation.service';
 import { queryKeys } from '@/providers/query.provider';
 import { ServiceProvider } from '@/providers/service.provider';
 import type { IConversationService } from '@/services/core/conversation.service';
@@ -20,22 +19,6 @@ const conversationUpdateCallbacks = new Map<
   (conversation: Conversation) => void
 >();
 
-/**
- * 将会话数组包装为分页响应格式
- */
-function mockPaginatedResponse(
-  conversations: Conversation[],
-  total = conversations.length,
-  current = 1,
-  size = 20,
-): PaginatedResponse<Conversation> {
-  return {
-    current,
-    data: conversations,
-    total,
-    size,
-  };
-}
 
 // Mock 服务
 const mockConversationService: IConversationService = {
@@ -152,7 +135,7 @@ describe('useConversations Hook', () => {
 
   it('应该成功获取会话列表', async () => {
     vi.mocked(mockConversationService.list).mockResolvedValue(
-      mockPaginatedResponse(mockConversations),
+      mockConversations,
     );
 
     const { result } = renderHook(() => useConversations(), {
@@ -188,7 +171,7 @@ describe('useConversations Hook', () => {
       channelFilterEnabled: false,
     });
     vi.mocked(mockConversationService.list).mockResolvedValue(
-      mockPaginatedResponse(mockMixedChannelConversations),
+      mockMixedChannelConversations,
     );
 
     const { result } = renderHook(() => useConversations(), {
@@ -222,7 +205,7 @@ describe('useConversations Hook', () => {
       channelFilterEnabled: false,
     });
     vi.mocked(mockConversationService.list).mockResolvedValue(
-      mockPaginatedResponse(mockMixedChannelConversations),
+      mockMixedChannelConversations,
     );
 
     const { result } = renderHook(() => useConversations(), {
@@ -263,7 +246,7 @@ describe('useConversations Hook', () => {
 
   it('宿主推送会话列表更新时应替换当前列表', async () => {
     vi.mocked(mockConversationService.list).mockResolvedValue(
-      mockPaginatedResponse(mockConversations),
+      mockConversations,
     );
 
     const { result } = renderHook(() => useConversations(), {
@@ -299,7 +282,7 @@ describe('useConversations Hook', () => {
 
   it('宿主推送单会话更新时应替换对应会话', async () => {
     vi.mocked(mockConversationService.list).mockResolvedValue(
-      mockPaginatedResponse(mockConversations),
+      mockConversations,
     );
 
     // 设置 activeConversationId 以触发订阅
@@ -333,7 +316,7 @@ describe('useConversations Hook', () => {
 
   it('应将当前渠道的 pending 会话合并到展示列表顶部', async () => {
     vi.mocked(mockConversationService.list).mockResolvedValue(
-      mockPaginatedResponse(mockConversations),
+      mockConversations,
     );
 
     const queryClient = new QueryClient({
@@ -396,7 +379,7 @@ describe('useConversations Hook', () => {
 
   it('当服务端返回同 id 会话时应自动移除 pending', async () => {
     vi.mocked(mockConversationService.list).mockResolvedValue(
-      mockPaginatedResponse([
+      [
         {
           id: 'conv-merged',
           user: {
@@ -409,7 +392,7 @@ describe('useConversations Hook', () => {
           unreadCount: 1,
           channel: ChannelTypeEnum.SMS,
         },
-      ]),
+      ],
     );
 
     const queryClient = new QueryClient({

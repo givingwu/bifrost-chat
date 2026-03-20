@@ -8,8 +8,16 @@ import type { Conversation } from '@/interfaces/conversation.interface';
 import { queryKeys } from '@/providers/query.provider';
 import { useServices } from '@/providers/service.provider';
 import { ConversationCacheHelper } from '@/services/cache/conversation-cache-helper.service';
-import type { PaginatedResponse } from '@/services/core/conversation.service';
+import type { IConversationParams } from '@/services/core/conversation.service';
 import { useActiveConversationId, useStrategy } from '@/store';
+
+/**
+ * 会话分页数据
+ */
+export interface ConversationsPage {
+  items: Conversation[];
+  nextCursor?: number;
+}
 
 /**
  * 计算当前界面应展示的会话列表。
@@ -51,13 +59,15 @@ function getVisibleConversations(
  *   `channelType` 和 `current` 参数。
  * - 当 `channelFilterEnabled=false` 时，宿主可返回全渠道会话，SDK
  *   会在返回给 UI 的 `data` 上按 `activeChannel` 做展示过滤。
+ * - `list()` 返回值为 `Conversation[]`，通过返回数量判断是否有下一页
+ *   （数量 >= pageSize 则认为还有下一页）。
  *
  * @example
  * ```tsx
  * const { conversations, isFetching, hasNextPage, fetchNextPage } = useConversations();
  * ```
  */
-export function useConversations<TListParams = Record<string, unknown>>(
+export function useConversations<TListParams = IConversationParams>(
   options?: { enabled?: boolean },
   params?: Omit<TListParams, 'channelType' | 'current' | 'pageSize'>,
 ) {
@@ -77,44 +87,31 @@ export function useConversations<TListParams = Record<string, unknown>>(
     queryFn: async ({ pageParam = 1 }) => {
       if (!conversationService) {
         return {
-          current: 1,
-          data: [],
-          total: 0,
-          size: 20,
+          items: [],
           nextCursor: undefined,
-        } as PaginatedResponse<Conversation> & { nextCursor?: number };
+        } as ConversationsPage;
       }
+
       const result = await conversationService.list({
         ...params,
         ...(channelFilterEnabled ? { channelType: activeChannel } : {}),
         current: pageParam as number,
         pageSize: 20,
-      } as TListParams);
+      } as IConversationParams);
 
-      // 在 queryFn 中计算 nextCursor，参考 useMessages 的实现
-      const hasNextPage =
-        result.data.length >= 20 && result.data.length < result.total;
       return {
-        ...result,
-        nextCursor: hasNextPage ? (pageParam as number) + 1 : undefined,
-      } as PaginatedResponse<Conversation> & { nextCursor?: number };
+        items: result,
+        nextCursor: result.length >= 20 ? (pageParam as number) + 1 : undefined,
+      } as ConversationsPage;
     },
     initialPageParam: 1,
-    getNextPageParam: (lastPage) => {
-      const page = lastPage as PaginatedResponse<Conversation> & {
-        nextCursor?: number;
-      };
-      return page.nextCursor;
-    },
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
     enabled: (options?.enabled ?? true) && !!conversationService,
     staleTime: 1000 * 30, // 30s 内视为新鲜
   });
 
   const serverConversations = useMemo(
-    () =>
-      query.data?.pages.flatMap(
-        (page) => (page as PaginatedResponse<Conversation>).data,
-      ) ?? [],
+    () => query.data?.pages.flatMap((page) => page.items) ?? [],
     [query.data],
   );
 
