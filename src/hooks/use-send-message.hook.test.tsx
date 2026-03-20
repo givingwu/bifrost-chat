@@ -18,16 +18,13 @@ import {
 } from '@/interfaces/network.interface';
 import { queryKeys } from '@/providers/query.provider';
 import { ServiceProvider } from '@/providers/service.provider';
-import type {
-  IConversationService,
-} from '@/services/core/conversation.service';
+import type { IConversationService } from '@/services/core/conversation.service';
 import type { IMessageService } from '@/services/core/message.service';
 import type { ITemplateService } from '@/services/core/template.service';
 import { messageQueue } from '@/services/messaging/message-queue.service';
 import { pendingMessageTracker } from '@/services/messaging/pending-message-tracker.service';
 import type { CurrentUser } from '@/store';
 import { useSendMessage } from './use-send-message.hook';
-
 
 // Mock useStrategy
 const mockCurrentUser: CurrentUser = {
@@ -294,9 +291,10 @@ describe('useSendMessage Hook', () => {
     // 初始顺序：B 在前，A 在后
     seedConversations(queryClient, [conversationB, conversationA]);
     // useSendMessage 会挂载 useConversations；staleTime:0 会触发 list 拉取，需与 seed 一致否则会覆盖为空
-    vi.mocked(mockConversationService.list).mockResolvedValue(
-      [conversationB, conversationA],
-    );
+    vi.mocked(mockConversationService.list).mockResolvedValue([
+      conversationB,
+      conversationA,
+    ]);
 
     queryClient.setQueryData(
       queryKeys.messages.list('conv-a', ACTIVE_CHANNEL),

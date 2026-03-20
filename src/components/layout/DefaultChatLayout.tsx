@@ -239,20 +239,21 @@ export function DefaultChatLayout({
   );
 
   // 检查当前渠道是否被会话支持
-  const isChannelSupported = useMemo(
-    () =>
-      checkChannelSupport(
-        conversationMetadata?.supportedChannels ??
-          activeConversation?.supportedChannels ??
-          [],
-        activeChannel,
-      ),
-    [
-      activeConversation,
-      activeChannel,
-      conversationMetadata?.supportedChannels,
-    ],
-  );
+  const isChannelSupported = useMemo(() => {
+    // 切换会话时，列表/缓存可能先给出短暂的 `[]`（或不完整数据）。
+    // 这里只信任“会话详情接口返回”的 supportedChannels。
+    // 详情 pending 或 supportedChannels 还未返回时，先保持 Composer 默认渲染，避免闪烁。
+    if (isConversationDetailLoading) return true;
+
+    const supportedChannels = conversationMetadata?.supportedChannels;
+    if (supportedChannels === undefined) return true;
+
+    return checkChannelSupport(supportedChannels, activeChannel);
+  }, [
+    activeChannel,
+    conversationMetadata?.supportedChannels,
+    isConversationDetailLoading,
+  ]);
 
   // 计算 title
   const titleNode = useMemo(
@@ -451,18 +452,19 @@ export function DefaultChatLayout({
   const composerNode = useMemo(() => {
     if (!activeConversationId) return null;
 
-    if (isChannelSupported) {
-      return (
-        <Composer
-          ref={composerRef}
-          conversationId={activeConversationId}
-          channel={activeChannel}
-          onSend={handleSend}
-        />
-      );
-    }
+    // 初始默认展示输入框 Composer；当 API 明确返回当前会话不支持该渠道后，
+    // 才切换到不支持渠道提示组件。
+    if (!isChannelSupported)
+      return <UnsupportedChannelWarning channel={activeChannel} />;
 
-    return <UnsupportedChannelWarning channel={activeChannel} />;
+    return (
+      <Composer
+        ref={composerRef}
+        conversationId={activeConversationId}
+        channel={activeChannel}
+        onSend={handleSend}
+      />
+    );
   }, [activeConversationId, isChannelSupported, activeChannel, handleSend]);
 
   const conversationListClassName = useMemo(

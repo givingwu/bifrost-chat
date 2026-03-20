@@ -19,7 +19,6 @@ const conversationUpdateCallbacks = new Map<
   (conversation: Conversation) => void
 >();
 
-
 // Mock 服务
 const mockConversationService: IConversationService = {
   list: vi.fn(),
@@ -378,22 +377,20 @@ describe('useConversations Hook', () => {
   });
 
   it('当服务端返回同 id 会话时应自动移除 pending', async () => {
-    vi.mocked(mockConversationService.list).mockResolvedValue(
-      [
-        {
-          id: 'conv-merged',
-          user: {
-            id: 'user-merged',
-            name: '正式会话',
-            status: AgentStatusEnum.Online,
-          },
-          lastMessage: '正式消息',
-          lastMessageTime: new Date(1_770_000_020_000).toISOString(),
-          unreadCount: 1,
-          channel: ChannelTypeEnum.SMS,
+    vi.mocked(mockConversationService.list).mockResolvedValue([
+      {
+        id: 'conv-merged',
+        user: {
+          id: 'user-merged',
+          name: '正式会话',
+          status: AgentStatusEnum.Online,
         },
-      ],
-    );
+        lastMessage: '正式消息',
+        lastMessageTime: new Date(1_770_000_020_000).toISOString(),
+        unreadCount: 1,
+        channel: ChannelTypeEnum.SMS,
+      },
+    ]);
 
     const queryClient = new QueryClient({
       defaultOptions: {
