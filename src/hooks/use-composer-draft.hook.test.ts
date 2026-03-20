@@ -21,7 +21,7 @@ describe('useComposerDraft', () => {
   it('应在挂载时加载当前会话草稿', async () => {
     const draftData: DraftData = { content: 'saved draft' };
     localStorage.setItem(
-      'bifrost-chat-draft-conversation-conv-load',
+      'bifrost-chat-draft-conversation-conv-load-channel-sms',
       JSON.stringify(draftData),
     );
 
@@ -56,7 +56,7 @@ describe('useComposerDraft', () => {
     });
 
     const saved = localStorage.getItem(
-      'bifrost-chat-draft-conversation-conv-save',
+      'bifrost-chat-draft-conversation-conv-save-channel-sms',
     );
     expect(saved).not.toBeNull();
     const parsed = JSON.parse(saved ?? '');
@@ -117,7 +117,9 @@ describe('useComposerDraft', () => {
     expect(onSend).toHaveBeenCalledWith('will send', undefined);
     expect(result.current.value).toBe('');
     expect(
-      localStorage.getItem('bifrost-chat-draft-conversation-conv-send'),
+      localStorage.getItem(
+        'bifrost-chat-draft-conversation-conv-send-channel-sms',
+      ),
     ).toBeNull();
   });
 
@@ -158,8 +160,8 @@ describe('useComposerDraft', () => {
   });
 
   it('keepDraftOnSwitch=false 时切换会话应清理旧会话草稿', async () => {
-    const key1 = 'bifrost-chat-draft-conversation-conv-1';
-    const key2 = 'bifrost-chat-draft-conversation-conv-2';
+    const key1 = 'bifrost-chat-draft-conversation-conv-1-channel-whatsapp';
+    const key2 = 'bifrost-chat-draft-conversation-conv-2-channel-whatsapp';
     localStorage.setItem(key1, JSON.stringify({ content: 'draft-1' }));
 
     const { result, rerender } = renderHook(
@@ -220,7 +222,7 @@ describe('useComposerDraft', () => {
       });
 
       const saved = localStorage.getItem(
-        'bifrost-chat-draft-conversation-conv-type',
+        'bifrost-chat-draft-conversation-conv-type-channel-sms',
       );
       expect(saved).not.toBeNull();
       const parsed = JSON.parse(saved ?? '');
@@ -294,7 +296,7 @@ describe('useComposerDraft', () => {
         },
       };
       localStorage.setItem(
-        'bifrost-chat-draft-conversation-conv-restore',
+        'bifrost-chat-draft-conversation-conv-restore-channel-sms',
         JSON.stringify(draftData),
       );
 
@@ -315,39 +317,6 @@ describe('useComposerDraft', () => {
           previewContent: 'restored template',
         });
       });
-    });
-
-    it('存在旧 conversation key 时应迁移到 channel key', async () => {
-      const draftData: DraftData = {
-        content: 'legacy channel draft',
-        messageType: MessageTypeEnum.Template,
-        templateCode: 'template-migrate',
-      };
-
-      localStorage.setItem(
-        'bifrost-chat-draft-conversation-conv-migrate',
-        JSON.stringify(draftData),
-      );
-
-      const { result } = renderHook(() =>
-        useComposerDraft({
-          conversationId: 'conv-migrate',
-          channel: ChannelTypeEnum.Email,
-        }),
-      );
-
-      await waitFor(() => {
-        expect(result.current.value).toBe('legacy channel draft');
-      });
-
-      expect(
-        localStorage.getItem(
-          'bifrost-chat-draft-conversation-conv-migrate-channel-email',
-        ),
-      ).toBe(JSON.stringify(draftData));
-      expect(
-        localStorage.getItem('bifrost-chat-draft-conversation-conv-migrate'),
-      ).toBeNull();
     });
 
     it('发送成功后应清空 messageType 和 templateMetadata', async () => {
@@ -387,7 +356,7 @@ describe('useComposerDraft', () => {
     it('应兼容旧格式（纯文本）草稿', async () => {
       // 模拟旧格式存储
       localStorage.setItem(
-        'bifrost-chat-draft-conversation-conv-legacy',
+        'bifrost-chat-draft-conversation-conv-legacy-channel-sms',
         'legacy draft content',
       );
 

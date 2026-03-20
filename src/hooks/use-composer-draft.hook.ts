@@ -129,7 +129,7 @@ function buildConversationDraftStorageKey(
   conversationId: string,
   channel: ChannelTypeEnum,
 ): string {
-  return `${DRAFT_KEY_PREFIX}conversation-${conversationId}-${channel}`;
+  return `${DRAFT_KEY_PREFIX}conversation-${conversationId}-channel-${channel}`;
 }
 
 /**
