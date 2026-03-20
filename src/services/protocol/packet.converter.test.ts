@@ -282,7 +282,7 @@ describe('PacketConverter', () => {
 
       expect(message.type).toBe(MessageTypeEnum.Text);
       expect(message.content).toEqual({ text: '' });
-      expect(message.metadata).toBeUndefined();
+      expect(message.metadata).toEqual({});
     });
   });
 

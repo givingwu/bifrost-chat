@@ -171,9 +171,7 @@ describe('useUnreadSync', () => {
     const message = createMessage('msg-offline', {
       conversationId: 'conv-offline',
       metadata: {
-        chatInfo: {
-          imPushStatus: 'offline',
-        },
+        imPushStatus: 'offline',
       },
       content: { text: '离线推送消息' },
     });
