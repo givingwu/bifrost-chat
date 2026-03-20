@@ -459,6 +459,7 @@ export function DefaultChatLayout({
 
     return (
       <Composer
+        key={`${activeConversationId}-${activeChannel}`}
         ref={composerRef}
         conversationId={activeConversationId}
         channel={activeChannel}
