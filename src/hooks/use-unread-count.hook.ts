@@ -34,16 +34,13 @@ export function useUnreadCount(params?: UnreadCountParams): {
 
   const query = useQuery<UnreadCountResult>({
     queryKey: queryKeys.conversations.unread(params),
-    queryFn: () => conversationService!.getUnreadCount!(params),
+    // biome-ignore lint/style/noNonNullAssertion: 已通过 enabled 保护，enabled 为 true 时 getUnreadCount 必定存在
+    queryFn: () => conversationService!.getUnreadCount!(params)!,
     enabled,
     staleTime: 1000 * 30, // 30s 内视为新鲜
     refetchInterval: 1000 * 60, // 每 60s 轮询一次
     refetchOnWindowFocus: true,
   });
 
-  return {
-    data: query.data,
-    isLoading: query.isLoading,
-    refetch: query.refetch,
-  };
+  return query;
 }
