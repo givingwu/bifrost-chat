@@ -99,6 +99,22 @@ export function useConversations<TListParams = IConversationParams>(
         pageSize: 20,
       } as IConversationParams);
 
+      // 每次会话列表 API 返回后，后端已提供最新未读基线，需清空本次返回会话的前端未读增量
+      if (result.length > 0) {
+        const idsToClear = result.map((c) => c.id);
+        queryClient.setQueryData<Record<string, number>>(
+          queryKeys.conversations.unreadDeltas.conversation(),
+          (old) => {
+            if (!old) return old;
+            const updated = { ...old };
+            for (const id of idsToClear) {
+              delete updated[id];
+            }
+            return updated;
+          },
+        );
+      }
+
       return {
         items: result,
         nextCursor: result.length >= 20 ? (pageParam as number) + 1 : undefined,
