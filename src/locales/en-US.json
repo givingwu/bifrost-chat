@@ -167,6 +167,7 @@
       "retry": "Retry",
       "noTemplates": "No templates yet",
       "noMatchTemplates": "No matching templates found",
+      "selectConversationFirst": "Please select a conversation first",
       "showingCount": "Showing {{filtered}} / {{total}} templates",
       "usageCount": "Used {{count}} times"
     }

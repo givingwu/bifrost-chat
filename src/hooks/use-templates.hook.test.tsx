@@ -1,12 +1,12 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { act, renderHook, waitFor } from '@testing-library/react';
+import { renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ServiceProvider } from '@/providers/service.provider';
 import type { IConversationService } from '@/services/core/conversation.service';
 import type { IMessageService } from '@/services/core/message.service';
 import type { ITemplateService } from '@/services/core/template.service';
-import { resetChatStore, useChatStore } from '@/store';
+import { resetChatStore } from '@/store';
 import { useTemplates } from './use-templates.hook';
 
 const listMock = vi.fn();
@@ -152,10 +152,7 @@ describe('useTemplates', () => {
   });
 
   it('显示加载状态', async () => {
-    let resolvePromise: (value: unknown) => void;
-    const mockPromise = new Promise((resolve) => {
-      resolvePromise = resolve;
-    });
+    const mockPromise = new Promise(() => undefined);
     listMock.mockReturnValue(mockPromise);
 
     const { result } = renderHook(
@@ -258,5 +255,15 @@ describe('useTemplates', () => {
 
     expect(result.current.data).toEqual(mockTemplates2);
     expect(listMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('当未选择会话时禁用模板查询', () => {
+    const { result } = renderHook(() => useTemplates({ currentChannel: 'sms' }), {
+      wrapper: createWrapper(),
+    });
+
+    // query enabled=false 时应处于 idle，且不会触发 list
+    expect(result.current.fetchStatus).toBe('idle');
+    expect(listMock).not.toHaveBeenCalled();
   });
 });

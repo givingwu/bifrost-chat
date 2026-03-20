@@ -167,6 +167,7 @@
       "retry": "重试",
       "noTemplates": "暂无模板",
       "noMatchTemplates": "未找到匹配的模板",
+      "selectConversationFirst": "请先选择会话",
       "showingCount": "显示 {{filtered}} / {{total}} 个模板",
       "usageCount": "使用 {{count}} 次"
     }

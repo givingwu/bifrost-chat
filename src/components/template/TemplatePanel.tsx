@@ -3,10 +3,12 @@ import { EmptyState } from '@/components/EmptyState';
 import { ErrorState } from '@/components/ErrorState';
 import { LoadingState } from '@/components/LoadingState';
 import { UnsupportedChannelWarning } from '@/components/layout/UnsupportedChannelWarning';
+import { useConversations } from '@/hooks/use-conversations.hook';
 import { useTemplates } from '@/hooks/use-templates.hook';
 import type { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import type { Template } from '@/interfaces/template.interface';
 import { useTranslation } from '@/providers/I18n.provider';
+import { useActiveConversationId } from '@/store';
 import { cn } from '@/utils/class.util';
 import { TemplateHeader } from './TemplateHeader';
 import { TemplateList } from './TemplateList';
@@ -59,9 +61,27 @@ export const TemplatePanel = ({
   isChannelSupported = true,
 }: TemplatePanelProps) => {
   const { t } = useTranslation();
+  const activeConversationId = useActiveConversationId();
+  const effectiveConversationId = conversationId ?? activeConversationId;
+  const hasSelectedConversation = !!effectiveConversationId;
+
+  const {
+    data: conversations = [],
+    isLoading: isConversationsLoading,
+  } = useConversations({ enabled: !customTemplates });
+
+  const isConversationListEmpty =
+    !customTemplates &&
+    !isConversationsLoading &&
+    conversations.length === 0;
 
   // 仅在未提供自定义模板且渠道支持时才调用 useTemplates
-  const shouldFetchFromServer = !customTemplates && isChannelSupported;
+  const shouldFetchFromServer =
+    !customTemplates &&
+    isChannelSupported &&
+    hasSelectedConversation &&
+    !isConversationsLoading &&
+    !isConversationListEmpty;
 
   const {
     data: serverTemplates,
@@ -71,10 +91,10 @@ export const TemplatePanel = ({
   } = useTemplates(
     shouldFetchFromServer
       ? {
-          conversationId,
+          conversationId: effectiveConversationId as string,
           currentChannel,
         }
-      : ({} as never),
+      : ({ conversationId: '', currentChannel } as never),
   );
 
   const templates = customTemplates ?? serverTemplates ?? [];
@@ -180,7 +200,13 @@ export const TemplatePanel = ({
         aria-live="polite"
         aria-busy={isLoading || isPending}
       >
-        {!isChannelSupported && currentChannel ? (
+        {!customTemplates && isConversationsLoading ? (
+          <LoadingState message={t('template.panel.loading')} />
+        ) : isConversationListEmpty && !customTemplates ? (
+          <EmptyState message={t('template.panel.selectConversationFirst')} />
+        ) : !hasSelectedConversation && !customTemplates ? (
+          <EmptyState message={t('template.panel.selectConversationFirst')} />
+        ) : !isChannelSupported && currentChannel ? (
           <UnsupportedChannelWarning
             channel={currentChannel}
             variant="vertical"

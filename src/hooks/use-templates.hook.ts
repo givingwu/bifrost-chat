@@ -44,8 +44,9 @@ export function useTemplates(params?: UseTemplatesParams) {
   const { templateService } = useServices();
   const activeConversationId = useActiveConversationId();
   const { conversationId, currentChannel } = params || {};
+  const effectiveConversationId = conversationId ?? activeConversationId;
   const { isPending: isConversationDetailLoading } = useConversationDetail(
-    conversationId ?? activeConversationId,
+    effectiveConversationId ?? '',
   );
 
   return useQuery({
@@ -58,6 +59,9 @@ export function useTemplates(params?: UseTemplatesParams) {
       return templateService.list(params ?? ({} as never));
     },
     staleTime: 1000 * 60 * 5, // 5 分钟
-    enabled: !!templateService && !isConversationDetailLoading, // 会话切换完成后再查询模板
+    enabled:
+      !!templateService &&
+      !!effectiveConversationId &&
+      !isConversationDetailLoading, // 会话切换完成后再查询模板
   });
 }
