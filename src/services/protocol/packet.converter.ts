@@ -1,4 +1,4 @@
-import type { ServerMessageStatus } from '@/index';
+import type { PacketBodyBase, ServerMessageStatus } from '@/index';
 import { mapServerMessageStatusToLocal } from '@/index';
 import {
   ClientTypeEnum,
@@ -159,7 +159,10 @@ export class PacketConverter {
         clientType: packet.to.clientType,
         channelType: packet.to.channelType,
       },
-      metadata: extMetadata,
+      metadata: {
+        ...(packet.body as PacketBodyBase)?.chatInfo,
+        ...extMetadata,
+      },
     };
 
     return standardMessage;

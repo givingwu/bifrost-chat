@@ -41,18 +41,7 @@ export function useUnreadSync(): void {
    * 这类消息即使是 incoming，也不应计入前端未读增量（-增量 delta +1）。
    */
   function isOfflineIncomingMessage(message: StandardMessage): boolean {
-    const m = message as unknown as {
-      chatInfo?: { imPushStatus?: unknown };
-      metadata?: {
-        imPushStatus?: unknown;
-        chatInfo?: { imPushStatus?: unknown };
-      };
-    };
-
-    const imPushStatus =
-      m.chatInfo?.imPushStatus ??
-      m.metadata?.chatInfo?.imPushStatus ??
-      m.metadata?.imPushStatus;
+    const imPushStatus = message.metadata?.imPushStatus as string | undefined;
 
     return imPushStatus === 'offline';
   }
