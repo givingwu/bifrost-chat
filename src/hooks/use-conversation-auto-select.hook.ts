@@ -54,7 +54,7 @@ export function useConversationAutoSelect({
   queryClient,
 }: UseConversationAutoSelectOptions): void {
   const actions = useActions();
-  const { autoSelectFirstConversation } = useStrategy();
+  const { activeChannel, autoSelectFirstConversation } = useStrategy();
 
   useEffect(() => {
     // customer 模式下由 useConversationInitializer 管理激活，跳过 auto-select
@@ -74,7 +74,7 @@ export function useConversationAutoSelect({
           activeConversationId,
         );
 
-        if (!cached) {
+        if (!cached || cached?.channel !== activeChannel) {
           actions.setActiveConversationId('');
         }
       }
@@ -98,6 +98,7 @@ export function useConversationAutoSelect({
     conversations,
     activeConversationId,
     actions,
+    activeChannel,
     isConversationsFetching,
     queryClient,
   ]);
