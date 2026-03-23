@@ -24,6 +24,7 @@ import {
   setCachedConversationHeight,
 } from '@/utils/conversation-height.util';
 import { ConversationItem } from './ConversationItem';
+import { ConversationItemSkeleton } from './ConversationItemSkeleton';
 
 // ==================== 常量定义 ====================
 
@@ -89,6 +90,16 @@ function resolveConversationActive(
   }
 
   return { ...conversation, isActive: resolvedIsActive };
+}
+
+/**
+ * 判断会话是否为创建中的占位项。
+ *
+ * @param conversation - 会话对象
+ * @returns 是否为 creating placeholder
+ */
+function isCreatingConversation(conversation: Conversation): boolean {
+  return conversation.metadata?.localState === 'creating';
 }
 
 // ==================== 主组件 ====================
@@ -366,12 +377,16 @@ export const ConversationList = memo(
         <div ref={scrollRef} style={style} className={containerClassName}>
           {processedConversations.map((conversation) => (
             <div key={conversation.id}>
-              <ConversationItem
-                conversation={conversation}
-                onSelect={onSelect}
-                renderMeta={renderItemMeta}
-                getConversationDisplayTitle={getConversationDisplayTitle}
-              />
+              {isCreatingConversation(conversation) ? (
+                <ConversationItemSkeleton />
+              ) : (
+                <ConversationItem
+                  conversation={conversation}
+                  onSelect={onSelect}
+                  renderMeta={renderItemMeta}
+                  getConversationDisplayTitle={getConversationDisplayTitle}
+                />
+              )}
             </div>
           ))}
           {/* 触底加载哨兵 */}
@@ -412,12 +427,18 @@ export const ConversationList = memo(
                 transform: `translateY(${virtualItem.start}px)`,
               }}
             >
-              <ConversationItem
-                conversation={processedConversations[virtualItem.index]}
-                onSelect={onSelect}
-                renderMeta={renderItemMeta}
-                getConversationDisplayTitle={getConversationDisplayTitle}
-              />
+              {isCreatingConversation(
+                processedConversations[virtualItem.index],
+              ) ? (
+                <ConversationItemSkeleton />
+              ) : (
+                <ConversationItem
+                  conversation={processedConversations[virtualItem.index]}
+                  onSelect={onSelect}
+                  renderMeta={renderItemMeta}
+                  getConversationDisplayTitle={getConversationDisplayTitle}
+                />
+              )}
             </div>
           ))}
         </div>

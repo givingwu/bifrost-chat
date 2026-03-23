@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { Meta, StoryObj } from 'storybook-react-rsbuild';
+import type { Meta } from 'storybook-react-rsbuild';
 import { ConversationList } from '@/components/conversation/ConversationList';
 import { AgentStatusEnum } from '@/interfaces/agent.interface';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
@@ -33,7 +33,6 @@ const meta: Meta<typeof ConversationList> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof ConversationList>;
 
 const mockConversations: Conversation[] = [
   {
@@ -236,6 +235,37 @@ export const WithUnread = () => {
       unreadCount: 99,
       channel: ChannelTypeEnum.SMS,
     },
+  ];
+
+  return (
+    <div className="w-80 h-96">
+      <ConversationList conversations={conversations} />
+    </div>
+  );
+};
+
+/**
+ * 创建中占位 - 展示 Skeleton 与真实会话并存
+ */
+export const WithCreatingPlaceholder = () => {
+  const conversations: Conversation[] = [
+    {
+      id: 'creating:whatsapp:1',
+      user: {
+        id: 'creating-user',
+        name: '',
+        status: AgentStatusEnum.Offline,
+      },
+      lastMessage: '',
+      lastMessageTime: new Date().toISOString(),
+      unreadCount: 0,
+      channel: ChannelTypeEnum.WhatsApp,
+      metadata: {
+        localState: 'creating',
+        pendingSource: 'create',
+      },
+    },
+    ...mockConversations,
   ];
 
   return (

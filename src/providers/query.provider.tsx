@@ -66,6 +66,8 @@ export const queryKeys = {
     lists: () => [...queryKeys.conversations.all, 'list'] as const,
     list: (channel: string) =>
       [...queryKeys.conversations.lists(), channel] as const,
+    creating: (channel: string) =>
+      [...queryKeys.conversations.all, 'creating', channel] as const,
     pending: (channel: string) =>
       [...queryKeys.conversations.all, 'pending', channel] as const,
     details: () => [...queryKeys.conversations.all, 'detail'] as const,

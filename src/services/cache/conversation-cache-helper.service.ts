@@ -79,6 +79,14 @@ const PENDING_STATE = {
   source: 'create',
 } as const;
 
+/**
+ * Creating conversation state constants
+ */
+const CREATING_STATE = {
+  localState: 'creating',
+  source: 'create',
+} as const;
+
 // ============================================================================
 // Types
 // ============================================================================
@@ -90,6 +98,16 @@ type PendingConversationMetadata = Record<string, unknown> & {
   localState?: typeof PENDING_STATE.localState;
   pendingSince?: string;
   pendingSource?: typeof PENDING_STATE.source;
+};
+
+/**
+ * Metadata structure for conversations created on the client but not yet
+ * acknowledged by the create API.
+ */
+type CreatingConversationMetadata = Record<string, unknown> & {
+  localState?: typeof CREATING_STATE.localState;
+  pendingSince?: string;
+  pendingSource?: typeof CREATING_STATE.source;
 };
 
 /**
@@ -406,6 +424,33 @@ function toPendingConversation(conversation: Conversation): Conversation {
 }
 
 /**
+ * Converts a conversation to creating state with appropriate metadata.
+ *
+ * @param conversation - The placeholder conversation to convert
+ * @returns Conversation with creating state metadata
+ */
+function toCreatingConversation(conversation: Conversation): Conversation {
+  const metadata: CreatingConversationMetadata = isMetadataRecord(
+    conversation.metadata,
+  )
+    ? { ...conversation.metadata }
+    : {};
+
+  return {
+    ...conversation,
+    metadata: {
+      ...metadata,
+      localState: CREATING_STATE.localState,
+      pendingSince:
+        typeof metadata.pendingSince === 'string'
+          ? metadata.pendingSince
+          : new Date().toISOString(),
+      pendingSource: CREATING_STATE.source,
+    },
+  };
+}
+
+/**
  * Merges pending conversations with server conversations.
  * Filters out pending conversations that already exist in server list.
  *
@@ -569,6 +614,27 @@ export class ConversationCacheHelper {
   }
 
   /**
+   * Updates the creating conversations cache using an updater function.
+   *
+   * @param queryClient - React Query client
+   * @param channel - Channel to update
+   * @param updater - Function to transform creating conversations
+   */
+  private static updateCreatingConversations(
+    queryClient: QueryClient,
+    channel: ChannelTypeEnum,
+    updater: (conversations: Conversation[]) => Conversation[],
+  ): void {
+    queryClient.setQueryData<Conversation[]>(
+      queryKeys.conversations.creating(channel),
+      (old) => {
+        const existing = old ?? [];
+        return updater(existing);
+      },
+    );
+  }
+
+  /**
    * Helper to update a single conversation's unread count in the list.
    * Returns the updated conversation if found.
    *
@@ -657,6 +723,24 @@ export class ConversationCacheHelper {
   }
 
   /**
+   * Gets all creating conversations for a channel.
+   *
+   * @param queryClient - React Query client
+   * @param channel - Channel to get creating conversations for
+   * @returns Array of creating conversations
+   */
+  static getCreatingConversations(
+    queryClient: QueryClient,
+    channel: ChannelTypeEnum,
+  ): Conversation[] {
+    return (
+      queryClient.getQueryData<Conversation[]>(
+        queryKeys.conversations.creating(channel),
+      ) ?? []
+    );
+  }
+
+  /**
    * Gets merged conversations (pending + server) for display.
    *
    * @param queryClient - React Query client
@@ -668,8 +752,11 @@ export class ConversationCacheHelper {
     channel: ChannelTypeEnum,
   ): Conversation[] {
     return mergePendingConversations(
-      ConversationCacheHelper.getPendingConversations(queryClient, channel),
-      ConversationCacheHelper.getConversations(queryClient, channel),
+      ConversationCacheHelper.getCreatingConversations(queryClient, channel),
+      mergePendingConversations(
+        ConversationCacheHelper.getPendingConversations(queryClient, channel),
+        ConversationCacheHelper.getConversations(queryClient, channel),
+      ),
     );
   }
 
@@ -922,6 +1009,84 @@ export class ConversationCacheHelper {
       queryClient,
       nextConversation,
     );
+  }
+
+  /**
+   * Adds or updates a creating placeholder in the cache.
+   * Used while the create API request is still in flight.
+   *
+   * @param queryClient - React Query client
+   * @param conversation - Placeholder conversation to add as creating
+   * @param channel - Channel to add to
+   * @returns The creating placeholder conversation with metadata
+   */
+  static upsertCreatingConversation(
+    queryClient: QueryClient,
+    conversation: Conversation,
+    channel: ChannelTypeEnum,
+  ): Conversation {
+    const nextCreatingConversation = toCreatingConversation(conversation);
+    let nextConversation = nextCreatingConversation;
+
+    ConversationCacheHelper.updateCreatingConversations(
+      queryClient,
+      channel,
+      (conversations) => {
+        const existingConversation = conversations.find(
+          (item) => item.id === conversation.id,
+        );
+
+        nextConversation = existingConversation
+          ? mergeConversation(existingConversation, nextCreatingConversation, {
+              preserveUnreadCount: true,
+            })
+          : nextCreatingConversation;
+
+        const rest = conversations.filter(
+          (item) => item.id !== conversation.id,
+        );
+
+        return [nextConversation, ...rest];
+      },
+    );
+
+    return nextConversation;
+  }
+
+  /**
+   * Removes a creating placeholder from the cache.
+   *
+   * @param queryClient - React Query client
+   * @param conversationId - ID of creating placeholder to remove
+   * @param channel - Channel to remove from
+   * @returns The removed placeholder, or undefined if not found
+   */
+  static removeCreatingConversation(
+    queryClient: QueryClient,
+    conversationId: string,
+    channel: ChannelTypeEnum,
+  ): Conversation | undefined {
+    let removedConversation: Conversation | undefined;
+
+    ConversationCacheHelper.updateCreatingConversations(
+      queryClient,
+      channel,
+      (conversations) => {
+        const rest = conversations.filter((conversation) => {
+          const isMatch = conversation.id === conversationId;
+
+          if (isMatch) {
+            removedConversation = conversation;
+          }
+
+          return !isMatch;
+        });
+
+        return removedConversation ? rest : conversations;
+      },
+    );
+
+    return removedConversation;
   }
 
   /**

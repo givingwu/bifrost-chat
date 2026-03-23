@@ -74,6 +74,13 @@ export function useConversations<TListParams = IConversationParams>(
   const { conversationService } = useServices();
   const { activeChannel, channelFilterEnabled } = useStrategy();
   const queryClient = useQueryClient();
+  const { data: creatingConversations = [] } = useQuery({
+    queryKey: queryKeys.conversations.creating(activeChannel),
+    queryFn: () => [] as Conversation[],
+    initialData: [] as Conversation[],
+    staleTime: Number.POSITIVE_INFINITY,
+    gcTime: Number.POSITIVE_INFINITY,
+  });
   const { data: pendingConversations = [] } = useQuery({
     queryKey: queryKeys.conversations.pending(activeChannel),
     queryFn: () => [] as Conversation[],
@@ -131,14 +138,18 @@ export function useConversations<TListParams = IConversationParams>(
     [query.data],
   );
 
-  const conversations = useMemo(
-    () =>
+  const conversations = useMemo(() => {
+    const mergedPendingConversations =
       ConversationCacheHelper.mergeConversationsWithPending(
         serverConversations,
         pendingConversations,
-      ),
-    [pendingConversations, serverConversations],
-  );
+      );
+
+    return ConversationCacheHelper.mergeConversationsWithPending(
+      mergedPendingConversations,
+      creatingConversations,
+    );
+  }, [creatingConversations, pendingConversations, serverConversations]);
   const visibleConversations = useMemo(
     () =>
       getVisibleConversations(
