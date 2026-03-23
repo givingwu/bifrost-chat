@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import {
   MessageDirectionEnum,
   MessageStatusEnum,
@@ -11,6 +11,12 @@ import { ConversationCacheHelper } from '@/services/cache/conversation-cache-hel
 import type { UnreadCountResult } from '@/services/core/conversation.service';
 import { MessageSyncService } from '@/services/messaging/message-sync.service';
 import { useStrategy } from '@/store';
+
+function clampDeltaByBase(baseUnread: number, delta: number): number {
+  const safeBase = Math.max(0, baseUnread ?? 0);
+  const minDelta = -safeBase;
+  return Math.max(minDelta, delta);
+}
 
 /**
  * 未读同步 Hook：库内订阅 IMessageService 的实时消息与状态更新，并直接维护会话缓存。
@@ -40,11 +46,14 @@ export function useUnreadSync(): void {
    * 后端在“离线推送”场景会标记消息为 imPushStatus='offline'。
    * 这类消息即使是 incoming，也不应计入前端未读增量（-增量 delta +1）。
    */
-  function isOfflineIncomingMessage(message: StandardMessage): boolean {
-    const imPushStatus = message.metadata?.imPushStatus as string | undefined;
+  const isOfflineIncomingMessage = useCallback(
+    (message: StandardMessage): boolean => {
+      const imPushStatus = message.metadata?.imPushStatus as string | undefined;
 
-    return imPushStatus === 'offline';
-  }
+      return imPushStatus === 'offline';
+    },
+    [],
+  );
 
   useEffect(() => {
     activeChannelRef.current = activeChannel;
@@ -128,31 +137,132 @@ export function useUnreadSync(): void {
           channel &&
           conversationId
         ) {
-          // 渠道级未读增量 -1
-          queryClient.setQueryData<UnreadCountResult>(
-            queryKeys.conversations.unreadDeltas.channel(),
-            (old) => {
-              const current = old ?? {};
-              const prev = current[channel] ?? 0;
-              return {
-                ...current,
-                [channel]: prev - 1,
-              };
-            },
+          const conversationDetail =
+            ConversationCacheHelper.getConversationDetail(
+              queryClient,
+              conversationId,
+            );
+
+          const baseConversationUnread =
+            conversationDetail?.unreadCount ??
+            ConversationCacheHelper.getConversations(queryClient, channel).find(
+              (c) => c.id === conversationId,
+            )?.unreadCount ??
+            0;
+
+          const deltaByConversation =
+            queryClient.getQueryData<Record<string, number>>(
+              queryKeys.conversations.unreadDeltas.conversation(),
+            ) ?? {};
+
+          const prevConversationDelta =
+            deltaByConversation[conversationId] ?? 0;
+
+          const clampedPrevConversationDelta = clampDeltaByBase(
+            baseConversationUnread,
+            prevConversationDelta,
           );
 
-          // 会话级未读增量 -1
-          queryClient.setQueryData<Record<string, number>>(
-            queryKeys.conversations.unreadDeltas.conversation(),
-            (old) => {
-              const current = old ?? {};
-              const prev = current[conversationId] ?? 0;
-              return {
-                ...current,
-                [conversationId]: prev - 1,
-              };
-            },
+          const effectiveUnreadBeforeConversation = Math.max(
+            0,
+            baseConversationUnread + clampedPrevConversationDelta,
           );
+
+          // 渠道基线来自服务端的 getUnreadCount()，用于补偿离线推送场景：
+          // 可能存在 conversation cache unreadCount 落后/缺失，但渠道 badge 的
+          // 基线未读已正确为正的情况。
+          const baseUnreadByChannel =
+            queryClient.getQueryData<UnreadCountResult>(
+              queryKeys.conversations.unread(),
+            ) ?? {};
+
+          const baseChannelUnread =
+            baseUnreadByChannel[channel] ??
+            ConversationCacheHelper.getConversations(
+              queryClient,
+              channel,
+            ).reduce((sum, c) => sum + (c.unreadCount ?? 0), 0);
+
+          const deltaByChannel =
+            queryClient.getQueryData<UnreadCountResult>(
+              queryKeys.conversations.unreadDeltas.channel(),
+            ) ?? {};
+
+          const prevChannelDelta = deltaByChannel[channel] ?? 0;
+
+          const clampedPrevChannelDelta = clampDeltaByBase(
+            baseChannelUnread,
+            prevChannelDelta,
+          );
+
+          const effectiveUnreadBeforeChannel = Math.max(
+            0,
+            baseChannelUnread + clampedPrevChannelDelta,
+          );
+
+          // 会话级与渠道级分别判断是否还能扣减到 0。
+          const amountToDecrementConversation =
+            effectiveUnreadBeforeConversation >= 1 ? 1 : 0;
+          const amountToDecrementChannel =
+            effectiveUnreadBeforeChannel >= 1 ? 1 : 0;
+
+          if (amountToDecrementConversation > 0) {
+            // 会话级未读增量 -1（带基线保护：base + delta 不能 < 0）
+            queryClient.setQueryData<Record<string, number>>(
+              queryKeys.conversations.unreadDeltas.conversation(),
+              (old) => {
+                const current = old ?? {};
+                const prev = current[conversationId] ?? 0;
+
+                const clampedPrev = clampDeltaByBase(
+                  baseConversationUnread,
+                  prev,
+                );
+                const next = clampDeltaByBase(
+                  baseConversationUnread,
+                  clampedPrev - amountToDecrementConversation,
+                );
+
+                if (next === 0) {
+                  const { [conversationId]: _, ...rest } = current;
+                  return rest;
+                }
+
+                return {
+                  ...current,
+                  [conversationId]: next,
+                };
+              },
+            );
+          }
+
+          if (amountToDecrementChannel > 0) {
+            // 渠道级未读增量 -1（同样保证 base + delta 不为负）
+            queryClient.setQueryData<UnreadCountResult>(
+              queryKeys.conversations.unreadDeltas.channel(),
+              (old) => {
+                const current = old ?? {};
+                const prev = current[channel] ?? 0;
+
+                const clampedPrev = clampDeltaByBase(baseChannelUnread, prev);
+                const next = clampDeltaByBase(
+                  baseChannelUnread,
+                  clampedPrev - amountToDecrementChannel,
+                );
+
+                // delta 为 0 时移除 key，避免积累大量无效项
+                if (next === 0) {
+                  const { [channel]: _, ...rest } = current;
+                  return rest;
+                }
+
+                return {
+                  ...current,
+                  [channel]: next,
+                };
+              },
+            );
+          }
         }
       },
     );
@@ -161,5 +271,10 @@ export function useUnreadSync(): void {
       unsubscribeMessages?.();
       unsubscribeStatus?.();
     };
-  }, [messageService, messageSyncService, queryClient]);
+  }, [
+    messageService,
+    messageSyncService,
+    queryClient,
+    isOfflineIncomingMessage,
+  ]);
 }

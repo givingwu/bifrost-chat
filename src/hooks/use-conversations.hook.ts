@@ -1,3 +1,4 @@
+import type { InfiniteData } from '@tanstack/react-query';
 import {
   useInfiniteQuery,
   useQuery,
@@ -99,17 +100,56 @@ export function useConversations<TListParams = IConversationParams>(
         pageSize: 20,
       } as IConversationParams);
 
-      // 每次会话列表 API 返回后，后端已提供最新未读基线，需清空本次返回会话的前端未读增量
+      // 每次会话列表 API 返回后，后端会提供未读基线。
+      // 但在“已读 ack 后，服务器尚未回灌”这类场景中，服务器 baseline 可能滞后，
+      // 直接清空负数 delta 会导致未读数回跳。
+      //
+      // 策略：
+      // - delta >= 0：认为服务器 baseline 已包含对应的增量，直接清空。
+      // - delta < 0：保留负 delta，并根据旧 baseline + delta 的 effective 值重新对齐，
+      //   确保视觉未读在服务器追上前不会被回弹。
       if (result.length > 0) {
-        const idsToClear = result.map((c) => c.id);
+        const prevList = queryClient.getQueryData<
+          InfiniteData<ConversationsPage, number>
+        >(queryKeys.conversations.list(activeChannel));
+
+        const prevUnreadById = new Map<string, number>(
+          (prevList?.pages.flatMap((page) => page.items) ?? []).map((c) => [
+            c.id,
+            c.unreadCount ?? 0,
+          ]),
+        );
+
         queryClient.setQueryData<Record<string, number>>(
           queryKeys.conversations.unreadDeltas.conversation(),
           (old) => {
             if (!old) return old;
-            const updated = { ...old };
-            for (const id of idsToClear) {
-              delete updated[id];
+
+            const current = old;
+            const updated = { ...current };
+
+            for (const serverConversation of result) {
+              const id = serverConversation.id;
+              const deltaOld = current[id] ?? 0;
+              if (deltaOld >= 0) {
+                delete updated[id];
+                continue;
+              }
+
+              const baseOld = prevUnreadById.get(id) ?? 0;
+              const effectiveOld = Math.max(0, baseOld + deltaOld);
+              const baseNew = serverConversation.unreadCount ?? 0;
+
+              // 让 (baseNew + deltaNew) 的 effective 值保持与旧 effective 一致，
+              // 从而避免服务器滞后造成未读数回跳。
+              const deltaNew = effectiveOld - baseNew;
+              if (deltaNew === 0) {
+                delete updated[id];
+              } else {
+                updated[id] = deltaNew;
+              }
             }
+
             return updated;
           },
         );

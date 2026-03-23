@@ -386,4 +386,220 @@ describe('useUnreadSync', () => {
     expect(deltaByConversation['conv-status']).toBe(-1);
     expect(deltaByChannel[ChannelTypeEnum.WhatsApp]).toBe(-1);
   });
+
+  it('Read ACK 不应让会话未读基线+增量变负（base=2, delta=+2 时最多减 4）', () => {
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: {
+          retry: false,
+        },
+      },
+    });
+
+    const conversationId = 'conv-read-limit';
+
+    seedConversationCache(queryClient, ChannelTypeEnum.WhatsApp, [
+      {
+        id: conversationId,
+        user: {
+          id: 'limit-user',
+          name: '限额用户',
+          status: AgentStatusEnum.Online,
+        },
+        lastMessage: '历史消息',
+        lastMessageTime: new Date(1_770_000_000_000).toISOString(),
+        unreadCount: 2,
+        channel: ChannelTypeEnum.WhatsApp,
+      },
+    ]);
+
+    renderHook(() => useUnreadSync(), {
+      wrapper: createWrapper(queryClient),
+    });
+
+    // socket 新消息：delta +2（有效未读应从 2 变为 4）
+    act(() => {
+      messageCallback?.({
+        conversationId,
+        message: createMessage('msg-in-1', { conversationId }),
+      });
+      messageCallback?.({
+        conversationId,
+        message: createMessage('msg-in-2', { conversationId }),
+      });
+    });
+
+    const deltaBeforeRead =
+      queryClient.getQueryData<Record<string, number>>(
+        queryKeys.conversations.unreadDeltas.conversation(),
+      ) ?? {};
+    const channelDeltaBeforeRead =
+      queryClient.getQueryData<UnreadCountResult>(
+        queryKeys.conversations.unreadDeltas.channel(),
+      ) ?? {};
+
+    expect(deltaBeforeRead[conversationId]).toBe(2);
+    expect(channelDeltaBeforeRead[ChannelTypeEnum.WhatsApp]).toBe(2);
+
+    // 连续多次 Read ACK：总共只能减到 0（不能超过 4）
+    act(() => {
+      for (let i = 0; i < 5; i++) {
+        statusCallback?.({
+          conversationId,
+          messageId: `msg-read-${i}`,
+          tempId: undefined,
+          channelType: ChannelTypeEnum.WhatsApp,
+          status: MessageStatusEnum.Read,
+          timestamp: 1_770_000_100_000 + i,
+        });
+      }
+    });
+
+    const deltaAfterRead =
+      queryClient.getQueryData<Record<string, number>>(
+        queryKeys.conversations.unreadDeltas.conversation(),
+      ) ?? {};
+    const channelDeltaAfterRead =
+      queryClient.getQueryData<UnreadCountResult>(
+        queryKeys.conversations.unreadDeltas.channel(),
+      ) ?? {};
+
+    // base=2，最终有效未读应为 0 => delta= -2；额外的 Read ACK 也不应继续减
+    expect(deltaAfterRead[conversationId]).toBe(-2);
+    expect(channelDeltaAfterRead[ChannelTypeEnum.WhatsApp]).toBe(-2);
+  });
+
+  it('Read ACK 不应让会话未读变负（base=0, delta=+5 时最多减 5）', () => {
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: {
+          retry: false,
+        },
+      },
+    });
+
+    const conversationId = 'conv-read-limit-zero';
+
+    seedConversationCache(queryClient, ChannelTypeEnum.WhatsApp, [
+      {
+        id: conversationId,
+        user: {
+          id: 'limit-zero-user',
+          name: '零未读用户',
+          status: AgentStatusEnum.Online,
+        },
+        lastMessage: '历史消息',
+        lastMessageTime: new Date(1_770_000_000_000).toISOString(),
+        unreadCount: 0,
+        channel: ChannelTypeEnum.WhatsApp,
+      },
+    ]);
+
+    renderHook(() => useUnreadSync(), {
+      wrapper: createWrapper(queryClient),
+    });
+
+    // socket 新消息：delta +5（有效未读应从 0 变为 5）
+    act(() => {
+      for (let i = 0; i < 5; i++) {
+        messageCallback?.({
+          conversationId,
+          message: createMessage(`msg-in-${i}`, { conversationId }),
+        });
+      }
+    });
+
+    const deltaBeforeRead =
+      queryClient.getQueryData<Record<string, number>>(
+        queryKeys.conversations.unreadDeltas.conversation(),
+      ) ?? {};
+
+    expect(deltaBeforeRead[conversationId]).toBe(5);
+
+    // 连续 Read ACK：最多只能减到 0（不能超过 5）
+    act(() => {
+      for (let i = 0; i < 6; i++) {
+        statusCallback?.({
+          conversationId,
+          messageId: `msg-read-${i}`,
+          tempId: undefined,
+          channelType: ChannelTypeEnum.WhatsApp,
+          status: MessageStatusEnum.Read,
+          timestamp: 1_770_000_200_000 + i,
+        });
+      }
+    });
+
+    const deltaAfterRead =
+      queryClient.getQueryData<Record<string, number>>(
+        queryKeys.conversations.unreadDeltas.conversation(),
+      ) ?? {};
+
+    expect(deltaAfterRead[conversationId]).toBeUndefined();
+  });
+
+  it('Read ACK 应使用渠道基线扣减：当会话 unreadCount=0 但渠道基线>0', () => {
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: {
+          retry: false,
+        },
+      },
+    });
+
+    // 渠道基线未读来自服务端：WhatsApp 未读为 2
+    queryClient.setQueryData<UnreadCountResult>(queryKeys.conversations.unread(), {
+      [ChannelTypeEnum.WhatsApp]: 2,
+    });
+
+    // 会话缓存 unreadCount 可能因为离线补发/时序问题为 0
+    seedConversationCache(queryClient, ChannelTypeEnum.WhatsApp, [
+      {
+        id: 'conv-offline-unread-mismatch',
+        user: {
+          id: 'offline-user',
+          name: '离线用户',
+          status: AgentStatusEnum.Online,
+        },
+        lastMessage: '历史消息',
+        lastMessageTime: new Date(1_770_000_000_000).toISOString(),
+        unreadCount: 0,
+        channel: ChannelTypeEnum.WhatsApp,
+      },
+    ]);
+
+    renderHook(() => useUnreadSync(), {
+      wrapper: createWrapper(queryClient),
+    });
+
+    act(() => {
+      for (let i = 0; i < 2; i++) {
+        statusCallback?.({
+          conversationId: 'conv-offline-unread-mismatch',
+          messageId: `msg-read-${i}`,
+          tempId: undefined,
+          channelType: ChannelTypeEnum.WhatsApp,
+          status: MessageStatusEnum.Read,
+          timestamp: 1_770_000_300_000 + i,
+        });
+      }
+    });
+
+    const deltaByConversation =
+      queryClient.getQueryData<Record<string, number>>(
+        queryKeys.conversations.unreadDeltas.conversation(),
+      ) ?? {};
+    const deltaByChannel =
+      queryClient.getQueryData<UnreadCountResult>(
+        queryKeys.conversations.unreadDeltas.channel(),
+      ) ?? {};
+
+    // 会话维度 base=0 时不应继续扣减 delta
+    expect(deltaByConversation['conv-offline-unread-mismatch']).toBe(
+      undefined,
+    );
+
+    // 渠道维度应从 base(2) 通过 delta(-2) 归零
+    expect(deltaByChannel[ChannelTypeEnum.WhatsApp]).toBe(-2);
+  });
 });

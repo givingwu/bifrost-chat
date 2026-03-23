@@ -457,4 +457,160 @@ describe('useConversations Hook', () => {
       ),
     ).toEqual([]);
   });
+
+  it('list() 返回时不应清空负数会话未读 delta', async () => {
+    useChatStore.getState().actions.setStrategy({
+      allowedChannels: [
+        ChannelTypeEnum.SMS,
+        ChannelTypeEnum.WhatsApp,
+        ChannelTypeEnum.Email,
+        ChannelTypeEnum.Viber,
+      ],
+      activeChannel: ChannelTypeEnum.WhatsApp,
+      channelFilterEnabled: true,
+    });
+
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+      },
+    });
+
+    // 预置：已读 ack 已把会话未读 delta 减为 -2
+    queryClient.setQueryData<Record<string, number>>(
+      queryKeys.conversations.unreadDeltas.conversation(),
+      {
+        'conv-b1': -2,
+      },
+    );
+
+    vi.mocked(mockConversationService.list).mockResolvedValue([
+      {
+        id: 'conv-b1',
+        user: {
+          id: 'user-b1',
+          name: 'B 用户',
+          avatarUrl: 'https://example.com/avatar-b1.jpg',
+          status: AgentStatusEnum.Online,
+        },
+        lastMessage: '最新 B 消息',
+        lastMessageTime: new Date().toISOString(),
+        unreadCount: 2,
+        channel: ChannelTypeEnum.WhatsApp,
+        isActive: true,
+      },
+    ]);
+
+    const customWrapper = function TestWrapper({
+      children,
+    }: {
+      children: React.ReactNode;
+    }) {
+      return (
+        <QueryClientProvider client={queryClient}>
+          <ServiceProvider
+            conversationService={mockConversationService}
+            messageService={mockMessageService}
+            templateService={mockTemplateService}
+          >
+            {children}
+          </ServiceProvider>
+        </QueryClientProvider>
+      );
+    };
+
+    const { result } = renderHook(() => useConversations(), {
+      wrapper: customWrapper,
+    });
+
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
+
+    const deltaByConversation = queryClient.getQueryData<
+      Record<string, number>
+    >(queryKeys.conversations.unreadDeltas.conversation());
+
+    // 如果服务器 baseline 滞后（仍是 unreadCount=2），负 delta 必须保留，
+    // 否则会在 UI 中回跳显示未读。
+    expect(deltaByConversation?.['conv-b1']).toBe(-2);
+  });
+
+  it('list() 返回时服务器 baseline 追上后应清空负数会话未读 delta', async () => {
+    useChatStore.getState().actions.setStrategy({
+      allowedChannels: [
+        ChannelTypeEnum.SMS,
+        ChannelTypeEnum.WhatsApp,
+        ChannelTypeEnum.Email,
+        ChannelTypeEnum.Viber,
+      ],
+      activeChannel: ChannelTypeEnum.WhatsApp,
+      channelFilterEnabled: true,
+    });
+
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+      },
+    });
+
+    queryClient.setQueryData<Record<string, number>>(
+      queryKeys.conversations.unreadDeltas.conversation(),
+      {
+        'conv-b1': -2,
+      },
+    );
+
+    // 此时服务器已经回灌最新 unreadCount=0
+    vi.mocked(mockConversationService.list).mockResolvedValue([
+      {
+        id: 'conv-b1',
+        user: {
+          id: 'user-b1',
+          name: 'B 用户',
+          avatarUrl: 'https://example.com/avatar-b1.jpg',
+          status: AgentStatusEnum.Online,
+        },
+        lastMessage: '最新 B 消息',
+        lastMessageTime: new Date().toISOString(),
+        unreadCount: 0,
+        channel: ChannelTypeEnum.WhatsApp,
+        isActive: true,
+      },
+    ]);
+
+    const customWrapper = function TestWrapper({
+      children,
+    }: {
+      children: React.ReactNode;
+    }) {
+      return (
+        <QueryClientProvider client={queryClient}>
+          <ServiceProvider
+            conversationService={mockConversationService}
+            messageService={mockMessageService}
+            templateService={mockTemplateService}
+          >
+            {children}
+          </ServiceProvider>
+        </QueryClientProvider>
+      );
+    };
+
+    const { result } = renderHook(() => useConversations(), {
+      wrapper: customWrapper,
+    });
+
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
+
+    const deltaByConversation = queryClient.getQueryData<
+      Record<string, number>
+    >(queryKeys.conversations.unreadDeltas.conversation());
+
+    expect(deltaByConversation?.['conv-b1']).toBeUndefined();
+  });
 });
