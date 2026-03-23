@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { cn } from '@/utils/class.util';
 
-const SKELETON_BLOCK_CLASSNAME = 'rounded bg-gray-200/90 dark:bg-gray-700/80';
+const SKELETON_BLOCK_CLASSNAME = 'bg-gray-200/90 dark:bg-gray-700/80';
 
 /**
  * ConversationItemSkeleton：创建会话期间的列表占位项。
@@ -32,22 +32,31 @@ export const ConversationItemSkeleton = memo(
             />
           </div>
           <div className="min-w-0 flex-1">
-            <div className="flex items-baseline justify-around gap-2">
+            <div className="flex items-baseline justify-between gap-2">
               <div
                 className={cn(
-                  'h-3.5 flex-1 max-w-[60%]',
+                  'h-3.5 flex-1 max-w-[60%] rounded',
                   SKELETON_BLOCK_CLASSNAME,
                 )}
               />
               <div
-                className={cn('h-3.5 w-10 shrink-0', SKELETON_BLOCK_CLASSNAME)}
+                className={cn(
+                  'h-3.5 w-10 shrink-0 rounded',
+                  SKELETON_BLOCK_CLASSNAME,
+                )}
               />
             </div>
             <div
-              className={cn('mt-1.5 h-2.5 w-1/2', SKELETON_BLOCK_CLASSNAME)}
+              className={cn(
+                'mt-1.5 h-2.5 w-1/2 rounded',
+                SKELETON_BLOCK_CLASSNAME,
+              )}
             />
             <div
-              className={cn('mt-1.5 h-2.5 w-[72%]', SKELETON_BLOCK_CLASSNAME)}
+              className={cn(
+                'mt-1.5 h-2.5 w-[72%] rounded',
+                SKELETON_BLOCK_CLASSNAME,
+              )}
             />
           </div>
         </div>
