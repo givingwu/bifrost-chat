@@ -2,7 +2,10 @@ import type { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import type { Conversation } from '@/interfaces/conversation.interface';
 import type { IMessageListParams } from './message.service';
 
-export interface IConversationParams extends IMessageListParams {}
+export interface IConversationParams extends IMessageListParams {
+  /** 渠道类型（可选，用于按渠道筛选会话） */
+  channelType?: ChannelTypeEnum;
+}
 
 /**
  * 支持的渠道会话信息

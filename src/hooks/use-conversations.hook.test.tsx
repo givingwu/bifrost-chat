@@ -408,8 +408,10 @@ describe('useConversations Hook', () => {
     seedConversationCache(queryClient, ChannelTypeEnum.SMS, [smsConversation]);
 
     vi.mocked(mockConversationService.list).mockImplementation(
-      async ({ channelType }) =>
-        channelType === ChannelTypeEnum.WhatsApp ? [waConversation] : [],
+      async (params) =>
+        params?.channelType === ChannelTypeEnum.WhatsApp
+          ? [waConversation]
+          : [],
     );
 
     const customWrapper = function TestWrapper({
