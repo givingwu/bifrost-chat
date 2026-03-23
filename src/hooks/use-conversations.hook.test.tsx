@@ -11,7 +11,10 @@ import type { IConversationService } from '@/services/core/conversation.service'
 import type { IMessageService } from '@/services/core/message.service';
 import type { ITemplateService } from '@/services/core/template.service';
 import { resetChatStore, useChatStore } from '@/store';
-import { seedPendingConversationCache } from '@/test-utils/conversation-cache.test-util';
+import {
+  seedConversationCache,
+  seedPendingConversationCache,
+} from '@/test-utils/conversation-cache.test-util';
 
 let listUpdatesCallback: ((conversations: Conversation[]) => void) | undefined;
 const conversationUpdateCallbacks = new Map<
@@ -280,15 +283,49 @@ describe('useConversations Hook', () => {
   });
 
   it('宿主推送单会话更新时应替换对应会话', async () => {
+    useChatStore.getState().actions.setStrategy({
+      allowedChannels: [
+        ChannelTypeEnum.SMS,
+        ChannelTypeEnum.WhatsApp,
+        ChannelTypeEnum.Email,
+        ChannelTypeEnum.Viber,
+      ],
+      activeChannel: ChannelTypeEnum.WhatsApp,
+      channelFilterEnabled: true,
+    });
     vi.mocked(mockConversationService.list).mockResolvedValue(
       mockConversations,
     );
+
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+      },
+    });
+    const customWrapper = function TestWrapper({
+      children,
+    }: {
+      children: React.ReactNode;
+    }) {
+      return (
+        <QueryClientProvider client={queryClient}>
+          <ServiceProvider
+            conversationService={mockConversationService}
+            messageService={mockMessageService}
+            templateService={mockTemplateService}
+          >
+            {children}
+          </ServiceProvider>
+        </QueryClientProvider>
+      );
+    };
 
     // 设置 activeConversationId 以触发订阅
     useChatStore.getState().actions.setActiveConversationId('conv-1');
 
     const { result } = renderHook(() => useConversations(), {
-      wrapper: createTestWrapper(),
+      wrapper: customWrapper,
     });
 
     await waitFor(() => {
@@ -305,11 +342,154 @@ describe('useConversations Hook', () => {
     });
 
     await waitFor(() => {
-      expect(result.current.data?.[0]).toMatchObject({
-        id: 'conv-1',
-        unreadCount: 7,
-        lastMessage: '单会话回灌',
+      expect(
+        queryClient.getQueryData(
+          queryKeys.conversations.list(ChannelTypeEnum.WhatsApp),
+        ),
+      ).toMatchObject({
+        pages: [
+          {
+            items: [
+              expect.objectContaining({
+                id: 'conv-1',
+                unreadCount: 7,
+                lastMessage: '单会话回灌',
+              }),
+            ],
+          },
+        ],
       });
+    });
+  });
+
+  it('activeChannel 已切换时旧会话回灌应写回其真实渠道缓存', async () => {
+    useChatStore.getState().actions.setStrategy({
+      allowedChannels: [ChannelTypeEnum.SMS, ChannelTypeEnum.WhatsApp],
+      activeChannel: ChannelTypeEnum.WhatsApp,
+      channelFilterEnabled: true,
+    });
+    useChatStore.getState().actions.setActiveConversationId('conv-sms');
+
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+      },
+    });
+    const waConversation: Conversation = {
+      id: 'conv-wa',
+      user: {
+        id: 'user-wa',
+        name: 'WhatsApp 客户',
+        avatarUrl: 'https://example.com/avatar-wa.jpg',
+        status: AgentStatusEnum.Online,
+      },
+      lastMessage: 'WhatsApp 初始消息',
+      lastMessageTime: new Date(1_770_000_040_000).toISOString(),
+      unreadCount: 3,
+      channel: ChannelTypeEnum.WhatsApp,
+      isActive: true,
+    };
+    const smsConversation: Conversation = {
+      id: 'conv-sms',
+      user: {
+        id: 'user-sms',
+        name: '短信客户',
+        avatarUrl: 'https://example.com/avatar-sms.jpg',
+        status: AgentStatusEnum.Online,
+      },
+      lastMessage: '短信初始消息',
+      lastMessageTime: new Date(1_770_000_030_000).toISOString(),
+      unreadCount: 1,
+      channel: ChannelTypeEnum.SMS,
+      isActive: true,
+    };
+
+    seedConversationCache(queryClient, ChannelTypeEnum.SMS, [smsConversation]);
+
+    vi.mocked(mockConversationService.list).mockImplementation(
+      async ({ channelType }) =>
+        channelType === ChannelTypeEnum.WhatsApp ? [waConversation] : [],
+    );
+
+    const customWrapper = function TestWrapper({
+      children,
+    }: {
+      children: React.ReactNode;
+    }) {
+      return (
+        <QueryClientProvider client={queryClient}>
+          <ServiceProvider
+            conversationService={mockConversationService}
+            messageService={mockMessageService}
+            templateService={mockTemplateService}
+          >
+            {children}
+          </ServiceProvider>
+        </QueryClientProvider>
+      );
+    };
+
+    const { result } = renderHook(() => useConversations(), {
+      wrapper: customWrapper,
+    });
+
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+      expect(result.current.data).toEqual([
+        expect.objectContaining({
+          id: 'conv-wa',
+          channel: ChannelTypeEnum.WhatsApp,
+        }),
+      ]);
+    });
+
+    await waitFor(() => {
+      expect(conversationUpdateCallbacks.get('conv-sms')).toBeTypeOf(
+        'function',
+      );
+    });
+
+    act(() => {
+      conversationUpdateCallbacks.get('conv-sms')?.({
+        ...smsConversation,
+        lastMessage: '旧会话回灌消息',
+        lastMessageTime: new Date(1_770_000_050_000).toISOString(),
+        unreadCount: 9,
+      });
+    });
+
+    expect(
+      queryClient.getQueryData(
+        queryKeys.conversations.list(ChannelTypeEnum.SMS),
+      ),
+    ).toMatchObject({
+      pages: [
+        {
+          items: [
+            expect.objectContaining({
+              id: 'conv-sms',
+              lastMessage: '旧会话回灌消息',
+              unreadCount: 9,
+            }),
+          ],
+        },
+      ],
+    });
+    expect(
+      queryClient.getQueryData(
+        queryKeys.conversations.list(ChannelTypeEnum.WhatsApp),
+      ),
+    ).toMatchObject({
+      pages: [
+        {
+          items: [
+            expect.objectContaining({
+              id: 'conv-wa',
+            }),
+          ],
+        },
+      ],
     });
   });
 

@@ -246,13 +246,13 @@ export function useConversations<TListParams = IConversationParams>(
         ConversationCacheHelper.replaceConversation(
           queryClient,
           updatedConversation,
-          activeChannel,
+          updatedConversation.channel,
         );
       },
     );
 
     return unsubscribe;
-  }, [activeChannel, activeConversationId, conversationService, queryClient]);
+  }, [activeConversationId, conversationService, queryClient]);
 
   useEffect(() => {
     if (pendingConversations.length === 0 || serverConversations.length === 0) {
