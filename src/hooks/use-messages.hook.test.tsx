@@ -3,9 +3,11 @@ import { act, renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ServiceProvider } from '@/providers/service.provider';
+import { queryKeys } from '@/providers/query.provider';
 import type { IConversationService } from '@/services/core/conversation.service';
 import type { IMessageService } from '@/services/core/message.service';
 import type { ITemplateService } from '@/services/core/template.service';
+import type { InfiniteQueryData } from '@/services/cache/message-cache-helper.service';
 import { resetChatStore } from '@/store';
 import { useMessages } from './use-messages.hook';
 
@@ -229,10 +231,7 @@ describe('useMessages', () => {
   });
 
   it('显示加载状态', async () => {
-    let resolvePromise: (value: unknown) => void;
-    const mockPromise = new Promise((resolve) => {
-      resolvePromise = resolve;
-    });
+    const mockPromise = new Promise<unknown>(() => {});
     listMock.mockReturnValue(mockPromise);
 
     const { result } = renderHook(
@@ -261,10 +260,6 @@ describe('useMessages', () => {
           mutations: { retry: false },
         },
       });
-
-      const messageService = {
-        list: listMock,
-      } as unknown as IMessageService;
 
       return function TestWrapper({ children }: { children: ReactNode }) {
         return (
@@ -333,6 +328,106 @@ describe('useMessages', () => {
     rerender();
 
     expect(listMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('当缓存来自推送写入（pageParams[0] 为 undefined）时应强制拉取历史', async () => {
+    const offlineMessages = [
+      {
+        id: 'offline-1',
+        conversationId: 'conv-1',
+        direction: 'incoming' as const,
+        channelType: 'whatsapp' as const,
+        status: 'sent' as const,
+        timestamp: Date.now(),
+        type: 'text' as const,
+        content: { text: '离线消息 1' },
+        sender: { id: 'user-1', name: '用户1' },
+        receiver: { id: 'agent-1', name: '客服1' },
+      },
+      {
+        id: 'offline-2',
+        conversationId: 'conv-1',
+        direction: 'incoming' as const,
+        channelType: 'whatsapp' as const,
+        status: 'sent' as const,
+        timestamp: Date.now() - 1000,
+        type: 'text' as const,
+        content: { text: '离线消息 2' },
+        sender: { id: 'user-1', name: '用户1' },
+        receiver: { id: 'agent-1', name: '客服1' },
+      },
+    ];
+
+    const serverMessages = Array.from({ length: 10 }, (_, i) => ({
+      id: `srv-${i}`,
+      conversationId: 'conv-1',
+      direction: 'incoming' as const,
+      channelType: 'whatsapp' as const,
+      status: 'sent' as const,
+      timestamp: Date.now() - i * 1000,
+      type: 'text' as const,
+      content: { text: `历史消息 ${i}` },
+      sender: { id: 'user-1', name: '用户1' },
+      receiver: { id: 'agent-1', name: '客服1' },
+    }));
+
+    listMock.mockResolvedValueOnce(serverMessages);
+
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+      },
+    });
+
+    // 模拟“推送写入消息缓存”：
+    // - pages[0] 只有 items（没有 nextCursor）
+    // - pageParams[0] 为 undefined（用于区分推送写入 vs list 初始化）
+    queryClient.setQueryData(
+      queryKeys.messages.list('conv-1', 'whatsapp'),
+      {
+        pages: [{ items: offlineMessages }],
+        pageParams: [undefined],
+      } as unknown as InfiniteQueryData,
+    );
+
+    const wrapper = ({ children }: { children: ReactNode }) => (
+      <QueryClientProvider client={queryClient}>
+        <ServiceProvider
+          conversationService={mockConversationService}
+          messageService={
+            { list: listMock } as unknown as IMessageService
+          }
+          templateService={mockTemplateService}
+        >
+          {children}
+        </ServiceProvider>
+      </QueryClientProvider>
+    );
+
+    const { result } = renderHook(
+      () =>
+        useMessages({
+          conversationId: 'conv-1',
+          currentChannel: 'whatsapp',
+        }),
+      {
+        wrapper,
+      },
+    );
+
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
+
+    await waitFor(() => {
+      expect(listMock).toHaveBeenCalledTimes(1);
+    });
+    expect(listMock).toHaveBeenCalledWith('conv-1', {
+      conversationId: 'conv-1',
+      currentChannel: 'whatsapp',
+      page: 1,
+    });
   });
 
   it('显示正在加载下一页的状态', async () => {

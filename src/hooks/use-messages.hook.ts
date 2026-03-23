@@ -1,4 +1,5 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { useEffect, useRef } from 'react';
 import { useConversationDetail } from '@/hooks/use-conversation-detail.hook';
 import type { StandardMessage } from '@/interfaces/message.interface';
 import { queryKeys } from '@/providers/query.provider';
@@ -88,6 +89,9 @@ export function useMessages<TParams extends UseMessagesParams>(
 ) {
   const services = useServices();
   const { conversationId, currentChannel } = params;
+  const forcedRefetchForPushCacheRef = useRef<Record<string, number | undefined>>(
+    {},
+  );
   // 使用 useConversationDetail 的 isPending 状态替代手动的 isSwitching
   // 当会话详情正在加载时，暂停消息查询以避免竞态条件
   const { isPending: isConversationDetailLoading } =
@@ -116,8 +120,10 @@ export function useMessages<TParams extends UseMessagesParams>(
       !isConversationDetailLoading,
   });
 
-  return useInfiniteQuery({
-    queryKey: queryKeys.messages.list(conversationId, currentChannel),
+  const queryKey = queryKeys.messages.list(conversationId, currentChannel);
+
+  const messagesQuery = useInfiniteQuery({
+    queryKey,
     queryFn: async ({ pageParam = 1 }) => {
       if (!services?.messageService) {
         return {
@@ -168,4 +174,46 @@ export function useMessages<TParams extends UseMessagesParams>(
       !!services?.messageService &&
       !isConversationDetailLoading, // 只有当会话切换完成后才执行查询
   });
+
+  /**
+   * 修复场景：
+   * - 用户退出登录后，后端对“离线推送”会直接把消息写入前端缓存；
+   * - 这些消息通常通过 `MessageCacheHelper.addMessageToCache()` 写入，
+   *   会导致 infiniteQuery 的 `pageParams[0]` 变成 `undefined`（缺少真实分页页参）；
+   * - 当用户重新登录并切换回该会话时，如果 React Query 认为缓存仍然“新鲜”，
+   *   消息列表的 `messageService.list()` 可能不会被再次调用；
+   * - 结果就是：界面上只有离线推送的少量消息，没有拉取历史消息。
+   *
+   * 这里在识别到 `pageParams[0] === undefined` 且首次写入发生于推送缓存时，
+   * 强制触发一次 refetch 拉取历史分页，确保至少第一页包含历史消息。
+   */
+  useEffect(() => {
+    if (isConversationDetailLoading) return;
+
+    const updatedAt = messagesQuery.dataUpdatedAt;
+    const pageParams = messagesQuery.data?.pageParams;
+
+    // `pageParams[0] === undefined` 表示该 infiniteQuery 数据可能来自 push 写入，
+    // 而不是通过 list 查询初始化的分页上下文。
+    const needsHistoryFetch =
+      Array.isArray(pageParams) && pageParams.length > 0 && pageParams[0] === undefined;
+
+    if (!needsHistoryFetch) return;
+
+    const key = `${conversationId}::${currentChannel ?? ''}`;
+    if (forcedRefetchForPushCacheRef.current[key] === updatedAt) return;
+
+    forcedRefetchForPushCacheRef.current[key] = updatedAt;
+
+    void messagesQuery.refetch();
+  }, [
+    isConversationDetailLoading,
+    messagesQuery.data,
+    messagesQuery.dataUpdatedAt,
+    messagesQuery.refetch,
+    conversationId,
+    currentChannel,
+  ]);
+
+  return messagesQuery;
 }
