@@ -104,7 +104,7 @@ export const ConversationItem = memo(
 
     // 置顶图标的样式（只在非激活状态显示）
     const pinIconClassName = cn(
-      'absolute top-0.5 right-0.5 transform rotate-45',
+      'absolute top-1 right-1 transform rotate-45',
       'h-2.5 w-2.5', // 更小的图标尺寸
       'text-blue-500 dark:text-blue-400',
       'opacity-80 group-hover:opacity-100',
