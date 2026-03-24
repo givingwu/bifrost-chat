@@ -15,7 +15,7 @@ export const FileMessage = ({ content }: FileMessageProps) => {
     return null;
   }
 
-  const fileName = content.url.split('/').pop() || 'Unknown file';
+  const fileName = content.url.split('/').pop() ?? 'Unknown file';
   const fileSize = content.size
     ? `${(content.size / 1024).toFixed(1)} KB`
     : 'Unknown size';
