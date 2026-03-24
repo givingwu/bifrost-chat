@@ -202,3 +202,43 @@ export const InvalidUrl = () => {
     </div>
   );
 };
+
+/**
+ * 接收的图片消息（左侧对齐）
+ */
+export const Received = () => {
+  return (
+    <div className="space-y-3">
+      <div className="flex justify-start">
+        <div className="px-4 py-2.5 border border-gray-100 dark:border-gray-700/50 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-2xl rounded-tl-sm">
+          <ImageMessage
+            content={{
+              url: 'https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0?w=400',
+              mimeType: 'image/jpeg',
+            }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/**
+ * 发送的图片消息（右侧对齐）
+ */
+export const Sent = () => {
+  return (
+    <div className="space-y-3">
+      <div className="flex justify-end">
+        <div className="px-4 py-2.5 bg-blue-500 text-white rounded-2xl rounded-tr-sm">
+          <ImageMessage
+            content={{
+              url: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400',
+              mimeType: 'image/jpeg',
+            }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};

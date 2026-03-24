@@ -214,3 +214,54 @@ export const InvalidUrl = () => {
     </div>
   );
 };
+
+/**
+ * 接收的富媒体消息（左侧对齐）
+ */
+export const Received = () => {
+  return (
+    <div className="space-y-3">
+      <div className="flex justify-start">
+        <div className="max-w-[70%] border border-gray-100 dark:border-gray-700/50 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-2xl rounded-tl-sm overflow-hidden">
+          <RichMediaMessage
+            content={{
+              text: JSON.stringify({
+                title: '产品推荐',
+                description: 'iPhone 15 Pro Max - 钛金属边框',
+                image: 'https://picsum.photos/400/300',
+                url: 'https://example.com/product/123',
+              }),
+            }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/**
+ * 发送的富媒体消息（右侧对齐）
+ */
+export const Sent = () => {
+  return (
+    <div className="space-y-3">
+      <div className="flex justify-end">
+        <div className="max-w-[70%] bg-blue-500 text-white rounded-2xl rounded-tr-sm overflow-hidden **:text-white!">
+          <RichMediaMessage
+            content={{
+              text: JSON.stringify({
+                title: '限时优惠',
+                description: '全场商品 8 折起',
+                image: 'https://picsum.photos/400/300',
+                buttons: [
+                  { text: '立即购买', url: 'https://example.com/buy' },
+                  { text: '查看详情', url: 'https://example.com/details' },
+                ],
+              }),
+            }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};

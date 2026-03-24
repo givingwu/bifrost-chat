@@ -24,7 +24,7 @@ export const FileMessage = ({ content }: FileMessageProps) => {
     : 'Unknown size';
 
   return (
-    <div className="flex items-center gap-3 rounded-lg border border-border bg-card p-3">
+    <div className="flex items-center gap-3 rounded-lg p-3">
       <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
         <FileText className="h-5 w-5 text-gray-400 dark:text-gray-500" />
       </div>

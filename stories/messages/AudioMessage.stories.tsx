@@ -148,3 +148,43 @@ export const InvalidUrl = () => {
     </div>
   );
 };
+
+/**
+ * 接收的音频消息（左侧对齐）
+ */
+export const Received = () => {
+  return (
+    <div className="space-y-3">
+      <div className="flex justify-start">
+        <div className="max-w-[70%] px-4 py-2.5 border border-gray-100 dark:border-gray-700/50 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-2xl rounded-tl-sm">
+          <AudioMessage
+            content={{
+              url: 'https://cdn.pixabay.com/audio/2025/09/17/audio_32aeb1ec12.mp3',
+              mimeType: 'audio/ogg',
+            }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/**
+ * 发送的音频消息（右侧对齐）
+ */
+export const Sent = () => {
+  return (
+    <div className="space-y-3">
+      <div className="flex justify-end">
+        <div className="max-w-[70%] px-4 py-2.5 bg-blue-500 text-white rounded-2xl rounded-tr-sm">
+          <AudioMessage
+            content={{
+              url: 'https://cdn.pixabay.com/audio/2025/09/17/audio_32aeb1ec12.mp3',
+              mimeType: 'audio/ogg',
+            }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};

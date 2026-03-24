@@ -1,6 +1,5 @@
 import { AlertCircle, Pause, Play } from 'lucide-react';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Button } from '@/components/Button';
 import type { MessageContent } from '@/interfaces/message.interface';
 import { useTranslation } from '@/providers/I18n.provider';
 import { formatDuration } from '@/utils/time.util';
@@ -36,20 +35,20 @@ const AudioPlayerButton = memo(
     );
 
     return (
-      <Button
+      <button
         type="button"
         onClick={onClick}
         disabled={disabled}
         aria-label={ariaLabel}
         aria-pressed={isPlaying}
-        className={`flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary/80 transition-colors hover:bg-primary/20 ${disabledClass}`}
+        className={`flex h-8 w-8 items-center justify-center rounded-full transition-opacity hover:opacity-80 ${disabledClass}`}
       >
         {isPlaying ? (
           <Pause className="h-4 w-4" aria-hidden="true" />
         ) : (
           <Play className="h-4 w-4" aria-hidden="true" />
         )}
-      </Button>
+      </button>
     );
   },
 );
