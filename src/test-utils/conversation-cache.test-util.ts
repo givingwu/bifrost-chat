@@ -21,15 +21,26 @@ export function seedConversationCache(
   channel: ChannelTypeEnum,
   conversations: Conversation[],
 ): void {
-  const page: ConversationListPage = {
-    items: conversations,
-    nextCursor: undefined,
-  };
+  seedConversationPages(queryClient, channel, [conversations]);
+}
+
+/**
+ * 测试工具：以多页 InfiniteQuery 格式预置会话缓存。
+ */
+export function seedConversationPages(
+  queryClient: QueryClient,
+  channel: ChannelTypeEnum,
+  pages: Conversation[][],
+  pageParams: number[] = pages.map((_, index) => index + 1),
+): void {
   queryClient.setQueryData<InfiniteData<ConversationListPage, number>>(
     queryKeys.conversations.list(channel),
     {
-      pages: [page],
-      pageParams: [1],
+      pages: pages.map((items) => ({
+        items,
+        nextCursor: undefined,
+      })),
+      pageParams,
     },
   );
 }

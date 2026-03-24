@@ -16,6 +16,11 @@ import {
   type StandardMessage,
 } from '@/interfaces/message.interface';
 import { queryKeys } from '@/providers/query.provider';
+import { ConversationAuthoritativeCacheService } from './conversation-authoritative-cache.service';
+import {
+  type ConversationMergeSource,
+  mergeConversation,
+} from './conversation-merge.policy';
 
 // ============================================================================
 // Internal Page Type
@@ -111,16 +116,15 @@ type CreatingConversationMetadata = Record<string, unknown> & {
 };
 
 /**
- * Options for conversation merge operations
+ * Options for upsert conversation operations
  */
 interface MergeOptions {
   /** Whether to preserve the existing unread count */
   preserveUnreadCount?: boolean;
+  /** Merge source used to decide authoritative precedence */
+  source?: ConversationMergeSource;
 }
 
-/**
- * Options for upsert conversation operations
- */
 interface UpsertOptions extends MergeOptions {
   /**
    * Whether to move the conversation to the top of the list
@@ -273,55 +277,6 @@ function buildSyntheticUser(message: StandardMessage): User {
 // ============================================================================
 
 /**
- * Merges two User objects with smart field selection.
- * Prefers existing non-default values over incoming values.
- *
- * @param existingUser - The current user data
- * @param incomingUser - The new user data
- * @returns Merged user with best available fields
- */
-function mergeUser(existingUser: User, incomingUser: User): User {
-  const shouldUseIncomingName =
-    !existingUser.name || existingUser.name === existingUser.id;
-
-  return {
-    ...existingUser,
-    ...incomingUser,
-    id: existingUser.id || incomingUser.id,
-    name: shouldUseIncomingName ? incomingUser.name : existingUser.name,
-    avatarUrl: existingUser.avatarUrl || incomingUser.avatarUrl,
-    status: existingUser.status ?? incomingUser.status,
-    email: existingUser.email || incomingUser.email,
-    phone: existingUser.phone || incomingUser.phone,
-    role: existingUser.role || incomingUser.role,
-    tags: existingUser.tags?.length ? existingUser.tags : incomingUser.tags,
-  };
-}
-
-/**
- * Merges two channel arrays with deduplication.
- *
- * @param existingChannels - Current supported channels
- * @param incomingChannels - New supported channels
- * @returns Deduplicated merged channels, or undefined if both empty
- */
-function mergeSupportedChannels(
-  existingChannels?: ChannelTypeEnum[],
-  incomingChannels?: ChannelTypeEnum[],
-): ChannelTypeEnum[] | undefined {
-  const merged = [
-    ...(existingChannels ?? []),
-    ...(incomingChannels ?? []),
-  ] as ChannelTypeEnum[];
-
-  if (merged.length === 0) {
-    return undefined;
-  }
-
-  return [...new Set(merged)];
-}
-
-/**
  * Type guard to check if metadata is a valid record object.
  *
  * @param metadata - The metadata to check
@@ -331,69 +286,6 @@ function isMetadataRecord(
   metadata: Conversation['metadata'],
 ): metadata is Record<string, unknown> {
   return typeof metadata === 'object' && metadata !== null;
-}
-
-/**
- * Merges `conversation.metadata` when combining list cache with newer payloads.
- *
- * - List APIs often return empty-string placeholders; detail/get must not lose
- *   non-empty values to those placeholders.
- * - Non-empty strings win over empty/whitespace-only strings on the same key.
- * - When both sides are non-empty strings, incoming wins (newer fetch).
- * - A confirmed real conversation (`synthetic: false`) stays non-synthetic when
- *   merging WebSocket synthetic rows that set `synthetic: true`.
- */
-function mergeConversationMetadata(
-  existing: Conversation['metadata'],
-  incoming: Conversation['metadata'],
-): Conversation['metadata'] {
-  if (!isMetadataRecord(existing)) {
-    return incoming;
-  }
-  if (!isMetadataRecord(incoming)) {
-    return existing;
-  }
-
-  const ex = existing;
-  const inc = incoming;
-  const keys = new Set([...Object.keys(ex), ...Object.keys(inc)]);
-  const out: Record<string, unknown> = {};
-
-  for (const key of keys) {
-    const ev = ex[key];
-    const iv = inc[key];
-
-    if (key === 'synthetic' && ev === false && iv === true) {
-      out[key] = false;
-      continue;
-    }
-
-    const evIsStr = typeof ev === 'string';
-    const ivIsStr = typeof iv === 'string';
-    if (evIsStr && ivIsStr) {
-      const et = ev.trim();
-      const it = iv.trim();
-      if (et.length > 0 && it.length === 0) {
-        out[key] = ev;
-        continue;
-      }
-      if (it.length > 0) {
-        out[key] = iv;
-        continue;
-      }
-      out[key] = iv;
-      continue;
-    }
-
-    if (iv !== undefined) {
-      out[key] = iv;
-      continue;
-    }
-
-    out[key] = ev;
-  }
-
-  return out as Conversation['metadata'];
 }
 
 /**
@@ -476,58 +368,6 @@ function mergePendingConversations(
   return [...visiblePendingConversations, ...serverConversations];
 }
 
-/**
- * Merges two conversation objects with smart field selection.
- * Preserves existing data when incoming has empty/zero placeholder values.
- *
- * @param existingConversation - The current conversation data
- * @param incomingConversation - The new conversation data
- * @param options - Merge options
- * @returns Merged conversation with best available fields
- */
-function mergeConversation(
-  existingConversation: Conversation,
-  incomingConversation: Conversation,
-  options?: MergeOptions,
-): Conversation {
-  const mergedMetadata = mergeConversationMetadata(
-    existingConversation.metadata,
-    incomingConversation.metadata,
-  );
-
-  // Summary fields: preserve existing data when incoming is empty/zero.
-  // GET endpoints (e.g., /session/info) may not include message summaries,
-  // using empty placeholder values - these should not overwrite list data.
-  const shouldPreserveUnread =
-    options?.preserveUnreadCount ||
-    (incomingConversation.unreadCount === 0 &&
-      existingConversation.unreadCount > 0);
-
-  return {
-    ...existingConversation,
-    ...incomingConversation,
-    user: mergeUser(existingConversation.user, incomingConversation.user),
-    lastMessage:
-      incomingConversation.lastMessage || existingConversation.lastMessage,
-    lastMessageTime:
-      incomingConversation.lastMessageTime ||
-      existingConversation.lastMessageTime,
-    unreadCount: shouldPreserveUnread
-      ? (existingConversation.unreadCount ?? incomingConversation.unreadCount)
-      : incomingConversation.unreadCount,
-    isActive: existingConversation.isActive,
-    status: incomingConversation.status ?? existingConversation.status,
-    priority: incomingConversation.priority ?? existingConversation.priority,
-    createdAt: existingConversation.createdAt ?? incomingConversation.createdAt,
-    updatedAt: incomingConversation.updatedAt ?? existingConversation.updatedAt,
-    metadata: mergedMetadata,
-    supportedChannels: mergeSupportedChannels(
-      incomingConversation.supportedChannels as ChannelTypeEnum[] | undefined,
-      existingConversation.supportedChannels as ChannelTypeEnum[] | undefined,
-    ),
-  };
-}
-
 // ============================================================================
 // Cache Helper Class
 // ============================================================================
@@ -556,8 +396,9 @@ export class ConversationCacheHelper {
     queryClient: QueryClient,
     channel: ChannelTypeEnum,
   ): InfiniteData<ConversationListPage, number> | undefined {
-    return queryClient.getQueryData<InfiniteData<ConversationListPage, number>>(
-      queryKeys.conversations.list(channel),
+    return ConversationAuthoritativeCacheService.getListData(
+      queryClient,
+      channel,
     );
   }
 
@@ -574,21 +415,10 @@ export class ConversationCacheHelper {
     channel: ChannelTypeEnum,
     updater: (conversations: Conversation[]) => Conversation[],
   ): void {
-    queryClient.setQueryData<InfiniteData<ConversationListPage, number>>(
-      queryKeys.conversations.list(channel),
-      (old) => {
-        const existing = old ?? {
-          pages: [{ items: [], nextCursor: undefined }],
-          pageParams: [1],
-        };
-        return {
-          ...existing,
-          pages: existing.pages.map((page) => ({
-            ...page,
-            items: updater(page.items ?? []),
-          })),
-        };
-      },
+    ConversationAuthoritativeCacheService.updatePages(
+      queryClient,
+      channel,
+      updater,
     );
   }
 
@@ -682,7 +512,11 @@ export class ConversationCacheHelper {
     conversation: Conversation | undefined,
   ): Conversation | undefined {
     if (conversation) {
-      ConversationCacheHelper.setConversationDetail(queryClient, conversation);
+      ConversationCacheHelper.setConversationDetail(
+        queryClient,
+        conversation,
+        'authoritative-subscription',
+      );
     }
     return conversation;
   }
@@ -823,21 +657,13 @@ export class ConversationCacheHelper {
   static setConversationDetail(
     queryClient: QueryClient,
     conversation: Conversation,
+    source: ConversationMergeSource = 'authoritative-detail',
   ): Conversation {
-    const currentConversation = ConversationCacheHelper.getConversationDetail(
+    return ConversationAuthoritativeCacheService.syncConversationDetail(
       queryClient,
-      conversation.id,
+      conversation,
+      source,
     );
-    const nextConversation = currentConversation
-      ? mergeConversation(currentConversation, conversation)
-      : conversation;
-
-    queryClient.setQueryData(
-      queryKeys.conversations.detail(conversation.id),
-      nextConversation,
-    );
-
-    return nextConversation;
   }
 
   /**
@@ -856,12 +682,16 @@ export class ConversationCacheHelper {
       queryClient,
       conversation,
       conversation.channel,
-      { moveToTop: false }, // Don't move to top on conversation switch
+      {
+        moveToTop: false, // Don't move to top on conversation switch
+        source: 'authoritative-detail',
+      },
     );
 
     return ConversationCacheHelper.setConversationDetail(
       queryClient,
       nextConversation,
+      'authoritative-detail',
     );
   }
 
@@ -923,8 +753,9 @@ export class ConversationCacheHelper {
 
     let nextConversation = conversation;
     const shouldMoveToTop = options?.moveToTop !== false;
+    const source = options?.source ?? 'authoritative-subscription';
 
-    ConversationCacheHelper.updatePages(
+    ConversationAuthoritativeCacheService.updatePages(
       queryClient,
       channel,
       (conversations) => {
@@ -935,7 +766,12 @@ export class ConversationCacheHelper {
           existingIndex >= 0 ? conversations[existingIndex] : undefined;
 
         nextConversation = existingConversation
-          ? mergeConversation(existingConversation, conversation, options)
+          ? mergeConversation(
+              existingConversation,
+              conversation,
+              source,
+              options,
+            )
           : conversation;
 
         if (existingIndex >= 0) {
@@ -960,9 +796,11 @@ export class ConversationCacheHelper {
       },
     );
 
-    return ConversationCacheHelper.setConversationDetail(
+    return ConversationAuthoritativeCacheService.syncConversationDetail(
       queryClient,
       nextConversation,
+      source,
+      options,
     );
   }
 
@@ -992,9 +830,14 @@ export class ConversationCacheHelper {
         );
 
         nextConversation = existingConversation
-          ? mergeConversation(existingConversation, nextPendingConversation, {
-              preserveUnreadCount: true,
-            })
+          ? mergeConversation(
+              existingConversation,
+              nextPendingConversation,
+              'projection',
+              {
+                preserveUnreadCount: true,
+              },
+            )
           : nextPendingConversation;
 
         const rest = conversations.filter(
@@ -1008,6 +851,7 @@ export class ConversationCacheHelper {
     return ConversationCacheHelper.setConversationDetail(
       queryClient,
       nextConversation,
+      'authoritative-detail',
     );
   }
 
@@ -1037,9 +881,14 @@ export class ConversationCacheHelper {
         );
 
         nextConversation = existingConversation
-          ? mergeConversation(existingConversation, nextCreatingConversation, {
-              preserveUnreadCount: true,
-            })
+          ? mergeConversation(
+              existingConversation,
+              nextCreatingConversation,
+              'projection',
+              {
+                preserveUnreadCount: true,
+              },
+            )
           : nextCreatingConversation;
 
         const rest = conversations.filter(
@@ -1194,7 +1043,10 @@ export class ConversationCacheHelper {
       queryClient,
       syntheticConversation,
       message.channelType,
-      { preserveUnreadCount: options?.preserveUnreadCount ?? true },
+      {
+        preserveUnreadCount: options?.preserveUnreadCount ?? true,
+        source: 'projection',
+      },
     );
   }
 
@@ -1219,22 +1071,19 @@ export class ConversationCacheHelper {
       conversations.map((conversation) => conversation.id),
     );
 
-    // Replace the entire first page, preserving pageParams structure
-    const page: ConversationListPage = {
-      items: conversations,
-      nextCursor: undefined,
-    };
-    queryClient.setQueryData<InfiniteData<ConversationListPage, number>>(
-      queryKeys.conversations.list(channel),
-      (old) => ({
-        pages: [page],
-        pageParams: old?.pageParams ?? [1],
-      }),
+    ConversationAuthoritativeCacheService.replaceConversationList(
+      queryClient,
+      conversations,
+      channel,
     );
 
     // Sync each conversation to detail cache
     for (const conversation of conversations) {
-      ConversationCacheHelper.setConversationDetail(queryClient, conversation);
+      ConversationCacheHelper.setConversationDetail(
+        queryClient,
+        conversation,
+        'authoritative-list',
+      );
     }
 
     return conversations;
@@ -1258,6 +1107,7 @@ export class ConversationCacheHelper {
       queryClient,
       conversation,
       channel,
+      { source: 'authoritative-subscription' },
     );
   }
 
