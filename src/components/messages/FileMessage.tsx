@@ -26,7 +26,9 @@ export const FileMessage = ({ content }: FileMessageProps) => {
         <FileText className="h-5 w-5 text-gray-400 dark:text-gray-500" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="truncate text-sm font-medium text-text">{fileName}</p>
+        <p className="truncate text-sm font-medium text-primary/80">
+          {fileName}
+        </p>
         <p className="text-xs text-gray-400 dark:text-gray-500">{fileSize}</p>
       </div>
       <a
