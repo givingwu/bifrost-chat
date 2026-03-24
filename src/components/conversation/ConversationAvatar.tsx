@@ -35,7 +35,7 @@ export const ConversationAvatar = memo(
     onKeyDown,
   }: ConversationAvatarProps) => {
     return (
-      <div className={cn('relative inline-block', className)}>
+      <div className={cn('relative inline-block align-middle', className)}>
         <Avatar
           src={src}
           alt={name || 'User Avatar'}

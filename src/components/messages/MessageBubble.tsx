@@ -55,7 +55,10 @@ export const MessageBubble = ({
       data-component="message-bubble"
       data-message-status={message.status}
       data-type={message.type}
-      className={cn('flex w-full', isMe ? 'justify-end' : 'justify-start')}
+      className={cn(
+        'flex w-full max-w-full',
+        isMe ? 'justify-end' : 'justify-start',
+      )}
     >
       <div
         className={cn(
