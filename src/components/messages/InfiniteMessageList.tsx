@@ -88,59 +88,8 @@ export function InfiniteMessageList({
   // 期望显示顺序：[60,...,31,30,...,1]（更旧的在上，更新的在下）
   const messages = useMemo(() => {
     const pages = data?.pages || [];
-    logger.info('[InfiniteMessageList] 当前页面数:', pages.length);
-    logger.info(
-      '[InfiniteMessageList] 各页面消息数:',
-      pages.map((p) => p.items.length),
-    );
-
-    // 打印第一页（最新消息）的前3条和后3条
-    if (pages.length > 0) {
-      const firstPage = pages[0];
-      logger.info(
-        '[InfiniteMessageList] 第一页（page 0）的前3条消息:',
-        firstPage.items.slice(0, 3).map((m) => ({
-          id: m.id,
-          tempId: m.tempId,
-          timestamp: m.timestamp,
-          status: m.status,
-        })),
-      );
-      logger.info(
-        '[InfiniteMessageList] 第一页（page 0）的后3条消息:',
-        firstPage.items.slice(-3).map((m) => ({
-          id: m.id,
-          tempId: m.tempId,
-          timestamp: m.timestamp,
-          status: m.status,
-        })),
-      );
-    }
-
     const reversedMessages = MessageCacheHelper.dedupeAndSortMessages(
       [...pages].reverse().flatMap((page) => page.items) || [],
-    );
-    logger.info(
-      '[InfiniteMessageList] 反转后的总消息数:',
-      reversedMessages.length,
-    );
-    logger.info(
-      '[InfiniteMessageList] 反转后的前3条消息:',
-      reversedMessages.slice(0, 3).map((m) => ({
-        id: m.id,
-        tempId: m.tempId,
-        timestamp: m.timestamp,
-        status: m.status,
-      })),
-    );
-    logger.info(
-      '[InfiniteMessageList] 反转后的后3条消息:',
-      reversedMessages.slice(-3).map((m) => ({
-        id: m.id,
-        tempId: m.tempId,
-        timestamp: m.timestamp,
-        status: m.status,
-      })),
     );
 
     return reversedMessages;
