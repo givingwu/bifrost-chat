@@ -1,6 +1,7 @@
 import { AlertCircle, Download, FileText } from 'lucide-react';
 import type { MessageContent } from '@/interfaces/message.interface';
 import { getSafeFileName, isValidHttpUrl } from '@/utils/url.util';
+import { EmptyMessage } from './EmptyMessage';
 import { InvalidUrlMessage } from './InvalidUrlMessage';
 
 export interface FileMessageProps {
@@ -14,7 +15,11 @@ export interface FileMessageProps {
  * - 验证 URL 有效性，无效时显示错误状态。
  */
 export const FileMessage = ({ content }: FileMessageProps) => {
-  if (!('url' in content) || !isValidHttpUrl(content.url)) {
+  if (!('url' in content) || !content.url || content.url.trim() === '') {
+    return <EmptyMessage icon={AlertCircle} type="file" />;
+  }
+
+  if (!isValidHttpUrl(content.url)) {
     return <InvalidUrlMessage icon={AlertCircle} type="file" />;
   }
 

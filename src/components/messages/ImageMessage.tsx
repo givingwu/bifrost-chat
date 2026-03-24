@@ -2,6 +2,7 @@ import { ImageOff } from 'lucide-react';
 import { useState } from 'react';
 import type { MessageContent } from '@/interfaces/message.interface';
 import { isValidHttpUrl } from '@/utils/url.util';
+import { EmptyMessage } from './EmptyMessage';
 import { InvalidUrlMessage } from './InvalidUrlMessage';
 
 export interface ImageMessageProps {
@@ -24,7 +25,23 @@ const DEFAULT_IMAGE_URL =
 export const ImageMessage = ({ content }: ImageMessageProps) => {
   const [imageError, setImageError] = useState(false);
 
-  if (!('url' in content) || !isValidHttpUrl(content.url)) {
+  if (!('url' in content)) {
+    return (
+      <div className="flex h-40 w-56 items-center justify-center rounded-xl border border-border bg-card">
+        <EmptyMessage icon={ImageOff} type="image" />
+      </div>
+    );
+  }
+
+  if (!content.url || content.url.trim() === '') {
+    return (
+      <div className="flex h-40 w-56 items-center justify-center rounded-xl border border-border bg-card">
+        <EmptyMessage icon={ImageOff} type="image" />
+      </div>
+    );
+  }
+
+  if (!isValidHttpUrl(content.url)) {
     return (
       <div className="flex h-40 w-56 items-center justify-center rounded-xl border border-border bg-card">
         <InvalidUrlMessage icon={ImageOff} compact type="image" />

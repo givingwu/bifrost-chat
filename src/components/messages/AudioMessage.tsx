@@ -1,10 +1,10 @@
 import { AlertCircle, Pause, Play } from 'lucide-react';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Button } from '@/components/Button';
 import type { MessageContent } from '@/interfaces/message.interface';
 import { useTranslation } from '@/providers/I18n.provider';
 import { formatDuration } from '@/utils/time.util';
 import { isValidHttpUrl } from '@/utils/url.util';
+import { EmptyMessage } from './EmptyMessage';
 import { InvalidUrlMessage } from './InvalidUrlMessage';
 
 export interface AudioMessageProps {
@@ -257,20 +257,20 @@ const AudioPlayerButton = memo(
     );
 
     return (
-      <Button
+      <button
         type="button"
         onClick={onClick}
         disabled={disabled}
         aria-label={ariaLabel}
         aria-pressed={isPlaying}
-        className={`flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary/80 transition-colors hover:bg-primary/20 ${disabledClass}`}
+        className={`flex h-8 w-8 items-center justify-center rounded-full transition-opacity hover:opacity-80 ${disabledClass}`}
       >
         {isPlaying ? (
           <Pause className="h-4 w-4" aria-hidden="true" />
         ) : (
           <Play className="h-4 w-4" aria-hidden="true" />
         )}
-      </Button>
+      </button>
     );
   },
 );
@@ -410,9 +410,15 @@ export const AudioMessage = memo(({ content }: AudioMessageProps) => {
     [isPlaying, t],
   );
 
+  // 检查 URL 是否为空
   // 类型守卫：确保 content 有 url 字段
-  if (!('url' in content) || typeof content.url !== 'string') {
-    return <InvalidUrlMessage icon={AlertCircle} type="audio" />;
+  if (
+    !('url' in content) ||
+    typeof content.url !== 'string' ||
+    !content.url ||
+    content.url.trim() === ''
+  ) {
+    return <EmptyMessage icon={AlertCircle} type="audio" />;
   }
 
   // 验证 URL 有效性

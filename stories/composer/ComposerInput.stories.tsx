@@ -345,7 +345,7 @@ export const CompleteExample = () => {
       </div>
       <div className="w-96 h-48 overflow-y-auto p-2 bg-muted rounded">
         {messages.length === 0 ? (
-          <p className="text-text-muted text-sm">暂无消息</p>
+          <p className="text-text-muted text-sm">暂无内容</p>
         ) : (
           messages.map((msg) => (
             <div key={msg} className="p-2 mb-2 bg-card rounded text-sm">

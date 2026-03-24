@@ -1,6 +1,7 @@
 import { ImageOff } from 'lucide-react';
 import type { MessageContent } from '@/interfaces/message.interface';
 import { isValidHttpUrl } from '@/utils/url.util';
+import { EmptyMessage } from './EmptyMessage';
 import { InvalidUrlMessage } from './InvalidUrlMessage';
 
 export interface RichMediaMessageProps {
@@ -15,7 +16,7 @@ export interface RichMediaMessageProps {
  */
 export const RichMediaMessage = ({ content }: RichMediaMessageProps) => {
   if (!('text' in content)) {
-    return null;
+    return <EmptyMessage icon={ImageOff} type="rich-media" />;
   }
 
   let data: {
@@ -73,13 +74,18 @@ export const RichMediaMessage = ({ content }: RichMediaMessageProps) => {
         {data.buttons && data.buttons.length > 0 && (
           <div className="space-y-2">
             {data.buttons.map((button) => {
-              const isValidButtonUrl = button.url ? isValidHttpUrl(button.url) : false;
+              const isValidButtonUrl = button.url
+                ? isValidHttpUrl(button.url)
+                : false;
               return (
                 <a
                   key={button.text}
                   href={isValidButtonUrl ? button.url : undefined}
                   className="block w-full rounded-md border border-border bg-muted px-3 py-1.5 text-center text-xs font-semibold text-primary transition hover:bg-muted/80 disabled:opacity-50 disabled:cursor-not-allowed"
-                  {...(!isValidButtonUrl && { tabIndex: -1, 'aria-disabled': true })}
+                  {...(!isValidButtonUrl && {
+                    tabIndex: -1,
+                    'aria-disabled': true,
+                  })}
                 >
                   {button.text}
                 </a>
