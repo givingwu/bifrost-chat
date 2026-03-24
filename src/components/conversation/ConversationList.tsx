@@ -427,7 +427,20 @@ export const ConversationList = memo(
       );
     }
 
-    // 加载状态
+    // 初次加载状态：显示 3 个 Skeleton
+    if (isLoading && !conversations) {
+      return (
+        <output className={containerClassName} aria-live="polite">
+          <div className="space-y-1 p-2">
+            <ConversationItemSkeleton />
+            <ConversationItemSkeleton />
+            <ConversationItemSkeleton />
+          </div>
+        </output>
+      );
+    }
+
+    // 后续加载状态（如下拉刷新）：显示 LoadingState
     if (isLoading) {
       return (
         <output className={containerClassName} aria-live="polite">
