@@ -135,10 +135,10 @@ export const ConversationItem = memo(
     }, [conversation.id, onSelect]);
 
     // 渲染元数据区域
-    // biome-ignore lint/correctness/useExhaustiveDependencies: <FIXME: 不监听 conversation 整个对象，容易递归渲染？？？>
+    // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
     const metaContent = useMemo(() => {
       return renderMeta?.(conversation);
-    }, [conversation.id, renderMeta]);
+    }, [renderMeta]);
 
     const effectiveUnreadCount = useConversationUnread(
       conversation.id,
