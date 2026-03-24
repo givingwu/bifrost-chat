@@ -3,6 +3,7 @@ import { cn } from '@/utils/class.util';
 
 export interface ChatLayoutProps {
   className?: string;
+  containerClassName?: string;
   style?: React.CSSProperties;
   /** 左侧会话列表 */
   conversationPanel?: ReactNode;
@@ -21,6 +22,7 @@ export interface ChatLayoutProps {
  */
 export const ChatLayout = ({
   className,
+  containerClassName,
   style,
   topbar,
   children,
@@ -40,7 +42,7 @@ export const ChatLayout = ({
     >
       {conversationPanel}
 
-      <section className="flex flex-col flex-1">
+      <section className={cn(containerClassName, 'flex flex-col flex-1')}>
         {topbar}
 
         <main className="flex flex-1 overflow-hidden">
