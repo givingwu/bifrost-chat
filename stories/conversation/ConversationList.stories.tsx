@@ -274,3 +274,25 @@ export const WithCreatingPlaceholder = () => {
     </div>
   );
 };
+
+/**
+ * 加载状态 - 初次加载显示骨架屏
+ */
+export const Loading = () => {
+  return (
+    <div className="w-80 h-96">
+      <ConversationList conversations={null} isLoading={true} autoFetch={false} />
+    </div>
+  );
+};
+
+/**
+ * 刷新状态 - 有数据时的加载状态
+ */
+export const Refreshing = () => {
+  return (
+    <div className="w-80 h-96">
+      <ConversationList conversations={mockConversations} isLoading={true} autoFetch={false} />
+    </div>
+  );
+};
