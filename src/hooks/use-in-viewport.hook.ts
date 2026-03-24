@@ -182,6 +182,7 @@ export function useInViewport(
   const [state, setState] = useState<ViewportState>(DEFAULT_VIEWPORT_STATE);
   const lastIntersectionRef = useRef<ViewportState | null>(null);
   const opacityVisibleRef = useRef<boolean>(true);
+  const lastStateRef = useRef<ViewportState>(DEFAULT_VIEWPORT_STATE);
 
   useEffect(() => {
     const element = resolveTarget(target);
@@ -250,13 +251,28 @@ export function useInViewport(
       opacityVisibleRef.current = visible;
 
       if (!visible) {
-        setState({ inViewport: false, ratio: 0 });
+        // 只有当状态真正改变时才更新
+        if (
+          lastStateRef.current.inViewport !== false ||
+          lastStateRef.current.ratio !== 0
+        ) {
+          lastStateRef.current = { inViewport: false, ratio: 0 };
+          setState({ inViewport: false, ratio: 0 });
+        }
         return;
       }
 
       // opacity 变为可见后，立刻使用上一次 Intersection 结果刷新。
       if (lastIntersectionRef.current) {
-        setState(lastIntersectionRef.current);
+        const nextState = lastIntersectionRef.current;
+        // 只有当状态真正改变时才更新
+        if (
+          lastStateRef.current.inViewport !== nextState.inViewport ||
+          lastStateRef.current.ratio !== nextState.ratio
+        ) {
+          lastStateRef.current = nextState;
+          setState(nextState);
+        }
         return;
       }
 
@@ -264,7 +280,14 @@ export function useInViewport(
       // 并按 threshold 语义裁剪触发时机。
       const next = computeViewportState();
       lastIntersectionRef.current = next;
-      setState(next);
+      // 只有当状态真正改变时才更新
+      if (
+        lastStateRef.current.inViewport !== next.inViewport ||
+        lastStateRef.current.ratio !== next.ratio
+      ) {
+        lastStateRef.current = next;
+        setState(next);
+      }
     };
 
     // 初始化 opacity 状态；当 opacity 为 0 时，冻结可见性输出。
