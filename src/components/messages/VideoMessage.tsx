@@ -1,4 +1,7 @@
+import { FileText } from 'lucide-react';
 import type { MessageContent } from '@/interfaces/message.interface';
+import { isValidHttpUrl } from '@/utils/url.util';
+import { InvalidUrlMessage } from './InvalidUrlMessage';
 
 export interface VideoMessageProps {
   /** 消息内容 */
@@ -8,10 +11,11 @@ export interface VideoMessageProps {
 /**
  * VideoMessage：视频消息组件。
  * - 渲染视频消息，支持视频播放。
+ * - 验证 URL 有效性，无效时显示错误状态。
  */
 export const VideoMessage = ({ content }: VideoMessageProps) => {
-  if (!('url' in content)) {
-    return null;
+  if (!('url' in content) || !isValidHttpUrl(content.url)) {
+    return <InvalidUrlMessage icon={FileText} type="video" />;
   }
 
   return (

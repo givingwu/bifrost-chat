@@ -508,10 +508,12 @@ export function DefaultChatLayout({
   return (
     <ChatLayout
       className={cn('max-w-350 h-[80vh]', className)}
+      containerClassName="w-270"
       style={style}
       topbar={topbarNode}
       conversationPanel={
         <ConversationPanel
+          className="w-80"
           header={
             <ConversationHeader
               title={t(TRANSLATION_KEYS.TITLE)}

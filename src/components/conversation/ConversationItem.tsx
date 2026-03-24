@@ -1,3 +1,4 @@
+import { Pin } from 'lucide-react';
 import { type KeyboardEvent, memo, useCallback, useMemo } from 'react';
 import { Button } from '@/components/Button';
 import { useConversationUnread } from '@/hooks';
@@ -15,6 +16,8 @@ export interface ConversationItemProps {
   onSelect?: (conversationId: string) => void;
   /** 自定义类名 */
   className?: string;
+  /** 是否为置顶会话 */
+  isPinned?: boolean;
   /**
    * 自定义渲染元数据区域（在人名和最后消息之间）
    * @param conversation 会话数据
@@ -82,6 +85,7 @@ export const ConversationItem = memo(
     conversation,
     onSelect,
     className = '',
+    isPinned = false,
     renderMeta,
     getConversationDisplayTitle,
   }: ConversationItemProps) => {
@@ -96,6 +100,15 @@ export const ConversationItem = memo(
       'w-full flex items-start p-3 rounded-xl transition-all duration-200 text-left group relative',
       styles.container,
       className,
+    );
+
+    // 置顶图标的样式（只在非激活状态显示）
+    const pinIconClassName = cn(
+      'absolute top-1 right-1 transform rotate-45',
+      'h-2.5 w-2.5', // 更小的图标尺寸
+      'text-blue-500 dark:text-blue-400',
+      'opacity-80 group-hover:opacity-100',
+      'transition-opacity duration-200',
     );
 
     // 上次回复时间（相对时间）
@@ -144,6 +157,10 @@ export const ConversationItem = memo(
           count: effectiveUnreadCount,
         })}
       >
+        {/* 置顶图标 - 绝对定位在右上角，只在非激活状态显示 */}
+        {isPinned && !conversation.isActive && (
+          <Pin className={pinIconClassName} aria-hidden="true" />
+        )}
         <div className="flex w-full items-start gap-3">
           {/* 头像区域：未读 Badge 悬浮在右上角（微信风格） */}
           <div className="relative shrink-0">
@@ -160,16 +177,15 @@ export const ConversationItem = memo(
           <div className="min-w-0 flex-1">
             {/* 第一行：人名 + 时间 */}
             <div className="flex items-baseline justify-around gap-2">
-              <h4
-                className={cn(
-                  'truncate text-sm font-semibold flex-1',
-                  styles.title,
-                )}
-              >
-                {getConversationDisplayTitle
-                  ? getConversationDisplayTitle(conversation)
-                  : conversation.user.name}
-              </h4>
+              <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                <h4
+                  className={cn('truncate text-sm font-semibold', styles.title)}
+                >
+                  {getConversationDisplayTitle
+                    ? getConversationDisplayTitle(conversation)
+                    : conversation.user.name}
+                </h4>
+              </div>
               <span className={cn('text-xs shrink-0', styles.time)}>
                 {lastReplyTime}
               </span>

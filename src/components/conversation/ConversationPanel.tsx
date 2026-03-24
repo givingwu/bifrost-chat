@@ -26,7 +26,7 @@ export const ConversationPanel = memo(
     header,
     children,
     className = '',
-    width = '320px',
+    width = '',
     showBorder = true,
   }: ConversationPanelProps) => {
     const { t } = useTranslation();

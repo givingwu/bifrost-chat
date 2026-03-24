@@ -280,3 +280,101 @@ export const LongMessage = () => {
     </div>
   );
 };
+
+/**
+ * 置顶会话 - 展示置顶状态
+ *
+ * @description
+ * 展示置顶的会话项，右上角会显示一个倾斜的图钉图标 📌。
+ * 置顶的会话在会话列表中会排在前面（但在创建中的会话之后）。
+ */
+export const Pinned = () => {
+  const conversations: Conversation[] = [
+    {
+      ...mockConversation,
+      id: '1',
+      user: {
+        ...mockConversation.user,
+        name: '置顶会话 - 重要客户',
+      },
+      lastMessage: '这是置顶的会话，右上角有图钉图标',
+      lastMessageTime: '刚刚',
+    },
+    {
+      ...mockConversation,
+      id: '2',
+      user: {
+        ...mockConversation.user,
+        name: '普通会话 - 其他客户',
+      },
+      lastMessage: '这是普通会话，没有置顶',
+      lastMessageTime: '5分钟前',
+      unreadCount: 3,
+    },
+  ];
+
+  return (
+    <div className="w-80 space-y-2">
+      <p className="text-xs text-text-muted mb-2">
+        第一个会话已置顶（右上角有 📌 图标）
+      </p>
+      {conversations.map((conversation, index) => (
+        <ConversationItem
+          key={conversation.id}
+          conversation={conversation}
+          isPinned={index === 0}
+          onSelect={(id) => console.log('Selected:', id)}
+        />
+      ))}
+    </div>
+  );
+};
+
+/**
+ * 置顶会话激活状态
+ *
+ * @description
+ * 展示置顶且激活的会话项。
+ * 注意：激活状态下不显示置顶图标，因为蓝色背景已经足够明显。
+ */
+export const PinnedActive = () => {
+  const pinnedActiveConversation: Conversation = {
+    ...mockConversation,
+    id: '1',
+    user: {
+      ...mockConversation.user,
+      name: '置顶且激活的会话',
+    },
+    isActive: true,
+    lastMessage: '这是置顶且激活的会话（不显示置顶图标）',
+  };
+
+  const pinnedInactiveConversation: Conversation = {
+    ...mockConversation,
+    id: '2',
+    user: {
+      ...mockConversation.user,
+      name: '置顶但未激活的会话',
+    },
+    isActive: false,
+    lastMessage: '这是置顶但未激活的会话（显示置顶图标）',
+  };
+
+  return (
+    <div className="w-80 space-y-2">
+      <p className="text-xs text-text-muted mb-2">
+        激活状态下不显示置顶图标（蓝色背景已足够明显）
+      </p>
+      <ConversationItem
+        conversation={pinnedActiveConversation}
+        isPinned={true}
+        onSelect={(id) => console.log('Selected:', id)}
+      />
+      <ConversationItem
+        conversation={pinnedInactiveConversation}
+        isPinned={true}
+        onSelect={(id) => console.log('Selected:', id)}
+      />
+    </div>
+  );
+};

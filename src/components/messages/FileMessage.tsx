@@ -1,5 +1,7 @@
-import { Download, FileText } from 'lucide-react';
+import { AlertCircle, Download, FileText } from 'lucide-react';
 import type { MessageContent } from '@/interfaces/message.interface';
+import { getSafeFileName, isValidHttpUrl } from '@/utils/url.util';
+import { InvalidUrlMessage } from './InvalidUrlMessage';
 
 export interface FileMessageProps {
   /** 消息内容 */
@@ -9,24 +11,27 @@ export interface FileMessageProps {
 /**
  * FileMessage：文件消息组件。
  * - 渲染文件消息，显示文件名、大小和下载按钮。
+ * - 验证 URL 有效性，无效时显示错误状态。
  */
 export const FileMessage = ({ content }: FileMessageProps) => {
-  if (!('url' in content)) {
-    return null;
+  if (!('url' in content) || !isValidHttpUrl(content.url)) {
+    return <InvalidUrlMessage icon={AlertCircle} type="file" />;
   }
 
-  const fileName = content.url.split('/').pop() || 'Unknown file';
+  const fileName = getSafeFileName(content.url);
   const fileSize = content.size
     ? `${(content.size / 1024).toFixed(1)} KB`
     : 'Unknown size';
 
   return (
-    <div className="flex items-center gap-3 rounded-lg border border-border bg-card p-3">
+    <div className="flex items-center gap-3 rounded-lg p-3">
       <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
         <FileText className="h-5 w-5 text-gray-400 dark:text-gray-500" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="truncate text-sm font-medium text-text">{fileName}</p>
+        <p className="truncate text-sm font-medium text-primary/80">
+          {fileName}
+        </p>
         <p className="text-xs text-gray-400 dark:text-gray-500">{fileSize}</p>
       </div>
       <a

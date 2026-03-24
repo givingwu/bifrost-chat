@@ -283,6 +283,7 @@ export const resetChatStore = () => {
     const conversation: ConversationState = {
       activeConversationId: '',
       searchQuery: '',
+      pinnedConversationIds: new Set<string>(),
     };
 
     // 重置 profile 状态

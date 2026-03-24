@@ -164,3 +164,81 @@ export const MultipleImages = () => {
     </div>
   );
 };
+
+/**
+ * 无效 URL - 展示错误处理
+ */
+export const InvalidUrl = () => {
+  return (
+    <div className="space-y-3">
+      <div className="flex justify-start">
+        <div className="max-w-[70%] px-4 py-2 bg-card text-text rounded-2xl rounded-tl-sm">
+          <p className="text-xs text-text-muted mb-2">缺少 URL 字段</p>
+          <ImageMessage content={{ text: 'No URL field' } as never} />
+        </div>
+      </div>
+      <div className="flex justify-start">
+        <div className="max-w-[70%] px-4 py-2 bg-card text-text rounded-2xl rounded-tl-sm">
+          <p className="text-xs text-text-muted mb-2">无效的 URL 格式</p>
+          <ImageMessage
+            content={{
+              url: 'not-a-valid-url',
+              mimeType: 'image/jpeg',
+            }}
+          />
+        </div>
+      </div>
+      <div className="flex justify-start">
+        <div className="max-w-[70%] px-4 py-2 bg-card text-text rounded-2xl rounded-tl-sm">
+          <p className="text-xs text-text-muted mb-2">不支持的协议</p>
+          <ImageMessage
+            content={{
+              url: 'ftp://example.com/image.jpg',
+              mimeType: 'image/jpeg',
+            }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/**
+ * 接收的图片消息（左侧对齐）
+ */
+export const Received = () => {
+  return (
+    <div className="space-y-3">
+      <div className="flex justify-start">
+        <div className="px-4 py-2.5 border border-gray-100 dark:border-gray-700/50 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-2xl rounded-tl-sm">
+          <ImageMessage
+            content={{
+              url: 'https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0?w=400',
+              mimeType: 'image/jpeg',
+            }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/**
+ * 发送的图片消息（右侧对齐）
+ */
+export const Sent = () => {
+  return (
+    <div className="space-y-3">
+      <div className="flex justify-end">
+        <div className="px-4 py-2.5 bg-blue-500 text-white rounded-2xl rounded-tr-sm">
+          <ImageMessage
+            content={{
+              url: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400',
+              mimeType: 'image/jpeg',
+            }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};

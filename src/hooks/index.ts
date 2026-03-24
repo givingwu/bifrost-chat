@@ -16,6 +16,10 @@ export { useMessages } from './use-messages.hook';
 export { useOfflineSync } from './use-offline-sync.hook';
 export { useRetryMessage } from './use-retry-message.hook';
 export { useSendMessage } from './use-send-message.hook';
+export {
+  ActivateConversationScenario,
+  useSetActiveConversation,
+} from './use-set-active-conversation.hook';
 export { useTemplatePreview } from './use-template-preview.hook';
 export { useTemplates } from './use-templates.hook';
 export { useTotalUnread } from './use-total-unread.hook';

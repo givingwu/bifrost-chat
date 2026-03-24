@@ -163,3 +163,105 @@ export const InvalidData = () => {
     </div>
   );
 };
+
+/**
+ * 无效 URL - 展示图片和按钮 URL 验证
+ */
+export const InvalidUrl = () => {
+  return (
+    <div className="space-y-3">
+      <div className="p-4 bg-muted rounded-lg">
+        <p className="text-xs text-text-muted mb-2">无效的图片 URL</p>
+        <RichMediaMessage
+          content={{
+            text: JSON.stringify({
+              title: '产品推荐',
+              description: '这是一个带有无效图片 URL 的卡片',
+              image: 'not-a-valid-url',
+              url: 'https://example.com/product',
+            }),
+          }}
+        />
+      </div>
+      <div className="p-4 bg-muted rounded-lg">
+        <p className="text-xs text-text-muted mb-2">无效的按钮 URL</p>
+        <RichMediaMessage
+          content={{
+            text: JSON.stringify({
+              title: '限时优惠',
+              description: '按钮包含无效的 URL',
+              image: 'https://picsum.photos/400/300',
+              buttons: [
+                { text: '无效链接', url: 'not-a-valid-url' },
+                { text: '有效链接', url: 'https://example.com/valid' },
+              ],
+            }),
+          }}
+        />
+      </div>
+      <div className="p-4 bg-muted rounded-lg">
+        <p className="text-xs text-text-muted mb-2">不支持的协议</p>
+        <RichMediaMessage
+          content={{
+            text: JSON.stringify({
+              title: '不支持的图片协议',
+              description: '图片使用不支持的协议',
+              image: 'ftp://example.com/image.jpg',
+            }),
+          }}
+        />
+      </div>
+    </div>
+  );
+};
+
+/**
+ * 接收的富媒体消息（左侧对齐）
+ */
+export const Received = () => {
+  return (
+    <div className="space-y-3">
+      <div className="flex justify-start">
+        <div className="max-w-[70%] border border-gray-100 dark:border-gray-700/50 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-2xl rounded-tl-sm overflow-hidden">
+          <RichMediaMessage
+            content={{
+              text: JSON.stringify({
+                title: '产品推荐',
+                description: 'iPhone 15 Pro Max - 钛金属边框',
+                image: 'https://picsum.photos/400/300',
+                url: 'https://example.com/product/123',
+              }),
+            }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/**
+ * 发送的富媒体消息（右侧对齐）
+ */
+export const Sent = () => {
+  return (
+    <div className="space-y-3">
+      <div className="flex justify-end">
+        <div className="max-w-[70%] bg-blue-500 text-white rounded-2xl rounded-tr-sm overflow-hidden **:text-white!">
+          <RichMediaMessage
+            content={{
+              text: JSON.stringify({
+                title: '限时优惠',
+                description: '全场商品 8 折起',
+                image: 'https://picsum.photos/400/300',
+                buttons: [
+                  { text: '立即购买', url: 'https://example.com/buy' },
+                  { text: '查看详情', url: 'https://example.com/details' },
+                ],
+              }),
+            }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};

@@ -32,8 +32,6 @@ export const MessageBubble = ({
   onInViewport,
 }: MessageBubbleProps) => {
   const isMe = message.direction === MessageDirectionEnum.Outgoing;
-  const shouldShowError =
-    message.status === MessageStatusEnum.Failed && !!message.error;
   const bubbleRef = useRef<HTMLDivElement>(null);
   const latestMessageRef = useRef(message);
   const [inViewport] = useInViewport(bubbleRef, {
@@ -55,7 +53,7 @@ export const MessageBubble = ({
       data-component="message-bubble"
       data-message-status={message.status}
       data-type={message.type}
-      className={cn('flex w-full', isMe ? 'justify-end' : 'justify-start')}
+      className={cn('flex', isMe ? 'justify-end' : 'justify-start')}
     >
       <div
         className={cn(
@@ -65,7 +63,7 @@ export const MessageBubble = ({
       >
         <div
           className={cn(
-            'relative px-4 py-2.5 text-sm rounded-2xl shadow-soft wrap-anywhere',
+            'relative px-4 py-2.5 text-sm rounded-2xl shadow-soft wrap-anywhere max-w-full',
             isMe
               ? 'rounded-tr-sm bg-primary text-primary-foreground'
               : 'rounded-tl-sm border border-gray-100 dark:border-gray-700/50 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100',
@@ -100,15 +98,6 @@ export const MessageBubble = ({
             </>
           )}
         </div>
-        {shouldShowError && (
-          <div className={cn('mt-0.5 px-1', isMe ? 'text-right' : 'text-left')}>
-            <span className="text-xs text-error/80" role="alert">
-              {message.error instanceof Error
-                ? message.error.message
-                : message.error}
-            </span>
-          </div>
-        )}
       </div>
     </div>
   );

@@ -11,6 +11,8 @@ export interface ConversationState {
   activeConversationId: string;
   /** 会话列表搜索关键词 */
   searchQuery: string;
+  /** 置顶的会话 ID 集合（临时置顶，用于特定场景） */
+  pinnedConversationIds: Set<string>;
 }
 
 /**
@@ -19,8 +21,13 @@ export interface ConversationState {
 export interface ConversationSlice {
   conversation: ConversationState;
   actions: {
-    setActiveConversationId: (conversationId: string) => void;
+    setActiveConversationId: (
+      conversationId: string,
+      options?: { pinToTop?: boolean },
+    ) => void;
     setSearchQuery: (query: string) => void;
+    unpinConversation: (conversationId: string) => void;
+    clearPinnedConversations: () => void;
   };
 }
 
@@ -33,20 +40,57 @@ export const createConversationSlice: StateCreator<
   conversation: {
     activeConversationId: '',
     searchQuery: '',
+    pinnedConversationIds: new Set<string>(),
   },
   actions: {
-    setActiveConversationId: (conversationId: string) =>
-      set((state) => ({
-        conversation: {
-          ...state.conversation,
-          activeConversationId: conversationId,
-        },
-      })),
+    setActiveConversationId: (
+      conversationId: string,
+      options?: { pinToTop?: boolean },
+    ) =>
+      set((state) => {
+        const pinnedConversationIds = new Set(
+          state.conversation.pinnedConversationIds,
+        );
+
+        // 如果需要置顶，添加到置顶集合
+        if (options?.pinToTop) {
+          pinnedConversationIds.add(conversationId);
+        }
+
+        return {
+          conversation: {
+            ...state.conversation,
+            activeConversationId: conversationId,
+            pinnedConversationIds,
+          },
+        };
+      }),
     setSearchQuery: (query: string) =>
       set((state) => ({
         conversation: {
           ...state.conversation,
           searchQuery: query,
+        },
+      })),
+    unpinConversation: (conversationId: string) =>
+      set((state) => {
+        const pinnedConversationIds = new Set(
+          state.conversation.pinnedConversationIds,
+        );
+        pinnedConversationIds.delete(conversationId);
+
+        return {
+          conversation: {
+            ...state.conversation,
+            pinnedConversationIds,
+          },
+        };
+      }),
+    clearPinnedConversations: () =>
+      set((state) => ({
+        conversation: {
+          ...state.conversation,
+          pinnedConversationIds: new Set<string>(),
         },
       })),
   },

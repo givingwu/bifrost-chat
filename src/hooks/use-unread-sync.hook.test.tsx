@@ -548,9 +548,12 @@ describe('useUnreadSync', () => {
     });
 
     // 渠道基线未读来自服务端：WhatsApp 未读为 2
-    queryClient.setQueryData<UnreadCountResult>(queryKeys.conversations.unread(), {
-      [ChannelTypeEnum.WhatsApp]: 2,
-    });
+    queryClient.setQueryData<UnreadCountResult>(
+      queryKeys.conversations.unread(),
+      {
+        [ChannelTypeEnum.WhatsApp]: 2,
+      },
+    );
 
     // 会话缓存 unreadCount 可能因为离线补发/时序问题为 0
     seedConversationCache(queryClient, ChannelTypeEnum.WhatsApp, [
@@ -595,9 +598,7 @@ describe('useUnreadSync', () => {
       ) ?? {};
 
     // 会话维度 base=0 时不应继续扣减 delta
-    expect(deltaByConversation['conv-offline-unread-mismatch']).toBe(
-      undefined,
-    );
+    expect(deltaByConversation['conv-offline-unread-mismatch']).toBe(undefined);
 
     // 渠道维度应从 base(2) 通过 delta(-2) 归零
     expect(deltaByChannel[ChannelTypeEnum.WhatsApp]).toBe(-2);

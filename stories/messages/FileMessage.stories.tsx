@@ -118,3 +118,83 @@ export const InMessageBubble = () => {
     </div>
   );
 };
+
+/**
+ * 无效 URL - 展示错误处理
+ */
+export const InvalidUrl = () => {
+  return (
+    <div className="space-y-3">
+      <div className="flex justify-start">
+        <div className="max-w-[70%] px-4 py-2 bg-card text-text rounded-2xl rounded-tl-sm">
+          <p className="text-xs text-text-muted mb-2">缺少 URL 字段</p>
+          <FileMessage content={{ text: 'No URL field' } as never} />
+        </div>
+      </div>
+      <div className="flex justify-start">
+        <div className="max-w-[70%] px-4 py-2 bg-card text-text rounded-2xl rounded-tl-sm">
+          <p className="text-xs text-text-muted mb-2">无效的 URL 格式</p>
+          <FileMessage
+            content={{
+              url: 'not-a-valid-url',
+              mimeType: 'application/pdf',
+            }}
+          />
+        </div>
+      </div>
+      <div className="flex justify-start">
+        <div className="max-w-[70%] px-4 py-2 bg-card text-text rounded-2xl rounded-tl-sm">
+          <p className="text-xs text-text-muted mb-2">不支持的协议</p>
+          <FileMessage
+            content={{
+              url: 'ftp://example.com/file.pdf',
+              mimeType: 'application/pdf',
+            }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/**
+ * 接收的文件消息（左侧对齐）
+ */
+export const Received = () => {
+  return (
+    <div className="space-y-3">
+      <div className="flex justify-start">
+        <div className="max-w-[70%] px-4 py-2.5 border border-gray-100 dark:border-gray-700/50 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-2xl rounded-tl-sm">
+          <FileMessage
+            content={{
+              url: 'https://example.com/document.pdf',
+              mimeType: 'application/pdf',
+              size: 1024 * 100,
+            }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/**
+ * 发送的文件消息（右侧对齐）
+ */
+export const Sent = () => {
+  return (
+    <div className="space-y-3">
+      <div className="flex justify-end">
+        <div className="max-w-[70%] px-4 py-2.5 bg-blue-500 text-white rounded-2xl rounded-tr-sm **:text-white!">
+          <FileMessage
+            content={{
+              url: 'https://example.com/report.docx',
+              mimeType: 'application/docx',
+              size: 1024 * 50,
+            }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};

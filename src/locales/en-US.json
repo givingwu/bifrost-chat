@@ -111,8 +111,9 @@
       "loading": "Loading",
       "error": "Failed to load",
       "progress": "Playback progress",
-      "invalidContent": "Invalid message content type, expected MediaMessage"
+      "invalidContent": "Invalid message content type, expected URL in content"
     },
+    "invalidUrl": "No available URL",
     "status": {
       "created": "Creating message",
       "sending": "Sending message",
