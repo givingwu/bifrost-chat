@@ -70,6 +70,16 @@ export interface ConversationListProps {
 // ==================== 辅助函数 ====================
 
 /**
+ * 判断会话是否为创建中的占位项。
+ *
+ * @param conversation - 会话对象
+ * @returns 是否为 creating placeholder
+ */
+function isCreatingConversation(conversation: Conversation): boolean {
+  return conversation.metadata?.localState === 'creating';
+}
+
+/**
  * 解析会话的激活状态
  * @param conversation - 会话对象
  * @param activeConversationId - 当前激活的会话 ID
@@ -93,39 +103,39 @@ function resolveConversationActive(
 }
 
 /**
- * 根据置顶状态对会话列表进行排序
+ * 根据创建状态和置顶状态对会话列表进行排序
  * @param conversations - 会话列表
  * @param pinnedConversationIds - 置顶的会话 ID 集合
  * @returns 排序后的会话列表
+ *
+ * 排序优先级：
+ * 1. 创建中的会话（creating placeholder）- 最高优先级
+ * 2. 置顶的会话 - 中等优先级
+ * 3. 普通会话 - 默认优先级
+ *
+ * 每个分组内部保持相对顺序（stable sort）
  */
 function sortConversationsWithPinned(
   conversations: Conversation[],
   pinnedConversationIds: Set<string>,
 ): Conversation[] {
+  const creating: Conversation[] = [];
   const pinned: Conversation[] = [];
   const unpinned: Conversation[] = [];
 
   for (const conversation of conversations) {
-    if (pinnedConversationIds.has(conversation.id)) {
+    if (isCreatingConversation(conversation)) {
+      creating.push(conversation);
+    } else if (pinnedConversationIds.has(conversation.id)) {
       pinned.push(conversation);
     } else {
       unpinned.push(conversation);
     }
   }
 
-  // 置顶的会话在前，非置顶的会话在后
+  // 创建中的会话 > 置顶的会话 > 普通会话
   // 保持各自的相对顺序（stable sort）
-  return [...pinned, ...unpinned];
-}
-
-/**
- * 判断会话是否为创建中的占位项。
- *
- * @param conversation - 会话对象
- * @returns 是否为 creating placeholder
- */
-function isCreatingConversation(conversation: Conversation): boolean {
-  return conversation.metadata?.localState === 'creating';
+  return [...creating, ...pinned, ...unpinned];
 }
 
 // ==================== 主组件 ====================

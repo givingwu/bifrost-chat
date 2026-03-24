@@ -124,29 +124,36 @@ interface ConversationState {
 
 ### 排序逻辑
 
-在 `ConversationList` 组件中，通过 `sortConversationsWithPinned` 函数实现：
+在 `ConversationList` 组件中，通过 `sortConversationsWithPinned` 函数实现三层级排序：
 
-1. **置顶会话优先**：置顶的会话排在列表前面
-2. **保持相对顺序**：置顶会话之间保持原有顺序（稳定排序）
-3. **非置顶会话**：非置顶会话保持原有顺序排在后面
+1. **创建中的会话**（最高优先级）- 正在创建的会话（skeleton）始终在第一位
+2. **置顶的会话**（中等优先级）- 置顶的会话排在中间
+3. **普通会话**（默认优先级）- 非置顶会话保持原有顺序排在后面
+
+每个分组内部保持相对顺序（稳定排序）。
 
 ```typescript
 function sortConversationsWithPinned(
   conversations: Conversation[],
   pinnedConversationIds: Set<string>,
 ): Conversation[] {
+  const creating: Conversation[] = [];
   const pinned: Conversation[] = [];
   const unpinned: Conversation[] = [];
 
   for (const conversation of conversations) {
-    if (pinnedConversationIds.has(conversation.id)) {
+    if (isCreatingConversation(conversation)) {
+      creating.push(conversation);
+    } else if (pinnedConversationIds.has(conversation.id)) {
       pinned.push(conversation);
     } else {
       unpinned.push(conversation);
     }
   }
 
-  return [...pinned, ...unpinned];
+  // 创建中的会话 > 置顶的会话 > 普通会话
+  // 保持各自的相对顺序（stable sort）
+  return [...creating, ...pinned, ...unpinned];
 }
 ```
 
@@ -169,6 +176,16 @@ useEffect(() => {
 ```
 
 ## 设计决策
+
+### 为什么创建中的会话优先级最高？
+
+当用户正在创建新会话时，这个会话的 skeleton（占位符）会显示在列表中。将其放在第一位的原因：
+
+1. **即时反馈**：用户正在执行创建操作，应该立即看到结果
+2. **避免混淆**：新会话创建时显示 skeleton，放在最前面让用户清楚知道正在发生什么
+3. **符合心理预期**：用户主动创建的会话，期望能立即看到和使用
+
+这个优先级高于置顶会话，因为创建操作是当前正在进行的交互，而置顶会话可能是之前操作的产物。
 
 ### 为什么使用临时置顶而非永久置顶？
 
