@@ -133,3 +133,79 @@ export const FormattedText = () => {
     </div>
   );
 };
+
+/**
+ * 空消息 - 展示各种空消息场景
+ */
+export const EmptyMessage = () => {
+  return (
+    <div className="space-y-3">
+      <div className="flex justify-start">
+        <div className="max-w-[70%] px-4 py-2.5 border border-gray-100 dark:border-gray-700/50 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-2xl rounded-tl-sm">
+          <p className="text-xs text-text-muted mb-2">缺少 text 字段</p>
+          <TextMessage content={{ url: 'https://example.com' } as never} />
+        </div>
+      </div>
+      <div className="flex justify-start">
+        <div className="max-w-[70%] px-4 py-2.5 border border-gray-100 dark:border-gray-700/50 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-2xl rounded-tl-sm">
+          <p className="text-xs text-text-muted mb-2">空字符串</p>
+          <TextMessage content={{ text: '' }} />
+        </div>
+      </div>
+      <div className="flex justify-start">
+        <div className="max-w-[70%] px-4 py-2.5 border border-gray-100 dark:border-gray-700/50 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-2xl rounded-tl-sm">
+          <p className="text-xs text-text-muted mb-2">只有空白字符</p>
+          <TextMessage content={{ text: '   ' }} />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/**
+ * 接收的文本消息（左侧对齐）
+ */
+export const Received = () => {
+  return (
+    <div className="space-y-3">
+      <div className="flex justify-start">
+        <div className="max-w-[70%] px-4 py-2.5 border border-gray-100 dark:border-gray-700/50 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-2xl rounded-tl-sm">
+          <TextMessage content={{ text: 'Hi there! How are you?' }} />
+        </div>
+      </div>
+      <div className="flex justify-start">
+        <div className="max-w-[70%] px-4 py-2.5 border border-gray-100 dark:border-gray-700/50 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-2xl rounded-tl-sm">
+          <TextMessage
+            content={{
+              text: 'This is a longer text message that demonstrates proper text wrapping in the message bubble.',
+            }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/**
+ * 发送的文本消息（右侧对齐）
+ */
+export const Sent = () => {
+  return (
+    <div className="space-y-3">
+      <div className="flex justify-end">
+        <div className="max-w-[70%] px-4 py-2.5 bg-blue-500 text-white rounded-2xl rounded-tr-sm">
+          <TextMessage content={{ text: 'Hello! How can I help you?' }} />
+        </div>
+      </div>
+      <div className="flex justify-end">
+        <div className="max-w-[70%] px-4 py-2.5 bg-blue-500 text-white rounded-2xl rounded-tr-sm">
+          <TextMessage
+            content={{
+              text: 'Thanks for your message! I will get back to you shortly.',
+            }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
