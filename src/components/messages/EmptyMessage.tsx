@@ -1,7 +1,13 @@
 import type { LucideIcon } from 'lucide-react';
 import { useTranslation } from '@/providers/I18n.provider';
 
-export type MessageType = 'audio' | 'video' | 'image' | 'file' | 'text' | 'rich-media';
+export type MessageType =
+  | 'audio'
+  | 'video'
+  | 'image'
+  | 'file'
+  | 'text'
+  | 'rich-media';
 
 export interface EmptyMessageProps {
   /** 图标组件 */
@@ -29,7 +35,9 @@ export const EmptyMessage = ({
   const message = t('message.empty', { type });
 
   return (
-    <div className={`flex items-center gap-2 text-gray-400 dark:text-gray-500 ${className}`}>
+    <div
+      className={`flex items-center gap-2 text-gray-400 dark:text-gray-500 ${className}`}
+    >
       {Icon && <Icon className="h-4 w-4" />}
       <p className="text-sm">{message}</p>
     </div>

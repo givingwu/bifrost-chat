@@ -281,7 +281,11 @@ export const WithCreatingPlaceholder = () => {
 export const Loading = () => {
   return (
     <div className="w-80 h-96">
-      <ConversationList conversations={null} isLoading={true} autoFetch={false} />
+      <ConversationList
+        conversations={null}
+        isLoading={true}
+        autoFetch={false}
+      />
     </div>
   );
 };
@@ -292,7 +296,11 @@ export const Loading = () => {
 export const Refreshing = () => {
   return (
     <div className="w-80 h-96">
-      <ConversationList conversations={mockConversations} isLoading={true} autoFetch={false} />
+      <ConversationList
+        conversations={mockConversations}
+        isLoading={true}
+        autoFetch={false}
+      />
     </div>
   );
 };

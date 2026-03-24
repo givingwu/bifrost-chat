@@ -30,7 +30,9 @@ export const InvalidUrlMessage = ({
 }: InvalidUrlMessageProps) => {
   const { t } = useTranslation();
 
-  const message = type ? `[${type}] : ${t('message.invalidUrl')}` : t('message.invalidUrl');
+  const message = type
+    ? `[${type}] : ${t('message.invalidUrl')}`
+    : t('message.invalidUrl');
 
   if (compact) {
     return (
@@ -42,7 +44,9 @@ export const InvalidUrlMessage = ({
   }
 
   return (
-    <div className={`flex items-center gap-3 rounded-lg border border-border bg-card p-3 ${className}`}>
+    <div
+      className={`flex items-center gap-3 rounded-lg border border-border bg-card p-3 ${className}`}
+    >
       {Icon ? (
         <Icon className="h-5 w-5 text-destructive" />
       ) : (
