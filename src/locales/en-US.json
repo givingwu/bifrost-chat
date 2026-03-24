@@ -132,7 +132,7 @@
     "failed_count": "{{count}} message(s) failed to send",
     "not_sent": "Not Sent",
     "error_reason": "Error: {{error}}",
-    "empty": "No messages yet",
+    "empty": "No content",
     "unsupported": "Unsupported message type",
     "unsupportedWithType": "Unsupported Message Type: {{type}}",
     "warningIcon": "Warning icon"
