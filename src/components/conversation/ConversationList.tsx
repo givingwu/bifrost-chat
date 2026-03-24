@@ -428,7 +428,7 @@ export const ConversationList = memo(
     }
 
     // 初次加载状态：显示 3 个 Skeleton
-    if (isLoading && !conversations) {
+    if (isLoading && !processedConversations) {
       return (
         <output className={containerClassName} aria-live="polite">
           <div className="space-y-1 p-2">
