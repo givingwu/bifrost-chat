@@ -1,5 +1,6 @@
 import { AlertCircle, Pause, Play } from 'lucide-react';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Button } from '@/components/Button';
 import type { MessageContent } from '@/interfaces/message.interface';
 import { useTranslation } from '@/providers/I18n.provider';
 import { formatDuration } from '@/utils/time.util';
@@ -12,148 +13,22 @@ export interface AudioMessageProps {
 }
 
 /**
- * 音频播放器按钮组件
- * - 使用 React.memo 优化渲染性能
- * - 仅在 props 变化时重新渲染
+ * 音频播放器状态枚举
  */
-interface AudioPlayerButtonProps {
-  /** 是否正在播放 */
-  isPlaying: boolean;
-  /** 是否禁用 */
-  disabled: boolean;
-  /** 点击回调 */
-  onClick: () => void;
-  /** ARIA 标签 */
-  ariaLabel: string;
-}
-
-const AudioPlayerButton = memo(
-  ({ isPlaying, disabled, onClick, ariaLabel }: AudioPlayerButtonProps) => {
-    const disabledClass = useMemo(
-      () => (disabled ? 'disabled:cursor-not-allowed disabled:opacity-50' : ''),
-      [disabled],
-    );
-
-    return (
-      <button
-        type="button"
-        onClick={onClick}
-        disabled={disabled}
-        aria-label={ariaLabel}
-        aria-pressed={isPlaying}
-        className={`flex h-8 w-8 items-center justify-center rounded-full transition-opacity hover:opacity-80 ${disabledClass}`}
-      >
-        {isPlaying ? (
-          <Pause className="h-4 w-4" aria-hidden="true" />
-        ) : (
-          <Play className="h-4 w-4" aria-hidden="true" />
-        )}
-      </button>
-    );
-  },
-);
-
-AudioPlayerButton.displayName = 'AudioPlayerButton';
-
-/**
- * 音频播放器进度条组件
- * - 使用 React.memo 优化渲染性能
- * - 使用 useMemo 缓存样式计算
- */
-interface AudioPlayerProgressProps {
-  /** 进度百分比 */
-  progress: number;
-  /** ARIA 标签 */
-  ariaLabel: string;
-}
-
-const AudioPlayerProgress = memo(
-  ({ progress, ariaLabel }: AudioPlayerProgressProps) => {
-    const progressStyle = useMemo(
-      () => ({ width: `${progress}%` }),
-      [progress],
-    );
-
-    return (
-      <div
-        className="flex-1"
-        role="progressbar"
-        aria-valuenow={progress}
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-label={ariaLabel}
-      >
-        <div className="h-1 w-full overflow-hidden rounded-full bg-muted">
-          <div
-            className="h-1 rounded-full bg-primary transition-[width] duration-150"
-            style={progressStyle}
-            aria-hidden="true"
-          />
-        </div>
-      </div>
-    );
-  },
-);
-
-AudioPlayerProgress.displayName = 'AudioPlayerProgress';
-
-/**
- * 音频播放器状态标签组件
- * - 使用 React.memo 优化渲染性能
- * - 使用 useMemo 缓存文本和样式计算
- */
-interface AudioPlayerStatusTextProps {
-  /** 状态 */
-  status: AudioPlayerStatus;
-  /** 时长（秒） */
-  duration: number;
-  /** 错误状态文本 */
-  errorText: string;
-  /** 加载状态文本 */
-  loadingText: string;
-}
-
-const AudioPlayerStatusText = memo(
-  ({
-    status,
-    duration,
-    errorText,
-    loadingText,
-  }: AudioPlayerStatusTextProps) => {
-    const text = useMemo(() => {
-      switch (status) {
-        case AudioPlayerStatus.Error:
-          return errorText;
-        case AudioPlayerStatus.Loading:
-          return loadingText;
-        default:
-          return formatDuration(duration);
-      }
-    }, [status, duration, errorText, loadingText]);
-
-    const className = useMemo(
-      () =>
-        status === AudioPlayerStatus.Error
-          ? 'text-xs text-destructive'
-          : 'text-xs text-gray-400 dark:text-gray-500',
-      [status],
-    );
-
-    return <span className={className}>{text}</span>;
-  },
-);
-
-AudioPlayerStatusText.displayName = 'AudioPlayerStatusText';
-
-/**
- * 音频播放器状态
- */
-enum AudioPlayerStatus {
+export enum AudioPlayerStatus {
   Idle = 'idle',
   Loading = 'loading',
   Playing = 'playing',
   Paused = 'paused',
   Error = 'error',
+}
+
+/**
+ * 音频播放器错误类型
+ */
+export interface AudioPlayerError {
+  type: 'network' | 'format' | 'unknown';
+  message: string;
 }
 
 /**
@@ -164,13 +39,14 @@ interface AudioPlayerState {
   duration: number;
   currentTime: number;
   progress: number;
+  error?: AudioPlayerError;
 }
 
 /**
  * 音频播放器 Hook
  * 封装音频播放逻辑，提供状态管理和控制方法
  */
-const useAudioPlayer = () => {
+export const useAudioPlayer = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [state, setState] = useState<AudioPlayerState>({
     status: AudioPlayerStatus.Loading,
@@ -224,7 +100,25 @@ const useAudioPlayer = () => {
       }
     } catch (error) {
       // 播放失败，可能是网络问题或格式不支持
-      setState((prev) => ({ ...prev, status: AudioPlayerStatus.Error }));
+      const audioError: AudioPlayerError = {
+        type: 'unknown',
+        message: error instanceof Error ? error.message : '播放失败',
+      };
+
+      // 尝试判断错误类型
+      if (audio.networkState === HTMLMediaElement.NETWORK_NO_SOURCE) {
+        audioError.type = 'network';
+        audioError.message = '网络错误，无法加载音频';
+      } else if (audio.error) {
+        audioError.type = 'format';
+        audioError.message = '音频格式不支持';
+      }
+
+      setState((prev) => ({
+        ...prev,
+        status: AudioPlayerStatus.Error,
+        error: audioError,
+      }));
       console.error('[AudioMessage] 播放失败:', error);
     }
   }, [state.status]);
@@ -287,7 +181,23 @@ const useAudioPlayer = () => {
    * 错误处理
    */
   const handleError = useCallback(() => {
-    setState((prev) => ({ ...prev, status: AudioPlayerStatus.Error }));
+    const audio = audioRef.current;
+    const error: AudioPlayerError = {
+      type: 'unknown',
+      message: 'Loading Failed',
+    };
+
+    if (audio) {
+      if (audio.networkState === HTMLMediaElement.NETWORK_NO_SOURCE) {
+        error.type = 'network';
+        error.message = 'Network error, Unable to load audio';
+      } else if (audio.error) {
+        error.type = 'format';
+        error.message = 'Audio format is not supported';
+      }
+    }
+
+    setState((prev) => ({ ...prev, status: AudioPlayerStatus.Error, error }));
   }, []);
 
   /**
@@ -322,6 +232,143 @@ const useAudioPlayer = () => {
     handleError,
   };
 };
+
+/**
+ * 音频播放器按钮组件
+ * - 使用 React.memo 优化渲染性能
+ * - 仅在 props 变化时重新渲染
+ */
+interface AudioPlayerButtonProps {
+  /** 是否正在播放 */
+  isPlaying: boolean;
+  /** 是否禁用 */
+  disabled: boolean;
+  /** 点击回调 */
+  onClick: () => void;
+  /** ARIA 标签 */
+  ariaLabel: string;
+}
+
+const AudioPlayerButton = memo(
+  ({ isPlaying, disabled, onClick, ariaLabel }: AudioPlayerButtonProps) => {
+    const disabledClass = useMemo(
+      () => (disabled ? 'disabled:cursor-not-allowed disabled:opacity-50' : ''),
+      [disabled],
+    );
+
+    return (
+      <Button
+        type="button"
+        onClick={onClick}
+        disabled={disabled}
+        aria-label={ariaLabel}
+        aria-pressed={isPlaying}
+        className={`flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary/80 transition-colors hover:bg-primary/20 ${disabledClass}`}
+      >
+        {isPlaying ? (
+          <Pause className="h-4 w-4" aria-hidden="true" />
+        ) : (
+          <Play className="h-4 w-4" aria-hidden="true" />
+        )}
+      </Button>
+    );
+  },
+);
+
+AudioPlayerButton.displayName = 'AudioPlayerButton';
+
+/**
+ * 音频播放器进度条组件
+ * - 使用 React.memo 优化渲染性能
+ * - 使用 useMemo 缓存样式计算
+ */
+interface AudioPlayerProgressProps {
+  /** 进度百分比 */
+  progress: number;
+  /** ARIA 标签 */
+  ariaLabel: string;
+}
+
+const AudioPlayerProgress = memo(
+  ({ progress, ariaLabel }: AudioPlayerProgressProps) => {
+    const progressStyle = useMemo(
+      () => ({ width: `${progress}%` }),
+      [progress],
+    );
+
+    return (
+      <div
+        className="flex-1"
+        role="progressbar"
+        aria-valuenow={progress}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label={ariaLabel}
+      >
+        <div className="h-1 w-full overflow-hidden rounded-full bg-muted">
+          <div
+            className="h-1 rounded-full bg-primary transition-[width] duration-150"
+            style={progressStyle}
+            aria-hidden="true"
+          />
+        </div>
+      </div>
+    );
+  },
+);
+
+AudioPlayerProgress.displayName = 'AudioPlayerProgress';
+
+/**
+ * 音频播放器状态标签组件
+ * - 使用 React.memo 优化渲染性能
+ * - 使用 useMemo 缓存文本和样式计算
+ */
+interface AudioPlayerStatusTextProps {
+  /** 状态 */
+  status: AudioPlayerStatus;
+  /** 时长（秒） */
+  duration: number;
+  /** 错误状态文本 */
+  errorText: string;
+  /** 加载状态文本 */
+  loadingText: string;
+  /** 错误信息 */
+  error?: AudioPlayerError;
+}
+
+const AudioPlayerStatusText = memo(
+  ({
+    status,
+    duration,
+    errorText,
+    loadingText,
+    error,
+  }: AudioPlayerStatusTextProps) => {
+    const text = useMemo(() => {
+      switch (status) {
+        case AudioPlayerStatus.Error:
+          return error?.message || errorText;
+        case AudioPlayerStatus.Loading:
+          return loadingText;
+        default:
+          return formatDuration(duration);
+      }
+    }, [status, duration, errorText, loadingText, error]);
+
+    const className = useMemo(
+      () =>
+        status === AudioPlayerStatus.Error
+          ? 'text-xs text-destructive'
+          : 'text-xs text-gray-400 dark:text-gray-500',
+      [status],
+    );
+
+    return <span className={className}>{text}</span>;
+  },
+);
+
+AudioPlayerStatusText.displayName = 'AudioPlayerStatusText';
 
 /**
  * AudioMessage：语音消息组件。
@@ -393,6 +440,7 @@ export const AudioMessage = memo(({ content }: AudioMessageProps) => {
         duration={state.duration}
         errorText={t('message.audio.error')}
         loadingText={t('message.audio.loading')}
+        error={state.error}
       />
 
       {/* biome-ignore lint: 语音消息由宿主提供音频资源 */}

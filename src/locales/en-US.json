@@ -114,6 +114,7 @@
       "invalidContent": "Invalid message content type, expected URL in content"
     },
     "invalidUrl": "No available URL",
+    "emptyContent": "{{type}}: Empty message",
     "status": {
       "created": "Creating message",
       "sending": "Sending message",

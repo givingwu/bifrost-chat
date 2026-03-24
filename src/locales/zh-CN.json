@@ -114,6 +114,7 @@
       "invalidContent": "无效的消息内容类型，期望内容中有 URL 链接"
     },
     "invalidUrl": "无可用 URL",
+    "emptyContent": "{{type}}: 空消息",
     "status": {
       "created": "消息创建中",
       "sending": "消息发送中",
