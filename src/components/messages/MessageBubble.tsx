@@ -32,8 +32,6 @@ export const MessageBubble = ({
   onInViewport,
 }: MessageBubbleProps) => {
   const isMe = message.direction === MessageDirectionEnum.Outgoing;
-  const shouldShowError =
-    message.status === MessageStatusEnum.Failed && !!message.error;
   const bubbleRef = useRef<HTMLDivElement>(null);
   const latestMessageRef = useRef(message);
   const [inViewport] = useInViewport(bubbleRef, {
@@ -100,15 +98,6 @@ export const MessageBubble = ({
             </>
           )}
         </div>
-        {shouldShowError && (
-          <div className={cn('mt-0.5 px-1', isMe ? 'text-right' : 'text-left')}>
-            <span className="text-xs text-error/80" role="alert">
-              {message.error instanceof Error
-                ? message.error.message
-                : message.error}
-            </span>
-          </div>
-        )}
       </div>
     </div>
   );
