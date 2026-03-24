@@ -1,12 +1,11 @@
-import { Pause, Play } from 'lucide-react';
+import { AlertCircle, Pause, Play } from 'lucide-react';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/Button';
-import type {
-  IMediaMessage,
-  MessageContent,
-} from '@/interfaces/message.interface';
+import type { MessageContent } from '@/interfaces/message.interface';
 import { useTranslation } from '@/providers/I18n.provider';
 import { formatDuration } from '@/utils/time.util';
+import { isValidHttpUrl } from '@/utils/url.util';
+import { InvalidUrlMessage } from './InvalidUrlMessage';
 
 export interface AudioMessageProps {
   /** 消息内容 */
@@ -326,17 +325,11 @@ const useAudioPlayer = () => {
 };
 
 /**
- * 类型守卫：检查消息内容是否为 MediaMessage
- */
-const isMediaMessage = (content: MessageContent): content is IMediaMessage => {
-  return 'url' in content && typeof content.url === 'string';
-};
-
-/**
  * AudioMessage：语音消息组件。
  * - 渲染语音消息，支持播放控制。
  * - 使用自定义 Hook 封装音频播放逻辑。
  * - 使用 React.memo 优化渲染性能。
+ * - 验证 URL 有效性，无效时显示错误状态。
  */
 export const AudioMessage = memo(({ content }: AudioMessageProps) => {
   const { t } = useTranslation();
@@ -371,10 +364,14 @@ export const AudioMessage = memo(({ content }: AudioMessageProps) => {
     [isPlaying, t],
   );
 
-  // 类型守卫：确保 content 是 MediaMessage
-  if (!isMediaMessage(content)) {
-    console.warn(`[AudioMessage] ${t('message.audio.invalidContent')}`);
-    return null;
+  // 类型守卫：确保 content 有 url 字段
+  if (!('url' in content) || typeof content.url !== 'string') {
+    return <InvalidUrlMessage icon={AlertCircle} />;
+  }
+
+  // 验证 URL 有效性
+  if (!isValidHttpUrl(content.url)) {
+    return <InvalidUrlMessage icon={AlertCircle} />;
   }
 
   return (
