@@ -2,12 +2,12 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { ServiceProvider } from '@/providers/service.provider';
 import { queryKeys } from '@/providers/query.provider';
+import { ServiceProvider } from '@/providers/service.provider';
+import type { InfiniteQueryData } from '@/services/cache/message-cache-helper.service';
 import type { IConversationService } from '@/services/core/conversation.service';
 import type { IMessageService } from '@/services/core/message.service';
 import type { ITemplateService } from '@/services/core/template.service';
-import type { InfiniteQueryData } from '@/services/cache/message-cache-helper.service';
 import { resetChatStore } from '@/store';
 import { useMessages } from './use-messages.hook';
 
@@ -383,21 +383,16 @@ describe('useMessages', () => {
     // 模拟“推送写入消息缓存”：
     // - pages[0] 只有 items（没有 nextCursor）
     // - pageParams[0] 为 undefined（用于区分推送写入 vs list 初始化）
-    queryClient.setQueryData(
-      queryKeys.messages.list('conv-1', 'whatsapp'),
-      {
-        pages: [{ items: offlineMessages }],
-        pageParams: [undefined],
-      } as unknown as InfiniteQueryData,
-    );
+    queryClient.setQueryData(queryKeys.messages.list('conv-1', 'whatsapp'), {
+      pages: [{ items: offlineMessages }],
+      pageParams: [undefined],
+    } as unknown as InfiniteQueryData);
 
     const wrapper = ({ children }: { children: ReactNode }) => (
       <QueryClientProvider client={queryClient}>
         <ServiceProvider
           conversationService={mockConversationService}
-          messageService={
-            { list: listMock } as unknown as IMessageService
-          }
+          messageService={{ list: listMock } as unknown as IMessageService}
           templateService={mockTemplateService}
         >
           {children}

@@ -1,3 +1,4 @@
+import { Pin } from 'lucide-react';
 import { type KeyboardEvent, memo, useCallback, useMemo } from 'react';
 import { Button } from '@/components/Button';
 import { useConversationUnread } from '@/hooks';
@@ -15,6 +16,8 @@ export interface ConversationItemProps {
   onSelect?: (conversationId: string) => void;
   /** 自定义类名 */
   className?: string;
+  /** 是否为置顶会话 */
+  isPinned?: boolean;
   /**
    * 自定义渲染元数据区域（在人名和最后消息之间）
    * @param conversation 会话数据
@@ -82,6 +85,7 @@ export const ConversationItem = memo(
     conversation,
     onSelect,
     className = '',
+    isPinned = false,
     renderMeta,
     getConversationDisplayTitle,
   }: ConversationItemProps) => {
@@ -160,16 +164,19 @@ export const ConversationItem = memo(
           <div className="min-w-0 flex-1">
             {/* 第一行：人名 + 时间 */}
             <div className="flex items-baseline justify-around gap-2">
-              <h4
-                className={cn(
-                  'truncate text-sm font-semibold flex-1',
-                  styles.title,
+              <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                {/* 置顶图标 */}
+                {isPinned && (
+                  <Pin className="h-3 w-3 shrink-0 text-blue-500 dark:text-blue-400" />
                 )}
-              >
-                {getConversationDisplayTitle
-                  ? getConversationDisplayTitle(conversation)
-                  : conversation.user.name}
-              </h4>
+                <h4
+                  className={cn('truncate text-sm font-semibold', styles.title)}
+                >
+                  {getConversationDisplayTitle
+                    ? getConversationDisplayTitle(conversation)
+                    : conversation.user.name}
+                </h4>
+              </div>
               <span className={cn('text-xs shrink-0', styles.time)}>
                 {lastReplyTime}
               </span>

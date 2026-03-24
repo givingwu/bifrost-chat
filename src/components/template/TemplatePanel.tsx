@@ -65,15 +65,11 @@ export const TemplatePanel = ({
   const effectiveConversationId = conversationId ?? activeConversationId;
   const hasSelectedConversation = !!effectiveConversationId;
 
-  const {
-    data: conversations = [],
-    isLoading: isConversationsLoading,
-  } = useConversations({ enabled: !customTemplates });
+  const { data: conversations = [], isLoading: isConversationsLoading } =
+    useConversations({ enabled: !customTemplates });
 
   const isConversationListEmpty =
-    !customTemplates &&
-    !isConversationsLoading &&
-    conversations.length === 0;
+    !customTemplates && !isConversationsLoading && conversations.length === 0;
 
   // 仅在未提供自定义模板且渠道支持时才调用 useTemplates
   const shouldFetchFromServer =

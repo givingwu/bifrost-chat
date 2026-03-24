@@ -89,9 +89,9 @@ export function useMessages<TParams extends UseMessagesParams>(
 ) {
   const services = useServices();
   const { conversationId, currentChannel } = params;
-  const forcedRefetchForPushCacheRef = useRef<Record<string, number | undefined>>(
-    {},
-  );
+  const forcedRefetchForPushCacheRef = useRef<
+    Record<string, number | undefined>
+  >({});
   // 使用 useConversationDetail 的 isPending 状态替代手动的 isSwitching
   // 当会话详情正在加载时，暂停消息查询以避免竞态条件
   const { isPending: isConversationDetailLoading } =
@@ -196,7 +196,9 @@ export function useMessages<TParams extends UseMessagesParams>(
     // `pageParams[0] === undefined` 表示该 infiniteQuery 数据可能来自 push 写入，
     // 而不是通过 list 查询初始化的分页上下文。
     const needsHistoryFetch =
-      Array.isArray(pageParams) && pageParams.length > 0 && pageParams[0] === undefined;
+      Array.isArray(pageParams) &&
+      pageParams.length > 0 &&
+      pageParams[0] === undefined;
 
     if (!needsHistoryFetch) return;
 

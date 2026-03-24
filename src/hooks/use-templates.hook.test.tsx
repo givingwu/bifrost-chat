@@ -258,9 +258,12 @@ describe('useTemplates', () => {
   });
 
   it('当未选择会话时禁用模板查询', () => {
-    const { result } = renderHook(() => useTemplates({ currentChannel: 'sms' }), {
-      wrapper: createWrapper(),
-    });
+    const { result } = renderHook(
+      () => useTemplates({ currentChannel: 'sms' }),
+      {
+        wrapper: createWrapper(),
+      },
+    );
 
     // query enabled=false 时应处于 idle，且不会触发 list
     expect(result.current.fetchStatus).toBe('idle');

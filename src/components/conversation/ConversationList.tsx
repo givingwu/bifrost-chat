@@ -14,7 +14,7 @@ import { LoadingState } from '@/components/LoadingState';
 import { useConversations } from '@/hooks/use-conversations.hook';
 import type { Conversation } from '@/interfaces/conversation.interface';
 import { useTranslation } from '@/providers/I18n.provider';
-import { useActiveConversationId } from '@/store';
+import { useActiveConversationId, useConversation } from '@/store';
 import { cn } from '@/utils/class.util';
 import {
   CONVERSATION_LIST_ITEM_GAP,
@@ -93,6 +93,32 @@ function resolveConversationActive(
 }
 
 /**
+ * 根据置顶状态对会话列表进行排序
+ * @param conversations - 会话列表
+ * @param pinnedConversationIds - 置顶的会话 ID 集合
+ * @returns 排序后的会话列表
+ */
+function sortConversationsWithPinned(
+  conversations: Conversation[],
+  pinnedConversationIds: Set<string>,
+): Conversation[] {
+  const pinned: Conversation[] = [];
+  const unpinned: Conversation[] = [];
+
+  for (const conversation of conversations) {
+    if (pinnedConversationIds.has(conversation.id)) {
+      pinned.push(conversation);
+    } else {
+      unpinned.push(conversation);
+    }
+  }
+
+  // 置顶的会话在前，非置顶的会话在后
+  // 保持各自的相对顺序（stable sort）
+  return [...pinned, ...unpinned];
+}
+
+/**
  * 判断会话是否为创建中的占位项。
  *
  * @param conversation - 会话对象
@@ -150,6 +176,7 @@ export const ConversationList = memo(
 
     // ==================== 状态获取 ====================
     const activeConversationId = useActiveConversationId();
+    const { pinnedConversationIds } = useConversation();
     const hasAutoScrolledForActiveIdRef = useRef<string | null>(null);
 
     // ==================== 数据获取 ====================
@@ -204,16 +231,22 @@ export const ConversationList = memo(
     // 确定最终的加载状态
     const isLoading = showQueryLoadingAndError ? isFetching : externalIsLoading;
 
-    // 处理会话列表，解析激活状态
+    // 处理会话列表，解析激活状态并应用置顶排序
     const processedConversations = useMemo(() => {
       if (!conversations) {
         return null;
       }
 
-      return conversations.map((conversation) =>
+      const resolvedConversations = conversations.map((conversation) =>
         resolveConversationActive(conversation, activeConversationId),
       );
-    }, [conversations, activeConversationId]);
+
+      // 应用置顶排序
+      return sortConversationsWithPinned(
+        resolvedConversations,
+        pinnedConversationIds,
+      );
+    }, [conversations, activeConversationId, pinnedConversationIds]);
 
     // ==================== 虚拟滚动配置 ====================
     const internalScrollRef = useRef<HTMLDivElement>(null);
@@ -375,20 +408,25 @@ export const ConversationList = memo(
     if (!shouldUseVirtualization) {
       return (
         <div ref={scrollRef} style={style} className={containerClassName}>
-          {processedConversations.map((conversation) => (
-            <div key={conversation.id}>
-              {isCreatingConversation(conversation) ? (
-                <ConversationItemSkeleton />
-              ) : (
-                <ConversationItem
-                  conversation={conversation}
-                  onSelect={onSelect}
-                  renderMeta={renderItemMeta}
-                  getConversationDisplayTitle={getConversationDisplayTitle}
-                />
-              )}
-            </div>
-          ))}
+          {processedConversations.map((conversation) => {
+            const isPinned = pinnedConversationIds.has(conversation.id);
+
+            return (
+              <div key={conversation.id}>
+                {isCreatingConversation(conversation) ? (
+                  <ConversationItemSkeleton />
+                ) : (
+                  <ConversationItem
+                    conversation={conversation}
+                    onSelect={onSelect}
+                    isPinned={isPinned}
+                    renderMeta={renderItemMeta}
+                    getConversationDisplayTitle={getConversationDisplayTitle}
+                  />
+                )}
+              </div>
+            );
+          })}
           {/* 触底加载哨兵 */}
           {enablePagination && hasNextPage && (
             <div ref={sentinelRef} className="h-4" aria-hidden />
@@ -414,33 +452,37 @@ export const ConversationList = memo(
             position: 'relative',
           }}
         >
-          {virtualItems.map((virtualItem) => (
-            <div
-              key={virtualItem.key}
-              ref={virtualizer.measureElement}
-              data-index={virtualItem.index}
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                transform: `translateY(${virtualItem.start}px)`,
-              }}
-            >
-              {isCreatingConversation(
-                processedConversations[virtualItem.index],
-              ) ? (
-                <ConversationItemSkeleton />
-              ) : (
-                <ConversationItem
-                  conversation={processedConversations[virtualItem.index]}
-                  onSelect={onSelect}
-                  renderMeta={renderItemMeta}
-                  getConversationDisplayTitle={getConversationDisplayTitle}
-                />
-              )}
-            </div>
-          ))}
+          {virtualItems.map((virtualItem) => {
+            const conversation = processedConversations[virtualItem.index];
+            const isPinned = pinnedConversationIds.has(conversation.id);
+
+            return (
+              <div
+                key={virtualItem.key}
+                ref={virtualizer.measureElement}
+                data-index={virtualItem.index}
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  transform: `translateY(${virtualItem.start}px)`,
+                }}
+              >
+                {isCreatingConversation(conversation) ? (
+                  <ConversationItemSkeleton />
+                ) : (
+                  <ConversationItem
+                    conversation={conversation}
+                    onSelect={onSelect}
+                    isPinned={isPinned}
+                    renderMeta={renderItemMeta}
+                    getConversationDisplayTitle={getConversationDisplayTitle}
+                  />
+                )}
+              </div>
+            );
+          })}
         </div>
         {/* 触底加载哨兵（虚拟滚动模式） */}
         {enablePagination && hasNextPage && (

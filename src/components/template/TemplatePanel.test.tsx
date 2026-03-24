@@ -94,4 +94,3 @@ describe('TemplatePanel', () => {
     expect(screen.getByText('请先选择会话')).toBeInTheDocument();
   });
 });
-
