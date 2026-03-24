@@ -6,6 +6,16 @@ import type { Conversation } from '@/interfaces/conversation.interface';
 export const CONVERSATION_LIST_ITEM_GAP = 4;
 
 /**
+ * 默认会话项高度估算。
+ */
+const DEFAULT_CONVERSATION_HEIGHT = 78;
+
+/**
+ * 自定义元数据布局场景下的保守高度估算。
+ */
+const CUSTOM_META_CONVERSATION_HEIGHT = 160;
+
+/**
  * 获取会话高度缓存 key
  *
  * @description
@@ -26,17 +36,26 @@ export function getConversationHeightCacheKey(
  * @description
  * 会话项高度相对固定，基于 ConversationItem 组件的实际渲染高度估算。
  * 虚拟滚动会使用这个值作为初始估算，然后通过 measureElement 动态测量实际高度。
+ * 当宿主通过 renderMeta 注入多行元数据时，实际高度会显著增加，需要使用更保守的估高，
+ * 避免滚动到未测量项时出现重叠。
  *
+ * @param options - 估高选项
  * @returns 估算的会话项高度（像素）
  *
  * @example
  * ```typescript
  * const height = estimateConversationHeight();
- * // 返回 72px（基于 ConversationItem 组件的实际高度）
+ * // 返回 78px（基于 ConversationItem 组件的默认高度）
  * ```
  */
-export function estimateConversationHeight(): number {
-  return 78;
+export function estimateConversationHeight(options?: {
+  hasCustomMetaLayout?: boolean;
+}): number {
+  if (options?.hasCustomMetaLayout) {
+    return CUSTOM_META_CONVERSATION_HEIGHT;
+  }
+
+  return DEFAULT_CONVERSATION_HEIGHT;
 }
 
 /**

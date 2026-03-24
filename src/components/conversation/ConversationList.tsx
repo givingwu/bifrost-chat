@@ -18,6 +18,7 @@ import { useActiveConversationId, useConversation } from '@/store';
 import { cn } from '@/utils/class.util';
 import {
   CONVERSATION_LIST_ITEM_GAP,
+  clearCachedConversationHeight,
   estimateConversationHeight,
   getCachedConversationHeight,
   getConversationHeightCacheKey,
@@ -257,6 +258,8 @@ export const ConversationList = memo(
         pinnedConversationIds,
       );
     }, [conversations, activeConversationId, pinnedConversationIds]);
+    const hasCustomMetaLayout = Boolean(renderItemMeta);
+    const previousHasCustomMetaLayoutRef = useRef(hasCustomMetaLayout);
 
     // ==================== 虚拟滚动配置 ====================
     const internalScrollRef = useRef<HTMLDivElement>(null);
@@ -279,10 +282,17 @@ export const ConversationList = memo(
       },
       estimateSize: (index) => {
         const conversation = processedConversations?.[index];
-        if (!conversation) return estimateConversationHeight();
+        if (!conversation) {
+          return estimateConversationHeight({
+            hasCustomMetaLayout,
+          });
+        }
+
         return (
           getCachedConversationHeight(conversation) ??
-          estimateConversationHeight()
+          estimateConversationHeight({
+            hasCustomMetaLayout,
+          })
         );
       },
       measureElement: (element) => {
@@ -309,6 +319,27 @@ export const ConversationList = memo(
       gap: CONVERSATION_LIST_ITEM_GAP,
       overscan: 5, // 预渲染上下各 5 个元素
     });
+
+    useEffect(() => {
+      if (!shouldUseVirtualization || !processedConversations) {
+        previousHasCustomMetaLayoutRef.current = hasCustomMetaLayout;
+        return;
+      }
+
+      if (previousHasCustomMetaLayoutRef.current !== hasCustomMetaLayout) {
+        for (const conversation of processedConversations) {
+          clearCachedConversationHeight(conversation);
+        }
+      }
+
+      virtualizer.measure();
+      previousHasCustomMetaLayoutRef.current = hasCustomMetaLayout;
+    }, [
+      hasCustomMetaLayout,
+      processedConversations,
+      shouldUseVirtualization,
+      virtualizer,
+    ]);
 
     // ==================== 自动滚动到激活会话 ====================
     // 当 activeConversationId 更新时，自动滚动到对应会话位置
