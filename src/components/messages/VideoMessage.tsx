@@ -15,7 +15,7 @@ export interface VideoMessageProps {
  */
 export const VideoMessage = ({ content }: VideoMessageProps) => {
   if (!('url' in content) || !isValidHttpUrl(content.url)) {
-    return <InvalidUrlMessage icon={FileText} />;
+    return <InvalidUrlMessage icon={FileText} type="video" />;
   }
 
   return (

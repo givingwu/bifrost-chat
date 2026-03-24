@@ -366,12 +366,12 @@ export const AudioMessage = memo(({ content }: AudioMessageProps) => {
 
   // 类型守卫：确保 content 有 url 字段
   if (!('url' in content) || typeof content.url !== 'string') {
-    return <InvalidUrlMessage icon={AlertCircle} />;
+    return <InvalidUrlMessage icon={AlertCircle} type="audio" />;
   }
 
   // 验证 URL 有效性
   if (!isValidHttpUrl(content.url)) {
-    return <InvalidUrlMessage icon={AlertCircle} />;
+    return <InvalidUrlMessage icon={AlertCircle} type="audio" />;
   }
 
   return (

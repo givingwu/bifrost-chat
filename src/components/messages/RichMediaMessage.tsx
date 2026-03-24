@@ -58,7 +58,7 @@ export const RichMediaMessage = ({ content }: RichMediaMessageProps) => {
         </div>
       ) : data.image ? (
         <div className="flex h-32 w-full items-center justify-center bg-muted">
-          <InvalidUrlMessage icon={ImageOff} compact />
+          <InvalidUrlMessage icon={ImageOff} compact type="image" />
         </div>
       ) : null}
       <div className="space-y-2 p-3">

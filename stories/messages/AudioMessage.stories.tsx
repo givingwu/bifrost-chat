@@ -110,3 +110,41 @@ export const ErrorState = () => {
     </div>
   );
 };
+
+/**
+ * 无效 URL - 展示错误处理
+ */
+export const InvalidUrl = () => {
+  return (
+    <div className="space-y-3">
+      <div className="flex justify-start">
+        <div className="max-w-[70%] px-4 py-2 bg-card text-text rounded-2xl rounded-tl-sm">
+          <p className="text-xs text-text-muted mb-2">缺少 URL 字段</p>
+          <AudioMessage content={{ text: 'No URL field' } as never} />
+        </div>
+      </div>
+      <div className="flex justify-start">
+        <div className="max-w-[70%] px-4 py-2 bg-card text-text rounded-2xl rounded-tl-sm">
+          <p className="text-xs text-text-muted mb-2">无效的 URL 格式</p>
+          <AudioMessage
+            content={{
+              url: 'not-a-valid-url',
+              mimeType: 'audio/mp3',
+            }}
+          />
+        </div>
+      </div>
+      <div className="flex justify-start">
+        <div className="max-w-[70%] px-4 py-2 bg-card text-text rounded-2xl rounded-tl-sm">
+          <p className="text-xs text-text-muted mb-2">不支持的协议</p>
+          <AudioMessage
+            content={{
+              url: 'ftp://example.com/audio.mp3',
+              mimeType: 'audio/mp3',
+            }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};

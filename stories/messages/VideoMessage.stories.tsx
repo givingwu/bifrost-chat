@@ -92,3 +92,41 @@ export const DifferentDurations = () => {
     </div>
   );
 };
+
+/**
+ * 无效 URL - 展示错误处理
+ */
+export const InvalidUrl = () => {
+  return (
+    <div className="space-y-3">
+      <div className="flex justify-start">
+        <div className="max-w-[70%] px-4 py-2 bg-card text-text rounded-2xl rounded-tl-sm">
+          <p className="text-xs text-text-muted mb-2">缺少 URL 字段</p>
+          <VideoMessage content={{ text: 'No URL field' } as never} />
+        </div>
+      </div>
+      <div className="flex justify-start">
+        <div className="max-w-[70%] px-4 py-2 bg-card text-text rounded-2xl rounded-tl-sm">
+          <p className="text-xs text-text-muted mb-2">无效的 URL 格式</p>
+          <VideoMessage
+            content={{
+              url: 'not-a-valid-url',
+              mimeType: 'video/mp4',
+            }}
+          />
+        </div>
+      </div>
+      <div className="flex justify-start">
+        <div className="max-w-[70%] px-4 py-2 bg-card text-text rounded-2xl rounded-tl-sm">
+          <p className="text-xs text-text-muted mb-2">不支持的协议</p>
+          <VideoMessage
+            content={{
+              url: 'ftp://example.com/video.mp4',
+              mimeType: 'video/mp4',
+            }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};

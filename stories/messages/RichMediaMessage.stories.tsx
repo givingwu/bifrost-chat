@@ -163,3 +163,54 @@ export const InvalidData = () => {
     </div>
   );
 };
+
+/**
+ * 无效 URL - 展示图片和按钮 URL 验证
+ */
+export const InvalidUrl = () => {
+  return (
+    <div className="space-y-3">
+      <div className="p-4 bg-muted rounded-lg">
+        <p className="text-xs text-text-muted mb-2">无效的图片 URL</p>
+        <RichMediaMessage
+          content={{
+            text: JSON.stringify({
+              title: '产品推荐',
+              description: '这是一个带有无效图片 URL 的卡片',
+              image: 'not-a-valid-url',
+              url: 'https://example.com/product',
+            }),
+          }}
+        />
+      </div>
+      <div className="p-4 bg-muted rounded-lg">
+        <p className="text-xs text-text-muted mb-2">无效的按钮 URL</p>
+        <RichMediaMessage
+          content={{
+            text: JSON.stringify({
+              title: '限时优惠',
+              description: '按钮包含无效的 URL',
+              image: 'https://picsum.photos/400/300',
+              buttons: [
+                { text: '无效链接', url: 'not-a-valid-url' },
+                { text: '有效链接', url: 'https://example.com/valid' },
+              ],
+            }),
+          }}
+        />
+      </div>
+      <div className="p-4 bg-muted rounded-lg">
+        <p className="text-xs text-text-muted mb-2">不支持的协议</p>
+        <RichMediaMessage
+          content={{
+            text: JSON.stringify({
+              title: '不支持的图片协议',
+              description: '图片使用不支持的协议',
+              image: 'ftp://example.com/image.jpg',
+            }),
+          }}
+        />
+      </div>
+    </div>
+  );
+};

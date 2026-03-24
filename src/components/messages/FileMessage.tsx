@@ -15,7 +15,7 @@ export interface FileMessageProps {
  */
 export const FileMessage = ({ content }: FileMessageProps) => {
   if (!('url' in content) || !isValidHttpUrl(content.url)) {
-    return <InvalidUrlMessage icon={AlertCircle} />;
+    return <InvalidUrlMessage icon={AlertCircle} type="file" />;
   }
 
   const fileName = getSafeFileName(content.url);
