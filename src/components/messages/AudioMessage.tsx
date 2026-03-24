@@ -43,7 +43,7 @@ const AudioPlayerButton = memo(
         disabled={disabled}
         aria-label={ariaLabel}
         aria-pressed={isPlaying}
-        className={`flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors hover:bg-primary/20 ${disabledClass}`}
+        className={`flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary/80 transition-colors hover:bg-primary/20 ${disabledClass}`}
       >
         {isPlaying ? (
           <Pause className="h-4 w-4" aria-hidden="true" />
