@@ -7,7 +7,7 @@ export interface ButtonProps
   className?: string;
   style?: React.CSSProperties;
   /** 按钮变体 */
-  variant?: 'primary' | 'secondary' | 'ghost' | 'muted';
+  variant?: 'primary' | 'secondary' | 'ghost' | 'muted' | 'plain';
   /** 按钮尺寸 */
   size?: 'sm' | 'md' | 'lg';
   /** 是否加载中 */
@@ -25,6 +25,7 @@ const variantClasses = {
   secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
   ghost: 'bg-transparent hover:bg-muted/50',
   muted: 'bg-muted text-gray-400 dark:text-gray-500 hover:text-gray-600',
+  plain: 'bg-transparent',
 } as const;
 
 /**

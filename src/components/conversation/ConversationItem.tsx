@@ -58,17 +58,17 @@ export interface ConversationItemProps {
  * 会话状态样式配置
  */
 const ACTIVE_STATE_STYLES = {
-  container: 'bg-blue-500 shadow-md shadow-blue-500/20',
+  container: 'bg-blue-500 shadow-md shadow-gray-900/10 dark:shadow-gray-950/20',
   title: 'text-primary-foreground',
   time: 'text-primary-foreground/70',
   message: 'text-primary-foreground/80',
 } as const;
 
 const INACTIVE_STATE_STYLES = {
-  container: 'hover:bg-gray-200/50 dark:hover:bg-white/5 bg-transparent',
-  title: 'text-gray-600 dark:text-white',
-  time: ' text-gray-500 dark:text-gray-400',
-  message: ' text-gray-500 dark:text-gray-400',
+  container: 'hover:bg-gray-200/80 dark:hover:bg-white/10 bg-transparent',
+  title: 'text-gray-600 dark:text-gray-200',
+  time: 'text-gray-500 dark:text-gray-400',
+  message: 'text-gray-500 dark:text-gray-400',
 } as const;
 
 /**
@@ -148,6 +148,7 @@ export const ConversationItem = memo(
     return (
       <Button
         type="button"
+        variant="plain"
         onClick={handleClick}
         onKeyDown={handleKeyDown}
         className={containerClassName}
