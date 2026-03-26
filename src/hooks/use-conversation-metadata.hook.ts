@@ -20,10 +20,23 @@ import { useConversationDetail } from './use-conversation-detail.hook';
  */
 function extractConversationMetadata<
   TConversationMetadata extends ConversationMetadata = ConversationMetadata,
->(conversation: Conversation | null | undefined): TConversationMetadata | null {
+>(
+  conversation: Conversation | null | undefined,
+  options?: {
+    /**
+     * 是否保留空的 supportedChannels。
+     *
+     * 仅在会话详情接口已经明确返回时开启，避免把列表缓存中的临时空数组
+     * 误判为“当前渠道不支持”。
+     */
+    preserveEmptySupportedChannels?: boolean;
+  },
+): TConversationMetadata | null {
   if (!conversation) {
     return null;
   }
+
+  const { preserveEmptySupportedChannels = false } = options ?? {};
 
   // 安全提取 metadata，确保是有效对象
   const rawMetadata =
@@ -41,12 +54,12 @@ function extractConversationMetadata<
 
   if (
     Array.isArray(topLevelSupportedChannels) &&
-    topLevelSupportedChannels.length > 0
+    (preserveEmptySupportedChannels || topLevelSupportedChannels.length > 0)
   ) {
     resolvedSupportedChannels = topLevelSupportedChannels;
   } else if (
     Array.isArray(secondLevelSupportedChannels) &&
-    secondLevelSupportedChannels.length > 0
+    (preserveEmptySupportedChannels || secondLevelSupportedChannels.length > 0)
   ) {
     resolvedSupportedChannels =
       secondLevelSupportedChannels as ChannelTypeEnum[];
@@ -131,7 +144,9 @@ export function useConversationMetadata<
   const data = useMemo(() => {
     const sourceConversation = detailQuery.data ?? fallbackConversation;
     const extractedMetadata =
-      extractConversationMetadata<TConversationMetadata>(sourceConversation);
+      extractConversationMetadata<TConversationMetadata>(sourceConversation, {
+        preserveEmptySupportedChannels: detailQuery.data !== undefined,
+      });
 
     // 更新 ref：当有有效数据时保存
     if (extractedMetadata) {
