@@ -39,7 +39,7 @@ const meta: Meta<typeof Composer> = {
     },
     loading: {
       control: 'boolean',
-      description: '是否加载中',
+      description: '是否显示 ComposerSkeleton 占位',
     },
     maxLength: {
       control: 'number',
@@ -103,7 +103,7 @@ export const Disabled: Story = {
 };
 
 /**
- * 加载状态
+ * 加载占位状态
  */
 export const Loading: Story = {
   args: {

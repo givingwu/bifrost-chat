@@ -291,7 +291,10 @@ export function DefaultChatLayout({
   // ---------------------------------------------------------------------------
 
   // Composer 焦点管理
-  useComposerFocus(activeConversationId, composerRef);
+  useComposerFocus(
+    isConversationDetailLoading ? undefined : activeConversationId,
+    composerRef,
+  );
 
   // 会话自动选择
   useConversationAutoSelect({
@@ -463,10 +466,17 @@ export function DefaultChatLayout({
         ref={composerRef}
         conversationId={activeConversationId}
         channel={activeChannel}
+        loading={isConversationDetailLoading}
         onSend={handleSend}
       />
     );
-  }, [activeConversationId, isChannelSupported, activeChannel, handleSend]);
+  }, [
+    activeConversationId,
+    isChannelSupported,
+    activeChannel,
+    isConversationDetailLoading,
+    handleSend,
+  ]);
 
   const conversationListClassName = useMemo(
     () =>

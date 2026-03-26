@@ -136,6 +136,19 @@ describe('Composer', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('发送失败');
   });
 
+  it('should render skeleton while conversation detail is loading', () => {
+    render(
+      <Composer
+        channel={ChannelTypeEnum.Email}
+        conversationId="conv-1"
+        loading
+      />,
+    );
+
+    expect(screen.getByTestId('composer-skeleton')).toBeInTheDocument();
+    expect(screen.queryByTestId('composer-input')).not.toBeInTheDocument();
+  });
+
   it('should not register messageSendFailed listener on window', () => {
     const addEventListenerSpy = vi.spyOn(window, 'addEventListener');
 

@@ -63,6 +63,7 @@ export const CHANNEL_HINTS: Record<string, string> = {
 /** 测试 ID 常量 */
 export const TEST_IDS = {
   COMPOSER: 'composer',
+  COMPOSER_SKELETON: 'composer-skeleton',
   COMPOSER_INPUT: 'composer-input',
   COMPOSER_SEND: 'composer-send',
   COMPOSER_ATTACH: 'composer-attach',

@@ -5,6 +5,7 @@ import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import { DefaultChatLayout } from './DefaultChatLayout';
 
 const {
+  activeConversationMetadataRef,
   cacheConversationMock,
   composerFocusMock,
   composerOnSendRef,
@@ -18,6 +19,21 @@ const {
   setActiveConversationIdMock,
   setConversationSwitchingMock,
 } = vi.hoisted(() => ({
+  activeConversationMetadataRef: {
+    current: {
+      metadata: {
+        supportedChannels: ['whatsapp'],
+      },
+      isPending: false,
+    } as {
+      metadata:
+        | {
+            supportedChannels: string[];
+          }
+        | undefined;
+      isPending: boolean;
+    },
+  },
   cacheConversationMock: vi.fn(),
   composerFocusMock: vi.fn(),
   composerOnSendRef: {
@@ -87,7 +103,13 @@ vi.mock('@/components/composer/Composer', async () => {
 
   return {
     Composer: React.forwardRef(function MockComposer(
-      { onSend }: { onSend?: typeof composerOnSendRef.current },
+      {
+        onSend,
+        loading,
+      }: {
+        onSend?: typeof composerOnSendRef.current;
+        loading?: boolean;
+      },
       ref: React.ForwardedRef<{
         focus: () => void;
         setValue: (
@@ -114,6 +136,10 @@ vi.mock('@/components/composer/Composer', async () => {
         setTemplate: () => undefined,
         getAttachments: () => [],
       }));
+
+      if (loading) {
+        return <div data-testid="composer-skeleton" />;
+      }
 
       return <div data-testid="composer" />;
     }),
@@ -211,11 +237,7 @@ vi.mock('@/hooks/use-conversations.hook', () => ({
 }));
 
 vi.mock('@/hooks/use-active-conversation-metadata.hook', () => ({
-  useActiveConversationMetadata: () => ({
-    metadata: {
-      supportedChannels: [ChannelTypeEnum.WhatsApp],
-    },
-  }),
+  useActiveConversationMetadata: () => activeConversationMetadataRef.current,
 }));
 
 vi.mock('@/hooks/use-conversation-detail.hook', () => ({
@@ -289,6 +311,12 @@ vi.mock('@/store', () => ({
 describe('DefaultChatLayout', () => {
   beforeEach(() => {
     vi.useFakeTimers();
+    activeConversationMetadataRef.current = {
+      metadata: {
+        supportedChannels: [ChannelTypeEnum.WhatsApp],
+      },
+      isPending: false,
+    };
     cacheConversationMock.mockReset();
     composerFocusMock.mockReset();
     composerOnSendRef.current = undefined;
@@ -380,5 +408,17 @@ describe('DefaultChatLayout', () => {
 
     // 当前实现：直接设置 activeConversationId，由 useConversationDetail hook 负责获取详情
     expect(setActiveConversationIdMock).toHaveBeenCalledWith('conv-2');
+  });
+
+  it('应在会话详情加载中时渲染 Composer skeleton', () => {
+    activeConversationMetadataRef.current = {
+      metadata: undefined,
+      isPending: true,
+    };
+
+    render(<DefaultChatLayout />);
+
+    expect(screen.getByTestId('composer-skeleton')).toBeInTheDocument();
+    expect(screen.queryByTestId('composer')).not.toBeInTheDocument();
   });
 });

@@ -11,13 +11,14 @@ import { useComposerLogic } from '@/hooks/use-composer-logic.hook';
 import type { Attachment } from '@/interfaces/attachment.interface';
 import type { AudioData } from '@/interfaces/audio.interface';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
+import type { MessageSendResult } from '@/interfaces/message.interface';
 import type { Template } from '@/interfaces/template.interface';
 import { useTranslation } from '@/providers/I18n.provider';
 import { useComposerConfig } from '@/store';
-import { cn } from '@/utils/class.util';
 import { AttachmentPreview } from './AttachmentPreview';
 import { AudioRecorder } from './AudioRecorder';
 import { ComposerActions } from './ComposerActions';
+import { ComposerSkeleton } from './ComposerSkeleton';
 
 // ==================== 类型定义 ====================
 
@@ -52,7 +53,7 @@ export interface ComposerProps {
   // UI 状态
   /** 是否禁用 */
   disabled?: boolean;
-  /** 是否加载中 */
+  /** 是否加载中，加载期间显示 ComposerSkeleton 占位 */
   loading?: boolean;
   /** 最大输入长度 */
   maxLength?: number;
@@ -88,7 +89,7 @@ export interface ComposerRef {
   getAttachments: () => Attachment[];
 }
 
-import type { MessageSendResult } from '@/interfaces/message.interface';
+import { cn } from '@/utils/class.util';
 // ==================== 组件实现 ====================
 import { ComposerAttachments } from './ComposerAttachments';
 import { ComposerCharCount } from './ComposerCharCount';
@@ -97,25 +98,8 @@ import { ComposerInput, type ComposerInputRef } from './ComposerInput';
 import { ComposerVoice } from './ComposerVoice';
 import { TEST_IDS } from './composer.constants';
 
-/**
- * Composer 组件
- *
- * 统一的消息输入组件，整合了草稿、附件、录音等功能。
- * 使用 useComposerLogic hook 管理所有状态。
- *
- * @example
- * ```tsx
- * <Composer
- *   conversationId="conv-123"
- *   channel={ChannelTypeEnum.WhatsApp}
- *   onSend={handleSend}
- *   onSendAttachment={handleSendAttachment}
- *   onSendAudio={handleSendAudio}
- * />
- * ```
- */
-export const Composer = forwardRef<ComposerRef, ComposerProps>(
-  function Composer(
+const ComposerContent = forwardRef<ComposerRef, ComposerProps>(
+  function ComposerContent(
     {
       conversationId,
       channel,
@@ -142,6 +126,7 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(
       onSendAttachment,
       onSendAudio,
       disabled,
+      loading,
       maxLength: maxLengthProp,
     });
 
@@ -374,7 +359,7 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(
               <ComposerActions
                 canSend={canSend}
                 onSend={logic.handleSend}
-                loading={isSending || loading}
+                loading={isSending}
                 disabled={disabled || isRecording}
                 showClear={isTemplateLocked}
                 onClear={handleClear}
@@ -387,4 +372,39 @@ export const Composer = forwardRef<ComposerRef, ComposerProps>(
   },
 );
 
+/**
+ * Composer 组件
+ *
+ * 统一的消息输入组件，整合了草稿、附件、录音等功能。
+ * 使用 useComposerLogic hook 管理所有状态。
+ *
+ * @example
+ * ```tsx
+ * <Composer
+ *   conversationId="conv-123"
+ *   channel={ChannelTypeEnum.WhatsApp}
+ *   onSend={handleSend}
+ *   onSendAttachment={handleSendAttachment}
+ *   onSendAudio={handleSendAudio}
+ * />
+ * ```
+ */
+export const Composer = forwardRef<ComposerRef, ComposerProps>(
+  function Composer({ loading = false, className, ...props }, ref) {
+    if (loading) {
+      return <ComposerSkeleton className={className} />;
+    }
+
+    return (
+      <ComposerContent
+        {...props}
+        ref={ref}
+        loading={false}
+        className={className}
+      />
+    );
+  },
+);
+
+ComposerContent.displayName = 'ComposerContent';
 Composer.displayName = 'Composer';
