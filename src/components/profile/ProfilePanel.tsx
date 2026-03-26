@@ -39,7 +39,7 @@ export function ProfilePanel({
   isChannelSupported = true,
 }: ProfilePanelProps) {
   return (
-    <aside className="flex flex-col w-75 shrink-0 border-l border-gray-200/50 dark:border-white/10 bg-gray-50/50 dark:bg-black/20 divide-y divide-gray-200/50 dark:divide-white/10">
+    <aside className="flex flex-col w-75 shrink-0 bg-gray-50/50 dark:bg-black/20 divide-y divide-gray-200/50 dark:divide-white/10">
       {profile && <Profile profile={profile} actions={profileActions} />}
       <div className="flex flex-col flex-1 min-h-0">
         <TemplatePanel

@@ -9,7 +9,7 @@
 ### ComposerToolbar.tsx 结构
 
 ```
-<div className="p-4 bg-white/50 dark:bg-gray-900/50 backdrop-blur-md border-t">
+<div className="p-4 bg-white/50 dark:bg-gray-900/50 backdrop-blur-md">
   <form className="flex flex-col gap-3">
     {/* 附件预览 */}
     {attachments.length > 0 && <AttachmentPreview />}
@@ -45,7 +45,7 @@
 <fieldset className="relative flex-1 border-0 p-0 m-0">
   <textarea
     rows={3}
-    className="w-full rounded-sm border border-transparent bg-gray-200/50 dark:bg-white/10 px-2 py-1.5"
+    className="w-full rounded-sm borderransparent bg-gray-200/50 dark:bg-white/10 px-2 py-1.5"
     // 为字符计数和表情按钮留出空间
     showEmojiButton && 'pr-14'
   />
@@ -69,7 +69,7 @@
 ### 整体布局结构
 
 ```
-<div className="p-4 bg-white/50 dark:bg-gray-900/50 backdrop-blur-md border-t">
+<div className="p-4 bg-white/50 dark:bg-gray-900/50 backdrop-blur-md">
   <form className="flex flex-col gap-3">
     {/* 附件预览 */}
     {attachments.length > 0 && <AttachmentPreview />}
@@ -221,7 +221,7 @@ className={cn(
 **新的布局结构**:
 ```typescript
 return (
-  <div className="p-4 bg-white/50 dark:bg-gray-900/50 backdrop-blur-md border-t">
+  <div className="p-4 bg-white/50 dark:bg-gray-900/50 backdrop-blur-md">
     <form onSubmit={handleSubmit} className="flex flex-col gap-3">
       {/* 附件预览 */}
       {attachments.length > 0 && (

@@ -23,7 +23,6 @@ export const ComposerSkeleton = memo(function ComposerSkeleton({
       data-testid={TEST_IDS.COMPOSER_SKELETON}
       className={cn(
         'pointer-events-none animate-pulse p-4',
-        'border-t border-gray-200/50 bg-white/50 backdrop-blur-md',
         'dark:border-white/10 dark:bg-gray-900/50',
         className,
       )}

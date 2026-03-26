@@ -36,17 +36,23 @@ export const ChatLayout = ({
       className={cn(
         'flex w-full h-full overflow-hidden rounded-3xl shadow-2xl',
         'border border-border bg-card/80 backdrop-blur-2xl',
+        'divide-x divide-border/50',
         className,
       )}
       style={style}
     >
       {conversationPanel}
 
-      <section className={cn(containerClassName, 'flex flex-col flex-1')}>
+      <section
+        className={cn(
+          containerClassName,
+          'flex flex-col flex-1 divide-y divide-border/50',
+        )}
+      >
         {topbar}
 
-        <main className="flex flex-1 overflow-hidden">
-          <section className="relative flex min-h-0 min-w-0 flex-1 flex-col bg-card/40">
+        <main className="flex flex-1 overflow-hidden divide-x divide-border/50">
+          <section className="relative flex min-h-0 min-w-0 flex-1 flex-col bg-card/40 space-y-1 divide-y divide-border/50">
             {children}
             {composer}
           </section>

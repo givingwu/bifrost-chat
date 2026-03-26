@@ -1,8 +1,11 @@
 import { forwardRef } from 'react';
 import type { Attachment } from '@/interfaces/attachment.interface';
 import type { AudioData } from '@/interfaces/audio.interface';
-import type { ChannelTypeEnum } from '@/interfaces/channel.interface';
-import { ComposerCore, type ComposerCoreRef } from './ComposerCore';
+import { ChannelTypeEnum } from '@/interfaces/channel.interface';
+import {
+  ComposerToolbar,
+  type ComposerToolbarRef,
+} from './ComposerToolbar';
 import { ComposerSkeleton } from './ComposerSkeleton';
 
 // ==================== 类型定义 ====================
@@ -48,8 +51,8 @@ export interface ComposerProps {
   className?: string;
 }
 
-// 重新导出 ComposerCoreRef 以保持向后兼容
-export type ComposerRef = ComposerCoreRef;
+// 重新导出 ComposerToolbarRef 以保持向后兼容
+export type ComposerRef = ComposerToolbarRef;
 
 // ==================== 组件实现 ====================
 
@@ -70,14 +73,14 @@ export type ComposerRef = ComposerCoreRef;
  * />
  * ```
  */
-export const Composer = forwardRef<ComposerCoreRef, ComposerProps>(
+export const Composer = forwardRef<ComposerToolbarRef, ComposerProps>(
   function Composer({ loading = false, className, ...props }, ref) {
     if (loading) {
       return <ComposerSkeleton className={className} />;
     }
 
     return (
-      <ComposerCore
+      <ComposerToolbar
         {...props}
         ref={ref}
         loading={false}

@@ -229,6 +229,7 @@ export const ChineseLocale = () => {
               }
               composer={
                 <ComposerToolbar
+                  conversationId="conv-1"
                   channel={ChannelTypeEnum.WhatsApp}
                   onSend={async (message) => {
                     console.log('Send message:', message);
@@ -280,6 +281,7 @@ export const EnglishLocale = () => {
               }
               composer={
                 <ComposerToolbar
+                  conversationId="conv-1"
                   channel={ChannelTypeEnum.WhatsApp}
                   onSend={async (message) => {
                     console.log('Send message:', message);
@@ -377,6 +379,7 @@ export const RenderPropsMode = () => {
                 }
                 composer={
                   <ComposerToolbar
+                    conversationId="conv-1"
                     channel={ChannelTypeEnum.WhatsApp}
                     onSend={async (message) => {
                       console.log('Send message:', message);
@@ -452,6 +455,7 @@ export const FullChatInterface = () => {
               }
               composer={
                 <ComposerToolbar
+                  conversationId="conv-1"
                   channel={ChannelTypeEnum.WhatsApp}
                   onSend={async (message) => {
                     console.log('Send message:', message);
@@ -503,6 +507,7 @@ export const LanguageComparison = () => {
                 }
                 composer={
                   <ComposerToolbar
+                    conversationId="conv-1"
                     channel={ChannelTypeEnum.WhatsApp}
                     onSend={async (message) => {
                       console.log('Send message:', message);
@@ -539,6 +544,7 @@ export const LanguageComparison = () => {
                 }
                 composer={
                   <ComposerToolbar
+                    conversationId="conv-1"
                     channel={ChannelTypeEnum.WhatsApp}
                     onSend={async (message) => {
                       console.log('Send message:', message);
@@ -590,6 +596,7 @@ export const CustomStyled = () => {
               }
               composer={
                 <ComposerToolbar
+                  conversationId="conv-1"
                   channel={ChannelTypeEnum.WhatsApp}
                   onSend={async (message) => {
                     console.log('Send message:', message);

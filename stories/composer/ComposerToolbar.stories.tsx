@@ -46,14 +46,15 @@ export default meta;
  */
 export const WhatsApp = () => {
   return (
-    <div className="p-4 bg-muted rounded-lg">
+    <div className="rounded-lg">
       <ComposerToolbar
+        conversationId="conv-1"
         channel={ChannelTypeEnum.WhatsApp}
-        onSend={(content) => console.log('Send:', content)}
-        onSendAttachment={(attachments, text) =>
+        onSend={async (content) => console.log('Send:', content)}
+        onSendAttachment={async (attachments, text) =>
           console.log('Attachments:', attachments, 'Text:', text)
         }
-        onSendAudio={(audio) => console.log('Audio:', audio)}
+        onSendAudio={async (audio) => console.log('Audio:', audio)}
       />
     </div>
   );
@@ -64,10 +65,11 @@ export const WhatsApp = () => {
  */
 export const SMS = () => {
   return (
-    <div className="p-4 bg-muted rounded-lg">
+    <div className="rounded-lg">
       <ComposerToolbar
+        conversationId="conv-1"
         channel={ChannelTypeEnum.SMS}
-        onSend={(content) => console.log('Send:', content)}
+        onSend={async (content) => console.log('Send:', content)}
       />
     </div>
   );
@@ -78,10 +80,11 @@ export const SMS = () => {
  */
 export const Email = () => {
   return (
-    <div className="p-4 bg-muted rounded-lg">
+    <div className="rounded-lg">
       <ComposerToolbar
+        conversationId="conv-1"
         channel={ChannelTypeEnum.Email}
-        onSend={(content) => console.log('Send:', content)}
+        onSend={async (content) => console.log('Send:', content)}
       />
     </div>
   );
@@ -103,14 +106,15 @@ export const WithAllFeatures = () => {
 
   return (
     <ConfigProvider config={config}>
-      <div className="p-4 bg-muted rounded-lg">
+      <div className="rounded-lg">
         <ComposerToolbar
+          conversationId="conv-1"
           channel={ChannelTypeEnum.WhatsApp}
-          onSend={(content) => console.log('Send:', content)}
-          onSendAttachment={(attachments, text) =>
+          onSend={async (content) => console.log('Send:', content)}
+          onSendAttachment={async (attachments, text) =>
             console.log('Attachments:', attachments, 'Text:', text)
           }
-          onSendAudio={(audio) => console.log('Audio:', audio)}
+          onSendAudio={async (audio) => console.log('Audio:', audio)}
         />
       </div>
     </ConfigProvider>
@@ -133,10 +137,11 @@ export const Minimal = () => {
 
   return (
     <ConfigProvider config={config}>
-      <div className="p-4 bg-muted rounded-lg">
+      <div className="rounded-lg">
         <ComposerToolbar
+          conversationId="conv-1"
           channel={ChannelTypeEnum.WhatsApp}
-          onSend={(content) => console.log('Send:', content)}
+          onSend={async (content) => console.log('Send:', content)}
         />
       </div>
     </ConfigProvider>
@@ -165,7 +170,7 @@ export const CustomConfig = () => {
   return (
     <ConfigProvider config={config}>
       <div className="space-y-4">
-        <div className="p-4 bg-card rounded-lg space-y-2">
+        <div className="bg-card rounded-lg space-y-2">
           <p className="text-sm font-medium">配置选项：</p>
           <label className="flex items-center gap-2">
             <input
@@ -200,11 +205,12 @@ export const CustomConfig = () => {
             <span className="text-sm">启用附件功能</span>
           </label>
         </div>
-        <div className="p-4 bg-muted rounded-lg">
+        <div className="rounded-lg">
           <ComposerToolbar
+            conversationId="conv-1"
             channel={ChannelTypeEnum.WhatsApp}
-            onSend={(content) => console.log('Send:', content)}
-            onSendAttachment={(attachments, text) =>
+            onSend={async (content) => console.log('Send:', content)}
+            onSendAttachment={async (attachments, text) =>
               console.log('Attachments:', attachments, 'Text:', text)
             }
           />
@@ -219,11 +225,12 @@ export const CustomConfig = () => {
  */
 export const Disabled = () => {
   return (
-    <div className="p-4 bg-muted rounded-lg">
+    <div className="rounded-lg">
       <ComposerToolbar
+        conversationId="conv-1"
         channel={ChannelTypeEnum.WhatsApp}
         disabled
-        onSend={(content) => console.log('Send:', content)}
+        onSend={async (content) => console.log('Send:', content)}
       />
     </div>
   );
@@ -251,14 +258,15 @@ export const TemplateIgnoresLengthLimit = () => {
         },
       }}
     >
-      <div className="space-y-3 p-4 bg-muted rounded-lg">
+      <div className="space-y-3 rounded-lg">
         <p className="text-sm text-text-muted">
           自定义消息最多 10 字；当前通过模板注入的内容不会被截断。
         </p>
         <ComposerToolbar
           ref={ref}
+          conversationId="conv-1"
           channel={ChannelTypeEnum.WhatsApp}
-          onSend={(content) => console.log('Send:', content)}
+          onSend={async (content) => console.log('Send:', content)}
         />
       </div>
     </ConfigProvider>

@@ -186,69 +186,68 @@ export const TemplatePanel = ({
         onCategorySelect={handleCategorySelect}
       />
 
-      {/* 模板列表 */}
-      <section
-        className={cn(
-          'flex-1 overflow-y-auto px-4 py-3',
-          isPending && 'opacity-60',
-        )}
-        aria-label={t('template.title')}
-        aria-live="polite"
-        aria-busy={isLoading || isPending}
-      >
-        {!customTemplates && isConversationsLoading ? (
-          <LoadingState message={t('template.panel.loading')} />
-        ) : isConversationListEmpty && !customTemplates ? (
-          <EmptyState message={t('template.panel.selectConversationFirst')} />
-        ) : !hasSelectedConversation && !customTemplates ? (
-          <EmptyState message={t('template.panel.selectConversationFirst')} />
-        ) : !isChannelSupported && currentChannel ? (
-          <UnsupportedChannelWarning
-            channel={currentChannel}
-            variant="vertical"
-          />
-        ) : error ? (
-          <ErrorState
-            message={t('template.panel.loadFailed')}
-            onRetry={handleRetry}
-            retryText={t('template.panel.retry')}
-          />
-        ) : isLoading && filteredTemplates.length === 0 ? (
-          <LoadingState message={t('common.loading')} />
-        ) : filteredTemplates.length === 0 ? (
-          <EmptyState
-            message={
-              searchQuery || selectedCategory
-                ? t('template.panel.noMatchTemplates')
-                : t('template.panel.noTemplates')
-            }
-          />
-        ) : (
-          <TemplateList
-            templates={filteredTemplates}
-            onTemplateClick={onTemplateSelect}
-            selectedId={selectedId}
-            showCategory={showCategory}
-            showUsageCount={showUsageCount}
-            renderingTemplateId={renderingTemplateId}
-          />
-        )}
-      </section>
-
-      {/* 底部统计 */}
-      {stats.total > 0 && (
-        <output
-          className="backdrop-blur-md border-t border-gray-200/50 dark:border-white/10 px-4 py-2"
+      <div className="flex flex-col flex-1 divide-y divide-border/50">
+        {/* 模板列表 */}
+        <section
+          className={cn(
+            'flex-1 overflow-y-auto px-4 py-3',
+            isPending && 'opacity-60',
+          )}
+          aria-label={t('template.title')}
           aria-live="polite"
+          aria-busy={isLoading || isPending}
         >
-          <p className="text-[10px] text-gray-400 dark:text-gray-500">
-            {t('template.panel.showingCount', {
-              filtered: stats.filtered,
-              total: stats.total,
-            })}
-          </p>
-        </output>
-      )}
+          {!customTemplates && isConversationsLoading ? (
+            <LoadingState message={t('template.panel.loading')} />
+          ) : isConversationListEmpty && !customTemplates ? (
+            <EmptyState message={t('template.panel.selectConversationFirst')} />
+          ) : !hasSelectedConversation && !customTemplates ? (
+            <EmptyState message={t('template.panel.selectConversationFirst')} />
+          ) : !isChannelSupported && currentChannel ? (
+            <UnsupportedChannelWarning
+              channel={currentChannel}
+              variant="vertical"
+            />
+          ) : error ? (
+            <ErrorState
+              message={t('template.panel.loadFailed')}
+              onRetry={handleRetry}
+              retryText={t('template.panel.retry')}
+            />
+          ) : isLoading && filteredTemplates.length === 0 ? (
+            <LoadingState message={t('common.loading')} />
+          ) : filteredTemplates.length === 0 ? (
+            <EmptyState
+              message={
+                searchQuery || selectedCategory
+                  ? t('template.panel.noMatchTemplates')
+                  : t('template.panel.noTemplates')
+              }
+            />
+          ) : (
+            <TemplateList
+              templates={filteredTemplates}
+              onTemplateClick={onTemplateSelect}
+              selectedId={selectedId}
+              showCategory={showCategory}
+              showUsageCount={showUsageCount}
+              renderingTemplateId={renderingTemplateId}
+            />
+          )}
+        </section>
+
+        {/* 底部统计 */}
+        {stats.total > 0 && (
+          <output className="backdrop-blur-md px-4 py-2" aria-live="polite">
+            <p className="text-[10px] text-gray-400 dark:text-gray-500">
+              {t('template.panel.showingCount', {
+                filtered: stats.filtered,
+                total: stats.total,
+              })}
+            </p>
+          </output>
+        )}
+      </div>
     </>
   );
 };

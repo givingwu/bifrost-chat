@@ -41,7 +41,7 @@ export function UnsupportedChannelWarning({
         'flex items-center justify-center text-amber-700 dark:text-amber-400',
         isVertical
           ? 'flex-col h-full gap-2 px-4 py-3 text-center'
-          : 'flex-row px-4 py-3 bg-amber-50/80 dark:bg-amber-900/20 border-t border-amber-200/50 dark:border-amber-700/30 text-sm',
+          : 'flex-row px-4 py-3 bg-amber-50/80 dark:bg-amber-900/20 text-sm',
       )}
       role="alert"
     >

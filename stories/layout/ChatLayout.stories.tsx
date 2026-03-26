@@ -236,6 +236,7 @@ export const FullLayout = () => {
               }
               composer={
                 <ComposerToolbar
+                  conversationId="conv-1"
                   channel={ChannelTypeEnum.WhatsApp}
                   onSend={async (message) => {
                     console.log('Send message:', message);
@@ -322,6 +323,7 @@ export const WithTopbarAndComposer = () => {
               }
               composer={
                 <ComposerToolbar
+                  conversationId="conv-1"
                   channel={ChannelTypeEnum.WhatsApp}
                   onSend={async (message) => {
                     console.log('Send message:', message);
@@ -410,6 +412,7 @@ export const CustomStyled = () => {
               }
               composer={
                 <ComposerToolbar
+                  conversationId="conv-1"
                   channel={ChannelTypeEnum.WhatsApp}
                   onSend={async (message) => {
                     console.log('Send message:', message);
@@ -479,6 +482,7 @@ export const Responsive = () => {
               }
               composer={
                 <ComposerToolbar
+                  conversationId="conv-1"
                   channel={ChannelTypeEnum.WhatsApp}
                   onSend={async (message) => {
                     console.log('Send message:', message);

@@ -26,7 +26,6 @@ export const Topbar = ({ title, subTitle, avatarUrl, extra }: TopbarProps) => {
       data-component="topbar"
       className={cn(
         'flex flex-wrap items-center justify-between gap-4',
-        'border-b border-gray-200/50 dark:border-white/10',
         'flex items-center justify-between px-6 py-3',
         'relative shadow-soft dark:bg-gray-900/50 bg-card/80 backdrop-blur-md z-10',
       )}
