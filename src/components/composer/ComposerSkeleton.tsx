@@ -28,10 +28,10 @@ export const ComposerSkeleton = memo(function ComposerSkeleton({
         className,
       )}
     >
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-2">
         <div
           className={cn(
-            'h-[84px] w-full rounded-sm border border-transparent',
+            'h-20 w-full rounded-sm border border-transparent',
             SKELETON_BLOCK_CLASSNAME,
           )}
         />
@@ -39,10 +39,10 @@ export const ComposerSkeleton = memo(function ComposerSkeleton({
           <div className={cn('h-3 w-24 rounded', SKELETON_BLOCK_CLASSNAME)} />
           <div className="flex items-center gap-2">
             <div
-              className={cn('h-9 w-9 rounded-full', SKELETON_BLOCK_CLASSNAME)}
+              className={cn('h-6 w-6 rounded-full', SKELETON_BLOCK_CLASSNAME)}
             />
             <div
-              className={cn('h-9 w-9 rounded-full', SKELETON_BLOCK_CLASSNAME)}
+              className={cn('h-6 w-6 rounded-full', SKELETON_BLOCK_CLASSNAME)}
             />
           </div>
         </div>
