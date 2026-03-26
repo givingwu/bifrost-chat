@@ -167,17 +167,53 @@ export function mergeUser(
 function mergeSupportedChannels(
   existingChannels?: ChannelTypeEnum[],
   incomingChannels?: ChannelTypeEnum[],
+  source?: ConversationMergeSource,
 ): ChannelTypeEnum[] | undefined {
-  const merged = [
-    ...(existingChannels ?? []),
-    ...(incomingChannels ?? []),
-  ] as ChannelTypeEnum[];
+  const existingDefined = Array.isArray(existingChannels);
+  const incomingDefined = Array.isArray(incomingChannels);
 
-  if (merged.length === 0) {
+  const mergeUnique = (
+    left: ChannelTypeEnum[],
+    right: ChannelTypeEnum[],
+  ): ChannelTypeEnum[] => [...new Set([...left, ...right])];
+
+  if (source === 'projection') {
+    if (existingDefined) {
+      if (existingChannels.length === 0) {
+        return existingChannels;
+      }
+
+      if (incomingDefined) {
+        return mergeUnique(existingChannels, incomingChannels);
+      }
+
+      return existingChannels;
+    }
+
+    if (incomingDefined) {
+      return incomingChannels;
+    }
+
     return undefined;
   }
 
-  return [...new Set(merged)];
+  if (incomingDefined) {
+    if (incomingChannels.length === 0) {
+      return incomingChannels;
+    }
+
+    if (existingDefined) {
+      return mergeUnique(existingChannels, incomingChannels);
+    }
+
+    return incomingChannels;
+  }
+
+  if (existingDefined) {
+    return existingChannels;
+  }
+
+  return undefined;
 }
 
 export function mergeConversation(
@@ -217,8 +253,9 @@ export function mergeConversation(
     updatedAt: incomingConversation.updatedAt ?? existingConversation.updatedAt,
     metadata: mergedMetadata,
     supportedChannels: mergeSupportedChannels(
-      incomingConversation.supportedChannels as ChannelTypeEnum[] | undefined,
       existingConversation.supportedChannels as ChannelTypeEnum[] | undefined,
+      incomingConversation.supportedChannels as ChannelTypeEnum[] | undefined,
+      source,
     ),
   };
 }

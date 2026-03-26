@@ -247,6 +247,89 @@ describe('ConversationCacheHelper', () => {
     });
   });
 
+  it('权威详情返回空 supportedChannels 时不应回退到旧缓存值', () => {
+    const queryClient = new QueryClient();
+
+    seedConversationCache(queryClient, ChannelTypeEnum.WhatsApp, [
+      {
+        id: 'conv-empty-supported-channels',
+        user: {
+          id: 'detail-user',
+          name: '原始详情',
+          status: AgentStatusEnum.Offline,
+        },
+        lastMessage: '旧详情',
+        lastMessageTime: new Date(1_770_000_000_000).toISOString(),
+        unreadCount: 5,
+        channel: ChannelTypeEnum.WhatsApp,
+        supportedChannels: [ChannelTypeEnum.WhatsApp, ChannelTypeEnum.Email],
+      },
+    ]);
+
+    ConversationCacheHelper.cacheConversation(queryClient, {
+      id: 'conv-empty-supported-channels',
+      user: {
+        id: 'detail-user',
+        name: '权威详情',
+        status: AgentStatusEnum.Online,
+      },
+      lastMessage: '新详情',
+      lastMessageTime: new Date(1_770_000_100_000).toISOString(),
+      unreadCount: 0,
+      channel: ChannelTypeEnum.WhatsApp,
+      supportedChannels: [],
+    });
+
+    const fromList = ConversationCacheHelper.getConversations(
+      queryClient,
+      ChannelTypeEnum.WhatsApp,
+    )[0];
+    const fromDetail = ConversationCacheHelper.getConversationDetail(
+      queryClient,
+      'conv-empty-supported-channels',
+    );
+
+    expect(fromList?.supportedChannels).toEqual([]);
+    expect(fromDetail?.supportedChannels).toEqual([]);
+  });
+
+  it('已有空 supportedChannels 时消息投影不应自动补回当前渠道', () => {
+    const queryClient = new QueryClient();
+
+    seedConversationCache(queryClient, ChannelTypeEnum.WhatsApp, [
+      {
+        id: 'conv-empty-supported-channels',
+        user: {
+          id: 'customer@example.com',
+          name: '已存在客户',
+          status: AgentStatusEnum.Online,
+        },
+        lastMessage: '老消息',
+        lastMessageTime: new Date(1_770_000_000_000).toISOString(),
+        unreadCount: 8,
+        channel: ChannelTypeEnum.WhatsApp,
+        supportedChannels: [],
+      },
+    ]);
+
+    const message = createMessage('msg-empty-supported', {
+      conversationId: 'conv-empty-supported-channels',
+      channelType: ChannelTypeEnum.WhatsApp,
+      timestamp: 1_770_000_002_000,
+      content: { text: '最新消息' },
+      sender: { app: 'mail-app', pin: 'customer@example.com' },
+    });
+
+    ConversationCacheHelper.upsertConversationFromMessage(queryClient, message);
+
+    const updatedConversation = ConversationCacheHelper.getConversations(
+      queryClient,
+      ChannelTypeEnum.WhatsApp,
+    )[0];
+
+    expect(updatedConversation?.supportedChannels).toEqual([]);
+  });
+
   it('列表 metadata 空字符串不应覆盖详情拉取的非空字段', () => {
     const queryClient = new QueryClient();
 

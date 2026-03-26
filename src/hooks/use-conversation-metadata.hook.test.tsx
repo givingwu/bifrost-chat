@@ -80,6 +80,22 @@ describe('useConversationMetadata', () => {
     expect(result.current.data?.supportedChannels).toEqual([]);
   });
 
+  it('详情 metadata 中显式返回空 supportedChannels 时不应回退到会话顶层值', () => {
+    detailQueryRef.current = {
+      data: createConversation({
+        supportedChannels: [ChannelTypeEnum.WhatsApp],
+        metadata: {
+          supportedChannels: [],
+        },
+      }),
+      isLoading: false,
+    };
+
+    const { result } = renderHook(() => useConversationMetadata('conv-1'));
+
+    expect(result.current.data?.supportedChannels).toEqual([]);
+  });
+
   it('详情未返回前应忽略列表缓存中的空 supportedChannels', () => {
     detailQueryRef.current = {
       data: undefined,
