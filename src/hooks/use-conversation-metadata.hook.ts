@@ -12,8 +12,8 @@ import { useConversationDetail } from './use-conversation-detail.hook';
  * @description
  * 处理以下场景：
  * 1. metadata 不存在或非对象时返回空对象
- * 2. supportedChannels 优先从 conversation 顶层获取，其次从 metadata 获取
- * 3. 确保 supportedChannels 是有效数组
+ * 2. 可按调用方要求决定是否信任 supportedChannels
+ * 3. 当信任 supportedChannels 时，优先从 metadata 顶层获取，其次从 conversation 顶层获取
  *
  * @param conversation 会话对象，可能为 null/undefined
  * @returns 规范化后的元数据，或 null
@@ -24,19 +24,19 @@ function extractConversationMetadata<
   conversation: Conversation | null | undefined,
   options?: {
     /**
-     * 是否保留空的 supportedChannels。
+     * 是否信任当前来源中的 supportedChannels。
      *
-     * 仅在会话详情接口已经明确返回时开启，避免把列表缓存中的临时空数组
-     * 误判为“当前渠道不支持”。
+     * `useConversationMetadata` 只信任详情接口返回的 supportedChannels，
+     * 不再从会话列表缓存自动兜底该字段。
      */
-    preserveEmptySupportedChannels?: boolean;
+    includeSupportedChannels?: boolean;
   },
 ): TConversationMetadata | null {
   if (!conversation) {
     return null;
   }
 
-  const { preserveEmptySupportedChannels = false } = options ?? {};
+  const { includeSupportedChannels = true } = options ?? {};
 
   // 安全提取 metadata，确保是有效对象
   const rawMetadata =
@@ -52,17 +52,13 @@ function extractConversationMetadata<
   // 确定最终的 supportedChannels 值
   let resolvedSupportedChannels: ChannelTypeEnum[] | undefined;
 
-  if (
-    Array.isArray(topLevelSupportedChannels) &&
-    (preserveEmptySupportedChannels || topLevelSupportedChannels.length > 0)
-  ) {
-    resolvedSupportedChannels = topLevelSupportedChannels;
-  } else if (
-    Array.isArray(secondLevelSupportedChannels) &&
-    (preserveEmptySupportedChannels || secondLevelSupportedChannels.length > 0)
-  ) {
-    resolvedSupportedChannels =
-      secondLevelSupportedChannels as ChannelTypeEnum[];
+  if (includeSupportedChannels) {
+    if (Array.isArray(topLevelSupportedChannels)) {
+      resolvedSupportedChannels = topLevelSupportedChannels;
+    } else if (Array.isArray(secondLevelSupportedChannels)) {
+      resolvedSupportedChannels =
+        secondLevelSupportedChannels as ChannelTypeEnum[];
+    }
   }
 
   // 构建结果，保留原有 metadata 中的其他字段
@@ -81,7 +77,8 @@ function extractConversationMetadata<
  *
  * 特性：
  * - 优先使用 `useConversationDetail` 获取的最新数据
- * - 当详情查询未返回数据时，回退到缓存查找
+ * - 当详情查询未返回数据时，仍可回退到缓存查找其他 metadata 字段
+ * - `supportedChannels` 仅信任详情接口返回值，不再从缓存自动兜底
  * - 支持泛型扩展元数据类型
  * - 优化重渲染：使用 useMemo 缓存转换结果
  *
@@ -145,7 +142,7 @@ export function useConversationMetadata<
     const sourceConversation = detailQuery.data ?? fallbackConversation;
     const extractedMetadata =
       extractConversationMetadata<TConversationMetadata>(sourceConversation, {
-        preserveEmptySupportedChannels: detailQuery.data !== undefined,
+        includeSupportedChannels: detailQuery.data !== undefined,
       });
 
     // 更新 ref：当有有效数据时保存
