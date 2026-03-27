@@ -52,7 +52,7 @@ export const ChatLayout = ({
         {topbar}
 
         <main className="flex flex-1 overflow-hidden divide-x divide-border/50">
-          <section className="relative flex min-h-0 min-w-0 flex-1 flex-col bg-card/40 space-y-1 divide-y divide-border/50">
+          <section className="relative flex min-h-0 min-w-0 flex-1 flex-col bg-card/40 divide-y divide-border/50">
             {children}
             {composer}
           </section>
