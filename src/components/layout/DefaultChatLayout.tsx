@@ -488,11 +488,6 @@ export function DefaultChatLayout({
     [isSearchPending, isConversationsLoading, isConversationsFetching],
   );
 
-  const messageListClassName = useMemo(
-    () => cn(isConversationDetailLoading && 'animate-pulse'),
-    [isConversationDetailLoading],
-  );
-
   // ---------------------------------------------------------------------------
   // Side Effects
   // ---------------------------------------------------------------------------
@@ -556,8 +551,7 @@ export function DefaultChatLayout({
       }
     >
       <InfiniteMessageList
-        className={messageListClassName}
-        conversationId={activeConversationId as string}
+        conversationId={activeConversationId}
         currentChannel={activeChannel}
       />
     </ChatLayout>
