@@ -15,7 +15,10 @@ import { ChatLayout } from '@/components/layout/ChatLayout';
 import { UnsupportedChannelWarning } from '@/components/layout/UnsupportedChannelWarning';
 import { InfiniteMessageList } from '@/components/messages/InfiniteMessageList';
 import type { ProfileAction } from '@/components/profile/ProfileHeader';
-import { ProfilePanel } from '@/components/profile/ProfilePanel';
+import {
+  ProfilePanel,
+  type ProfilePanelProps,
+} from '@/components/profile/ProfilePanel';
 import { Topbar, type TopbarProps } from '@/components/toolbar/Topbar';
 import { TopbarTools } from '@/components/toolbar/TopbarTools';
 import { useActiveConversationMetadata } from '@/hooks/use-active-conversation-metadata.hook';
@@ -62,6 +65,10 @@ export interface DefaultChatLayoutRenderTopbarProps
 export type DefaultChatLayoutRenderTopbar =
   | React.ReactNode
   | ((props: DefaultChatLayoutRenderTopbarProps) => React.ReactNode);
+
+export type DefaultChatLayoutRenderProfilePanel =
+  | React.ReactNode
+  | ((props: ProfilePanelProps) => React.ReactNode);
 
 export interface DefaultChatLayoutProps extends Omit<TopbarProps, 'avatarUrl'> {
   className?: string;
@@ -137,6 +144,18 @@ export interface DefaultChatLayoutProps extends Omit<TopbarProps, 'avatarUrl'> {
    * ```
    */
   getConversationDisplayTitle?: (conversation: Conversation) => string;
+  /**
+   * 自定义右侧面板渲染：
+   * - 直接传入 ReactNode：完全自定义
+   * - 传入函数：接收面板所需参数，返回自定义渲染内容
+   * @example
+   * ```tsx
+   * renderProfilePanel={(props) => (
+   *   <CustomProfilePanel {...props} />
+   * )}
+   * ```
+   */
+  renderProfilePanel?: DefaultChatLayoutRenderProfilePanel;
 }
 
 /**
@@ -181,6 +200,7 @@ export function DefaultChatLayout({
   renderConversationItemMeta,
   renderTopbarMeta,
   getConversationDisplayTitle,
+  renderProfilePanel,
 }: DefaultChatLayoutProps) {
   // ---------------------------------------------------------------------------
   // Hooks & State
@@ -539,15 +559,31 @@ export function DefaultChatLayout({
       }
       composer={composerNode}
       profilePanel={
-        <ProfilePanel
-          profile={profile}
-          profileActions={profileActions}
-          activeConversationId={activeConversationId ?? undefined}
-          activeChannel={activeChannel}
-          renderingTemplateId={renderingTemplateId}
-          onTemplateSelect={handleTemplateSelect}
-          isChannelSupported={isChannelSupported}
-        />
+        renderProfilePanel ? (
+          typeof renderProfilePanel === 'function' ? (
+            renderProfilePanel({
+              profile,
+              profileActions,
+              activeConversationId: activeConversationId ?? undefined,
+              activeChannel,
+              renderingTemplateId,
+              onTemplateSelect: handleTemplateSelect,
+              isChannelSupported,
+            })
+          ) : (
+            renderProfilePanel
+          )
+        ) : (
+          <ProfilePanel
+            profile={profile}
+            profileActions={profileActions}
+            activeConversationId={activeConversationId ?? undefined}
+            activeChannel={activeChannel}
+            renderingTemplateId={renderingTemplateId}
+            onTemplateSelect={handleTemplateSelect}
+            isChannelSupported={isChannelSupported}
+          />
+        )
       }
     >
       <InfiniteMessageList
