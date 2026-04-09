@@ -272,3 +272,47 @@ export const TemplateIgnoresLengthLimit = () => {
     </ConfigProvider>
   );
 };
+
+/**
+ * 仅模板输入模式
+ */
+export const TemplateOnlyMode = () => {
+  const ref = useRef<ComposerToolbarRef>(null);
+
+  return (
+    <ConfigProvider
+      config={{
+        composer: {
+          inputMode: 'template-only',
+          placeholder: '请选择模板内容',
+          templateMode: 'edit',
+          allowTemplateEdit: false,
+        },
+      }}
+    >
+      <div className="space-y-3 rounded-lg">
+        <p className="text-sm text-text-muted">
+          默认不可自由输入，只允许通过模板回填内容；清空后仍保持锁定。
+        </p>
+        <button
+          type="button"
+          className="rounded-md border border-border px-3 py-1.5 text-sm"
+          onClick={() => {
+            ref.current?.setTemplate({
+              content: '尊敬的客户，您好，这是一条模板消息。',
+              templateCode: 'template-only-demo',
+            });
+          }}
+        >
+          回填模板
+        </button>
+        <ComposerToolbar
+          ref={ref}
+          conversationId="conv-template-only"
+          channel={ChannelTypeEnum.WhatsApp}
+          onSend={async (content) => console.log('Send:', content)}
+        />
+      </div>
+    </ConfigProvider>
+  );
+};

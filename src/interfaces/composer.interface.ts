@@ -142,13 +142,36 @@ export interface IComposerConfig {
    */
   showEmojiButton?: boolean;
 
+  /**
+   * 自定义输入框占位文案
+   *
+   * @description
+   * 未配置时回退到 SDK 默认占位文案。
+   *
+   * @default undefined
+   */
+  placeholder?: string;
+
+  // ==================== 输入模式配置 ====================
+
+  /**
+   * 输入模式
+   *
+   * @description
+   * - `free`: 默认自由输入
+   * - `template-only`: 默认不可自由输入，仅允许通过模板回填内容
+   *
+   * @default 'free'
+   */
+  inputMode?: 'free' | 'template-only';
+
   // ==================== 模板配置 ====================
 
   /**
    * 模板选择模式
    * - `direct`: 点击模板后直接发送
    * - `edit`: 点击模板后将内容填充到输入框，用户可编辑后发送
-   * @default 'direct'
+   * @default 'edit'
    */
   templateMode?: 'direct' | 'edit';
 
@@ -157,7 +180,7 @@ export interface IComposerConfig {
    * 仅在 `templateMode` 为 `edit` 时生效
    * - `true`: 用户可以编辑模板内容
    * - `false`: 用户只能直接发送或清空，不能编辑
-   * @default true
+   * @default false
    */
   allowTemplateEdit?: boolean;
 }

@@ -1,12 +1,9 @@
 import { forwardRef } from 'react';
 import type { Attachment } from '@/interfaces/attachment.interface';
 import type { AudioData } from '@/interfaces/audio.interface';
-import { ChannelTypeEnum } from '@/interfaces/channel.interface';
-import {
-  ComposerToolbar,
-  type ComposerToolbarRef,
-} from './ComposerToolbar';
+import type { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import { ComposerSkeleton } from './ComposerSkeleton';
+import { ComposerToolbar, type ComposerToolbarRef } from './ComposerToolbar';
 
 // ==================== 类型定义 ====================
 

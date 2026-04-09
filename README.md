@@ -266,6 +266,31 @@ export function App() {
 }
 ```
 
+#### 仅模板输入场景
+
+当业务要求 Composer 默认不可自由输入，只允许通过模板回填内容时，
+可以在 `ConfigProvider` 中配置：
+
+```tsx
+<ConfigProvider
+  config={{
+    composer: {
+      inputMode: 'template-only',
+      placeholder: '请选择模板内容',
+      templateMode: 'edit',
+      allowTemplateEdit: false,
+    },
+  }}
+>
+  {/* ... */}
+</ConfigProvider>
+```
+
+- `inputMode: 'template-only'`：默认不可自由输入
+- `placeholder`：自定义输入框占位文案
+- `allowTemplateEdit: false`：模板回填后保持只读
+- 用户清空模板后，输入框仍保持不可自由输入状态
+
 ### 3) Host 网络关系
 
 **当前已实现（As-Is）**

@@ -61,6 +61,7 @@ export interface UseComposerLogicResult {
   isRecording: boolean;
   isSending: boolean;
   isTemplateLocked: boolean;
+  isInputReadOnly: boolean;
   isRestoring: boolean;
   sendError: string | null;
 
@@ -253,6 +254,10 @@ export const useComposerLogic = (
   const [sendError, setSendError] = useState<string | null>(null);
 
   const placeholder = useMemo(() => {
+    if (config.placeholder) {
+      return config.placeholder;
+    }
+
     if (channel) {
       const channelLabels: Partial<Record<ChannelTypeEnum, string>> = {
         [ChannelTypeEnum.SMS]: 'SMS',
@@ -260,10 +265,12 @@ export const useComposerLogic = (
         [ChannelTypeEnum.WhatsApp]: 'WhatsApp',
         [ChannelTypeEnum.Viber]: 'Viber',
       };
+
       return `Input ${channelLabels[channel] || channel} message...`;
     }
+
     return 'Input message...';
-  }, [channel]);
+  }, [channel, config.placeholder]);
 
   const canSend = useMemo(() => {
     const hasContent = draft.value.trim().length > 0 || attachments.length > 0;
@@ -278,6 +285,14 @@ export const useComposerLogic = (
     }
     return false;
   }, [draft.messageType, config.templateMode, config.allowTemplateEdit]);
+
+  const isInputReadOnly = useMemo(() => {
+    if (draft.messageType === MessageTypeEnum.Template) {
+      return isTemplateLocked;
+    }
+
+    return config.inputMode === 'template-only';
+  }, [config.inputMode, draft.messageType, isTemplateLocked]);
 
   // ==================== 操作方法 ====================
   const handleSend = useCallback(async () => {
@@ -443,6 +458,7 @@ export const useComposerLogic = (
     isRecording,
     isSending,
     isTemplateLocked,
+    isInputReadOnly,
     isRestoring,
     sendError,
 
