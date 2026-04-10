@@ -10,6 +10,18 @@
 
 ---
 
+## Important Notes
+
+### Breaking Changes
+
+1. **Storage Key Format**: The old `useComposerDraft` used keys like `bifrost-chat-draft-conversation-{id}-channel-{channel}` in localStorage. The new store uses `${conversationId}-${channel}`. **Existing drafts will be lost** after this migration. This is acceptable for a major refactor.
+
+2. **keepDraftOnSwitch Behavior**: The `keepDraftOnSwitch` config is now effectively always true (drafts are never auto-cleared when switching). The config option is kept for backward compatibility but no longer controls behavior.
+
+3. **isRestoring State**: The `isRestoring` state has been removed from `useComposerLogic` return value. If any components consume this value, they need to be updated.
+
+---
+
 ## File Structure
 
 ### New Files
@@ -519,15 +531,21 @@ export type { DraftStore };
 export { useDraftStore, useDraft };
 ```
 
-Find the existing export section and add (note: line numbers are approximate, search for the sections):
+Find the existing export section and add:
 
 ```typescript
-// Find the type exports section (after line 25) and add:
+// Add to type exports (after line 28, after other type exports):
 export type { DraftStore } from './draft.store';
 
-// Find the selector exports section (after useComposerConfig) and add:
-export { useDraftStore, useDraft } from './draft.store';
+// Add to selector exports (after line 247, after useComposerConfig):
+export const useDraftStore = () => useDraftStoreInternal();
+export const useDraft = () => useDraftStoreInternal();
+
+// And add the import at the top with other imports:
+import { useDraftStore as useDraftStoreInternal } from './draft.store';
 ```
+
+Note: The store is NOT integrated into the main ChatStore - it's an independent store with its own selector.
 
 - [ ] **Step 2: Verify exports compile**
 
@@ -620,9 +638,11 @@ const setComposerValue = useCallback(
   (nextValue: string) => {
     draft.setValue(clampComposerValue(nextValue, effectiveMaxLength));
   },
-  [effectiveMaxLength],
+  [draft, effectiveMaxLength],
 );
 ```
+
+Note: `draft` remains in dependencies to avoid stale closure issues.
 
 - [ ] **Step 5: Remove template preview restoration logic**
 
@@ -841,7 +861,7 @@ return {
   canSend,
 
   // 操作
-  setValue: (value: string) => draft.setValue(value),
+  setValue: setComposerValue,
   handleSend,
   handleClear,
   handleAttachmentSelect,
@@ -900,7 +920,12 @@ Read `src/components/layout/DefaultChatLayout.tsx` to understand the current tem
 
 - [ ] **Step 2: Add template preview restoration logic**
 
-Add the following logic to restore template drafts when switching conversations. This should be added after the existing useEffect hooks:
+First, add the import at the top of the file:
+```typescript
+import { useDraftStore } from '@/store';
+```
+
+Then add the following logic to restore template drafts when switching conversations. This should be added after the existing useEffect hooks:
 
 ```typescript
 // 模板草稿恢复：当切换到包含模板草稿的会话时，重新预览获取最新内容
@@ -970,22 +995,29 @@ rm src/hooks/use-composer-draft.hook.ts
 rm src/hooks/use-composer-draft.hook.test.ts
 ```
 
-- [ ] **Step 2: Verify no remaining imports**
+- [ ] **Step 2: Remove export from hooks index**
+
+Remove line 5 from `src/hooks/index.ts`:
+```typescript
+export { useComposerDraft } from './use-composer-draft.hook';
+```
+
+- [ ] **Step 3: Verify no remaining imports**
 
 Run: `grep -r "useComposerDraft" src/ --exclude-dir=node_modules`
 Expected: No results (or only in this task's check)
 
-- [ ] **Step 3: Run full test suite**
+- [ ] **Step 4: Run full test suite**
 
 Run: `pnpm test`
 Expected: All tests pass
 
-- [ ] **Step 4: Run build**
+- [ ] **Step 5: Run build**
 
 Run: `pnpm run build`
 Expected: Build succeeds
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 6: Commit**
 
 ```bash
 git add -A
@@ -1020,7 +1052,16 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 3. Send the template message
 4. Verify draft is cleared
 
-- [ ] **Step 3: Test attachment functionality**
+- [ ] **Step 2.5: Test template preview error handling**
+
+1. Select a template to create a template draft
+2. Switch to a different conversation
+3. Mock the previewTemplate API to return an error
+4. Switch back to the template conversation
+5. Verify the cached template content is still used (fallback behavior)
+6. Verify the composer doesn't crash or hang
+
+- [ ] **Step 4: Test attachment functionality**
 
 1. Add an attachment
 2. Switch conversations
@@ -1028,14 +1069,14 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 4. Return to original conversation
 5. Verify draft text persists but attachment doesn't
 
-- [ ] **Step 4: Test send failure handling**
+- [ ] **Step 5: Test send failure handling**
 
 1. Type a message
 2. Force a send failure (disconnect network or mock error)
 3. Verify message stays in composer
 4. Verify user can retry
 
-- [ ] **Step 5: Test draft clearing on send**
+- [ ] **Step 6: Test draft clearing on send**
 
 1. Enable clearDraftOnSend config
 2. Send a message successfully
@@ -1045,7 +1086,7 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 5. Send a message successfully
 6. Verify composer retains the message
 
-- [ ] **Step 6: Test enableDraft config**
+- [ ] **Step 7: Test enableDraft config**
 
 1. Set enableDraft to false
 2. Type a message
@@ -1053,7 +1094,7 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 4. Switch back
 5. Verify draft was NOT saved
 
-- [ ] **Step 7: Test keepDraftOnSwitch behavior**
+- [ ] **Step 8: Test keepDraftOnSwitch behavior**
 
 Note: In the new architecture, drafts are always kept when switching (useDraftStore doesn't auto-clear). The `keepDraftOnSwitch` config is effectively always true. If auto-clearing is needed, it should be implemented at the call site.
 
