@@ -23,6 +23,7 @@
 |------|---------|
 | `src/hooks/use-composer-logic.hook.ts` | Remove dependency on `useComposerDraft`, use `useDraftStore` instead |
 | `src/store/index.ts` | Export `useDraftStore` and `useDraft` selector |
+| `src/components/layout/DefaultChatLayout.tsx` | Add template preview restoration logic |
 
 ### Deleted Files
 | File | Reason |
@@ -181,7 +182,7 @@ export const useDraftStore = create<DraftStore>()(
               templateParams: data.templateParams,
               templateMetadata: data.templateMetadata,
               messageType: data.templateCode
-                ? 'template'
+                ? ('template' as const)
                 : undefined,
             },
           },
@@ -241,11 +242,13 @@ Create `src/store/draft.store.test.ts`:
 ```typescript
 import { describe, it, expect, beforeEach } from 'vitest';
 import { MessageTypeEnum } from '@/interfaces/message.interface';
-import { ChannelTypeEnum } from '@/interfaces/draft.store';
+import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import { useDraftStore, buildDraftKey, type DraftData } from '@/store/draft.store';
 
 describe('useDraftStore', () => {
   beforeEach(() => {
+    // 清理 localStorage
+    localStorage.clear();
     // 重置 store 状态
     useDraftStore.setState({
       drafts: {},
@@ -298,7 +301,7 @@ describe('useDraftStore', () => {
       store.setCurrentDraft('conv-1', ChannelTypeEnum.WhatsApp);
       store.setValue('Hello World');
 
-      expect(store.getValue()).toBe('Hello');
+      expect(store.getValue()).toBe('Hello World');
       expect(store.drafts['conv-1-whatsapp'].content).toBe('Hello World');
     });
 
@@ -516,13 +519,13 @@ export type { DraftStore };
 export { useDraftStore, useDraft };
 ```
 
-Find the existing export section and add:
+Find the existing export section and add (note: line numbers are approximate, search for the sections):
 
 ```typescript
-// After line 25 (after ComposerState export)
+// Find the type exports section (after line 25) and add:
 export type { DraftStore } from './draft.store';
 
-// After line 247 (after useComposerConfig export)
+// Find the selector exports section (after useComposerConfig) and add:
 export { useDraftStore, useDraft } from './draft.store';
 ```
 
@@ -589,11 +592,13 @@ const draft = useDraftStore();
 
 // 设置当前会话的草稿（当 conversationId 或 channel 变化时）
 useEffect(() => {
-  if (conversationId && channel) {
+  if (conversationId && channel && enableDraft) {
     draft.setCurrentDraft(conversationId, channel);
   }
-}, [conversationId, channel, draft]);
+}, [conversationId, channel, enableDraft, draft]);
 ```
+
+Note: `enableDraft` is now handled by conditionally calling `setCurrentDraft`. When disabled, the current draft won't be set/updated.
 
 - [ ] **Step 4: Update setComposerValue to use store directly**
 
@@ -621,64 +626,16 @@ const setComposerValue = useCallback(
 
 - [ ] **Step 5: Remove template preview restoration logic**
 
-Remove the template restoration useEffect (around lines 181-230):
+Remove the template restoration useEffect (around lines 181-230) and related code:
 
 **DELETE:**
-```typescript
-// 恢复 template 类型的 draft 时，重新 preview 获取最新内容
-useEffect(() => {
-  if (!conversationId || !channel) return;
+- The entire template restoration useEffect
+- `import { useTemplatePreview } from '@/hooks/use-template-preview.hook';`
+- `const { mutateAsync: previewTemplate } = useTemplatePreview();`
+- `const [isRestoring, setIsRestoring] = useState(false);`
+- `const processedDraftScopeRef = useRef<string | undefined>(undefined);`
 
-  const draftScopeKey = buildConversationDraftStorageKey(
-    conversationId,
-    channel,
-  );
-
-  // 避免重复处理同一个会话
-  if (processedDraftScopeRef.current === draftScopeKey) return;
-
-  const draftData = draft.getDraftData();
-
-  // 如果是 template 类型的 draft，重新 preview
-  if (
-    draftData.messageType === MessageTypeEnum.Template &&
-    draftData.templateCode &&
-    draftData.content
-  ) {
-    setIsRestoring(true);
-    processedDraftScopeRef.current = draftScopeKey;
-
-    previewTemplate({
-      conversationId,
-      currentChannel: channel,
-      templateCode: draftData.templateCode,
-    })
-      .then((previewed) => {
-        // 使用最新的 content
-        const newContent = previewed.previewContent ?? draftData.content;
-        setComposerValue(newContent);
-
-        draft.setDraftData({
-          content: newContent,
-          templateCode: previewed.code ?? draftData.templateCode,
-          messageType: MessageTypeEnum.Template,
-          templateParams: previewed.params as Record<string, string>,
-          templateMetadata: previewed,
-        });
-      })
-      .catch((error) => {
-        console.warn('[Composer] Failed to preview template draft:', error);
-        // fallback: 使用缓存的 content
-        setComposerValue(draftData.content);
-      })
-      .finally(() => {
-        setIsRestoring(false);
-      });
-  }
-}, [channel, conversationId, draft, previewTemplate, setComposerValue]);
-```
-
-Also remove the `processedDraftScopeRef` and `isRestoring` state.
+The template restoration logic will be moved to Task 4 (DefaultChatLayout).
 
 - [ ] **Step 6: Update handleSend to use store directly**
 
@@ -801,14 +758,13 @@ const setTemplate = useCallback(
     templateCode?: string;
     templateMetadata?: unknown;
   }) => {
-    draft.setTemplate({
-      ...data,
-      messageType: 'template',
-    });
+    draft.setTemplate(data);
   },
   [draft],
 );
 ```
+
+Note: The `setTemplate` method in the store already handles setting `messageType` when `templateCode` is provided.
 
 - [ ] **Step 9: Update return value**
 
@@ -903,19 +859,12 @@ return {
 };
 ```
 
-- [ ] **Step 10: Remove unused imports**
+Note: `isRestoring` has been removed since template restoration is now handled in the layout layer.
 
-Remove these imports that are no longer needed:
-```typescript
-import { useTemplatePreview } from '@/hooks/use-template-preview.hook';
-```
+- [ ] **Step 10: Verify no isRestoring consumers**
 
-And remove:
-```typescript
-const { mutateAsync: previewTemplate } = useTemplatePreview();
-const [isRestoring, setIsRestoring] = useState(false);
-const processedDraftScopeRef = useRef<string | undefined>(undefined);
-```
+Run: `grep -r "isRestoring" src/components/ --exclude-dir=node_modules`
+Expected: No results (if there are, note which files need updates)
 
 - [ ] **Step 11: Verify build and tests**
 
@@ -933,28 +882,75 @@ git commit -m "refactor(useComposerLogic): use draft store instead of draft hook
 - Simplify API (direct store method calls)
 - Remove template preview restoration logic (moved to layout)
 - Remove unused isRestoring state
+- Handle enableDraft config in useEffect
 
 Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 ```
 
 ---
 
-## Task 4: Update DefaultChatLayout for Template Preview
+## Task 4: Add Template Preview Restoration to DefaultChatLayout
 
 **Files:**
 - Modify: `src/components/layout/DefaultChatLayout.tsx`
 
-- [ ] **Step 1: Check if template preview logic exists**
+- [ ] **Step 1: Check current implementation**
 
-Read the file to see if there's template preview logic that needs to be restored. The template restoration was removed from `useComposerLogic`, so it needs to be handled in the layout layer if it was there before.
+Read `src/components/layout/DefaultChatLayout.tsx` to understand the current template handling.
 
-If no changes needed, skip this task.
+- [ ] **Step 2: Add template preview restoration logic**
 
-- [ ] **Step 2: Commit if changes made**
+Add the following logic to restore template drafts when switching conversations. This should be added after the existing useEffect hooks:
+
+```typescript
+// 模板草稿恢复：当切换到包含模板草稿的会话时，重新预览获取最新内容
+useEffect(() => {
+  const draft = useDraftStore.getState();
+  const currentDraft = draft.getCurrentDraft();
+
+  // 如果是模板类型的 draft，重新 preview 获取最新内容
+  if (
+    activeConversationId &&
+    currentDraft.messageType === MessageTypeEnum.Template &&
+    currentDraft.templateCode &&
+    currentDraft.content
+  ) {
+    previewTemplate({
+      conversationId: activeConversationId,
+      currentChannel: activeChannel,
+      templateCode: currentDraft.templateCode,
+    })
+      .then((previewed) => {
+        // 使用最新的 content
+        const newContent = previewed.previewContent ?? currentDraft.content;
+        draft.setTemplate({
+          content: newContent,
+          templateCode: previewed.code ?? currentDraft.templateCode,
+          templateMetadata: previewed,
+        });
+      })
+      .catch((error) => {
+        console.warn('[Composer] Failed to preview template draft:', error);
+        // fallback: 使用缓存的 content
+      });
+  }
+}, [activeConversationId, activeChannel]);
+```
+
+- [ ] **Step 3: Verify build**
+
+Run: `pnpm run build`
+Expected: Build succeeds
+
+- [ ] **Step 4: Commit**
 
 ```bash
 git add src/components/layout/DefaultChatLayout.tsx
-git commit -m "refactor: handle template preview restoration in layout
+git commit -m "feat: add template preview restoration in layout layer
+
+- Restore template draft content when switching conversations
+- Re-preview template to get latest content
+- Handle preview errors gracefully
 
 Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 ```
@@ -1049,6 +1045,18 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 5. Send a message successfully
 6. Verify composer retains the message
 
+- [ ] **Step 6: Test enableDraft config**
+
+1. Set enableDraft to false
+2. Type a message
+3. Switch conversations
+4. Switch back
+5. Verify draft was NOT saved
+
+- [ ] **Step 7: Test keepDraftOnSwitch behavior**
+
+Note: In the new architecture, drafts are always kept when switching (useDraftStore doesn't auto-clear). The `keepDraftOnSwitch` config is effectively always true. If auto-clearing is needed, it should be implemented at the call site.
+
 ---
 
 ## Task 7: Final Cleanup
@@ -1079,6 +1087,7 @@ git commit -m "refactor: complete composer state management refactor
 Migration complete:
 - useComposerDraft hook → useDraftStore
 - useComposerLogic hook → simplified, uses store
+- Template restoration moved to DefaultChatLayout
 
 Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 ```
@@ -1095,3 +1104,4 @@ After completing all tasks, verify:
 4. **Multi-conversation**: Switching conversations preserves individual drafts
 5. **Template Flow**: Selecting and sending templates works correctly
 6. **Error Handling**: Failed sends preserve draft for retry
+7. **enableDraft**: When false, drafts are not persisted
