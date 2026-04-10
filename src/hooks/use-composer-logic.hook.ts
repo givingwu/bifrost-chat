@@ -210,19 +210,12 @@ export const useComposerLogic = (
           const newContent = previewed.previewContent ?? draftData.content;
           setComposerValue(newContent);
 
-          // 更新 draft 数据
-          const stringParams = previewed.params
-            ? Object.fromEntries(
-                Object.entries(previewed.params).map(([k, v]) => [
-                  k,
-                  String(v),
-                ]),
-              )
-            : undefined;
-
           draft.setDraftData({
             content: newContent,
-            templateParams: stringParams,
+            templateCode: previewed.code ?? draftData.templateCode,
+            messageType: MessageTypeEnum.Template,
+            templateParams: previewed.params as Record<string, string>,
+            templateMetadata: previewed,
           });
         })
         .catch((error) => {
