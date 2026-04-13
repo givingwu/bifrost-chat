@@ -186,7 +186,7 @@ export const TemplatePanel = ({
         onCategorySelect={handleCategorySelect}
       />
 
-      <div className="flex flex-col flex-1 divide-y divide-border/50">
+      <div className="flex min-h-0 flex-col flex-1 divide-y divide-border/50">
         {/* 模板列表 */}
         <section
           className={cn(

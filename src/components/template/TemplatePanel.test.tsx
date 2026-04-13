@@ -45,6 +45,25 @@ vi.mock('@/components/layout/UnsupportedChannelWarning', () => ({
 }));
 
 describe('TemplatePanel', () => {
+  it('模板列表容器应包含 min-h-0 以允许内部滚动', () => {
+    mockConversations = [{ id: 'conv-1', channel: ChannelTypeEnum.WhatsApp }];
+    mockIsConversationsLoading = false;
+
+    const { container } = render(
+      <TemplatePanel
+        conversationId="conv-1"
+        currentChannel={ChannelTypeEnum.WhatsApp}
+        isChannelSupported
+      />,
+    );
+
+    const panelBody = container.querySelector(
+      'div.flex.flex-col.flex-1.divide-y.divide-border\\/50',
+    );
+
+    expect(panelBody?.className).toContain('min-h-0');
+  });
+
   it('无会话选择时优先显示“请先选择会话”', () => {
     mockConversations = [];
     mockIsConversationsLoading = false;
