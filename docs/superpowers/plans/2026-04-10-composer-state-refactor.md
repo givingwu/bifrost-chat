@@ -57,7 +57,7 @@
 - Create: `src/store/draft.store.ts`
 - Test: `src/store/draft.store.test.ts`
 
-- [ ] **Step 1: 写失败测试，锁定 store 契约**
+- [x] **Step 1: 写失败测试，锁定 store 契约**
 
 ```ts
 it('切换 current draft 时应返回对应会话和渠道的草稿');
@@ -67,12 +67,12 @@ it('新 store 没有记录时应从 legacy localStorage key 恢复草稿');
 it('没有 localStorage 时初始化 store 不应抛错');
 ```
 
-- [ ] **Step 2: 运行单测确认失败**
+- [x] **Step 2: 运行单测确认失败**
 
 Run: `pnpm exec vitest run src/store/draft.store.test.ts`
 Expected: FAIL，提示 `draft.store.ts` 或对应 action 尚不存在。
 
-- [ ] **Step 3: 实现最小 store**
+- [x] **Step 3: 实现最小 store**
 
 ```ts
 type ComposerDraftStore = {
@@ -102,12 +102,12 @@ type ComposerDraftStore = {
 - 针对 `draftDebounceDelay` 增加独立的持久化调度层，不要把即时 store 更新和持久化写盘混成同一步
 - 为 `clearSDK` 预留显式 reset 入口，例如 `resetComposerDraftStore()`
 
-- [ ] **Step 4: 再跑 store 单测确认通过**
+- [x] **Step 4: 再跑 store 单测确认通过**
 
 Run: `pnpm exec vitest run src/store/draft.store.test.ts`
 Expected: PASS
 
-- [ ] **Step 5: 提交 Task 1**
+- [x] **Step 5: 提交 Task 1**
 
 ```bash
 git add src/store/draft.store.ts src/store/draft.store.test.ts
@@ -122,7 +122,7 @@ git commit -m "refactor: add persisted composer draft store"
 - Modify: `src/hooks/use-composer-logic.hook.ts`
 - Create: `src/hooks/use-composer-logic.hook.test.tsx`
 
-- [ ] **Step 1: 先写失败测试，覆盖逻辑层关键行为**
+- [x] **Step 1: 先写失败测试，覆盖逻辑层关键行为**
 
 ```ts
 it('发送成功且 clearDraftOnSend=true 时应清空当前草稿');
@@ -133,12 +133,12 @@ it('公开 useComposerDraft 仍可返回完整兼容接口');
 it('draftDebounceDelay 到期前不应把最新草稿写入持久化存储');
 ```
 
-- [ ] **Step 2: 运行 hook 测试确认失败**
+- [x] **Step 2: 运行 hook 测试确认失败**
 
 Run: `pnpm exec vitest run src/hooks/use-composer-draft.hook.test.ts src/hooks/use-composer-logic.hook.test.tsx`
 Expected: FAIL，说明旧实现与新 store 契约还未对齐。
 
-- [ ] **Step 3: 用最小改动接入 store**
+- [x] **Step 3: 用最小改动接入 store**
 
 实现要求：
 - `useComposerLogic` 直接用 `useComposerDraftStore` 读取当前草稿与 action。
@@ -158,12 +158,12 @@ Expected: FAIL，说明旧实现与新 store 契约还未对齐。
   - `draftStorageKey` 继续暴露 legacy key 形态，避免接入方行为变化
   - 在 `clearDraft`、发送成功清空、`keepDraftOnSwitch=false` 切换会话时，必须取消尚未执行的防抖写入，避免旧草稿被回写
 
-- [ ] **Step 4: 跑 hook 测试确认通过**
+- [x] **Step 4: 跑 hook 测试确认通过**
 
 Run: `pnpm exec vitest run src/hooks/use-composer-draft.hook.test.ts src/hooks/use-composer-logic.hook.test.tsx`
 Expected: PASS
 
-- [ ] **Step 5: 提交 Task 2**
+- [x] **Step 5: 提交 Task 2**
 
 ```bash
 git add src/hooks/use-composer-draft.hook.ts src/hooks/use-composer-draft.hook.test.ts src/hooks/use-composer-logic.hook.ts src/hooks/use-composer-logic.hook.test.tsx
@@ -178,7 +178,7 @@ git commit -m "refactor: move composer logic to draft store"
 - Modify: `design/final-architecture.md`
 - Modify: `README.md`
 
-- [ ] **Step 1: 先写或更新回归断言**
+- [x] **Step 1: 先写或更新回归断言**
 
 如果 Task 2 为了兼容 UI 行为修改了 `src/components/composer/*`：
 - 先补对应组件测试，再更新对应 stories。
@@ -186,7 +186,7 @@ git commit -m "refactor: move composer logic to draft store"
 如果没有组件代码变更：
 - 保持组件 stories 不动，避免无意义改动。
 
-- [ ] **Step 2: 更新文档事实**
+- [x] **Step 2: 更新文档事实**
 
 文档要点：
 - `clearSDK({ clearStorage: true })` 同时清理 `bifrost-chat-draft`、
@@ -195,12 +195,12 @@ git commit -m "refactor: move composer logic to draft store"
 - `design/final-architecture.md` 的 As-Is 状态边界中补充 Composer 长期草稿状态由 Zustand 持久化管理
 - `README.md` 在特性或状态管理段落中说明 Composer 草稿已经统一到 Zustand 持久化层
 
-- [ ] **Step 3: 运行针对性测试确认未引入回归**
+- [x] **Step 3: 运行针对性测试确认未引入回归**
 
 Run: `pnpm exec vitest run src/store/draft.store.test.ts src/hooks/use-composer-draft.hook.test.ts src/hooks/use-composer-logic.hook.test.tsx src/utils/sdk-cleanup.util.test.ts src/components/composer/Composer.config.test.tsx`
 Expected: PASS
 
-- [ ] **Step 4: 提交 Task 3**
+- [x] **Step 4: 提交 Task 3**
 
 ```bash
 git add src/utils/sdk-cleanup.util.ts src/utils/sdk-cleanup.util.test.ts design/final-architecture.md README.md
@@ -209,8 +209,8 @@ git commit -m "docs: align composer draft architecture"
 
 ## 全量验证
 
-- [ ] `pnpm run check`
-- [ ] `pnpm run test`
-- [ ] `pnpm run build`
+- [x] `pnpm run check`
+- [x] `pnpm run test`
+- [x] `pnpm run build`
 
 如果 `check/test/build` 任一步失败，先修复再继续，不允许带失败结果提交。
