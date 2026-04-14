@@ -172,7 +172,8 @@
       "selectConversationFirst": "Please select a conversation first",
       "showingCount": "Showing {{filtered}} / {{total}} templates",
       "usageCount": "Used {{count}} times"
-    }
+    },
+    "previewFailed": "Preview failed please check your template content and try again"
   },
   "emoji": {
     "title": "Select Emoji",

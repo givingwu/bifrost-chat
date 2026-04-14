@@ -172,7 +172,8 @@
       "selectConversationFirst": "请先选择会话",
       "showingCount": "显示 {{filtered}} / {{total}} 个模板",
       "usageCount": "使用 {{count}} 次"
-    }
+    },
+    "previewFailed": "模板预览失败，请检查模板内容后重试"
   },
   "emoji": {
     "title": "选择表情",

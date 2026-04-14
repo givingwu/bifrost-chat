@@ -19,10 +19,8 @@ import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import type { IComposerConfig } from '@/interfaces/composer.interface';
 import { MessageTypeEnum } from '@/interfaces/message.interface';
 import { useComposerConfig } from '@/store';
-import {
-  resolveComposerCanSend,
-  TEMPLATE_PREVIEW_FAILED_MESSAGE,
-} from '@/utils/composer-send-guard.util';
+import { resolveComposerCanSend } from '@/utils/composer-send-guard.util';
+import { useTranslation } from '@/providers/I18n.provider';
 
 // ==================== 类型定义 ====================
 
@@ -126,6 +124,9 @@ export const useComposerLogic = (
     maxLength: maxLengthProp,
   } = options;
 
+  // ==================== 国际化 ====================
+  const { t } = useTranslation();
+
   // ==================== 配置合并 ====================
   const storeConfig = useComposerConfig();
   const config = useMemo<ResolvedComposerConfig>(
@@ -226,7 +227,7 @@ export const useComposerLogic = (
         })
         .catch((error) => {
           console.warn('[Composer] Failed to preview template draft:', error);
-          setTemplateError(TEMPLATE_PREVIEW_FAILED_MESSAGE);
+          setTemplateError(t('template.previewFailed'));
           // fallback: 保留缓存内容，但禁止继续发送模板
           setComposerValue(draftData.content);
         })
@@ -234,7 +235,7 @@ export const useComposerLogic = (
           setIsRestoring(false);
         });
     }
-  }, [channel, conversationId, draft, previewTemplate, setComposerValue]);
+  }, [channel, conversationId, draft, previewTemplate, setComposerValue, t]);
 
   // ==================== 附件状态 ====================
   const [attachments, setAttachments] = useState<Attachment[]>([]);

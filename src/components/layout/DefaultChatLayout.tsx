@@ -43,7 +43,6 @@ import {
   useStrategy,
 } from '@/store';
 import { cn } from '@/utils/class.util';
-import { TEMPLATE_PREVIEW_FAILED_MESSAGE } from '@/utils/composer-send-guard.util';
 import { filterConversations } from '@/utils/conversation-filter.util';
 import {
   buildSubTitleNode,
@@ -414,7 +413,7 @@ export function DefaultChatLayout({
               content: template.content,
               templateCode: template.code,
               templateMetadata: undefined,
-              templateError: TEMPLATE_PREVIEW_FAILED_MESSAGE,
+              templateError: t('template.previewFailed'),
             });
             composerRef.current?.focus();
             return;
@@ -446,6 +445,7 @@ export function DefaultChatLayout({
       previewTemplate,
       handleSend,
       templateMode,
+      t,
     ],
   );
 

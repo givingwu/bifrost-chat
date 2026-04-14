@@ -254,7 +254,12 @@ vi.mock('./ChatLayout', () => ({
 
 vi.mock('@/providers/I18n.provider', () => ({
   useTranslation: () => ({
-    t: (key: string) => key,
+    t: (key: string) => {
+      const translations: Record<string, string> = {
+        'template.previewFailed': '模板参数替换失败，当前模板暂不可发送',
+      };
+      return translations[key] ?? key;
+    },
   }),
 }));
 
