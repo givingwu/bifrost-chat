@@ -43,6 +43,7 @@ import {
   useStrategy,
 } from '@/store';
 import { cn } from '@/utils/class.util';
+import { TEMPLATE_PREVIEW_FAILED_MESSAGE } from '@/utils/composer-send-guard.util';
 import { filterConversations } from '@/utils/conversation-filter.util';
 import {
   buildSubTitleNode,
@@ -406,10 +407,17 @@ export function DefaultChatLayout({
             contentToUse = templateMetadata.previewContent;
           } catch (previewError) {
             console.warn(
-              '[DefaultChatLayout] Template preview failed, using fallback content:',
+              '[DefaultChatLayout] Template preview failed:',
               previewError,
             );
-            // 预览失败时继续使用原始模板内容
+            composerRef.current?.setTemplate({
+              content: template.content,
+              templateCode: template.code,
+              templateMetadata: undefined,
+              templateError: TEMPLATE_PREVIEW_FAILED_MESSAGE,
+            });
+            composerRef.current?.focus();
+            return;
           }
         }
 

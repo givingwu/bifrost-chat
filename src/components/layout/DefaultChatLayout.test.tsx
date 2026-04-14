@@ -9,12 +9,14 @@ const {
   cacheConversationMock,
   composerFocusMock,
   composerOnSendRef,
+  composerSetTemplateMock,
   conversationGetMock,
   conversationListOnSelectRef,
   conversationStateRef,
   conversationsRef,
   getConversationDetailMock,
   mutateAsyncMock,
+  previewTemplateMutateAsyncMock,
   queryClientRef,
   setActiveConversationIdMock,
   setConversationSwitchingMock,
@@ -41,6 +43,7 @@ const {
       | ((content: string, options?: Record<string, unknown>) => unknown)
       | undefined,
   },
+  composerSetTemplateMock: vi.fn(),
   conversationGetMock: vi.fn(),
   conversationListOnSelectRef: {
     current: undefined as
@@ -80,6 +83,7 @@ const {
   },
   getConversationDetailMock: vi.fn(),
   mutateAsyncMock: vi.fn(),
+  previewTemplateMutateAsyncMock: vi.fn(),
   queryClientRef: {
     current: {} as object,
   },
@@ -116,6 +120,7 @@ vi.mock('@/components/composer/Composer', async () => {
           value: string,
           templateCode?: string,
           templateMetadata?: unknown,
+          templateError?: string | null,
         ) => void;
         getValue: () => string;
         clear: () => void;
@@ -123,6 +128,7 @@ vi.mock('@/components/composer/Composer', async () => {
           content: string;
           templateCode?: string;
           templateMetadata?: unknown;
+          templateError?: string | null;
         }) => void;
         getAttachments: () => [];
       }>,
@@ -133,7 +139,7 @@ vi.mock('@/components/composer/Composer', async () => {
         setValue: () => undefined,
         getValue: () => '',
         clear: () => undefined,
-        setTemplate: () => undefined,
+        setTemplate: composerSetTemplateMock,
         getAttachments: () => [],
       }));
 
@@ -182,8 +188,32 @@ vi.mock('@/components/messages/InfiniteMessageList', () => ({
   InfiniteMessageList: () => <div />,
 }));
 
-vi.mock('@/components/profile/Profile', () => ({
-  Profile: () => <div />,
+vi.mock('@/components/profile/ProfilePanel', () => ({
+  ProfilePanel: ({
+    onTemplateSelect,
+  }: {
+    onTemplateSelect?: (template: {
+      id: string;
+      code?: string;
+      content: string;
+      name: string;
+    }) => Promise<void>;
+  }) => (
+    <button
+      data-testid="template-item-tpl-1"
+      type="button"
+      onClick={() => {
+        void onTemplateSelect?.({
+          id: 'tpl-1',
+          code: 'tpl-code-1',
+          content: '原始模板内容',
+          name: '模板1',
+        });
+      }}
+    >
+      tpl-1
+    </button>
+  ),
 }));
 
 vi.mock('@/components/template/TemplatePanel', () => ({
@@ -256,7 +286,7 @@ vi.mock('@/hooks/use-send-message.hook', () => ({
 
 vi.mock('@/hooks/use-template-preview.hook', () => ({
   useTemplatePreview: () => ({
-    mutateAsync: vi.fn(),
+    mutateAsync: previewTemplateMutateAsyncMock,
   }),
 }));
 
@@ -320,6 +350,7 @@ describe('DefaultChatLayout', () => {
     cacheConversationMock.mockReset();
     composerFocusMock.mockReset();
     composerOnSendRef.current = undefined;
+    composerSetTemplateMock.mockReset();
     conversationGetMock.mockReset();
     conversationListOnSelectRef.current = undefined;
     conversationStateRef.current = {
@@ -346,6 +377,7 @@ describe('DefaultChatLayout', () => {
     ];
     getConversationDetailMock.mockReset();
     mutateAsyncMock.mockReset();
+    previewTemplateMutateAsyncMock.mockReset();
     setActiveConversationIdMock.mockReset();
     setConversationSwitchingMock.mockReset();
   });
@@ -420,5 +452,31 @@ describe('DefaultChatLayout', () => {
 
     expect(screen.getByTestId('composer-skeleton')).toBeInTheDocument();
     expect(screen.queryByTestId('composer')).not.toBeInTheDocument();
+  });
+
+  it('模板预览失败时应阻止发送，并回填模板错误状态到 Composer', async () => {
+    previewTemplateMutateAsyncMock.mockRejectedValue(
+      new Error('模板参数替换异常'),
+    );
+
+    render(<DefaultChatLayout />);
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('template-item-tpl-1'));
+      await Promise.resolve();
+    });
+
+    expect(previewTemplateMutateAsyncMock).toHaveBeenCalledWith({
+      conversationId: 'conv-1',
+      currentChannel: ChannelTypeEnum.WhatsApp,
+      templateCode: 'tpl-code-1',
+    });
+    expect(mutateAsyncMock).not.toHaveBeenCalled();
+    expect(composerSetTemplateMock).toHaveBeenCalledWith({
+      content: '原始模板内容',
+      templateCode: 'tpl-code-1',
+      templateError: '模板参数替换失败，当前模板暂不可发送',
+      templateMetadata: undefined,
+    });
   });
 });

@@ -19,6 +19,10 @@ import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import type { IComposerConfig } from '@/interfaces/composer.interface';
 import { MessageTypeEnum } from '@/interfaces/message.interface';
 import { useComposerConfig } from '@/store';
+import {
+  resolveComposerCanSend,
+  TEMPLATE_PREVIEW_FAILED_MESSAGE,
+} from '@/utils/composer-send-guard.util';
 
 // ==================== 类型定义 ====================
 
@@ -92,6 +96,7 @@ export interface UseComposerLogicResult {
     content: string;
     templateCode?: string;
     templateMetadata?: unknown;
+    templateError?: string | null;
   }) => void;
 
   // Ref 支持
@@ -208,6 +213,7 @@ export const useComposerLogic = (
         .then((previewed) => {
           // 使用最新的 content
           const newContent = previewed.previewContent ?? draftData.content;
+          setTemplateError(null);
           setComposerValue(newContent);
 
           draft.setDraftData({
@@ -220,7 +226,8 @@ export const useComposerLogic = (
         })
         .catch((error) => {
           console.warn('[Composer] Failed to preview template draft:', error);
-          // fallback: 使用缓存的 content
+          setTemplateError(TEMPLATE_PREVIEW_FAILED_MESSAGE);
+          // fallback: 保留缓存内容，但禁止继续发送模板
           setComposerValue(draftData.content);
         })
         .finally(() => {
@@ -245,6 +252,7 @@ export const useComposerLogic = (
 
   // ==================== 错误状态 ====================
   const [sendError, setSendError] = useState<string | null>(null);
+  const [templateError, setTemplateError] = useState<string | null>(null);
 
   const placeholder = useMemo(() => {
     if (config.placeholder) {
@@ -266,9 +274,20 @@ export const useComposerLogic = (
   }, [channel, config.placeholder]);
 
   const canSend = useMemo(() => {
-    const hasContent = draft.value.trim().length > 0 || attachments.length > 0;
-    return hasContent && !isSending;
-  }, [draft.value, isSending, attachments]);
+    return resolveComposerCanSend({
+      value: draft.value,
+      attachmentCount: attachments.length,
+      isSending,
+      messageType: draft.messageType,
+      templateError,
+    });
+  }, [
+    attachments.length,
+    draft.messageType,
+    draft.value,
+    isSending,
+    templateError,
+  ]);
 
   // 模板锁定状态：根据配置和消息类型计算
   const isTemplateLocked = useMemo(() => {
@@ -290,6 +309,9 @@ export const useComposerLogic = (
   // ==================== 操作方法 ====================
   const handleSend = useCallback(async () => {
     if (!canSend || disabled || isSending) return;
+    if (draft.messageType === MessageTypeEnum.Template && templateError) {
+      return;
+    }
 
     const messageToSend = draft.value.trim();
     const hasAttachments = attachments.length > 0;
@@ -338,13 +360,16 @@ export const useComposerLogic = (
     draft,
     attachments,
     onSendAttachment,
+    templateError,
   ]);
 
   const handleClear = useCallback(() => {
     setComposerValue('');
+    setTemplateError(null);
     draft.setMessageType(undefined);
     draft.setTemplateCode(undefined);
     draft.setTemplateParams(undefined);
+    draft.setTemplateMetadata(undefined);
     setSendError(null);
   }, [draft, setComposerValue]);
 
@@ -419,8 +444,10 @@ export const useComposerLogic = (
       content: string;
       templateCode?: string;
       templateMetadata?: unknown;
+      templateError?: string | null;
     }) => {
       setComposerValue(data.content);
+      setTemplateError(data.templateError ?? null);
       draft.setMessageType(MessageTypeEnum.Template);
       draft.setTemplateCode(data.templateCode);
       draft.setTemplateMetadata(data.templateMetadata);
@@ -453,7 +480,7 @@ export const useComposerLogic = (
     isTemplateLocked,
     isInputReadOnly,
     isRestoring,
-    sendError,
+    sendError: templateError ?? sendError,
 
     // 草稿元数据
     messageType: draft.messageType,

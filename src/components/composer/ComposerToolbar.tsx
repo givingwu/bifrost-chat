@@ -77,6 +77,7 @@ export interface ComposerToolbarRef {
     value: string,
     templateCode?: string,
     templateMetadata?: unknown,
+    templateError?: string | null,
   ) => void;
   /** 聚焦输入框 */
   focus: () => void;
@@ -89,6 +90,7 @@ export interface ComposerToolbarRef {
     content: string;
     templateCode?: Template['code'];
     templateMetadata?: unknown;
+    templateError?: string | null;
   }) => void;
   /** 获取当前附件列表 */
   getAttachments: () => Attachment[];
@@ -183,6 +185,7 @@ export const ComposerToolbar = forwardRef<
         value: string,
         templateCode?: string,
         templateMetadata?: unknown,
+        templateError?: string | null,
       ) => {
         logic.setValue(value);
 
@@ -191,6 +194,7 @@ export const ComposerToolbar = forwardRef<
             content: value,
             templateCode,
             templateMetadata,
+            templateError,
           });
         }
       },
@@ -202,6 +206,7 @@ export const ComposerToolbar = forwardRef<
         content: string;
         templateCode?: string;
         templateMetadata?: unknown;
+        templateError?: string | null;
       }) => {
         logic.setTemplate(data);
       },

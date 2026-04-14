@@ -390,6 +390,18 @@ class MockTemplateService implements ITemplateService {
   }
 }
 
+class MockFailedPreviewTemplateService extends MockTemplateService {
+  async preview(params: {
+    conversationId: string;
+    currentChannel: string;
+    templateCode: string;
+  }): ReturnType<MockTemplateService['preview']> {
+    throw new Error(
+      `模板 ${params.templateCode} 在渠道 ${params.currentChannel} 下参数替换失败`,
+    );
+  }
+}
+
 const meta: Meta<typeof DefaultChatLayout> = {
   title: 'Layout/DefaultChatLayout',
   component: DefaultChatLayout,
@@ -626,6 +638,48 @@ export const WithProfileAndTemplatePanel: Story = {
       description: {
         story:
           '右侧面板同时展示客户画像（Profile）和快捷回复模板（TemplatePanel）。两者之间通过父容器的 divide-y 自动插入分割线，Profile 不再自持 border-b，TemplatePanel 用包裹层保证剩余空间填满与内部滚动正常。',
+      },
+    },
+  },
+};
+
+/**
+ * 模板预览失败
+ *
+ * 展示模板参数替换异常时，调用方如何阻止继续发送。
+ */
+export const WithTemplatePreviewFailure: Story = {
+  args: {},
+  decorators: [
+    (Story) => (
+      <ConfigProvider
+        config={{
+          strategy: {
+            activeChannel: ChannelTypeEnum.WhatsApp,
+            allowedChannels: [ChannelTypeEnum.WhatsApp],
+          },
+        }}
+      >
+        <ServiceProvider
+          conversationService={new MockConversationService()}
+          messageService={new MockMessageService()}
+          templateService={new MockFailedPreviewTemplateService()}
+        >
+          <Story />
+        </ServiceProvider>
+      </ConfigProvider>
+    ),
+  ],
+  render: (args) => (
+    <DefaultChatLayout {...args}>
+      <InfiniteMessageList conversationId="conv-1" />
+    </DefaultChatLayout>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '点击右侧模板后会触发预览失败。当前实现会把模板回填到 Composer，但同时注入错误态并禁用发送按钮，避免把未成功替换参数的模板继续发出去。',
       },
     },
   },
