@@ -5,9 +5,11 @@ import {
 } from '@/providers/query.provider';
 import type { OfflineMessageQueueService } from '@/services/messaging/offline-message-queue.service';
 import { resetChatStore } from '@/store';
+import { resetComposerDraftStore } from '@/store/draft.store';
 
 const LEGACY_DRAFT_STORAGE_KEY = 'bifrost-chat-draft';
 const DRAFT_STORAGE_KEY_PREFIX = 'bifrost-chat-draft-';
+const DRAFT_STORE_STORAGE_KEY = 'bifrost-drafts';
 
 /**
  * 清理 SDK 写入到浏览器存储中的所有草稿键。
@@ -27,7 +29,8 @@ function clearDraftStorage(storage: Storage) {
 
     if (
       key === LEGACY_DRAFT_STORAGE_KEY ||
-      key.startsWith(DRAFT_STORAGE_KEY_PREFIX)
+      key.startsWith(DRAFT_STORAGE_KEY_PREFIX) ||
+      key === DRAFT_STORE_STORAGE_KEY
     ) {
       draftKeys.add(key);
     }
@@ -68,6 +71,7 @@ export function clearSDK(options: CleanupOptions = {}) {
   } = options;
 
   resetChatStore();
+  resetComposerDraftStore();
   clearQueryCache(queryClient);
 
   if (!clearStorage || typeof window === 'undefined') {

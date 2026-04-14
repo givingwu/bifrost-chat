@@ -1,12 +1,18 @@
-import { QueryClient } from '@tanstack/react-query';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { QueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/providers/query.provider';
 import { clearSDK } from './sdk-cleanup.util';
+import { resetComposerDraftStore } from '@/store/draft.store';
+
+// Mock resetComposerDraftStore
+vi.mock('@/store/draft.store', () => ({
+  resetComposerDraftStore: vi.fn(),
+}));
 
 describe('clearSDK', () => {
   beforeEach(() => {
     localStorage.clear();
-    vi.restoreAllMocks();
+    vi.clearAllMocks();
   });
 
   it('clearStorage=true 时应清理旧版和按渠道分桶的草稿缓存', () => {
@@ -28,6 +34,25 @@ describe('clearSDK', () => {
     ).toBeNull();
     expect(localStorage.getItem('bifrost-chat-draft-channel-email')).toBeNull();
     expect(localStorage.getItem('other-key')).toBe('keep');
+  });
+
+  it('clearStorage=true 时应清理新的 Zustand 草稿存储', () => {
+    localStorage.setItem(
+      'bifrost-drafts',
+      JSON.stringify({ state: { drafts: {} }, version: 0 }),
+    );
+    localStorage.setItem('other-key', 'keep');
+
+    clearSDK({ clearStorage: true });
+
+    expect(localStorage.getItem('bifrost-drafts')).toBeNull();
+    expect(localStorage.getItem('other-key')).toBe('keep');
+  });
+
+  it('应调用 resetComposerDraftStore 清理 Zustand 草稿 store', () => {
+    clearSDK();
+
+    expect(resetComposerDraftStore).toHaveBeenCalledTimes(1);
   });
 
   it('应清理传入 QueryClient 的缓存', () => {
