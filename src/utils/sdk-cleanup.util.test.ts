@@ -1,8 +1,8 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { QueryClient } from '@tanstack/react-query';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { queryKeys } from '@/providers/query.provider';
-import { clearSDK } from './sdk-cleanup.util';
 import { resetComposerDraftStore } from '@/store/draft.store';
+import { clearSDK } from './sdk-cleanup.util';
 
 // Mock resetComposerDraftStore
 vi.mock('@/store/draft.store', () => ({

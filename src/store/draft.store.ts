@@ -189,10 +189,17 @@ function createSafeDraftStorage() {
   return {
     getItem: (name: string) => {
       const value = memoryStorage[name];
-      return value ?? null;
+      if (!value) {
+        return null;
+      }
+      try {
+        return JSON.parse(value);
+      } catch {
+        return null;
+      }
     },
-    setItem: (name: string, value: string) => {
-      memoryStorage[name] = value;
+    setItem: (name: string, value: unknown) => {
+      memoryStorage[name] = JSON.stringify(value);
     },
     removeItem: (name: string) => {
       delete memoryStorage[name];

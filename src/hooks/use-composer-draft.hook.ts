@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import type { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import type { MessageTypeEnum } from '@/interfaces/message.interface';
-import { resolveMessageSendOutcome } from '@/utils/message-send-result.util';
 import {
   buildComposerDraftKey,
   resetComposerDraftStore,
   useComposerDraftStore,
 } from '@/store/draft.store';
+import { resolveMessageSendOutcome } from '@/utils/message-send-result.util';
 
 const DEFAULT_DRAFT_DEBOUNCE_DELAY = 500;
 const LEGACY_DRAFT_KEY_PREFIX = 'bifrost-chat-draft-';
@@ -114,7 +114,9 @@ export function useComposerDraft({
 }: UseComposerDraftOptions): UseComposerDraftResult {
   // ==================== 状态选择器 ====================
   const drafts = useComposerDraftStore((state) => state.drafts);
-  const currentDraftKey = useComposerDraftStore((state) => state.currentDraftKey);
+  const currentDraftKey = useComposerDraftStore(
+    (state) => state.currentDraftKey,
+  );
 
   // 当前草稿数据
   const currentDraftData = useMemo(() => {
@@ -150,10 +152,16 @@ export function useComposerDraft({
 
     // 设置新 key（这会触发 store 的 legacy 迁移逻辑）
     store.setCurrentDraft(conversationId, channel);
-  }, [channel, conversationId, currentDraftKey, draftStorageKey, keepDraftOnSwitch, store]);
+  }, [
+    channel,
+    conversationId,
+    currentDraftKey,
+    draftStorageKey,
+    keepDraftOnSwitch,
+    store,
+  ]);
 
   // ==================== setValue ====================
-  const saveTimeoutRef = useRef<number | undefined>();
   const loadedDraftKeyRef = useRef<string | null>(null);
   const previousDraftKeyRef = useRef<string | null>(null);
 
@@ -305,7 +313,19 @@ export function useComposerDraft({
     // 设置当前 key（这会触发 legacy 迁移）
     store.setCurrentDraft(conversationId, channel);
     loadedDraftKeyRef.current = draftStorageKey;
-  }, [channel, conversationId, draftStorageKey, enableDraft, setValue, setMessageType, setTemplateCode, setTemplateParams, setTemplateMetadata, templateLocked, store]);
+  }, [
+    channel,
+    conversationId,
+    draftStorageKey,
+    enableDraft,
+    setValue,
+    setMessageType,
+    setTemplateCode,
+    setTemplateParams,
+    setTemplateMetadata,
+    templateLocked,
+    store,
+  ]);
 
   // ==================== 返回值 ====================
   return {

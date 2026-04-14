@@ -1,16 +1,21 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
+import { AgentStatusEnum } from '@/interfaces/agent.interface';
+import { LanguageCodeEnum } from '@/interfaces/language.interface';
 import {
   MessageStatusEnum,
   MessageTypeEnum,
 } from '@/interfaces/message.interface';
-import { LanguageCodeEnum } from '@/interfaces/language.interface';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { AudioOutputFormatEnum } from '@/interfaces/audio.interface';
 import enUS from '@/locales/en-US.json';
 import { ConfigProvider } from '@/providers/config.provider';
 import { I18nProvider } from '@/providers/I18n.provider';
 import { ServiceProvider } from '@/providers/service.provider';
+import type { IConversationService } from '@/services/core/conversation.service';
+import type { IMessageService } from '@/services/core/message.service';
+import type { ITemplateService } from '@/services/core/template.service';
 import { useChatStore } from '@/store';
 import { useComposerLogic } from './use-composer-logic.hook';
 
@@ -25,18 +30,34 @@ vi.mock('./use-template-preview.hook', () => ({
   }),
 }));
 
-const mockServices = {
-  conversationService: {
-    getConversations: vi.fn().mockResolvedValue([]),
-    createConversation: vi.fn().mockResolvedValue({ id: 'conv-1' }),
-  },
-  messageService: {
-    getMessages: vi.fn().mockResolvedValue([]),
-    sendMessage: vi.fn().mockResolvedValue({ id: 'msg-1' }),
-  },
-  templateService: {
-    getTemplates: vi.fn().mockResolvedValue([]),
-  },
+// Mock 服务
+const mockConversationService = {
+  list: vi.fn().mockResolvedValue([]),
+  get: vi.fn().mockResolvedValue(null),
+  create: vi.fn().mockResolvedValue({ id: 'conv-1' }),
+  query: vi.fn().mockResolvedValue([]),
+  subscribeToListUpdates: vi.fn(() => vi.fn()),
+  subscribeToConversationUpdates: vi.fn(() => vi.fn()),
+};
+
+const mockMessageService = {
+  list: vi.fn().mockResolvedValue({ items: [], meta: {} }),
+  send: vi.fn().mockResolvedValue({ id: 'msg-1' }),
+  markAsRead: vi.fn().mockResolvedValue(undefined),
+  subscribeToMessages: vi.fn(() => vi.fn()),
+  subscribeToMessageUpdates: vi.fn(() => vi.fn()),
+  subscribeToMessageStatus: vi.fn(() => vi.fn()),
+  sendAttachment: vi.fn().mockResolvedValue(undefined),
+  sendAudio: vi.fn().mockResolvedValue(undefined),
+};
+
+const mockTemplateService = {
+  list: vi.fn().mockResolvedValue([]),
+  preview: vi.fn().mockResolvedValue({
+    previewContent: 'Previewed template content',
+    code: 'TPL-001',
+    params: { name: 'John' },
+  }),
 };
 
 const queryClient = new QueryClient({
@@ -51,16 +72,23 @@ function createWrapper() {
     return (
       <QueryClientProvider client={queryClient}>
         <I18nProvider locale={LanguageCodeEnum.EnUS} messages={enUS}>
-          <ServiceProvider services={mockServices}>
+          <ServiceProvider
+            conversationService={mockConversationService}
+            messageService={mockMessageService}
+            templateService={mockTemplateService}
+          >
             <ConfigProvider
               config={{
                 strategy: {
-                  allowedChannels: [ChannelTypeEnum.SMS, ChannelTypeEnum.WhatsApp],
+                  allowedChannels: [
+                    ChannelTypeEnum.SMS,
+                    ChannelTypeEnum.WhatsApp,
+                  ],
                   activeChannel: ChannelTypeEnum.SMS,
                   currentUser: {
                     app: 'test-app',
                     pin: 'test-pin',
-                    status: 'online',
+                    status: AgentStatusEnum.Online,
                   },
                 },
               }}
@@ -93,7 +121,7 @@ describe('useComposerLogic', () => {
         maxAudioDuration: 300,
         customMessageMaxLength: undefined,
         ignoreMaxLengthForTemplateMessages: true,
-        audioOutputFormat: 'raw',
+        audioOutputFormat: AudioOutputFormatEnum.Raw,
         showCharCount: true,
         showHint: true,
         showEmojiButton: true,
@@ -147,7 +175,10 @@ describe('useComposerLogic', () => {
     it('发送失败时应保留草稿和模板元数据', async () => {
       const onSend = vi
         .fn()
-        .mockResolvedValue({ status: MessageStatusEnum.Failed, error: 'network error' });
+        .mockResolvedValue({
+          status: MessageStatusEnum.Failed,
+          error: 'network error',
+        });
 
       const { result } = renderHook(
         () =>
@@ -381,7 +412,9 @@ describe('useComposerLogic', () => {
         { wrapper: createWrapper() },
       );
 
-      expect(whatsappResult.current.placeholder).toBe('Input WhatsApp message...');
+      expect(whatsappResult.current.placeholder).toBe(
+        'Input WhatsApp message...',
+      );
     });
   });
 });
