@@ -4,7 +4,7 @@ import { MessageTypeEnum } from '@/interfaces/message.interface';
  * 模板预览失败时展示给用户的默认错误文案。
  */
 export const TEMPLATE_PREVIEW_FAILED_MESSAGE =
-  'Preview failed please check your template content and try again';
+  '模板参数替换失败，当前模板暂不可发送';
 
 /**
  * Composer 发送按钮判定参数。
