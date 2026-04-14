@@ -114,12 +114,20 @@ export const LongContent: Story = {
         id: '1',
         name: '长内容模板',
         content:
-          '这是一个非常长的模板内容，用于测试当模板内容很长时，组件的显示效果。它应该能够正确地截断并显示省略号。',
+          '这是一个非常长的模板内容，用于测试当模板内容很长时，组件的显示效果。它应该默认只展示三行，避免模板列表在右侧面板里把每一项撑得过高。鼠标移上去时，浏览器原生 tooltip 会展示完整内容，方便用户确认模板全文，再决定是否点击发送或回填。',
         category: '测试',
         tags: ['长内容'],
         createdAt: Date.now(),
         updatedAt: Date.now(),
       },
     ],
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '长模板内容默认限制为最多 3 行，hover 时通过原生 tooltip 查看完整内容。',
+      },
+    },
   },
 };

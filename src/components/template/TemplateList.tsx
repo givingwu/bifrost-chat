@@ -98,7 +98,18 @@ export const TemplateList = ({
               ) : null}
 
               {/* 内容预览 */}
-              <p className="text-xs text-gray-500 dark:text-gray-400 wrap-anywhere">
+              <p
+                className={cn(
+                  'text-xs text-gray-500 dark:text-gray-400 wrap-anywhere',
+                  'overflow-hidden text-ellipsis',
+                )}
+                style={{
+                  display: '-webkit-box',
+                  WebkitBoxOrient: 'vertical',
+                  WebkitLineClamp: 3,
+                }}
+                title={template.content}
+              >
                 {template.content}
               </p>
 
