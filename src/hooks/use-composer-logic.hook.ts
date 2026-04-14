@@ -18,9 +18,9 @@ import type { AudioData } from '@/interfaces/audio.interface';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import type { IComposerConfig } from '@/interfaces/composer.interface';
 import { MessageTypeEnum } from '@/interfaces/message.interface';
+import { useTranslation } from '@/providers/I18n.provider';
 import { useComposerConfig } from '@/store';
 import { resolveComposerCanSend } from '@/utils/composer-send-guard.util';
-import { useTranslation } from '@/providers/I18n.provider';
 
 // ==================== 类型定义 ====================
 

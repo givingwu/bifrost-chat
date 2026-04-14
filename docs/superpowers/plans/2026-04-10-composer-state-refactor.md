@@ -1,1148 +1,216 @@
-# Composer State Management Refactor Implementation Plan
+# Composer 状态管理重构 Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Refactor Composer state management from dual-hook architecture to Zustand Store + simplified Hook
+**Goal:** 用内部的 Zustand 持久化草稿 store 替换 `use-composer-draft` 的本地状态实现，同时保持 `useComposerLogic` 与公开 `useComposerDraft` API 的兼容行为。
 
-**Architecture:** Create a standalone Zustand store (`draft.store.ts`) with persist middleware for long-term state (content, template metadata), keep short-term UI state (attachments, isRecording, isSending) in the simplified `useComposerLogic` hook.
+**Architecture:** 新增一个仅仓库内部使用的 `draft.store.ts`，负责长期草稿状态、旧 localStorage key 迁移与持久化。`useComposerLogic` 直接消费 store；`useComposerDraft` 保留为公开兼容包装层，把现有选项与返回值映射到新 store 与发送逻辑，避免破坏 `src/index.ts` 现有导出边界。
 
-**Tech Stack:** Zustand (with persist middleware), Vitest, React Testing Library
-
----
-
-## Important Notes
-
-### Breaking Changes
-
-1. **Storage Key Format**: The old `useComposerDraft` used keys like `bifrost-chat-draft-conversation-{id}-channel-{channel}` in localStorage. The new store uses `${conversationId}-${channel}`. **Existing drafts will be lost** after this migration. This is acceptable for a major refactor.
-
-2. **keepDraftOnSwitch Behavior**: The `keepDraftOnSwitch` config is now effectively always true (drafts are never auto-cleared when switching). The config option is kept for backward compatibility but no longer controls behavior.
-
-3. **isRestoring State**: The `isRestoring` state has been removed from `useComposerLogic` return value. If any components consume this value, they need to be updated.
+**Tech Stack:** TypeScript, React, Zustand, Vitest, Testing Library
 
 ---
 
-## File Structure
+## 文件结构与职责
 
-### New Files
-| File | Responsibility |
-|------|-----------------|
-| `src/store/draft.store.ts` | Zustand store managing draft state with localStorage persistence |
-| `src/store/draft.store.test.ts` | Unit tests for draft store |
+- Create: `src/store/draft.store.ts`
+  负责定义 `DraftData`、draft key 生成、legacy localStorage 迁移、`useComposerDraftStore` 与语义化 action。
+- Create: `src/store/draft.store.test.ts`
+  覆盖当前草稿切换、模板原子写入、清空草稿、旧 key 迁移、禁用/清空边界。
+- Create: `src/hooks/use-composer-logic.hook.test.tsx`
+  覆盖 `useComposerLogic` 的发送成功/失败、模板预览恢复、clear 行为与 `canSend` 计算。
+- Modify: `src/hooks/use-composer-draft.hook.ts`
+  保留公开 hook 名称与选项签名，改为基于 store 的兼容包装层；继续支持 `clearDraftOnSend`、`keepDraftOnSwitch`、`onSend`。
+- Modify: `src/hooks/use-composer-draft.hook.test.ts`
+  从“直接操作 localStorage”切到“验证兼容包装层行为”，保留关键兼容场景。
+- Modify: `src/hooks/use-composer-logic.hook.ts`
+  移除对旧 hook 内部状态机的依赖，直接消费 store，并保留既有返回值形状。
+- Modify: `src/utils/sdk-cleanup.util.ts`
+  把新旧草稿 key 一并纳入 `clearSDK({ clearStorage: true })` 清理路径。
+- Modify: `src/utils/sdk-cleanup.util.test.ts`
+  覆盖 `bifrost-chat-draft`、`bifrost-chat-draft-*`、`bifrost-drafts` 三类 key 的清理行为。
+- Modify: `design/final-architecture.md`
+  把 Composer 长期草稿状态更新为 As-Is 的 Zustand 持久化事实。
+- Modify: `README.md`
+  在状态管理/特性描述里补一句 Composer 草稿已统一由 Zustand 持久化管理，并更新 `clearSDK` 的清理口径。
 
-### Modified Files
-| File | Changes |
-|------|---------|
-| `src/hooks/use-composer-logic.hook.ts` | Remove dependency on `useComposerDraft`, use `useDraftStore` instead |
-| `src/store/index.ts` | Export `useDraftStore` and `useDraft` selector |
-| `src/components/layout/DefaultChatLayout.tsx` | Add template preview restoration logic |
+## 全局实施约束
 
-### Deleted Files
-| File | Reason |
-|------|--------|
-| `src/hooks/use-composer-draft.hook.ts` | Replaced by Zustand store |
-| `src/hooks/use-composer-draft.hook.test.ts` | Replaced by store tests |
+- 公开 API 兼容性优先：`src/hooks/index.ts` 继续导出 `useComposerDraft`，不要删除或重命名。
+- `Conversation` 命名不变，不新增 `Session`/`Chat` 公共命名。
+- 不把新 draft store 从 `src/store/index.ts` 公开导出，避免无必要扩大包 API。
+- 必须兼容旧格式草稿：
+  - 全局旧 key：`bifrost-chat-draft`
+  - 分桶旧 key：`bifrost-chat-draft-*`
+  - 旧 value：纯文本和 JSON 两种格式
+- 新持久化 key 固定为 `bifrost-drafts`，并且 `clearSDK({ clearStorage: true })`
+  必须同时清理 `bifrost-chat-draft`、`bifrost-chat-draft-*` 和
+  `bifrost-drafts`。
+- `clearSDK({ clearStorage: true })` 除了清理浏览器存储，还必须重置独立的
+  draft store 内存状态，避免 UI 仍展示已删除草稿。
+- `draftDebounceDelay` 是现有对外配置，最终实现必须明确落在持久化写入链路上，并用测试证明“输入更新后不会立即写入持久化存储”。
+- 无 `window.localStorage` 的环境必须优雅降级到内存态，不允许在模块导入或 store 初始化时抛错。
+- 每个任务都遵守 TDD：先写失败测试，再写最小实现，再跑通过。
 
----
-
-## Task 1: Create Draft Store
+### Task 1: 落内部草稿 Store
 
 **Files:**
 - Create: `src/store/draft.store.ts`
-- Create: `src/store/draft.store.test.ts`
+- Test: `src/store/draft.store.test.ts`
 
-- [ ] **Step 1: Write store interface and types**
+- [ ] **Step 1: 写失败测试，锁定 store 契约**
 
-Create `src/store/draft.store.ts` with core types:
+```ts
+it('切换 current draft 时应返回对应会话和渠道的草稿');
+it('setTemplate 应一次性写入 content、messageType、templateCode、templateMetadata');
+it('clearDraft 只清当前 key，clearAllDrafts 清空全部');
+it('新 store 没有记录时应从 legacy localStorage key 恢复草稿');
+it('没有 localStorage 时初始化 store 不应抛错');
+```
 
-```typescript
-import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import type { ChannelTypeEnum } from '@/interfaces/channel.interface';
-import type { MessageTypeEnum } from '@/interfaces/message.interface';
+- [ ] **Step 2: 运行单测确认失败**
 
-/**
- * 草稿数据结构
- */
-export interface DraftData {
-  /** 输入内容 */
-  content: string;
-  /** 消息类型 */
-  messageType?: MessageTypeEnum;
-  /** 模板代码 */
-  templateCode?: string;
-  /** 模板参数 */
-  templateParams?: Record<string, string>;
-  /** 模板元数据（用于发送时传递给后端） */
-  templateMetadata?: unknown;
-}
+Run: `pnpm exec vitest run src/store/draft.store.test.ts`
+Expected: FAIL，提示 `draft.store.ts` 或对应 action 尚不存在。
 
-/**
- * 草稿存储键生成器
- */
-export function buildDraftKey(
-  conversationId: string,
-  channel: ChannelTypeEnum,
-): string {
-  return `${conversationId}-${channel}`;
-}
+- [ ] **Step 3: 实现最小 store**
 
-/**
- * 草稿 Store 状态
- */
-interface DraftState {
-  /** 草稿数据：key = `${conversationId}-${channel}` */
+```ts
+type ComposerDraftStore = {
   drafts: Record<string, DraftData>;
-  /** 当前激活的草稿 key */
   currentDraftKey: string | null;
-}
-
-/**
- * 草稿 Store 操作
- */
-interface DraftActions {
-  /** 设置当前会话（切换会话时调用） */
   setCurrentDraft: (conversationId: string, channel: ChannelTypeEnum) => void;
-  /** 设置输入内容 */
   setValue: (value: string) => void;
-  /** 设置模板内容（语义化操作，一次设置多个相关字段） */
-  setTemplate: (data: {
-    content: string;
-    templateCode?: string;
-    templateParams?: Record<string, string>;
-    templateMetadata?: unknown;
-  }) => void;
-  /** 清空当前草稿 */
+  setTemplate: (data: SetTemplatePayload) => void;
+  setDraftData: (data: Partial<DraftData>) => void;
   clearDraft: () => void;
-  /** 清空所有草稿（登出时调用） */
   clearAllDrafts: () => void;
-  /** 获取当前草稿数据 */
   getCurrentDraft: () => DraftData;
-  /** 获取当前输入内容 */
   getValue: () => string;
-  /** 检查当前草稿是否为空 */
   isEmpty: () => boolean;
-}
-
-/**
- * 草稿 Store 类型
- */
-export type DraftStore = DraftState & DraftActions;
-
-/**
- * 默认草稿数据
- */
-const defaultDraft: DraftData = {
-  content: '',
-  messageType: undefined,
-  templateCode: undefined,
-  templateParams: undefined,
-  templateMetadata: undefined,
 };
-
-/**
- * 创建草稿 Store
- */
-export const useDraftStore = create<DraftStore>()(
-  persist(
-    (set, get) => ({
-      // ========== 状态 ==========
-      drafts: {},
-      currentDraftKey: null,
-
-      // ========== 操作 ==========
-
-      setCurrentDraft: (conversationId: string, channel: ChannelTypeEnum) => {
-        const key = buildDraftKey(conversationId, channel);
-        set({ currentDraftKey: key });
-
-        // 确保草稿存在
-        const { drafts } = get();
-        if (!drafts[key]) {
-          set((state) => ({
-            drafts: { ...state.drafts, [key]: { ...defaultDraft } },
-          }));
-        }
-      },
-
-      setValue: (value: string) => {
-        const { currentDraftKey, drafts } = get();
-        if (!currentDraftKey) return;
-
-        set({
-          drafts: {
-            ...drafts,
-            [currentDraftKey]: {
-              ...drafts[currentDraftKey],
-              content: value,
-            },
-          },
-        });
-      },
-
-      setTemplate: (data) => {
-        const { currentDraftKey, drafts } = get();
-        if (!currentDraftKey) return;
-
-        set({
-          drafts: {
-            ...drafts,
-            [currentDraftKey]: {
-              ...drafts[currentDraftKey],
-              content: data.content,
-              templateCode: data.templateCode,
-              templateParams: data.templateParams,
-              templateMetadata: data.templateMetadata,
-              messageType: data.templateCode
-                ? ('template' as const)
-                : undefined,
-            },
-          },
-        });
-      },
-
-      clearDraft: () => {
-        const { currentDraftKey, drafts } = get();
-        if (!currentDraftKey) return;
-
-        set({
-          drafts: {
-            ...drafts,
-            [currentDraftKey]: { ...defaultDraft },
-          },
-        });
-      },
-
-      clearAllDrafts: () => {
-        set({ drafts: {}, currentDraftKey: null });
-      },
-
-      getCurrentDraft: () => {
-        const { currentDraftKey, drafts } = get();
-        if (!currentDraftKey) return { ...defaultDraft };
-        return drafts[currentDraftKey] || { ...defaultDraft };
-      },
-
-      getValue: () => {
-        return get().getCurrentDraft().content;
-      },
-
-      isEmpty: () => {
-        const draft = get().getCurrentDraft();
-        return !draft.content.trim();
-      },
-    }),
-    {
-      name: 'bifrost-drafts',
-      storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({ drafts: state.drafts }),
-    },
-  ),
-);
-
-/**
- * 草稿状态选择器
- * 返回当前激活会话的草稿状态
- */
-export const useDraft = () => useDraftStore();
 ```
 
-- [ ] **Step 2: Write the failing unit tests**
-
-Create `src/store/draft.store.test.ts`:
-
-```typescript
-import { describe, it, expect, beforeEach } from 'vitest';
-import { MessageTypeEnum } from '@/interfaces/message.interface';
-import { ChannelTypeEnum } from '@/interfaces/channel.interface';
-import { useDraftStore, buildDraftKey, type DraftData } from '@/store/draft.store';
-
-describe('useDraftStore', () => {
-  beforeEach(() => {
-    // 清理 localStorage
-    localStorage.clear();
-    // 重置 store 状态
-    useDraftStore.setState({
-      drafts: {},
-      currentDraftKey: null,
-    });
-  });
-
-  describe('buildDraftKey', () => {
-    it('should build correct key', () => {
-      const key = buildDraftKey('conv-123', ChannelTypeEnum.WhatsApp);
-      expect(key).toBe('conv-123-whatsapp');
-    });
-  });
-
-  describe('setCurrentDraft', () => {
-    it('should set current draft key and create empty draft', () => {
-      const store = useDraftStore.getState();
-
-      store.setCurrentDraft('conv-1', ChannelTypeEnum.WhatsApp);
-
-      expect(store.currentDraftKey).toBe('conv-1-whatsapp');
-      expect(store.drafts['conv-1-whatsapp']).toEqual({
-        content: '',
-        messageType: undefined,
-        templateCode: undefined,
-        templateParams: undefined,
-        templateMetadata: undefined,
-      });
-    });
-
-    it('should not overwrite existing draft when switching back', () => {
-      const store = useDraftStore.getState();
-
-      store.setCurrentDraft('conv-1', ChannelTypeEnum.WhatsApp);
-      store.setValue('Hello');
-
-      store.setCurrentDraft('conv-2', ChannelTypeEnum.SMS);
-      store.setValue('World');
-
-      store.setCurrentDraft('conv-1', ChannelTypeEnum.WhatsApp);
-
-      expect(store.getValue()).toBe('Hello');
-    });
-  });
-
-  describe('setValue', () => {
-    it('should set value for current draft', () => {
-      const store = useDraftStore.getState();
-
-      store.setCurrentDraft('conv-1', ChannelTypeEnum.WhatsApp);
-      store.setValue('Hello World');
-
-      expect(store.getValue()).toBe('Hello World');
-      expect(store.drafts['conv-1-whatsapp'].content).toBe('Hello World');
-    });
-
-    it('should do nothing when no current draft', () => {
-      const store = useDraftStore.getState();
-
-      expect(() => store.setValue('Hello')).not.toThrow();
-      expect(store.currentDraftKey).toBeNull();
-    });
-  });
-
-  describe('setTemplate', () => {
-    it('should set all template fields atomically', () => {
-      const store = useDraftStore.getState();
-
-      store.setCurrentDraft('conv-1', ChannelTypeEnum.WhatsApp);
-      store.setTemplate({
-        content: 'Hi {{name}}',
-        templateCode: 'welcome',
-        templateParams: { name: 'John' },
-        templateMetadata: { version: 1 },
-      });
-
-      const draft = store.getCurrentDraft();
-      expect(draft.content).toBe('Hi {{name}}');
-      expect(draft.templateCode).toBe('welcome');
-      expect(draft.templateParams).toEqual({ name: 'John' });
-      expect(draft.templateMetadata).toEqual({ version: 1 });
-      expect(draft.messageType).toBe('template');
-    });
-
-    it('should set messageType to template when templateCode provided', () => {
-      const store = useDraftStore.getState();
-
-      store.setCurrentDraft('conv-1', ChannelTypeEnum.WhatsApp);
-      store.setTemplate({
-        content: 'Hello',
-        templateCode: 'greeting',
-      });
-
-      expect(store.getCurrentDraft().messageType).toBe('template');
-    });
-
-    it('should not set messageType when templateCode not provided', () => {
-      const store = useDraftStore.getState();
-
-      store.setCurrentDraft('conv-1', ChannelTypeEnum.WhatsApp);
-      store.setTemplate({
-        content: 'Hello',
-      });
-
-      expect(store.getCurrentDraft().messageType).toBeUndefined();
-    });
-  });
-
-  describe('clearDraft', () => {
-    it('should clear current draft', () => {
-      const store = useDraftStore.getState();
-
-      store.setCurrentDraft('conv-1', ChannelTypeEnum.WhatsApp);
-      store.setValue('Hello');
-      store.clearDraft();
-
-      expect(store.getValue()).toBe('');
-      expect(store.getCurrentDraft()).toEqual({
-        content: '',
-        messageType: undefined,
-        templateCode: undefined,
-        templateParams: undefined,
-        templateMetadata: undefined,
-      });
-    });
-
-    it('should not affect other drafts', () => {
-      const store = useDraftStore.getState();
-
-      store.setCurrentDraft('conv-1', ChannelTypeEnum.WhatsApp);
-      store.setValue('Hello');
-
-      store.setCurrentDraft('conv-2', ChannelTypeEnum.SMS);
-      store.setValue('World');
-
-      store.setCurrentDraft('conv-1', ChannelTypeEnum.WhatsApp);
-      store.clearDraft();
-
-      expect(store.getValue()).toBe('');
-
-      store.setCurrentDraft('conv-2', ChannelTypeEnum.SMS);
-      expect(store.getValue()).toBe('World');
-    });
-  });
-
-  describe('clearAllDrafts', () => {
-    it('should clear all drafts and reset key', () => {
-      const store = useDraftStore.getState();
-
-      store.setCurrentDraft('conv-1', ChannelTypeEnum.WhatsApp);
-      store.setValue('Hello');
-
-      store.setCurrentDraft('conv-2', ChannelTypeEnum.SMS);
-      store.setValue('World');
-
-      store.clearAllDrafts();
-
-      expect(store.drafts).toEqual({});
-      expect(store.currentDraftKey).toBeNull();
-    });
-  });
-
-  describe('selectors', () => {
-    it('getCurrentDraft should return current draft', () => {
-      const store = useDraftStore.getState();
-
-      store.setCurrentDraft('conv-1', ChannelTypeEnum.WhatsApp);
-      store.setValue('Hello');
-
-      expect(store.getCurrentDraft().content).toBe('Hello');
-    });
-
-    it('getCurrentDraft should return default when no current draft', () => {
-      const store = useDraftStore.getState();
-
-      expect(store.getCurrentDraft()).toEqual({
-        content: '',
-        messageType: undefined,
-        templateCode: undefined,
-        templateParams: undefined,
-        templateMetadata: undefined,
-      });
-    });
-
-    it('getValue should return current content', () => {
-      const store = useDraftStore.getState();
-
-      store.setCurrentDraft('conv-1', ChannelTypeEnum.WhatsApp);
-      store.setValue('Hello World');
-
-      expect(store.getValue()).toBe('Hello World');
-    });
-
-    it('isEmpty should return true for empty draft', () => {
-      const store = useDraftStore.getState();
-
-      store.setCurrentDraft('conv-1', ChannelTypeEnum.WhatsApp);
-
-      expect(store.isEmpty()).toBe(true);
-    });
-
-    it('isEmpty should return false for draft with content', () => {
-      const store = useDraftStore.getState();
-
-      store.setCurrentDraft('conv-1', ChannelTypeEnum.WhatsApp);
-      store.setValue('Hello');
-
-      expect(store.isEmpty()).toBe(false);
-    });
-
-    it('isEmpty should return true for whitespace-only content', () => {
-      const store = useDraftStore.getState();
-
-      store.setCurrentDraft('conv-1', ChannelTypeEnum.WhatsApp);
-      store.setValue('   ');
-
-      expect(store.isEmpty()).toBe(true);
-    });
-  });
-});
-```
-
-- [ ] **Step 3: Run tests to verify they fail**
-
-Run: `pnpm test src/store/draft.store.test.ts`
-Expected: Tests fail because import paths don't exist yet
-
-- [ ] **Step 4: Implement the store**
-
-The code was provided in Step 1.
-
-- [ ] **Step 5: Run tests to verify they pass**
-
-Run: `pnpm test src/store/draft.store.test.ts`
-Expected: All tests pass
-
-- [ ] **Step 6: Commit**
+实现时同时补上：
+- `buildComposerDraftKey(conversationId, channel)`
+- `readLegacyDraftData(key)` / `parseLegacyDraftData(raw)`
+- `readGlobalLegacyDraftData()`，兼容 `bifrost-chat-draft`
+- `createSafeDraftStorage()`，在没有 `window.localStorage` 时回退到 no-op memory storage
+- `zustand/persist` 配置，`name` 固定为 `bifrost-drafts`
+- `partialize` 只持久化 `drafts`
+- `DraftData`、`setTemplate`、`setDraftData` 必须覆盖
+  `content/messageType/templateCode/templateParams/templateMetadata`
+- 针对 `draftDebounceDelay` 增加独立的持久化调度层，不要把即时 store 更新和持久化写盘混成同一步
+- 为 `clearSDK` 预留显式 reset 入口，例如 `resetComposerDraftStore()`
+
+- [ ] **Step 4: 再跑 store 单测确认通过**
+
+Run: `pnpm exec vitest run src/store/draft.store.test.ts`
+Expected: PASS
+
+- [ ] **Step 5: 提交 Task 1**
 
 ```bash
 git add src/store/draft.store.ts src/store/draft.store.test.ts
-git commit -m "feat: create draft store with persist middleware
-
-- Add Zustand store for draft state management
-- Add persist middleware for localStorage sync
-- Add unit tests for all store operations
-
-Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
+git commit -m "refactor: add persisted composer draft store"
 ```
 
----
-
-## Task 2: Export Draft Store from Index
+### Task 2: 保留公开 hook 兼容层并重写 useComposerLogic
 
 **Files:**
-- Modify: `src/store/index.ts`
-
-- [ ] **Step 1: Add exports to store index**
-
-Add to `src/store/index.ts`:
-
-```typescript
-// ... existing imports ...
-import type { DraftStore } from './draft.store';
-import { useDraftStore, useDraft } from './draft.store';
-
-// ... add to exports ...
-export type { DraftStore };
-export { useDraftStore, useDraft };
-```
-
-Find the existing export section and add:
-
-```typescript
-// Add to type exports (after line 28, after other type exports):
-export type { DraftStore } from './draft.store';
-
-// Add to selector exports (after line 247, after useComposerConfig):
-export const useDraftStore = () => useDraftStoreInternal();
-export const useDraft = () => useDraftStoreInternal();
-
-// And add the import at the top with other imports:
-import { useDraftStore as useDraftStoreInternal } from './draft.store';
-```
-
-Note: The store is NOT integrated into the main ChatStore - it's an independent store with its own selector.
-
-- [ ] **Step 2: Verify exports compile**
-
-Run: `pnpm run build`
-Expected: Build succeeds
-
-- [ ] **Step 3: Commit**
-
-```bash
-git add src/store/index.ts
-git commit -m "feat: export draft store from store index
-
-Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
-```
-
----
-
-## Task 3: Refactor useComposerLogic Hook
-
-**Files:**
+- Modify: `src/hooks/use-composer-draft.hook.ts`
+- Modify: `src/hooks/use-composer-draft.hook.test.ts`
 - Modify: `src/hooks/use-composer-logic.hook.ts`
+- Create: `src/hooks/use-composer-logic.hook.test.tsx`
 
-- [ ] **Step 1: Remove useComposerDraft import**
+- [ ] **Step 1: 先写失败测试，覆盖逻辑层关键行为**
 
-Remove these lines from `src/hooks/use-composer-logic.hook.ts`:
-```typescript
-import {
-  buildConversationDraftStorageKey,
-  useComposerDraft,
-} from '@/hooks/use-composer-draft.hook';
+```ts
+it('发送成功且 clearDraftOnSend=true 时应清空当前草稿');
+it('发送失败时应保留草稿和模板元数据');
+it('template draft 恢复时应重新 preview 并用最新内容更新 store');
+it('handleClear 应清空 content、messageType、templateCode、templateParams、templateMetadata');
+it('公开 useComposerDraft 仍可返回完整兼容接口');
+it('draftDebounceDelay 到期前不应把最新草稿写入持久化存储');
 ```
 
-- [ ] **Step 2: Add useDraftStore import**
+- [ ] **Step 2: 运行 hook 测试确认失败**
 
-Add to imports:
-```typescript
-import { useDraftStore } from '@/store';
-```
+Run: `pnpm exec vitest run src/hooks/use-composer-draft.hook.test.ts src/hooks/use-composer-logic.hook.test.tsx`
+Expected: FAIL，说明旧实现与新 store 契约还未对齐。
 
-- [ ] **Step 3: Replace draft hook usage with store**
+- [ ] **Step 3: 用最小改动接入 store**
 
-Find and replace the draft state section (around lines 136-145):
+实现要求：
+- `useComposerLogic` 直接用 `useComposerDraftStore` 读取当前草稿与 action。
+- 会话/渠道变化时切换 `currentDraftKey`，并在 `keepDraftOnSwitch=false` 时清除旧 key 对应草稿。
+- 模板恢复逻辑继续存在，但更新目标改为 store。
+- `useComposerDraft` 变成兼容包装层：
+  - 维持现有 options / return shape
+  - 必须继续提供：`value`、`setValue`、`messageType`、`setMessageType`、
+    `templateCode`、`setTemplateCode`、`templateParams`、
+    `setTemplateParams`、`templateMetadata`、`setTemplateMetadata`、
+    `setDraftData`、`getDraftData`、`draftStorageKey`、`clearDraft`、
+    `loadDraft`、`loadDraftData`、`saveDraft`、`saveDraftData`、
+    `handleSend`
+  - 内部调用 store action
+  - `handleSend` 继续用 `resolveMessageSendOutcome`
+  - `saveDraft` / `saveDraftData` / 自动保存都要共用同一条防抖持久化链路
+  - `draftStorageKey` 继续暴露 legacy key 形态，避免接入方行为变化
+  - 在 `clearDraft`、发送成功清空、`keepDraftOnSwitch=false` 切换会话时，必须取消尚未执行的防抖写入，避免旧草稿被回写
 
-**OLD CODE:**
-```typescript
-// ==================== 草稿状态 ====================
-const draft = useComposerDraft({
-  conversationId,
-  channel,
-  enableDraft,
-  clearDraftOnSend: config.clearDraftOnSend,
-  keepDraftOnSwitch: config.keepDraftOnSwitch,
-  draftDebounceDelay: config.draftDebounceDelay,
-  onSend: onSendProp,
-});
-```
+- [ ] **Step 4: 跑 hook 测试确认通过**
 
-**NEW CODE:**
-```typescript
-// ==================== 草稿状态 ====================
-const draft = useDraftStore();
+Run: `pnpm exec vitest run src/hooks/use-composer-draft.hook.test.ts src/hooks/use-composer-logic.hook.test.tsx`
+Expected: PASS
 
-// 设置当前会话的草稿（当 conversationId 或 channel 变化时）
-useEffect(() => {
-  if (conversationId && channel && enableDraft) {
-    draft.setCurrentDraft(conversationId, channel);
-  }
-}, [conversationId, channel, enableDraft, draft]);
-```
-
-Note: `enableDraft` is now handled by conditionally calling `setCurrentDraft`. When disabled, the current draft won't be set/updated.
-
-- [ ] **Step 4: Update setComposerValue to use store directly**
-
-Replace the `setComposerValue` callback:
-
-**OLD CODE:**
-```typescript
-const setComposerValue = useCallback(
-  (nextValue: string) => {
-    draft.setValue(clampComposerValue(nextValue, effectiveMaxLength));
-  },
-  [draft, effectiveMaxLength],
-);
-```
-
-**NEW CODE:**
-```typescript
-const setComposerValue = useCallback(
-  (nextValue: string) => {
-    draft.setValue(clampComposerValue(nextValue, effectiveMaxLength));
-  },
-  [draft, effectiveMaxLength],
-);
-```
-
-Note: `draft` remains in dependencies to avoid stale closure issues.
-
-- [ ] **Step 5: Remove template preview restoration logic**
-
-Remove the template restoration useEffect (around lines 181-230) and related code:
-
-**DELETE:**
-- The entire template restoration useEffect
-- `import { useTemplatePreview } from '@/hooks/use-template-preview.hook';`
-- `const { mutateAsync: previewTemplate } = useTemplatePreview();`
-- `const [isRestoring, setIsRestoring] = useState(false);`
-- `const processedDraftScopeRef = useRef<string | undefined>(undefined);`
-
-The template restoration logic will be moved to Task 4 (DefaultChatLayout).
-
-- [ ] **Step 6: Update handleSend to use store directly**
-
-Replace the clear draft section in `handleSend`:
-
-**OLD CODE:**
-```typescript
-if (hasAttachments && onSendAttachment) {
-  await onSendAttachment(attachments, messageToSend || undefined);
-  setAttachments([]);
-  if (config.clearDraftOnSend) {
-    draft.setValue('');
-    draft.setMessageType(undefined);
-    draft.setTemplateCode(undefined);
-    draft.setTemplateParams(undefined);
-    draft.setTemplateMetadata(undefined);
-    draft.clearDraft();
-  }
-}
-```
-
-**NEW CODE:**
-```typescript
-if (hasAttachments && onSendAttachment) {
-  await onSendAttachment(attachments, messageToSend || undefined);
-  setAttachments([]);
-  if (config.clearDraftOnSend) {
-    draft.clearDraft();
-  }
-}
-```
-
-Also update the regular message send section:
-
-**OLD CODE:**
-```typescript
-} else if (messageToSend) {
-  const options =
-    draft.messageType === MessageTypeEnum.Template
-      ? {
-          type: MessageTypeEnum.Template,
-          templateCode: draft.templateCode,
-          templateMetadata: draft.templateMetadata,
-        }
-      : {
-          type: draft.messageType,
-        };
-  await draft.handleSend(messageToSend, options);
-}
-```
-
-**NEW CODE:**
-```typescript
-} else if (messageToSend) {
-  const currentDraft = draft.getCurrentDraft();
-  const options =
-    currentDraft.messageType === MessageTypeEnum.Template
-      ? {
-          type: MessageTypeEnum.Template,
-          templateCode: currentDraft.templateCode,
-          templateMetadata: currentDraft.templateMetadata,
-        }
-      : {
-          type: currentDraft.messageType,
-        };
-
-  await onSendProp?.(messageToSend, options);
-
-  if (config.clearDraftOnSend) {
-    draft.clearDraft();
-  }
-}
-```
-
-- [ ] **Step 7: Update handleClear**
-
-**OLD CODE:**
-```typescript
-const handleClear = useCallback(() => {
-  setComposerValue('');
-  draft.setMessageType(undefined);
-  draft.setTemplateCode(undefined);
-  draft.setTemplateParams(undefined);
-  setSendError(null);
-}, [draft, setComposerValue]);
-```
-
-**NEW CODE:**
-```typescript
-const handleClear = useCallback(() => {
-  draft.clearDraft();
-  setSendError(null);
-}, [draft]);
-```
-
-- [ ] **Step 8: Update setTemplate**
-
-**OLD CODE:**
-```typescript
-const setTemplate = useCallback(
-  (data: {
-    content: string;
-    templateCode?: string;
-    templateMetadata?: unknown;
-  }) => {
-    setComposerValue(data.content);
-    draft.setMessageType(MessageTypeEnum.Template);
-    draft.setTemplateCode(data.templateCode);
-    draft.setTemplateMetadata(data.templateMetadata);
-  },
-  [draft, setComposerValue],
-);
-```
-
-**NEW CODE:**
-```typescript
-const setTemplate = useCallback(
-  (data: {
-    content: string;
-    templateCode?: string;
-    templateMetadata?: unknown;
-  }) => {
-    draft.setTemplate(data);
-  },
-  [draft],
-);
-```
-
-Note: The `setTemplate` method in the store already handles setting `messageType` when `templateCode` is provided.
-
-- [ ] **Step 9: Update return value**
-
-Update the return statement to use store methods directly:
-
-**OLD CODE:**
-```typescript
-return {
-  // 状态
-  value: draft.value,
-  attachments,
-  isRecording,
-  isSending,
-  isTemplateLocked,
-  isInputReadOnly,
-  isRestoring,
-  sendError,
-
-  // 草稿元数据
-  messageType: draft.messageType,
-  templateCode: draft.templateCode,
-
-  // 配置
-  config,
-
-  // 计算值
-  effectiveMaxLength,
-  placeholder,
-  canSend,
-
-  // 操作
-  setValue: setComposerValue,
-  handleSend,
-  handleClear,
-  handleAttachmentSelect,
-  handleRemoveAttachment,
-  handleAudioInput,
-  handleSendAudio,
-  handleCancelRecording,
-
-  // 模板操作（供外部调用）
-  setTemplate,
-
-  // Ref 支持
-  inputRef,
-  focus,
-};
-```
-
-**NEW CODE:**
-```typescript
-const currentDraft = draft.getCurrentDraft();
-
-return {
-  // 状态
-  value: currentDraft.content,
-  attachments,
-  isRecording,
-  isSending,
-  isTemplateLocked,
-  isInputReadOnly,
-  sendError,
-
-  // 草稿元数据
-  messageType: currentDraft.messageType,
-  templateCode: currentDraft.templateCode,
-
-  // 配置
-  config,
-
-  // 计算值
-  effectiveMaxLength,
-  placeholder,
-  canSend,
-
-  // 操作
-  setValue: setComposerValue,
-  handleSend,
-  handleClear,
-  handleAttachmentSelect,
-  handleRemoveAttachment,
-  handleAudioInput,
-  handleSendAudio,
-  handleCancelRecording,
-
-  // 模板操作（供外部调用）
-  setTemplate,
-
-  // Ref 支持
-  inputRef,
-  focus,
-};
-```
-
-Note: `isRestoring` has been removed since template restoration is now handled in the layout layer.
-
-- [ ] **Step 10: Verify no isRestoring consumers**
-
-Run: `grep -r "isRestoring" src/components/ --exclude-dir=node_modules`
-Expected: No results (if there are, note which files need updates)
-
-- [ ] **Step 11: Verify build and tests**
-
-Run: `pnpm run build && pnpm test`
-Expected: Build succeeds, tests pass
-
-- [ ] **Step 12: Commit**
+- [ ] **Step 5: 提交 Task 2**
 
 ```bash
-git add src/hooks/use-composer-logic.hook.ts
-git commit -m "refactor(useComposerLogic): use draft store instead of draft hook
-
-- Remove dependency on useComposerDraft hook
-- Use useDraftStore for draft state management
-- Simplify API (direct store method calls)
-- Remove template preview restoration logic (moved to layout)
-- Remove unused isRestoring state
-- Handle enableDraft config in useEffect
-
-Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
+git add src/hooks/use-composer-draft.hook.ts src/hooks/use-composer-draft.hook.test.ts src/hooks/use-composer-logic.hook.ts src/hooks/use-composer-logic.hook.test.tsx
+git commit -m "refactor: move composer logic to draft store"
 ```
 
----
-
-## Task 4: Add Template Preview Restoration to DefaultChatLayout
+### Task 3: 打通清理链路、文档事实并做回归验证
 
 **Files:**
-- Modify: `src/components/layout/DefaultChatLayout.tsx`
+- Modify: `src/utils/sdk-cleanup.util.ts`
+- Modify: `src/utils/sdk-cleanup.util.test.ts`
+- Modify: `design/final-architecture.md`
+- Modify: `README.md`
 
-- [ ] **Step 1: Check current implementation**
+- [ ] **Step 1: 先写或更新回归断言**
 
-Read `src/components/layout/DefaultChatLayout.tsx` to understand the current template handling.
+如果 Task 2 为了兼容 UI 行为修改了 `src/components/composer/*`：
+- 先补对应组件测试，再更新对应 stories。
 
-- [ ] **Step 2: Add template preview restoration logic**
+如果没有组件代码变更：
+- 保持组件 stories 不动，避免无意义改动。
 
-First, add the import at the top of the file:
-```typescript
-import { useDraftStore } from '@/store';
-```
+- [ ] **Step 2: 更新文档事实**
 
-Then add the following logic to restore template drafts when switching conversations. This should be added after the existing useEffect hooks:
+文档要点：
+- `clearSDK({ clearStorage: true })` 同时清理 `bifrost-chat-draft`、
+  `bifrost-chat-draft-*`、`bifrost-drafts`
+- `clearSDK({ clearStorage: true })` 还要同步重置 draft store 内存状态
+- `design/final-architecture.md` 的 As-Is 状态边界中补充 Composer 长期草稿状态由 Zustand 持久化管理
+- `README.md` 在特性或状态管理段落中说明 Composer 草稿已经统一到 Zustand 持久化层
 
-```typescript
-// 模板草稿恢复：当切换到包含模板草稿的会话时，重新预览获取最新内容
-useEffect(() => {
-  const draft = useDraftStore.getState();
-  const currentDraft = draft.getCurrentDraft();
+- [ ] **Step 3: 运行针对性测试确认未引入回归**
 
-  // 如果是模板类型的 draft，重新 preview 获取最新内容
-  if (
-    activeConversationId &&
-    currentDraft.messageType === MessageTypeEnum.Template &&
-    currentDraft.templateCode &&
-    currentDraft.content
-  ) {
-    previewTemplate({
-      conversationId: activeConversationId,
-      currentChannel: activeChannel,
-      templateCode: currentDraft.templateCode,
-    })
-      .then((previewed) => {
-        // 使用最新的 content
-        const newContent = previewed.previewContent ?? currentDraft.content;
-        draft.setTemplate({
-          content: newContent,
-          templateCode: previewed.code ?? currentDraft.templateCode,
-          templateMetadata: previewed,
-        });
-      })
-      .catch((error) => {
-        console.warn('[Composer] Failed to preview template draft:', error);
-        // fallback: 使用缓存的 content
-      });
-  }
-}, [activeConversationId, activeChannel]);
-```
+Run: `pnpm exec vitest run src/store/draft.store.test.ts src/hooks/use-composer-draft.hook.test.ts src/hooks/use-composer-logic.hook.test.tsx src/utils/sdk-cleanup.util.test.ts src/components/composer/Composer.config.test.tsx`
+Expected: PASS
 
-- [ ] **Step 3: Verify build**
-
-Run: `pnpm run build`
-Expected: Build succeeds
-
-- [ ] **Step 4: Commit**
+- [ ] **Step 4: 提交 Task 3**
 
 ```bash
-git add src/components/layout/DefaultChatLayout.tsx
-git commit -m "feat: add template preview restoration in layout layer
-
-- Restore template draft content when switching conversations
-- Re-preview template to get latest content
-- Handle preview errors gracefully
-
-Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
+git add src/utils/sdk-cleanup.util.ts src/utils/sdk-cleanup.util.test.ts design/final-architecture.md README.md
+git commit -m "docs: align composer draft architecture"
 ```
 
----
+## 全量验证
 
-## Task 5: Delete Old Files
+- [ ] `pnpm run check`
+- [ ] `pnpm run test`
+- [ ] `pnpm run build`
 
-**Files:**
-- Delete: `src/hooks/use-composer-draft.hook.ts`
-- Delete: `src/hooks/use-composer-draft.hook.test.ts`
-
-- [ ] **Step 1: Delete old draft hook files**
-
-```bash
-rm src/hooks/use-composer-draft.hook.ts
-rm src/hooks/use-composer-draft.hook.test.ts
-```
-
-- [ ] **Step 2: Remove export from hooks index**
-
-Remove line 5 from `src/hooks/index.ts`:
-```typescript
-export { useComposerDraft } from './use-composer-draft.hook';
-```
-
-- [ ] **Step 3: Verify no remaining imports**
-
-Run: `grep -r "useComposerDraft" src/ --exclude-dir=node_modules`
-Expected: No results (or only in this task's check)
-
-- [ ] **Step 4: Run full test suite**
-
-Run: `pnpm test`
-Expected: All tests pass
-
-- [ ] **Step 5: Run build**
-
-Run: `pnpm run build`
-Expected: Build succeeds
-
-- [ ] **Step 6: Commit**
-
-```bash
-git add -A
-git commit -m "refactor: remove deprecated useComposerDraft hook
-
-- Delete use-composer-draft.hook.ts (replaced by draft store)
-- Delete use-composer-draft.hook.test.ts
-
-Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
-```
-
----
-
-## Task 6: Integration Testing
-
-**Files:**
-- Test: Manual testing in Storybook or test app
-
-- [ ] **Step 1: Test basic composer functionality**
-
-1. Start Storybook: `pnpm run storybook`
-2. Open Composer story
-3. Test typing text
-4. Test switching between conversations
-5. Verify drafts are preserved
-6. Refresh page - verify drafts persist
-
-- [ ] **Step 2: Test template functionality**
-
-1. Select a template
-2. Verify template content is set
-3. Send the template message
-4. Verify draft is cleared
-
-- [ ] **Step 2.5: Test template preview error handling**
-
-1. Select a template to create a template draft
-2. Switch to a different conversation
-3. Mock the previewTemplate API to return an error
-4. Switch back to the template conversation
-5. Verify the cached template content is still used (fallback behavior)
-6. Verify the composer doesn't crash or hang
-
-- [ ] **Step 4: Test attachment functionality**
-
-1. Add an attachment
-2. Switch conversations
-3. Verify attachment is NOT persisted (by design)
-4. Return to original conversation
-5. Verify draft text persists but attachment doesn't
-
-- [ ] **Step 5: Test send failure handling**
-
-1. Type a message
-2. Force a send failure (disconnect network or mock error)
-3. Verify message stays in composer
-4. Verify user can retry
-
-- [ ] **Step 6: Test draft clearing on send**
-
-1. Enable clearDraftOnSend config
-2. Send a message successfully
-3. Verify composer is cleared
-
-4. Disable clearDraftOnSend config
-5. Send a message successfully
-6. Verify composer retains the message
-
-- [ ] **Step 7: Test enableDraft config**
-
-1. Set enableDraft to false
-2. Type a message
-3. Switch conversations
-4. Switch back
-5. Verify draft was NOT saved
-
-- [ ] **Step 8: Test keepDraftOnSwitch behavior**
-
-Note: In the new architecture, drafts are always kept when switching (useDraftStore doesn't auto-clear). The `keepDraftOnSwitch` config is effectively always true. If auto-clearing is needed, it should be implemented at the call site.
-
----
-
-## Task 7: Final Cleanup
-
-**Files:**
-- Update: Documentation if needed
-
-- [ ] **Step 1: Update design docs if needed**
-
-Check if any design docs reference the old hook structure and update them.
-
-- [ ] **Step 2: Run final test suite**
-
-Run: `pnpm test && pnpm run build`
-Expected: All tests pass, build succeeds
-
-- [ ] **Step 3: Final commit**
-
-```bash
-git add -A
-git commit -m "refactor: complete composer state management refactor
-
-- Migrate from dual-hook architecture to Zustand store
-- Simplify API with semantic operations
-- Improve testability with standalone store tests
-- Reduce code complexity
-
-Migration complete:
-- useComposerDraft hook → useDraftStore
-- useComposerLogic hook → simplified, uses store
-- Template restoration moved to DefaultChatLayout
-
-Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
-```
-
----
-
-## Testing Summary
-
-After completing all tasks, verify:
-
-1. **Unit Tests**: Store tests pass
-2. **Integration Tests**: Composer functionality works end-to-end
-3. **Persistence**: Drafts survive page refresh
-4. **Multi-conversation**: Switching conversations preserves individual drafts
-5. **Template Flow**: Selecting and sending templates works correctly
-6. **Error Handling**: Failed sends preserve draft for retry
-7. **enableDraft**: When false, drafts are not persisted
+如果 `check/test/build` 任一步失败，先修复再继续，不允许带失败结果提交。
