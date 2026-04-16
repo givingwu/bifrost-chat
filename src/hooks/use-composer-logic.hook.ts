@@ -276,7 +276,7 @@ export const useComposerLogic = (
 
   const canSend = useMemo(() => {
     return resolveComposerCanSend({
-      value: draft.value,
+      value: draft.value ?? '',
       attachmentCount: attachments.length,
       isSending,
       messageType: draft.messageType,

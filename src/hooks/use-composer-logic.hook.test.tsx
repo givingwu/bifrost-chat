@@ -1,14 +1,14 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import { AgentStatusEnum } from '@/interfaces/agent.interface';
+import { AudioOutputFormatEnum } from '@/interfaces/audio.interface';
+import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import { LanguageCodeEnum } from '@/interfaces/language.interface';
 import {
   MessageStatusEnum,
   MessageTypeEnum,
 } from '@/interfaces/message.interface';
-import { AudioOutputFormatEnum } from '@/interfaces/audio.interface';
 import enUS from '@/locales/en-US.json';
 import { ConfigProvider } from '@/providers/config.provider';
 import { I18nProvider } from '@/providers/I18n.provider';
@@ -173,12 +173,10 @@ describe('useComposerLogic', () => {
     });
 
     it('发送失败时应保留草稿和模板元数据', async () => {
-      const onSend = vi
-        .fn()
-        .mockResolvedValue({
-          status: MessageStatusEnum.Failed,
-          error: 'network error',
-        });
+      const onSend = vi.fn().mockResolvedValue({
+        status: MessageStatusEnum.Failed,
+        error: 'network error',
+      });
 
       const { result } = renderHook(
         () =>

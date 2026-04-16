@@ -290,7 +290,11 @@ export const useComposerDraftStore = create<ComposerDraftStore>()(
         const currentDraft = drafts[currentDraftKey];
 
         // 如果新值为空且没有模板数据，删除该 key
-        if (!value && !currentDraft?.messageType && !currentDraft?.templateCode) {
+        if (
+          !value &&
+          !currentDraft?.messageType &&
+          !currentDraft?.templateCode
+        ) {
           const newDrafts = { ...drafts };
           delete newDrafts[currentDraftKey];
           set({ drafts: newDrafts });
