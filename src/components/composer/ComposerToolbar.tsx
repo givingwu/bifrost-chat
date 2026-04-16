@@ -397,7 +397,7 @@ export const ComposerToolbar = forwardRef<
             {composerConfig.showHint && <ComposerHint channel={channel} />}
             {composerConfig.showCharCount && (
               <ComposerCharCount
-                currentLength={value.length}
+                currentLength={value?.length ?? 0}
                 maxLength={effectiveMaxLength}
               />
             )}

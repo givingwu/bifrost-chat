@@ -1,14 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import type { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import type { MessageTypeEnum } from '@/interfaces/message.interface';
-import {
-  buildComposerDraftKey,
-  resetComposerDraftStore,
-  useComposerDraftStore,
-} from '@/store/draft.store';
+import { useComposerDraftStore } from '@/store/draft.store';
 import { resolveMessageSendOutcome } from '@/utils/message-send-result.util';
 
-const DEFAULT_DRAFT_DEBOUNCE_DELAY = 500;
 const LEGACY_DRAFT_KEY_PREFIX = 'bifrost-chat-draft-';
 
 /**
@@ -33,7 +28,6 @@ export interface UseComposerDraftOptions {
   channel: ChannelTypeEnum;
   templateLocked?: boolean;
   enableDraft?: boolean;
-  draftDebounceDelay?: number;
   clearDraftOnSend?: boolean;
   keepDraftOnSwitch?: boolean;
   onSend?: (
@@ -107,7 +101,6 @@ export function useComposerDraft({
   channel,
   templateLocked = false,
   enableDraft = true,
-  draftDebounceDelay = DEFAULT_DRAFT_DEBOUNCE_DELAY,
   clearDraftOnSend = true,
   keepDraftOnSwitch = true,
   onSend,
@@ -123,7 +116,15 @@ export function useComposerDraft({
     if (!currentDraftKey) {
       return { content: '', messageType: undefined };
     }
-    return drafts[currentDraftKey] || { content: '', messageType: undefined };
+    // 防御：确保 content 始终是字符串（即使 draft 对象存在但 content 是 undefined）
+    const draft = drafts[currentDraftKey];
+    return {
+      content: draft?.content ?? '',
+      messageType: draft?.messageType,
+      templateCode: draft?.templateCode,
+      templateParams: draft?.templateParams,
+      templateMetadata: draft?.templateMetadata,
+    };
   }, [drafts, currentDraftKey]);
 
   // ==================== 操作方法 ====================
@@ -136,30 +137,6 @@ export function useComposerDraft({
     }
     return null;
   }, [channel, conversationId]);
-
-  // 切换草稿 key
-  const setCurrentDraftKey = useCallback(() => {
-    const key = draftStorageKey;
-    if (!key) return;
-
-    // 如果 key 没有变化，不需要处理
-    if (currentDraftKey === key) return;
-
-    // 如果不保留草稿，先清空旧草稿
-    if (!keepDraftOnSwitch && currentDraftKey) {
-      store.clearDraft();
-    }
-
-    // 设置新 key（这会触发 store 的 legacy 迁移逻辑）
-    store.setCurrentDraft(conversationId, channel);
-  }, [
-    channel,
-    conversationId,
-    currentDraftKey,
-    draftStorageKey,
-    keepDraftOnSwitch,
-    store,
-  ]);
 
   // ==================== setValue ====================
   const loadedDraftKeyRef = useRef<string | null>(null);

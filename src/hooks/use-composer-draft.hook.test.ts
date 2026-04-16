@@ -236,7 +236,6 @@ describe('useComposerDraft', () => {
         useComposerDraft({
           conversationId: 'conv-batch',
           channel: ChannelTypeEnum.SMS,
-          draftDebounceDelay: 200,
         }),
       );
 

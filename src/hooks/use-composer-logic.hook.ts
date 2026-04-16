@@ -146,7 +146,6 @@ export const useComposerLogic = (
     enableDraft,
     clearDraftOnSend: config.clearDraftOnSend,
     keepDraftOnSwitch: config.keepDraftOnSwitch,
-    draftDebounceDelay: config.draftDebounceDelay,
     onSend: onSendProp,
   });
   const customMessageMaxLength = useMemo(
