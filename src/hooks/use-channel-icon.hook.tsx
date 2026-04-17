@@ -18,6 +18,7 @@ const SIZE_PX: Record<ChannelIconSize, number> = {
 export const CHANNEL_BRAND_COLOR: Record<ChannelTypeEnum, string> = {
   [ChannelTypeEnum.SMS]: '#3B82F6', // blue-500
   [ChannelTypeEnum.WhatsApp]: '#22C55E', // green-500（WhatsApp 官方绿）
+  [ChannelTypeEnum.WaAgent]: '#16A34A', // green-600（自研 WhatsApp 代理，稍深以区分）
   [ChannelTypeEnum.Email]: '#F97316', // orange-500
   [ChannelTypeEnum.Viber]: '#8B5CF6', // violet-500（Viber 官方紫）
 };
@@ -69,6 +70,31 @@ const WhatsAppIcon: IconFactory = (size) => (
   </svg>
 );
 
+/** WaAgent：自研 WhatsApp 代理（与 WhatsApp 相同图标，但颜色更深以区分） */
+const WaAgentIcon: IconFactory = (size) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={size}
+    height={size}
+    viewBox="0 0 1024 1024"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={1.75}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <path
+      d="M700.8 592.7c-28.5-16-61.6-31.3-82.4-37.7-20.8-6.4-47.7 44.5-47.7 44.5s-25.2 6.1-80.6-38c-55.4-44.1-61-83.6-61-83.6s28.5-25.1 28.5-42.6-11.5-53.2-33.1-84.4c-21.6-31.2-114.7 0-87.8 111.7 10.2 42.3 33.1 87.4 112.4 155.8s154 77.5 200.1 69.2c46.2-8.3 80.1-78.9 51.6-94.9z"
+      fill="currentColor"
+    ></path>
+    <path
+      d="M516.5 112.3c-218.5 0-395.6 174.9-395.6 390.6 0 77.3 22.8 149.4 62 210.1 5 7.7-76.6 194.1-70.6 198.7 3.5 2.7 204.5-71.5 208-69.5 57.8 32.7 124.8 51.4 196.2 51.4 218.5 0 395.6-174.9 395.6-390.6 0-215.8-177.1-390.7-395.6-390.7z m0 703.1c-63 0-121.8-18.2-171.1-49.6-7-4.5-124.6 45.4-126.9 43.6-2.8-2.1 44.2-119.8 41.6-123.4-37.8-51.5-60-114.8-60-183.2 0-172.6 141.7-312.5 316.5-312.5s316.5 139.9 316.5 312.5c-0.2 172.7-141.8 312.6-316.6 312.6z"
+      fill="currentColor"
+    ></path>
+  </svg>
+);
+
 /** Email：信封 */
 const EmailIcon: IconFactory = (size) => (
   <svg
@@ -112,6 +138,7 @@ const ViberIcon: IconFactory = (size) => (
 const CHANNEL_ICON_MAP: Partial<Record<ChannelTypeEnum, IconFactory>> = {
   [ChannelTypeEnum.SMS]: SmsIcon,
   [ChannelTypeEnum.WhatsApp]: WhatsAppIcon,
+  [ChannelTypeEnum.WaAgent]: WaAgentIcon,
   [ChannelTypeEnum.Email]: EmailIcon,
   [ChannelTypeEnum.Viber]: ViberIcon,
 };

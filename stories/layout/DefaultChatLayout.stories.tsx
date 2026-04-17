@@ -684,3 +684,46 @@ export const WithTemplatePreviewFailure: Story = {
     },
   },
 };
+
+/**
+ * WaAgent 渠道
+ *
+ * 展示自研 WhatsApp 代理渠道的完整布局。
+ * 与官方 WhatsApp API 渠道使用相同的消息类型支持，但品牌色更深（green-600 vs green-500）。
+ */
+export const WaAgent: Story = {
+  args: {},
+  decorators: [
+    (Story) => (
+      <ConfigProvider
+        config={{
+          strategy: {
+            activeChannel: ChannelTypeEnum.WaAgent,
+            allowedChannels: [ChannelTypeEnum.WaAgent],
+          },
+        }}
+      >
+        <ServiceProvider
+          conversationService={new MockConversationService()}
+          messageService={new MockMessageService()}
+          templateService={new MockTemplateService()}
+        >
+          <Story />
+        </ServiceProvider>
+      </ConfigProvider>
+    ),
+  ],
+  render: (args) => (
+    <DefaultChatLayout {...args}>
+      <InfiniteMessageList conversationId="conv-1" />
+    </DefaultChatLayout>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '自研 WhatsApp 代理渠道（WaAgent）使用与官方 WhatsApp 相同的图标和消息类型支持，但使用稍深的绿色品牌色以区分两个渠道。',
+      },
+    },
+  },
+};
