@@ -1,16 +1,10 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import type { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import type { MessageTypeEnum } from '@/interfaces/message.interface';
+import { useComposerDraftStore } from '@/store/draft.store';
 import { resolveMessageSendOutcome } from '@/utils/message-send-result.util';
 
-const DRAFT_KEY_PREFIX = 'bifrost-chat-draft-';
-const DEFAULT_DRAFT_DEBOUNCE_DELAY = 500;
-
-function canUseLocalStorage(): boolean {
-  return (
-    typeof window !== 'undefined' && typeof window.localStorage !== 'undefined'
-  );
-}
+const LEGACY_DRAFT_KEY_PREFIX = 'bifrost-chat-draft-';
 
 /**
  * 草稿数据结构
@@ -34,7 +28,6 @@ export interface UseComposerDraftOptions {
   channel: ChannelTypeEnum;
   templateLocked?: boolean;
   enableDraft?: boolean;
-  draftDebounceDelay?: number;
   clearDraftOnSend?: boolean;
   keepDraftOnSwitch?: boolean;
   onSend?: (
@@ -68,7 +61,7 @@ export interface UseComposerDraftResult {
   setDraftData: (data: Partial<DraftData>) => void;
   /** 获取完整草稿数据 */
   getDraftData: () => DraftData;
-  /** 草稿存储 key */
+  /** 草稿存储 key（保持兼容性，返回 legacy 格式） */
   draftStorageKey: string | null;
   /** 清除草稿 */
   clearDraft: () => void;
@@ -88,52 +81,19 @@ export interface UseComposerDraftResult {
 }
 
 /**
- * 解析草稿数据，兼容旧格式（纯文本）
+ * 生成 legacy 存储键（保持兼容性）
  */
-function parseDraftData(raw: string): DraftData {
-  if (!raw) {
-    return { content: '' };
-  }
-
-  // 尝试解析 JSON 格式
-  if (raw.startsWith('{')) {
-    try {
-      const parsed = JSON.parse(raw) as DraftData;
-      // 验证是否为有效的 DraftData 结构
-      if (typeof parsed.content === 'string') {
-        return {
-          content: parsed.content,
-          messageType: parsed.messageType,
-          templateCode: parsed.templateCode,
-          templateParams: parsed.templateParams,
-          templateMetadata: parsed.templateMetadata,
-        };
-      }
-    } catch {
-      // 解析失败，当作纯文本处理
-    }
-  }
-
-  // 旧格式：纯文本
-  return { content: raw };
-}
-
-/**
- * 序列化草稿数据为 JSON
- */
-function serializeDraftData(data: DraftData): string {
-  return JSON.stringify(data);
-}
-
 export function buildConversationDraftStorageKey(
   conversationId: string,
   channel: ChannelTypeEnum,
 ): string {
-  return `${DRAFT_KEY_PREFIX}conversation-${conversationId}-channel-${channel}`;
+  return `${LEGACY_DRAFT_KEY_PREFIX}conversation-${conversationId}-channel-${channel}`;
 }
 
 /**
  * useComposerDraft：管理会话草稿输入值、持久化与发送后清理。
+ *
+ * 现在基于内部的 Zustand draft store，同时保持公开 API 兼容性。
  * 支持缓存消息类型（如 template），刷新后可恢复。
  */
 export function useComposerDraft({
@@ -141,159 +101,155 @@ export function useComposerDraft({
   channel,
   templateLocked = false,
   enableDraft = true,
-  draftDebounceDelay = DEFAULT_DRAFT_DEBOUNCE_DELAY,
   clearDraftOnSend = true,
   keepDraftOnSwitch = true,
   onSend,
 }: UseComposerDraftOptions): UseComposerDraftResult {
-  const [value, setValue] = useState('');
-  const [messageType, setMessageType] = useState<MessageTypeEnum | undefined>();
-  const [templateCode, setTemplateCode] = useState<string | undefined>();
-  const [templateParams, setTemplateParams] = useState<
-    Record<string, string> | undefined
-  >();
-  const [templateMetadata, setTemplateMetadata] = useState<unknown>(undefined);
-  const saveTimeoutRef = useRef<number | undefined>(undefined);
-  const loadedDraftKeyRef = useRef<string | null>(null);
-  const previousDraftKeyRef = useRef<string | null>(null);
+  // ==================== 状态选择器 ====================
+  const drafts = useComposerDraftStore((state) => state.drafts);
+  const currentDraftKey = useComposerDraftStore(
+    (state) => state.currentDraftKey,
+  );
 
+  // 当前草稿数据
+  const currentDraftData = useMemo(() => {
+    if (!currentDraftKey) {
+      return { content: '', messageType: undefined };
+    }
+    // 防御：确保 content 始终是字符串（即使 draft 对象存在但 content 是 undefined）
+    const draft = drafts[currentDraftKey];
+    return {
+      content: draft?.content ?? '',
+      messageType: draft?.messageType,
+      templateCode: draft?.templateCode,
+      templateParams: draft?.templateParams,
+      templateMetadata: draft?.templateMetadata,
+    };
+  }, [drafts, currentDraftKey]);
+
+  // ==================== 操作方法 ====================
+  const store = useComposerDraftStore.getState();
+
+  // 生成当前会话的 key
   const draftStorageKey = useMemo(() => {
     if (conversationId && channel) {
       return buildConversationDraftStorageKey(conversationId, channel);
     }
-
     return null;
   }, [channel, conversationId]);
 
-  const clearDraftByKey = useCallback((storageKey: string | null) => {
-    if (!storageKey || !canUseLocalStorage()) {
-      return;
-    }
+  // ==================== setValue ====================
+  const loadedDraftKeyRef = useRef<string | null>(null);
+  const previousDraftKeyRef = useRef<string | null>(null);
 
-    try {
-      window.localStorage.removeItem(storageKey);
-    } catch {
-      // 忽略 localStorage 异常，避免影响输入流程
-    }
-  }, []);
+  const setValue = useCallback(
+    (nextValue: string) => {
+      store.setValue(nextValue);
+    },
+    [store],
+  );
 
+  // ==================== messageType ====================
+  const setMessageType = useCallback(
+    (type?: MessageTypeEnum) => {
+      store.setDraftData({ messageType: type });
+    },
+    [store],
+  );
+
+  // ==================== templateCode ====================
+  const setTemplateCode = useCallback(
+    (code?: string) => {
+      store.setDraftData({ templateCode: code });
+    },
+    [store],
+  );
+
+  // ==================== templateParams ====================
+  const setTemplateParams = useCallback(
+    (params?: Record<string, string>) => {
+      store.setDraftData({ templateParams: params });
+    },
+    [store],
+  );
+
+  // ==================== templateMetadata ====================
+  const setTemplateMetadata = useCallback(
+    (metadata?: unknown) => {
+      store.setDraftData({ templateMetadata: metadata });
+    },
+    [store],
+  );
+
+  // ==================== setDraftData ====================
+  const setDraftData = useCallback(
+    (data: Partial<DraftData>) => {
+      store.setDraftData(data);
+    },
+    [store],
+  );
+
+  // ==================== getDraftData ====================
+  const getDraftData = useCallback((): DraftData => {
+    return store.getCurrentDraft();
+  }, [store]);
+
+  // ==================== clearDraft ====================
   const clearDraft = useCallback(() => {
-    clearDraftByKey(draftStorageKey);
-  }, [clearDraftByKey, draftStorageKey]);
+    store.clearDraft();
+  }, [store]);
 
-  const readDraftDataByKey = useCallback(
-    (storageKey: string | null): DraftData | null => {
-      if (!storageKey || !canUseLocalStorage()) {
-        return null;
-      }
+  // ==================== loadDraft ====================
+  const loadDraft = useCallback((): string => {
+    return store.getCurrentDraft().content;
+  }, [store]);
 
-      try {
-        const raw = window.localStorage.getItem(storageKey);
-
-        if (!raw) {
-          return null;
-        }
-
-        return parseDraftData(raw);
-      } catch {
-        return null;
-      }
-    },
-    [],
-  );
-
+  // ==================== loadDraftData ====================
   const loadDraftData = useCallback((): DraftData => {
-    if (!canUseLocalStorage()) {
-      return { content: '' };
-    }
+    return store.getCurrentDraft();
+  }, [store]);
 
-    const currentDraft = readDraftDataByKey(draftStorageKey);
-
-    if (currentDraft) {
-      return currentDraft;
-    }
-
-    return { content: '' };
-  }, [draftStorageKey, readDraftDataByKey]);
-
-  const loadDraft = useCallback(() => {
-    return loadDraftData().content;
-  }, [loadDraftData]);
-
-  const saveDraftData = useCallback(
-    (data: DraftData) => {
-      if (!draftStorageKey || !canUseLocalStorage()) {
-        return;
-      }
-
-      try {
-        if (data.content || data.messageType) {
-          window.localStorage.setItem(
-            draftStorageKey,
-            serializeDraftData(data),
-          );
-          return;
-        }
-        window.localStorage.removeItem(draftStorageKey);
-      } catch {
-        // 忽略 localStorage 异常，避免影响输入流程
-      }
-    },
-    [draftStorageKey],
-  );
-
+  // ==================== saveDraft ====================
   const saveDraft = useCallback(
     (nextValue: string) => {
-      saveDraftData({
-        content: nextValue,
-        messageType,
-        templateCode,
-        templateParams,
-        templateMetadata,
-      });
+      store.setValue(nextValue);
     },
-    [
-      messageType,
-      saveDraftData,
-      templateCode,
-      templateParams,
-      templateMetadata,
-    ],
+    [store],
   );
 
-  const getDraftData = useCallback(
-    (): DraftData => ({
-      content: value,
-      messageType,
-      templateCode,
-      templateParams,
-      templateMetadata,
-    }),
-    [messageType, templateCode, templateParams, templateMetadata, value],
+  // ==================== saveDraftData ====================
+  const saveDraftData = useCallback(
+    (data: DraftData) => {
+      store.setDraftData(data);
+    },
+    [store],
   );
 
-  const setDraftData = useCallback((data: Partial<DraftData>) => {
-    if (data.content !== undefined) {
-      setValue(data.content);
-    }
+  // ==================== handleSend ====================
+  const handleSend = useCallback(
+    async (content: string, options?: Record<string, unknown>) => {
+      const result = await onSend?.(content, options);
+      const outcome = resolveMessageSendOutcome(result);
 
-    if (data.messageType !== undefined) {
-      setMessageType(data.messageType);
-    }
+      if (clearDraftOnSend && outcome.shouldClearDraft) {
+        // 成功：清空草稿
+        store.setValue('');
+        store.setDraftData({
+          messageType: undefined,
+          templateCode: undefined,
+          templateParams: undefined,
+          templateMetadata: undefined,
+        });
+        clearDraft();
+      } else if (outcome.shouldRollback && content) {
+        // 失败需要回滚：回填内容到输入框，保留模板状态方便用户重新发送
+        store.setValue(content);
+      }
+    },
+    [clearDraft, clearDraftOnSend, onSend, store],
+  );
 
-    if (data.templateCode !== undefined) {
-      setTemplateCode(data.templateCode);
-    }
-
-    if (data.templateParams !== undefined) {
-      setTemplateParams(data.templateParams);
-    }
-
-    if (data.templateMetadata !== undefined) {
-      setTemplateMetadata(data.templateMetadata);
-    }
-  }, []);
-
+  // ==================== 初始化和切换会话 ====================
   useEffect(() => {
     const previousKey = previousDraftKeyRef.current;
 
@@ -303,12 +259,17 @@ export function useComposerDraft({
       previousKey &&
       previousKey !== draftStorageKey
     ) {
-      clearDraftByKey(previousKey);
+      // 不保留草稿时，清空旧 key 对应的草稿
+      const oldKey = previousKey;
+      if (oldKey && drafts[oldKey]) {
+        store.clearDraft();
+      }
     }
 
     previousDraftKeyRef.current = draftStorageKey;
-  }, [clearDraftByKey, draftStorageKey, enableDraft, keepDraftOnSwitch]);
+  }, [draftStorageKey, enableDraft, keepDraftOnSwitch, drafts, store]);
 
+  // ==================== 加载草稿 ====================
   useEffect(() => {
     loadedDraftKeyRef.current = null;
 
@@ -318,7 +279,6 @@ export function useComposerDraft({
       setTemplateCode(undefined);
       setTemplateParams(undefined);
       setTemplateMetadata(undefined);
-
       return;
     }
 
@@ -327,91 +287,34 @@ export function useComposerDraft({
       return;
     }
 
-    const draftData = loadDraftData();
-
-    setValue(draftData.content);
-    setMessageType(draftData.messageType);
-    setTemplateCode(draftData.templateCode);
-    setTemplateParams(draftData.templateParams);
-    setTemplateMetadata(draftData.templateMetadata);
-
+    // 设置当前 key（这会触发 legacy 迁移）
+    store.setCurrentDraft(conversationId, channel);
     loadedDraftKeyRef.current = draftStorageKey;
-  }, [draftStorageKey, enableDraft, loadDraftData, templateLocked]);
-
-  useEffect(() => {
-    if (!enableDraft || !draftStorageKey) {
-      return;
-    }
-
-    if (loadedDraftKeyRef.current !== draftStorageKey) {
-      return;
-    }
-
-    if (saveTimeoutRef.current !== undefined) {
-      clearTimeout(saveTimeoutRef.current);
-    }
-
-    const draftData: DraftData = {
-      content: value,
-      messageType,
-      templateCode,
-      templateParams,
-      templateMetadata,
-    };
-
-    saveTimeoutRef.current = window.setTimeout(() => {
-      saveDraftData(draftData);
-      saveTimeoutRef.current = undefined;
-    }, draftDebounceDelay);
-
-    return () => {
-      if (saveTimeoutRef.current !== undefined) {
-        clearTimeout(saveTimeoutRef.current);
-      }
-    };
   }, [
-    draftDebounceDelay,
+    channel,
+    conversationId,
     draftStorageKey,
     enableDraft,
-    messageType,
-    saveDraftData,
-    templateCode,
-    templateParams,
-    templateMetadata,
-    value,
+    setValue,
+    setMessageType,
+    setTemplateCode,
+    setTemplateParams,
+    setTemplateMetadata,
+    templateLocked,
+    store,
   ]);
 
-  const handleSend = useCallback(
-    async (content: string, options?: Record<string, unknown>) => {
-      const result = await onSend?.(content, options);
-      const outcome = resolveMessageSendOutcome(result);
-
-      if (clearDraftOnSend && outcome.shouldClearDraft) {
-        // 成功：清空草稿
-        setValue('');
-        setMessageType(undefined);
-        setTemplateCode(undefined);
-        setTemplateParams(undefined);
-        setTemplateMetadata(undefined);
-        clearDraft();
-      } else if (outcome.shouldRollback && content) {
-        // 失败需要回滚：回填内容到输入框，保留模板状态方便用户重新发送
-        setValue(content);
-      }
-    },
-    [clearDraft, clearDraftOnSend, onSend],
-  );
-
+  // ==================== 返回值 ====================
   return {
-    value,
+    value: currentDraftData.content,
     setValue,
-    messageType,
+    messageType: currentDraftData.messageType,
     setMessageType,
-    templateCode,
+    templateCode: currentDraftData.templateCode,
     setTemplateCode,
-    templateParams,
+    templateParams: currentDraftData.templateParams,
     setTemplateParams,
-    templateMetadata,
+    templateMetadata: currentDraftData.templateMetadata,
     setTemplateMetadata,
     setDraftData,
     getDraftData,

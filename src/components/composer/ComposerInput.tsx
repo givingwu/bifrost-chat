@@ -128,7 +128,7 @@ export const ComposerInput = forwardRef<ComposerInputRef, ComposerInputProps>(
     // 键盘事件处理
     const handleKeyDown = useCallback(
       async (event: KeyboardEvent<HTMLTextAreaElement>) => {
-        if (!value.trim() && disabled) {
+        if (!value?.trim() && disabled) {
           return;
         }
 
@@ -137,7 +137,7 @@ export const ComposerInput = forwardRef<ComposerInputRef, ComposerInputProps>(
           event.preventDefault();
 
           // 仅在有内容时触发发送
-          if (value.trim().length === 0) {
+          if (!value?.trim()?.length) {
             return;
           }
 
@@ -170,20 +170,21 @@ export const ComposerInput = forwardRef<ComposerInputRef, ComposerInputProps>(
         if (
           maxLength !== undefined &&
           normalizedValue.length >= maxLength &&
-          value.length < maxLength
+          (value?.length ?? 0) < maxLength
         ) {
           onMaxLengthReached?.();
         }
 
         onChange(normalizedValue);
       },
-      [maxLength, onChange, onMaxLengthReached, value.length],
+      [maxLength, onChange, onMaxLengthReached, value?.length],
     );
 
     // 输入框是否接近或达到最大长度
+    const safeLength = value?.length ?? 0;
     const isNearMaxLength =
-      maxLength !== undefined && value.length >= maxLength * 0.9;
-    const isAtMaxLength = maxLength !== undefined && value.length >= maxLength;
+      maxLength !== undefined && safeLength >= maxLength * 0.9;
+    const isAtMaxLength = maxLength !== undefined && safeLength >= maxLength;
 
     return (
       <fieldset className="border-0 p-0 m-0">

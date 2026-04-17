@@ -1,7 +1,7 @@
 # Composer 状态管理重构设计
 
 **日期**: 2026-04-10
-**状态**: 已批准
+**状态**: 已完成
 **作者**: Claude
 **类型**: 架构重构
 
@@ -74,7 +74,7 @@
 ## Store 接口设计
 
 ### 文件位置
-`src/store/composer-draft.store.ts`
+`src/store/draft.store.ts`
 
 ### 类型定义
 
@@ -125,7 +125,7 @@ export const useComposerDraftStore = create<ComposerDraftStore>()(
   persist(
     (set, get) => ({ /* ... */ }),
     {
-      name: 'bifrost-composer-drafts',
+      name: 'bifrost-drafts',
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({ drafts: state.drafts }),
     }
@@ -355,7 +355,7 @@ describe('useComposerLogic', () => {
 ## 迁移计划
 
 ### 阶段 1: 创建 Store
-- [ ] 创建 `composer-draft.store.ts`
+- [ ] 创建 `draft.store.ts`
 - [ ] 编写 Store 单元测试
 - [ ] 确保测试通过
 
@@ -370,7 +370,7 @@ describe('useComposerLogic', () => {
 - [ ] 验证功能正常
 
 ### 阶段 4: 清理
-- [ ] 删除 `use-composer-draft.hook.ts`
+- [ ] 删除 `use-draft.hook.ts`
 - [ ] 更新测试
 - [ ] 更新文档
 

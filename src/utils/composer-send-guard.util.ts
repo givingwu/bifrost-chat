@@ -27,7 +27,9 @@ export function resolveComposerCanSend(
 ): boolean {
   const { value, attachmentCount, isSending, messageType, templateError } =
     params;
-  const hasContent = value.trim().length > 0 || attachmentCount > 0;
+  // 防御：确保 value 是字符串，处理可能的 undefined 情况
+  const safeValue = typeof value === 'string' ? value : '';
+  const hasContent = safeValue.trim().length > 0 || attachmentCount > 0;
   const hasTemplateError =
     messageType === MessageTypeEnum.Template && Boolean(templateError);
 

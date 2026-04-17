@@ -18,9 +18,9 @@ import type { AudioData } from '@/interfaces/audio.interface';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import type { IComposerConfig } from '@/interfaces/composer.interface';
 import { MessageTypeEnum } from '@/interfaces/message.interface';
+import { useTranslation } from '@/providers/I18n.provider';
 import { useComposerConfig } from '@/store';
 import { resolveComposerCanSend } from '@/utils/composer-send-guard.util';
-import { useTranslation } from '@/providers/I18n.provider';
 
 // ==================== 类型定义 ====================
 
@@ -146,7 +146,6 @@ export const useComposerLogic = (
     enableDraft,
     clearDraftOnSend: config.clearDraftOnSend,
     keepDraftOnSwitch: config.keepDraftOnSwitch,
-    draftDebounceDelay: config.draftDebounceDelay,
     onSend: onSendProp,
   });
   const customMessageMaxLength = useMemo(
@@ -276,7 +275,7 @@ export const useComposerLogic = (
 
   const canSend = useMemo(() => {
     return resolveComposerCanSend({
-      value: draft.value,
+      value: draft.value ?? '',
       attachmentCount: attachments.length,
       isSending,
       messageType: draft.messageType,

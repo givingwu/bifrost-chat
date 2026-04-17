@@ -38,12 +38,12 @@ describe('useComposerDraft', () => {
   });
 
   it('应按防抖配置保存草稿', async () => {
-    vi.useFakeTimers();
+    // zustand persist 有自己的持久化机制，不支持自定义防抖延迟
+    // 草稿会在状态变化时自动持久化到 bifrost-drafts
     const { result } = renderHook(() =>
       useComposerDraft({
         conversationId: 'conv-save',
         channel: ChannelTypeEnum.SMS,
-        draftDebounceDelay: 200,
       }),
     );
 
@@ -51,25 +51,25 @@ describe('useComposerDraft', () => {
       result.current.setValue('draft content');
     });
 
-    act(() => {
-      vi.advanceTimersByTime(200);
-    });
+    // zustand persist 是同步的，不需要等待定时器
+    // 验证草稿数据在 store 中
+    expect(result.current.value).toBe('draft content');
 
-    const saved = localStorage.getItem(
-      'bifrost-chat-draft-conversation-conv-save-channel-sms',
-    );
-    expect(saved).not.toBeNull();
-    const parsed = JSON.parse(saved ?? '');
-    expect(parsed.content).toBe('draft content');
+    // 验证数据被持久化到 bifrost-drafts
+    const stored = localStorage.getItem('bifrost-drafts');
+    expect(stored).not.toBeNull();
+    const parsed = JSON.parse(stored ?? '');
+    const key = `conv-save-channel-sms`;
+    expect(parsed.state.drafts[key]).toBeDefined();
+    expect(parsed.state.drafts[key].content).toBe('draft content');
   });
 
   it('应按 conversation + channel 保存草稿', async () => {
-    vi.useFakeTimers();
+    // zustand persist 使用单一 bifrost-drafts key
     const { result } = renderHook(() =>
       useComposerDraft({
         conversationId: 'conv-save-channel',
         channel: ChannelTypeEnum.WhatsApp,
-        draftDebounceDelay: 200,
       }),
     );
 
@@ -77,20 +77,19 @@ describe('useComposerDraft', () => {
       result.current.setValue('channel scoped draft');
     });
 
-    act(() => {
-      vi.advanceTimersByTime(200);
-    });
+    // 验证草稿数据
+    expect(result.current.value).toBe('channel scoped draft');
 
-    const saved = localStorage.getItem(
-      'bifrost-chat-draft-conversation-conv-save-channel-channel-whatsapp',
-    );
-    expect(saved).not.toBeNull();
-    const parsed = JSON.parse(saved ?? '');
-    expect(parsed.content).toBe('channel scoped draft');
+    // 验证数据被持久化
+    const stored = localStorage.getItem('bifrost-drafts');
+    expect(stored).not.toBeNull();
+    const parsed = JSON.parse(stored ?? '');
+    const key = `conv-save-channel-channel-whatsapp`;
+    expect(parsed.state.drafts[key]).toBeDefined();
+    expect(parsed.state.drafts[key].content).toBe('channel scoped draft');
   });
 
   it('发送成功后应清空输入并删除草稿', async () => {
-    vi.useFakeTimers();
     const onSend = vi.fn().mockResolvedValue(undefined);
 
     const { result } = renderHook(() =>
@@ -106,25 +105,20 @@ describe('useComposerDraft', () => {
       result.current.setValue('will send');
     });
 
-    act(() => {
-      vi.advanceTimersByTime(500);
-    });
-
     await act(async () => {
       await result.current.handleSend('will send');
     });
 
     expect(onSend).toHaveBeenCalledWith('will send', undefined);
     expect(result.current.value).toBe('');
-    expect(
-      localStorage.getItem(
-        'bifrost-chat-draft-conversation-conv-send-channel-sms',
-      ),
-    ).toBeNull();
+    // 草稿应从 store 中被清空
+    const stored = localStorage.getItem('bifrost-drafts');
+    const parsed = JSON.parse(stored ?? '{}');
+    const key = `conv-send-channel-sms`;
+    expect(parsed.state.drafts[key]?.content).toBe('');
   });
 
   it('发送返回失败结果时不应清空输入和草稿', async () => {
-    vi.useFakeTimers();
     const onSend = vi.fn().mockResolvedValue({
       status: MessageStatusEnum.Failed,
       error: 'network failed',
@@ -143,20 +137,19 @@ describe('useComposerDraft', () => {
       result.current.setValue('keep me');
     });
 
-    act(() => {
-      vi.advanceTimersByTime(500);
-    });
-
     await act(async () => {
       await result.current.handleSend('keep me');
     });
 
+    // 验证内容被保留（失败后回填）
     expect(result.current.value).toBe('keep me');
-    expect(
-      localStorage.getItem(
-        'bifrost-chat-draft-conversation-conv-send-failed-channel-whatsapp',
-      ),
-    ).not.toBeNull();
+
+    // 验证草稿在 store 中被保留
+    const stored = localStorage.getItem('bifrost-drafts');
+    expect(stored).not.toBeNull();
+    const parsed = JSON.parse(stored ?? '{}');
+    const key = `conv-send-failed-channel-whatsapp`;
+    expect(parsed.state.drafts[key]?.content).toBe('keep me');
   });
 
   it('keepDraftOnSwitch=false 时切换会话应清理旧会话草稿', async () => {
@@ -197,12 +190,11 @@ describe('useComposerDraft', () => {
 
   describe('messageType 缓存', () => {
     it('应支持设置和获取 messageType', async () => {
-      vi.useFakeTimers();
+      // zustand persist 自动持久化
       const { result } = renderHook(() =>
         useComposerDraft({
           conversationId: 'conv-type',
           channel: ChannelTypeEnum.SMS,
-          draftDebounceDelay: 200,
         }),
       );
 
@@ -217,23 +209,25 @@ describe('useComposerDraft', () => {
         });
       });
 
-      act(() => {
-        vi.advanceTimersByTime(200);
-      });
-
-      const saved = localStorage.getItem(
-        'bifrost-chat-draft-conversation-conv-type-channel-sms',
-      );
-      expect(saved).not.toBeNull();
-      const parsed = JSON.parse(saved ?? '');
-      expect(parsed.content).toBe('template content');
-      expect(parsed.messageType).toBe(MessageTypeEnum.Template);
-      expect(parsed.templateCode).toBe('template-123');
-      expect(parsed.templateParams).toEqual({ name: 'John' });
-      expect(parsed.templateMetadata).toEqual({
+      // 验证内存中的值
+      expect(result.current.value).toBe('template content');
+      expect(result.current.messageType).toBe(MessageTypeEnum.Template);
+      expect(result.current.templateCode).toBe('template-123');
+      expect(result.current.templateParams).toEqual({ name: 'John' });
+      expect(result.current.templateMetadata).toEqual({
         templateId: 'template-123',
         previewContent: 'template content',
       });
+
+      // 验证持久化
+      const stored = localStorage.getItem('bifrost-drafts');
+      expect(stored).not.toBeNull();
+      const parsed = JSON.parse(stored ?? '');
+      const key = `conv-type-channel-sms`;
+      const draftData = parsed.state.drafts[key];
+      expect(draftData.content).toBe('template content');
+      expect(draftData.messageType).toBe(MessageTypeEnum.Template);
+      expect(draftData.templateCode).toBe('template-123');
     });
 
     it('应支持 setDraftData 批量设置', async () => {
@@ -242,7 +236,6 @@ describe('useComposerDraft', () => {
         useComposerDraft({
           conversationId: 'conv-batch',
           channel: ChannelTypeEnum.SMS,
-          draftDebounceDelay: 200,
         }),
       );
 
