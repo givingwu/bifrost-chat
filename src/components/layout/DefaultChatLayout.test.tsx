@@ -10,6 +10,7 @@ const {
   composerFocusMock,
   composerOnSendRef,
   composerSetTemplateMock,
+  conversationHeaderPropsRef,
   conversationGetMock,
   conversationListOnSelectRef,
   conversationStateRef,
@@ -44,6 +45,15 @@ const {
       | undefined,
   },
   composerSetTemplateMock: vi.fn(),
+  conversationHeaderPropsRef: {
+    current: undefined as
+      | {
+          title?: ReactNode;
+          extra?: ReactNode;
+          search?: ReactNode;
+        }
+      | undefined,
+  },
   conversationGetMock: vi.fn(),
   conversationListOnSelectRef: {
     current: undefined as
@@ -153,7 +163,14 @@ vi.mock('@/components/composer/Composer', async () => {
 });
 
 vi.mock('@/components/conversation/ConversationHeader', () => ({
-  ConversationHeader: () => <div />,
+  ConversationHeader: (props: {
+    title?: ReactNode;
+    extra?: ReactNode;
+    search?: ReactNode;
+  }) => {
+    conversationHeaderPropsRef.current = props;
+    return <div data-testid="conversation-header" />;
+  },
 }));
 
 vi.mock('@/components/conversation/ConversationList', () => ({
@@ -179,8 +196,17 @@ vi.mock('@/components/conversation/ConversationList', () => ({
 }));
 
 vi.mock('@/components/conversation/ConversationPanel', () => ({
-  ConversationPanel: ({ children }: { children?: ReactNode }) => (
-    <div>{children}</div>
+  ConversationPanel: ({
+    header,
+    children,
+  }: {
+    header?: ReactNode;
+    children?: ReactNode;
+  }) => (
+    <div>
+      {header}
+      {children}
+    </div>
   ),
 }));
 
@@ -356,6 +382,7 @@ describe('DefaultChatLayout', () => {
     composerFocusMock.mockReset();
     composerOnSendRef.current = undefined;
     composerSetTemplateMock.mockReset();
+    conversationHeaderPropsRef.current = undefined;
     conversationGetMock.mockReset();
     conversationListOnSelectRef.current = undefined;
     conversationStateRef.current = {
@@ -483,5 +510,20 @@ describe('DefaultChatLayout', () => {
       templateError: '模板参数替换失败，当前模板暂不可发送',
       templateMetadata: undefined,
     });
+  });
+
+  it('应向 ConversationHeader 透传自定义 title 和 extra，并保留内部搜索框', () => {
+    render(
+      <DefaultChatLayout
+        conversationHeaderProps={{
+          title: <span>客户会话</span>,
+          extra: <button type="button">账号管理</button>,
+        }}
+      />,
+    );
+
+    expect(conversationHeaderPropsRef.current?.title).toBeTruthy();
+    expect(conversationHeaderPropsRef.current?.extra).toBeTruthy();
+    expect(conversationHeaderPropsRef.current?.search).toBeTruthy();
   });
 });

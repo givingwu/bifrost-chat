@@ -515,6 +515,35 @@ export const WithMessageList: Story = {
   },
 };
 
+export const WithConversationHeaderExtra: Story = {
+  args: {
+    conversationHeaderProps: {
+      title: '客户会话',
+      extra: (
+        <button
+          type="button"
+          className="rounded-md border border-border px-2 py-1 text-xs text-text"
+        >
+          账号管理
+        </button>
+      ),
+    },
+  },
+  render: (args) => (
+    <DefaultChatLayout {...args}>
+      <InfiniteMessageList conversationId="conv-1" />
+    </DefaultChatLayout>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '展示通过 conversationHeaderProps 为会话列表头部注入自定义标题和扩展区。搜索框仍由 DefaultChatLayout 内部维护，与 store 中的 searchQuery 保持单一事实源。',
+      },
+    },
+  },
+};
+
 /**
  * 不同主题 - 展示主题切换
  *

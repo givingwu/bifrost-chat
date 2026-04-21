@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from 'storybook-react-rsbuild';
 import { ConversationHeader } from '@/components/conversation/ConversationHeader';
+import { SearchInput } from '@/components/SearchInput';
 import '@/styles/theme.css';
 
 /**
@@ -19,29 +20,17 @@ const meta: Meta<typeof ConversationHeader> = {
       control: 'text',
       description: '标题',
     },
+    extra: {
+      control: false,
+      description: '头部扩展内容',
+    },
+    search: {
+      control: false,
+      description: '搜索区域',
+    },
     children: {
       control: false,
       description: '子组件',
-    },
-    showSearch: {
-      control: 'boolean',
-      description: '是否显示搜索框',
-    },
-    searchPlaceholder: {
-      control: 'text',
-      description: '搜索框占位符',
-    },
-    searchValue: {
-      control: 'text',
-      description: '搜索框值',
-    },
-    onSearchChange: {
-      control: false,
-      description: '搜索回调',
-    },
-    onSearchSubmit: {
-      control: false,
-      description: '搜索提交回调',
     },
   },
 };
@@ -52,7 +41,29 @@ type Story = StoryObj<typeof ConversationHeader>;
 export const Default = () => {
   return (
     <div className="p-4 bg-muted rounded-lg">
-      <ConversationHeader />
+      <ConversationHeader
+        title="会话"
+        search={<SearchInput value="" onChange={() => undefined} />}
+      />
+    </div>
+  );
+};
+
+export const WithExtra = () => {
+  return (
+    <div className="p-4 bg-muted rounded-lg">
+      <ConversationHeader
+        title="会话"
+        extra={
+          <button
+            type="button"
+            className="rounded-md border border-border px-2 py-1 text-xs text-text"
+          >
+            账号管理
+          </button>
+        }
+        search={<SearchInput value="" onChange={() => undefined} />}
+      />
     </div>
   );
 };
