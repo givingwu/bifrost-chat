@@ -228,3 +228,43 @@ export const UnreadOverflow: Story = {
     },
   },
 };
+
+/**
+ * WaAgent 渠道单独展示
+ *
+ * 自研 WhatsApp 代理渠道，使用稍深的绿色区分官方 WhatsApp
+ */
+export const WaAgentChannel: Story = {
+  args: {
+    channels: [ChannelTypeEnum.WaAgent],
+    activeChannel: ChannelTypeEnum.WaAgent,
+    onChannelClick: () => {},
+    compact: true,
+    showTooltip: true,
+  },
+};
+
+/**
+ * WhatsApp vs WaAgent 对比
+ *
+ * 两个渠道使用相同图标但颜色不同：
+ * - WhatsApp: #22C55E (green-500)
+ * - WaAgent: #16A34A (green-600)
+ */
+export const WhatsAppVsWaAgent: Story = {
+  args: {
+    channels: [ChannelTypeEnum.WhatsApp, ChannelTypeEnum.WaAgent],
+    activeChannel: ChannelTypeEnum.WaAgent,
+    onChannelClick: () => {},
+    compact: false,
+    showTooltip: true,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '对比官方 WhatsApp API 和自研 WaAgent 代理渠道。两者图标相同但品牌色不同。',
+      },
+    },
+  },
+};

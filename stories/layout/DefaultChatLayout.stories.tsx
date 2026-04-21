@@ -515,6 +515,35 @@ export const WithMessageList: Story = {
   },
 };
 
+export const WithConversationHeaderExtra: Story = {
+  args: {
+    conversationHeaderProps: {
+      title: '客户会话',
+      extra: (
+        <button
+          type="button"
+          className="rounded-md border border-border px-2 py-1 text-xs text-text"
+        >
+          账号管理
+        </button>
+      ),
+    },
+  },
+  render: (args) => (
+    <DefaultChatLayout {...args}>
+      <InfiniteMessageList conversationId="conv-1" />
+    </DefaultChatLayout>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '展示通过 conversationHeaderProps 为会话列表头部注入自定义标题和扩展区。搜索框仍由 DefaultChatLayout 内部维护，与 store 中的 searchQuery 保持单一事实源。',
+      },
+    },
+  },
+};
+
 /**
  * 不同主题 - 展示主题切换
  *
@@ -680,6 +709,49 @@ export const WithTemplatePreviewFailure: Story = {
       description: {
         story:
           '点击右侧模板后会触发预览失败。当前实现会把模板回填到 Composer，但同时注入错误态并禁用发送按钮，避免把未成功替换参数的模板继续发出去。',
+      },
+    },
+  },
+};
+
+/**
+ * WaAgent 渠道
+ *
+ * 展示自研 WhatsApp 代理渠道的完整布局。
+ * 与官方 WhatsApp API 渠道使用相同的消息类型支持，但品牌色更深（green-600 vs green-500）。
+ */
+export const WaAgent: Story = {
+  args: {},
+  decorators: [
+    (Story) => (
+      <ConfigProvider
+        config={{
+          strategy: {
+            activeChannel: ChannelTypeEnum.WaAgent,
+            allowedChannels: [ChannelTypeEnum.WaAgent],
+          },
+        }}
+      >
+        <ServiceProvider
+          conversationService={new MockConversationService()}
+          messageService={new MockMessageService()}
+          templateService={new MockTemplateService()}
+        >
+          <Story />
+        </ServiceProvider>
+      </ConfigProvider>
+    ),
+  ],
+  render: (args) => (
+    <DefaultChatLayout {...args}>
+      <InfiniteMessageList conversationId="conv-1" />
+    </DefaultChatLayout>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '自研 WhatsApp 代理渠道（WaAgent）使用与官方 WhatsApp 相同的图标和消息类型支持，但使用稍深的绿色品牌色以区分两个渠道。',
       },
     },
   },

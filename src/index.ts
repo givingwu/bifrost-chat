@@ -4,6 +4,7 @@ import './styles/index.css';
 // Components
 export * from '@/components';
 export type {
+  DefaultChatLayoutConversationHeaderProps,
   DefaultChatLayoutRenderTopbar,
   DefaultChatLayoutRenderTopbarProps,
 } from '@/components/layout/DefaultChatLayout';

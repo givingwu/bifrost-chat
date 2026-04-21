@@ -1,7 +1,5 @@
 import { memo, type ReactNode } from 'react';
-import { useTranslation } from '@/providers/I18n.provider';
 import { cn } from '@/utils/class.util';
-import { SearchInput } from '../SearchInput';
 import { Title } from '../Title';
 
 export interface ConversationHeaderProps {
@@ -9,54 +7,41 @@ export interface ConversationHeaderProps {
   className?: string;
   /** 标题 */
   title?: ReactNode;
+  /** 头部扩展内容 */
+  extra?: ReactNode;
+  /** 搜索区域 */
+  search?: ReactNode;
   /** 子组件 */
   children?: ReactNode;
-  /** 是否显示搜索框 */
-  showSearch?: boolean;
-  /** 搜索框占位符 */
-  searchPlaceholder?: string;
-  /** 搜索框值 */
-  searchValue?: string;
-  /** 搜索回调 */
-  onSearchChange?: (value: string) => void;
-  /** 搜索提交回调 */
-  onSearchSubmit?: (value: string) => void;
 }
 
 /**
  * ConversationHeader：会话列表头部组件。
- * - 显示标题和搜索框。
- * - 支持自定义标题和搜索功能。
+ * - 负责组织标题、扩展区、搜索区的布局结构。
+ * - 不持有搜索状态，只接收外部组装好的节点。
  * - 使用 memo 优化性能，避免不必要的重新渲染。
- * - 支持无障碍访问（ARIA 标签）。
  */
 export const ConversationHeader = memo(
   ({
     className = '',
     title,
+    extra,
+    search,
     children,
-    showSearch = true,
-    searchPlaceholder = 'Search',
-    searchValue = '',
-    onSearchChange,
-    onSearchSubmit,
   }: ConversationHeaderProps) => {
-    const { t } = useTranslation();
+    const titleNode =
+      typeof title === 'string' ? <Title>{title}</Title> : title;
+
     return (
       <div className={cn('p-4 pt-4 pb-2 space-y-4', className)}>
-        {title && (typeof title === 'string' ? <Title>{title}</Title> : title)}
-
-        {showSearch && (
-          <SearchInput
-            type="search"
-            placeholder={searchPlaceholder || t('conversation.search')}
-            value={searchValue}
-            onChange={onSearchChange}
-            onEnter={onSearchSubmit}
-            clearable
-            aria-label={t('conversation.searchAriaLabel')}
-          />
+        {(titleNode || extra) && (
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0 flex-1">{titleNode}</div>
+            {extra ? <div className="shrink-0">{extra}</div> : null}
+          </div>
         )}
+
+        {search ? <div>{search}</div> : null}
 
         {children}
       </div>

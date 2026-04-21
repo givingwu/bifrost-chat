@@ -28,6 +28,17 @@ export const DEFAULT_CHANNEL_MESSAGE_TYPES: Partial<
     MessageTypeEnum.Template,
   ],
 
+  // WaAgent: 自研 WhatsApp 代理，支持与 WhatsApp 相同的消息类型
+  [ChannelTypeEnum.WaAgent]: [
+    MessageTypeEnum.Text,
+    MessageTypeEnum.Image,
+    MessageTypeEnum.Video,
+    MessageTypeEnum.Audio,
+    MessageTypeEnum.File,
+    MessageTypeEnum.Location,
+    MessageTypeEnum.Template,
+  ],
+
   // Email: 支持文本和附件
   [ChannelTypeEnum.Email]: [
     MessageTypeEnum.Text,

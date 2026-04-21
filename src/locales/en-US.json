@@ -17,7 +17,8 @@
   "toolbar": {
     "channel": {
       "sms": "Interactive SMS",
-      "whatsapp": "WhatsApp",
+      "whatsapp": "WhatsApp Business",
+      "wa-agent": "WhatsApp Agent",
       "email": "Email",
       "voip": "VoIP",
       "viber": "Viber",
@@ -84,6 +85,7 @@
       "newline": "Shift+Enter to insert a new line",
       "sms": "SMS · 1 segment",
       "whatsapp": "Secure Connection",
+      "waagent": "Agent Connection",
       "email": "Rich text enabled",
       "viber": "Viber Message",
       "default": "Default Channel"

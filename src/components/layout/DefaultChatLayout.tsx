@@ -19,6 +19,7 @@ import {
   ProfilePanel,
   type ProfilePanelProps,
 } from '@/components/profile/ProfilePanel';
+import { SearchInput } from '@/components/SearchInput';
 import { Topbar, type TopbarProps } from '@/components/toolbar/Topbar';
 import { TopbarTools } from '@/components/toolbar/TopbarTools';
 import { useActiveConversationMetadata } from '@/hooks/use-active-conversation-metadata.hook';
@@ -69,6 +70,13 @@ export type DefaultChatLayoutRenderTopbar =
 export type DefaultChatLayoutRenderProfilePanel =
   | React.ReactNode
   | ((props: ProfilePanelProps) => React.ReactNode);
+
+export interface DefaultChatLayoutConversationHeaderProps {
+  /** 会话列表头部标题 */
+  title?: React.ReactNode;
+  /** 会话列表头部扩展区 */
+  extra?: React.ReactNode;
+}
 
 export interface DefaultChatLayoutProps extends Omit<TopbarProps, 'avatarUrl'> {
   className?: string;
@@ -156,6 +164,11 @@ export interface DefaultChatLayoutProps extends Omit<TopbarProps, 'avatarUrl'> {
    * ```
    */
   renderProfilePanel?: DefaultChatLayoutRenderProfilePanel;
+  /**
+   * 会话列表头部的展示配置。
+   * 仅用于覆盖标题与头部扩展区，不暴露搜索状态，避免与 store/config 边界重叠。
+   */
+  conversationHeaderProps?: DefaultChatLayoutConversationHeaderProps;
 }
 
 /**
@@ -201,6 +214,7 @@ export function DefaultChatLayout({
   renderTopbarMeta,
   getConversationDisplayTitle,
   renderProfilePanel,
+  conversationHeaderProps,
 }: DefaultChatLayoutProps) {
   // ---------------------------------------------------------------------------
   // Hooks & State
@@ -516,6 +530,21 @@ export function DefaultChatLayout({
     [isSearchPending, isConversationsLoading, isConversationsFetching],
   );
 
+  const conversationHeaderSearchNode = useMemo(
+    () => (
+      <SearchInput
+        type="search"
+        placeholder={t('conversation.search')}
+        value={searchQuery}
+        onChange={handleSearchChange}
+        onEnter={handleSearchSubmit}
+        clearable
+        aria-label={t('conversation.searchAriaLabel')}
+      />
+    ),
+    [handleSearchChange, handleSearchSubmit, searchQuery, t],
+  );
+
   // ---------------------------------------------------------------------------
   // Side Effects
   // ---------------------------------------------------------------------------
@@ -549,10 +578,11 @@ export function DefaultChatLayout({
           className="w-80"
           header={
             <ConversationHeader
-              title={t(TRANSLATION_KEYS.TITLE)}
-              searchValue={searchQuery}
-              onSearchChange={handleSearchChange}
-              onSearchSubmit={handleSearchSubmit}
+              title={
+                conversationHeaderProps?.title ?? t(TRANSLATION_KEYS.TITLE)
+              }
+              extra={conversationHeaderProps?.extra}
+              search={conversationHeaderSearchNode}
             />
           }
         >
