@@ -9,7 +9,7 @@ export enum ChannelTypeEnum {
   /** WhatsApp 渠道（包含 WhatsApp Business API） */
   WhatsApp = 'whatsapp',
   /** 自研 WhatsApp 代理渠道（依赖 wa-agent 服务） */
-  WaAgent = 'wa-agent',
+  WaAgent = 'wa_agent',
   /** Email 邮件渠道 */
   Email = 'email',
   /** Viber 渠道 */
