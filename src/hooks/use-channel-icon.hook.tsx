@@ -57,25 +57,6 @@ const WhatsAppIcon: IconFactory = (size) => (
     xmlns="http://www.w3.org/2000/svg"
     width={size}
     height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth={1.75}
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    aria-hidden="true"
-  >
-    <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
-    <path d="M9.5 9c0-.6.4-1 1-1h.5c.5 0 1 .3 1.2.8l.5 1c.2.5.1 1.1-.3 1.4l-.4.3c.3.6.8 1.1 1.4 1.4l.3-.4c.4-.4.9-.5 1.4-.3l1 .5c.5.2.8.7.8 1.2v.5a1 1 0 0 1-1 1 5.5 5.5 0 0 1-5.5-5.5" />
-  </svg>
-);
-
-/** WaAgent：自研 WhatsApp 代理（与 WhatsApp 相同图标，但颜色更深以区分） */
-const WaAgentIcon: IconFactory = (size) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width={size}
-    height={size}
     viewBox="0 0 1024 1024"
     fill="none"
     stroke="currentColor"
@@ -92,6 +73,49 @@ const WaAgentIcon: IconFactory = (size) => (
       d="M516.5 112.3c-218.5 0-395.6 174.9-395.6 390.6 0 77.3 22.8 149.4 62 210.1 5 7.7-76.6 194.1-70.6 198.7 3.5 2.7 204.5-71.5 208-69.5 57.8 32.7 124.8 51.4 196.2 51.4 218.5 0 395.6-174.9 395.6-390.6 0-215.8-177.1-390.7-395.6-390.7z m0 703.1c-63 0-121.8-18.2-171.1-49.6-7-4.5-124.6 45.4-126.9 43.6-2.8-2.1 44.2-119.8 41.6-123.4-37.8-51.5-60-114.8-60-183.2 0-172.6 141.7-312.5 316.5-312.5s316.5 139.9 316.5 312.5c-0.2 172.7-141.8 312.6-316.6 312.6z"
       fill="currentColor"
     ></path>
+  </svg>
+);
+
+/** WaAgent：自研 WhatsApp 代理（与 WhatsApp 相同图标，但颜色更深以区分） */
+const WaAgentIcon: IconFactory = (size) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={1.75}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <path
+      d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="1.75"
+    />
+    <path
+      d="M9.4 9c0-.55.45-1 1-1h.4c.45 0 .86.28 1.03.7l.44 1.05c.17.42.07.9-.27 1.22l-.28.27a4.5 4.5 0 0 0 2 1.99l.27-.28c.33-.34.81-.44 1.23-.26l1.05.43c.42.18.69.58.69 1.04v.4c0 .55-.45 1-1 1a6.57 6.57 0 0 1-6.56-6.56"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="1.5"
+    />
+    <path
+      d="M17 6v4"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeWidth="1.75"
+    />
+    <path
+      d="M15 8h4"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeWidth="1.75"
+    />
   </svg>
 );
 
