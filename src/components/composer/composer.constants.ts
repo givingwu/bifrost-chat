@@ -55,6 +55,7 @@ export const ARIA_LABELS = {
 export const CHANNEL_HINTS: Record<string, string> = {
   sms: 'composer.hint.sms',
   whatsapp: 'composer.hint.whatsapp',
+  wa_agent: 'composer.hint.wa_agent',
   email: 'composer.hint.email',
   viber: 'composer.hint.viber',
   default: 'composer.hint.default',

@@ -85,7 +85,7 @@
       "newline": "Shift+Enter to insert a new line",
       "sms": "SMS · 1 segment",
       "whatsapp": "Secure Connection",
-      "waagent": "Agent Connection",
+      "wa_agent": "Agent Connection",
       "email": "Rich text enabled",
       "viber": "Viber Message",
       "default": "Default Channel"

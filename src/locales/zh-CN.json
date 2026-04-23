@@ -85,7 +85,7 @@
       "newline": "Shift+Enter 换行",
       "sms": "SMS · 1 segment",
       "whatsapp": "安全连接",
-      "waagent": "自研代理",
+      "wa_agent": "自研代理",
       "email": "已启用富文本",
       "viber": "Viber 消息",
       "default": "默认渠道"
