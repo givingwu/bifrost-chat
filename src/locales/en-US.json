@@ -18,7 +18,7 @@
     "channel": {
       "sms": "Interactive SMS",
       "whatsapp": "WhatsApp Business",
-      "wa-agent": "WhatsApp Agent",
+      "wa_agent": "WhatsApp Agent",
       "email": "Email",
       "voip": "VoIP",
       "viber": "Viber",

@@ -18,7 +18,7 @@
     "channel": {
       "sms": "交互短信",
       "whatsapp": "WhatsApp",
-      "wa-agent": "自研 WhatsApp",
+      "wa_agent": "自研 WhatsApp",
       "email": "邮件",
       "voip": "VoIP",
       "viber": "Viber",
