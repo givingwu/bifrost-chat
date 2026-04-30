@@ -385,19 +385,7 @@ export class MessageBuilder {
       return ChannelTypeEnum.SMS;
     }
 
-    const normalizedType = channelType.toLowerCase();
-
-    if (normalizedType === 'whatsapp' || normalizedType === 'waba') {
-      return ChannelTypeEnum.WhatsApp;
-    }
-    if (normalizedType === 'email') {
-      return ChannelTypeEnum.Email;
-    }
-    if (normalizedType === 'sms') {
-      return ChannelTypeEnum.SMS;
-    }
-
-    return ChannelTypeEnum.SMS;
+    return channelType.toLowerCase() as ChannelTypeEnum;
   }
 
   /**
