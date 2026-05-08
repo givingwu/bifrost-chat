@@ -34,6 +34,11 @@ export interface ChannelFilterProps {
    * ```
    */
   unreadByChannel?: Partial<Record<ChannelTypeEnum, number>>;
+  /**
+   * 禁用的渠道及其 tooltip 提示，key = ChannelTypeEnum，value = tooltip 文案。
+   * 匹配的渠道按钮会置灰且不可点击，鼠标悬停显示自定义 tooltip。
+   */
+  disabledChannels?: Partial<Record<ChannelTypeEnum, string>>;
   /** 自定义容器类名 */
   className?: string;
   /** 自定义容器样式 */
@@ -70,6 +75,7 @@ export const ChannelFilter = memo(
     showTooltip = true,
     compact = true,
     unreadByChannel,
+    disabledChannels,
     className,
     style,
   }: ChannelFilterProps) => {
@@ -108,30 +114,38 @@ export const ChannelFilter = memo(
           const icon = getIcon(channel);
           const label = getLabel(channel);
           const count = unreadByChannel?.[channel] ?? 0;
+          const disabledTooltip = disabledChannels?.[channel];
+          const isDisabled = !!disabledTooltip;
 
           return (
             <Button
               type="button"
               data-channel={channel}
               key={channel}
+              disabled={isDisabled}
               onClick={() => {
-                onChannelClick?.(channel);
+                if (!isDisabled) {
+                  onChannelClick?.(channel);
+                }
               }}
               aria-label={label}
               aria-pressed={isActive}
+              aria-disabled={isDisabled}
               className={cn(
                 'relative z-10 flex items-center justify-center px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-300 group',
                 'min-w-10',
-                isActive
-                  ? 'text-white font-semibold cursor-pointer'
-                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200',
+                isDisabled
+                  ? 'opacity-40 cursor-not-allowed'
+                  : isActive
+                    ? 'text-white font-semibold cursor-pointer'
+                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200',
               )}
               style={
-                isActive
+                isActive && !isDisabled
                   ? { backgroundColor: CHANNEL_BRAND_COLOR[channel] }
                   : undefined
               }
-              title={label}
+              title={disabledTooltip ?? label}
             >
               <span className="transition-all duration-200">{icon}</span>
               {/* Unread badge：有数据且 > 0 才显示 */}
@@ -161,7 +175,7 @@ export const ChannelFilter = memo(
                     'group-hover:opacity-100',
                   )}
                 >
-                  {label}
+                  {disabledTooltip ?? label}
                 </span>
               )}
             </Button>

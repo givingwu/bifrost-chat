@@ -54,6 +54,8 @@ export interface StrategyState {
   channelFilterEnabled: boolean;
   /** 是否自动选中列表第一条会话；customer 模式下由 useConversationInitializer 管理激活，应设为 false */
   autoSelectFirstConversation: boolean;
+  /** 禁用的渠道及其 tooltip 提示文案；key 为渠道类型，value 为 tooltip 文案 */
+  disabledChannels?: Partial<Record<ChannelTypeEnum, string>>;
 }
 
 export interface StrategySlice {
