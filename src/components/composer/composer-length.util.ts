@@ -12,6 +12,7 @@ export function getDefaultComposerMaxLength(channel?: ChannelTypeEnum): number {
     case ChannelTypeEnum.SMS:
       return INPUT_LIMITS.SMS_MAX_LENGTH;
     case ChannelTypeEnum.WhatsApp:
+    case ChannelTypeEnum.WaAgent:
       return INPUT_LIMITS.WHATSAPP_MAX_LENGTH;
     case ChannelTypeEnum.Viber:
       return INPUT_LIMITS.WABA_MAX_LENGTH;
