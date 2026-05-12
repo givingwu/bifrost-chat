@@ -4,7 +4,7 @@ import {
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import type { Conversation } from '@/interfaces/conversation.interface';
 import { queryKeys } from '@/providers/query.provider';
 import { useServices } from '@/providers/service.provider';
@@ -172,6 +172,18 @@ export function useConversations<TListParams = IConversationParams>(
     enabled: (options?.enabled ?? true) && !!conversationService,
     staleTime: 1000 * 30, // 30s 内视为新鲜
   });
+
+  // 切换渠道时，强制将目标渠道的会话列表缓存标记为 stale 并重新请求，
+  // 防止 staleTime 窗口内返回旧缓存导致列表不刷新。
+  const prevChannelRef = useRef(activeChannel);
+  useEffect(() => {
+    if (prevChannelRef.current !== activeChannel) {
+      prevChannelRef.current = activeChannel;
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.conversations.list(activeChannel),
+      });
+    }
+  }, [activeChannel, queryClient]);
 
   const serverConversations = useMemo(
     () => query.data?.pages.flatMap((page) => page.items) ?? [],
