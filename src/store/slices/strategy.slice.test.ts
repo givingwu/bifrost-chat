@@ -1,8 +1,19 @@
 import { describe, expect, it } from 'vitest';
-import { ChannelTypeEnum } from '@/interfaces/channel.interface';
+import {
+  AvailableChannels,
+  ChannelTypeEnum,
+} from '@/interfaces/channel.interface';
 import { normalizeAllowedChannels } from './strategy.slice';
 
 describe('normalizeAllowedChannels', () => {
+  it('公开 RCS 渠道枚举并纳入可用渠道', () => {
+    expect(ChannelTypeEnum.RCS).toBe('rcs');
+    expect(AvailableChannels).toContain(ChannelTypeEnum.RCS);
+    expect(normalizeAllowedChannels([ChannelTypeEnum.RCS])).toEqual([
+      ChannelTypeEnum.RCS,
+    ]);
+  });
+
   it('过滤掉不在 AvailableChannels 中的非法渠道', () => {
     const result = normalizeAllowedChannels([
       'unknown' as ChannelTypeEnum,

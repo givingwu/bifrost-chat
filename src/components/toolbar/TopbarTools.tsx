@@ -20,8 +20,7 @@ export interface ITopbarTools {
  * TopbarTools：会话顶部栏右侧工具集合。
  */
 export const TopbarTools = memo(({ extra = null }: ITopbarTools) => {
-  const { activeChannel, allowedChannels, disabledChannels } =
-    useStrategy();
+  const { activeChannel, allowedChannels, disabledChannels } = useStrategy();
   const { mode, enableSwitcher: showThemeSwitcher } = useTheme();
   const { code, enableSwitcher: showLanguageSwitcher } = useLanguage();
   const { status, enableStatusIndicator: showNetworkStatus } = useNetwork();

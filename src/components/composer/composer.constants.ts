@@ -58,6 +58,7 @@ export const CHANNEL_HINTS: Record<string, string> = {
   wa_agent: 'composer.hint.wa_agent',
   email: 'composer.hint.email',
   viber: 'composer.hint.viber',
+  rcs: 'composer.hint.rcs',
   default: 'composer.hint.default',
 };
 

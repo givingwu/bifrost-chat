@@ -102,4 +102,11 @@ describe('MessageBuilder', () => {
       text: 'Unsupported message type',
     });
   });
+
+  it('should parse supported channels and fallback unknown channels to SMS', () => {
+    expect(MessageBuilder.stringToChannelType('rcs')).toBe(ChannelTypeEnum.RCS);
+    expect(MessageBuilder.stringToChannelType('unknown_channel')).toBe(
+      ChannelTypeEnum.SMS,
+    );
+  });
 });

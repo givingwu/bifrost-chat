@@ -56,6 +56,18 @@ export const DEFAULT_CHANNEL_MESSAGE_TYPES: Partial<
     MessageTypeEnum.Location,
     MessageTypeEnum.Template,
   ],
+
+  // RCS: 支持富媒体与模板消息
+  [ChannelTypeEnum.RCS]: [
+    MessageTypeEnum.Text,
+    MessageTypeEnum.Image,
+    MessageTypeEnum.Video,
+    MessageTypeEnum.Audio,
+    MessageTypeEnum.File,
+    MessageTypeEnum.Location,
+    MessageTypeEnum.Template,
+    MessageTypeEnum.RichMedia,
+  ],
   // IVR 语音渠道暂不支持（IM 侧不展示）
 };
 

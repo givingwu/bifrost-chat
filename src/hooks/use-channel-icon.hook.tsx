@@ -21,6 +21,7 @@ export const CHANNEL_BRAND_COLOR: Record<ChannelTypeEnum, string> = {
   [ChannelTypeEnum.WaAgent]: '#16A34A', // green-600（自研 WhatsApp 代理，稍深以区分）
   [ChannelTypeEnum.Email]: '#F97316', // orange-500
   [ChannelTypeEnum.Viber]: '#8B5CF6', // violet-500（Viber 官方紫）
+  [ChannelTypeEnum.RCS]: '#06B6D4', // cyan-500
 };
 
 type IconFactory = (size: number) => React.ReactElement;
@@ -159,12 +160,34 @@ const ViberIcon: IconFactory = (size) => (
   </svg>
 );
 
+/** RCS：富通信气泡 + 状态点 */
+const RcsIcon: IconFactory = (size) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={1.75}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M7 18.5A7.5 7.5 0 1 1 9.8 20L5 22Z" />
+    <path d="M8 10.5h8" />
+    <path d="M8 14h5" />
+    <circle cx="16" cy="14" r="1.1" fill="currentColor" stroke="none" />
+  </svg>
+);
+
 const CHANNEL_ICON_MAP: Partial<Record<ChannelTypeEnum, IconFactory>> = {
   [ChannelTypeEnum.SMS]: SmsIcon,
   [ChannelTypeEnum.WhatsApp]: WhatsAppIcon,
   [ChannelTypeEnum.WaAgent]: WaAgentIcon,
   [ChannelTypeEnum.Email]: EmailIcon,
   [ChannelTypeEnum.Viber]: ViberIcon,
+  [ChannelTypeEnum.RCS]: RcsIcon,
 };
 
 /**

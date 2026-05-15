@@ -385,7 +385,14 @@ export class MessageBuilder {
       return ChannelTypeEnum.SMS;
     }
 
-    return channelType.toLowerCase() as ChannelTypeEnum;
+    const normalizedChannelType = channelType.toLowerCase();
+    const validChannelTypes = Object.values(ChannelTypeEnum) as string[];
+
+    if (validChannelTypes.includes(normalizedChannelType)) {
+      return normalizedChannelType as ChannelTypeEnum;
+    }
+
+    return ChannelTypeEnum.SMS;
   }
 
   /**

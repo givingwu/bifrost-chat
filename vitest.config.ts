@@ -1,11 +1,12 @@
-import path from 'path';
+import path from 'node:path';
 import { configDefaults, defineConfig } from 'vitest/config';
 
 export default defineConfig({
   // Configure Vitest (https://vitest.dev/config/)
   test: {
     environment: 'jsdom',
-    exclude: [...configDefaults.exclude, '.worktrees/**'],
+    exclude: [...configDefaults.exclude, '.worktrees/**', '.kilo/worktrees/**'],
+    pool: 'vmThreads',
     setupFiles: './vitest.setup.ts',
   },
   resolve: {

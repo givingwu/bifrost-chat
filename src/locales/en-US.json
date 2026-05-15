@@ -22,6 +22,7 @@
       "email": "Email",
       "voip": "VoIP",
       "viber": "Viber",
+      "rcs": "RCS",
       "ivr": "IVR"
     },
     "network": {
@@ -88,6 +89,7 @@
       "wa_agent": "Agent Connection",
       "email": "Rich text enabled",
       "viber": "Viber Message",
+      "rcs": "RCS rich message",
       "default": "Default Channel"
     },
     "aria": {

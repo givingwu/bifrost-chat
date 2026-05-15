@@ -14,6 +14,8 @@ export enum ChannelTypeEnum {
   Email = 'email',
   /** Viber 渠道 */
   Viber = 'viber',
+  /** RCS 富通信服务渠道 */
+  RCS = 'rcs',
   /** IVR 语音渠道 在 IM 中已被关闭 */
   // IVR = 'ivr',
 }
@@ -27,6 +29,7 @@ export const AvailableChannels = [
   ChannelTypeEnum.WaAgent,
   ChannelTypeEnum.Email,
   ChannelTypeEnum.Viber,
+  ChannelTypeEnum.RCS,
   // IVR 语音渠道暂不支持（IM 侧不展示），保留枚举值供历史数据解析
 ] as const;
 

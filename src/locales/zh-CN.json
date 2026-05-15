@@ -22,6 +22,7 @@
       "email": "邮件",
       "voip": "VoIP",
       "viber": "Viber",
+      "rcs": "RCS",
       "ivr": "IVR"
     },
     "network": {
@@ -88,6 +89,7 @@
       "wa_agent": "自研代理",
       "email": "已启用富文本",
       "viber": "Viber 消息",
+      "rcs": "RCS 富媒体消息",
       "default": "默认渠道"
     },
     "aria": {

@@ -31,6 +31,7 @@
 - 接口抽象 + 依赖注入（ServiceProvider）
 - React Query（服务端状态）+ Zustand（客户端状态）
 - 默认布局组件 + 可替换的组合式组件
+- 内置 SMS、WhatsApp、WaAgent、Email、Viber、RCS 渠道枚举
 - TypeScript 类型完整，支持泛型服务参数
 - 内置国际化与主题能力
 

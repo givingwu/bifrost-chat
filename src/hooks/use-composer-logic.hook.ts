@@ -265,6 +265,7 @@ export const useComposerLogic = (
         [ChannelTypeEnum.Email]: 'Email',
         [ChannelTypeEnum.WhatsApp]: 'WhatsApp',
         [ChannelTypeEnum.Viber]: 'Viber',
+        [ChannelTypeEnum.RCS]: 'RCS',
       };
 
       return `Input ${channelLabels[channel] || channel} message...`;
