@@ -49,7 +49,7 @@ export const MultipleChannels: Story = {
 };
 
 /**
- * 全部渠道（5 个）
+ * 全部渠道（6 个）
  */
 export const AllChannels: Story = {
   args: {
@@ -58,6 +58,28 @@ export const AllChannels: Story = {
     onChannelClick: () => {},
     compact: true,
     showTooltip: true,
+  },
+};
+
+/**
+ * RCS 富媒体渠道
+ *
+ * 展示 RCS 与常见消息渠道并列时的激活态、未读数和 tooltip。
+ */
+export const RCSChannel: Story = {
+  args: {
+    channels: [
+      ChannelTypeEnum.SMS,
+      ChannelTypeEnum.WhatsApp,
+      ChannelTypeEnum.RCS,
+    ],
+    activeChannel: ChannelTypeEnum.RCS,
+    onChannelClick: () => {},
+    compact: false,
+    showTooltip: true,
+    unreadByChannel: {
+      [ChannelTypeEnum.RCS]: 12,
+    },
   },
 };
 

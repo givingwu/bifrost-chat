@@ -47,6 +47,12 @@ export const Viber = () => (
   </div>
 );
 
+export const RCS = () => (
+  <div className="p-4 bg-muted rounded-lg">
+    <ChannelBadge type={ChannelTypeEnum.RCS} />
+  </div>
+);
+
 /**
  * 所有渠道一览
  */

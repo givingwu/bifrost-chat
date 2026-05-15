@@ -47,7 +47,19 @@ export const Default = () => (
 );
 
 /**
- * 全部渠道（5 个）
+ * RCS 渠道
+ */
+export const RCS = () => (
+  <div className="p-4 bg-muted rounded-lg">
+    <ChannelButtonFactory
+      channel={ChannelTypeEnum.RCS}
+      onClick={(type) => console.log('Clicked:', type)}
+    />
+  </div>
+);
+
+/**
+ * 全部渠道（6 个）
  */
 export const AllChannels = () => (
   <div className="flex gap-2 p-4 bg-muted rounded-lg flex-wrap">

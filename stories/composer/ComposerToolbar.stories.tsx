@@ -91,6 +91,24 @@ export const Email = () => {
 };
 
 /**
+ * RCS 渠道
+ */
+export const RCS = () => {
+  return (
+    <div className="rounded-lg">
+      <ComposerToolbar
+        conversationId="conv-rcs"
+        channel={ChannelTypeEnum.RCS}
+        onSend={async (content) => console.log('Send:', content)}
+        onSendAttachment={async (attachments, text) =>
+          console.log('Attachments:', attachments, 'Text:', text)
+        }
+      />
+    </div>
+  );
+};
+
+/**
  * 所有功能 - 展示所有 UI 元素
  */
 export const WithAllFeatures = () => {
