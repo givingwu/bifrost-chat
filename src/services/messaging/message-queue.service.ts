@@ -35,9 +35,9 @@ import {
 const DEFAULT_CONFIG: Required<MessageQueueConfig> = {
   /**
    * 默认超时时间（毫秒）
-   * - 10 秒后触发超时处理
+   * - 60 秒后触发超时处理
    */
-  defaultTimeout: 10000,
+  defaultTimeout: 60000,
   /**
    * 默认最大重试次数
    * - 失败后最多重试 3 次
