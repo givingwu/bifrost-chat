@@ -102,10 +102,10 @@ const OUTGOING_STATUS_PRIORITY: Record<MessageStatusEnum, number> = {
   [MessageStatusEnum.Created]: 0,
   [MessageStatusEnum.Queued]: 0,
   [MessageStatusEnum.Sending]: 1,
+  [MessageStatusEnum.Failed]: 1,
   [MessageStatusEnum.Sent]: 2,
   [MessageStatusEnum.Delivered]: 3,
   [MessageStatusEnum.Read]: 4,
-  [MessageStatusEnum.Failed]: 1,
   [MessageStatusEnum.Revoked]: 5,
   [MessageStatusEnum.Deleted]: 5,
 };
@@ -158,7 +158,7 @@ function receiptAckKindFromStatus(
 function isOutgoingItem(
   item: MessageQueueItem,
 ): item is OutgoingMessageQueueItem {
-  return item.kind === 'outgoing';
+  return item.kind === MessageDirectionEnum.Outgoing;
 }
 
 /**
@@ -306,7 +306,7 @@ export class MessageQueueService {
     const now = Date.now();
     const timeout = params.timeout ?? this.config.defaultTimeout;
     const item: OutgoingMessageQueueItem = {
-      kind: 'outgoing',
+      kind: MessageDirectionEnum.Outgoing,
       requestId: params.requestId ?? params.tempId,
       tempId: params.tempId,
       conversationId: params.conversationId,

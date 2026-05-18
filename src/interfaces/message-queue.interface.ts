@@ -121,7 +121,7 @@ export interface OutgoingMessageQueueItem extends BaseMessageQueueItem {
    * 队列项类型标识
    * - 固定值为 'outgoing'，用于类型区分
    */
-  kind: 'outgoing';
+  kind: MessageDirectionEnum.Outgoing;
   /**
    * 请求 ID
    * - 唯一标识此消息发送请求
