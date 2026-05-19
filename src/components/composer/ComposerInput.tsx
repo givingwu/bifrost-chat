@@ -199,7 +199,7 @@ export const ComposerInput = forwardRef<ComposerInputRef, ComposerInputProps>(
           className={cn(
             'w-full rounded-sm border border-transparent bg-gray-200/50 dark:bg-white/10 px-2 py-1.5',
             TEXT_SIZES.INPUT,
-            'text-text dark:text-white outline-none transition-all duration-200',
+            'text-text outline-none transition-all duration-200',
             'focus:bg-card focus:ring-2 focus:ring-primary/40',
             'disabled:cursor-not-allowed disabled:opacity-50',
             readOnly && 'cursor-not-allowed opacity-50',
