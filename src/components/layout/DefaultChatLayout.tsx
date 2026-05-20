@@ -570,7 +570,7 @@ export function DefaultChatLayout({
   return (
     <ChatLayout
       className={cn('max-w-350 h-[80vh]', className)}
-      containerClassName="w-270"
+      containerClassName="w-270 min-w-0"
       style={style}
       topbar={topbarNode}
       conversationPanel={
