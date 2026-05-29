@@ -198,10 +198,15 @@ export class AckPacketHandler extends BasePacketHandler {
     const trackedConversationId = pendingMessageTracker.get(messageId);
 
     if (trackedConversationId) {
-      console.info('[AckPacketHandler] 从映射表获取 conversationId', {
-        messageId,
-        conversationId: trackedConversationId,
-      });
+      console.warn(
+        '[AckPacketHandler] ACK 缺少 chatId，已通过本地发送映射恢复 conversationId',
+        {
+          messageId,
+          packetChatId,
+          bodyChatId,
+          conversationId: trackedConversationId,
+        },
+      );
       return trackedConversationId;
     }
 

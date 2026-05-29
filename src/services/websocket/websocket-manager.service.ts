@@ -51,6 +51,7 @@ import {
 } from '@/interfaces/websocket.interface';
 import { MessageBuilder } from '@/services/messaging/message-builder.service';
 import { messageQueue } from '@/services/messaging/message-queue.service';
+import { pendingMessageTracker } from '@/services/messaging/pending-message-tracker.service';
 import {
   AckHandler,
   HeartbeatManager,
@@ -383,7 +384,9 @@ export class WebSocketManager {
     }
 
     try {
-      this.ws.send(JSON.stringify(data));
+      const payload = JSON.stringify(data);
+      this.ws.send(payload);
+      this.registerOutgoingPacketAckMapping(data);
     } catch (error) {
       const sendError = new SendFailedError(
         error instanceof Error ? error.message : String(error),
@@ -392,6 +395,37 @@ export class WebSocketManager {
       console.error('Failed to send WebSocket message:', error);
       throw sendError;
     }
+  }
+
+  /**
+   * 在聊天消息实际发出后登记 ACK 回填映射。
+   *
+   * @param data 已发送的协议包
+   * @remarks
+   * 服务端 ACK 可能缺少 chatId。这里只登记已成功写入 WebSocket 的
+   * chat_message，避免发送失败时留下无效映射。
+   */
+  private registerOutgoingPacketAckMapping(data: unknown): void {
+    if (!data || typeof data !== 'object') {
+      return;
+    }
+
+    const packet = data as Partial<RawPacket>;
+
+    if (packet.ptype !== PacketMessageTypeEnum.ChatMessage) {
+      return;
+    }
+
+    if (
+      typeof packet.id !== 'string' ||
+      !packet.id ||
+      typeof packet.chatId !== 'string' ||
+      !packet.chatId
+    ) {
+      return;
+    }
+
+    pendingMessageTracker.register(packet.id, packet.chatId);
   }
 
   /**

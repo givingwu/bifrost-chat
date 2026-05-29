@@ -16,7 +16,14 @@ import {
   WebSocketStatusEnum,
 } from '@/interfaces/websocket.interface';
 import { messageQueue } from '@/services/messaging/message-queue.service';
+import { pendingMessageTracker } from '@/services/messaging/pending-message-tracker.service';
 import { WebSocketManager } from '@/services/websocket/websocket-manager.service';
+
+type TestableWebSocketManager = {
+  status: WebSocketStatusEnum;
+  ws: Pick<WebSocket, 'readyState' | 'send'>;
+  handleMessage(event: MessageEvent<string>): Promise<void>;
+};
 
 describe('WebSocketManager - 协议层 Helper 集成测试', () => {
   let manager: WebSocketManager;
@@ -24,6 +31,7 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     messageQueue.clear();
+    pendingMessageTracker.clear();
 
     // 创建管理器实例
     manager = new WebSocketManager({
@@ -44,6 +52,7 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
   afterEach(() => {
     manager.destroy();
     messageQueue.clear();
+    pendingMessageTracker.clear();
   });
 
   describe('PacketValidator 集成', () => {
@@ -215,6 +224,103 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
       const event = messageListener.mock.calls[0][0];
       const data = event.data as { status: MessageStatusEnum };
       expect(data.status).toBe(MessageStatusEnum.Delivered);
+    });
+
+    it('发送成功后收到缺少 chatId 的 chat_message ACK 时应通过映射恢复会话 ID', async () => {
+      const mockWs = {
+        readyState: WebSocket.OPEN,
+        send: vi.fn(),
+      };
+      const messageListener = vi.fn();
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+      try {
+        const testManager = manager as unknown as TestableWebSocketManager;
+
+        manager.onMessage(messageListener);
+        testManager.ws = mockWs;
+        testManager.status = WebSocketStatusEnum.Connected;
+
+        manager.send({
+          id: 'chat_1780021677296_hscxzcrfb',
+          chatId: 'fox_collect_a37498',
+          from: {
+            app: 'fox_collect.waiter',
+            pin: '409c78f524334c2d9f95a03c2f93b14d',
+            channelType: ChannelTypeEnum.WaAgent,
+            clientType: 'web',
+          },
+          to: {
+            app: 'fox_collect.customer',
+            pin: 'enc_01_6030214241767168000_135',
+            channelType: ChannelTypeEnum.WaAgent,
+            clientType: 'web',
+          },
+          ptype: PacketMessageTypeEnum.ChatMessage,
+          body: {
+            type: MessageTypeEnum.Text,
+            content: {
+              text: '3',
+            },
+          },
+          ver: '1.0',
+          timestamp: 1780021677416,
+        });
+
+        await testManager.handleMessage(
+          new MessageEvent('message', {
+            data: JSON.stringify({
+              id: 'chat_1780021677296_hscxzcrfb',
+              upid: null,
+              chatId: null,
+              from: {
+                app: 'fox_collect.waiter',
+                pin: '@im.kn.com',
+                clientType: null,
+                channelType: ChannelTypeEnum.WaAgent,
+              },
+              to: {
+                app: 'fox_collect.waiter',
+                pin: '409c78f524334c2d9f95a03c2f93b14d',
+                clientType: 'web',
+                channelType: ChannelTypeEnum.WaAgent,
+              },
+              ptype: PacketMessageTypeEnum.Ack,
+              body: {
+                type: PacketMessageTypeEnum.ChatMessage,
+              },
+              mid: 0,
+              ver: '1.0.0',
+              entry: null,
+              status: null,
+              timestamp: 1780021677481,
+            }),
+          }),
+        );
+
+        expect(mockWs.send).toHaveBeenCalledTimes(1);
+        expect(messageListener).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: WebSocketEventTypeEnum.MessageStatus,
+            data: expect.objectContaining({
+              conversationId: 'fox_collect_a37498',
+              messageId: 'chat_1780021677296_hscxzcrfb',
+              status: MessageStatusEnum.Sent,
+            }),
+          }),
+        );
+        expect(warnSpy).toHaveBeenCalledWith(
+          '[AckPacketHandler] ACK 缺少 chatId，已通过本地发送映射恢复 conversationId',
+          expect.objectContaining({
+            messageId: 'chat_1780021677296_hscxzcrfb',
+            packetChatId: null,
+            bodyChatId: undefined,
+            conversationId: 'fox_collect_a37498',
+          }),
+        );
+      } finally {
+        warnSpy.mockRestore();
+      }
     });
 
     it('应该使用 isReadAck 判断已读', () => {
