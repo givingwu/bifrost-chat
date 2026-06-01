@@ -26,6 +26,7 @@ import {
   type StandardMessage,
 } from '@/interfaces/message.interface';
 import type { Template } from '@/interfaces/template.interface';
+import { ThemeModeEnum } from '@/interfaces/theme.interface';
 import '@/styles/theme.css';
 
 const activeConversation: Conversation = {
@@ -218,7 +219,9 @@ function MobileLayoutDemo({
 
   return (
     <div
-      className="flex min-h-[860px] items-center justify-center bg-background p-6"
+      className={`flex min-h-[860px] items-center justify-center bg-background p-6 ${
+        theme === 'dark' ? 'dark' : ''
+      }`}
       data-theme={theme}
     >
       <div className="h-[820px] w-[390px] overflow-hidden rounded-[2rem] border-8 border-gray-800 bg-background shadow-2xl">
@@ -226,6 +229,9 @@ function MobileLayoutDemo({
           config={{
             activeConversationId,
             language: { code: LanguageCodeEnum.ZhCN },
+            theme: {
+              mode: theme === 'dark' ? ThemeModeEnum.Dark : ThemeModeEnum.Light,
+            },
             strategy: {
               activeChannel: ChannelTypeEnum.Viber,
               allowedChannels: [ChannelTypeEnum.Viber],
@@ -294,19 +300,14 @@ export const EmptyConversation: Story = {
 };
 
 /**
- * 主题对照
+ * 深色主题
  */
-export const ThemeCompare: Story = {
-  render: () => (
-    <div className="grid gap-6 bg-background p-6 lg:grid-cols-2">
-      <MobileLayoutDemo theme="light" />
-      <MobileLayoutDemo theme="dark" />
-    </div>
-  ),
+export const Dark: Story = {
+  render: () => <MobileLayoutDemo theme="dark" />,
   parameters: {
     docs: {
       description: {
-        story: '浅色与深色主题下的移动端布局对照。',
+        story: '深色主题下的移动端布局，主题由 ConfigProvider 注入。',
       },
     },
   },

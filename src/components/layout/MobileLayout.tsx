@@ -11,7 +11,6 @@ import {
 } from 'react';
 import { InfiniteMessageList } from '@/components/messages/InfiniteMessageList';
 import { useActiveConversationMetadata } from '@/hooks/use-active-conversation-metadata.hook';
-import { CHANNEL_BRAND_COLOR } from '@/hooks/use-channel-icon.hook';
 import { useChannelLabel } from '@/hooks/use-channel-label.hook';
 import { useConversations } from '@/hooks/use-conversations.hook';
 import { useMessageStatusSync } from '@/hooks/use-message-status-sync.hook';
@@ -203,7 +202,6 @@ export function MobileLayout({
     composerConfig.inputMode === 'template-only' &&
     composerConfig.allowTemplateEdit !== true;
   const templateSheetId = 'bifrost-mobile-template-sheet';
-  const channelColor = CHANNEL_BRAND_COLOR[activeChannel];
 
   useEffect(() => {
     if (!isTemplateSheetOpen) return;
@@ -332,15 +330,17 @@ export function MobileLayout({
       )}
       style={
         {
-          '--mobile-channel-color': channelColor,
+          '--mobile-accent-color': 'var(--primary)',
+          '--mobile-accent-foreground-color': 'var(--primary-foreground)',
           ...style,
         } as CSSProperties
       }
     >
       <header
         className={cn(
-          'flex min-h-24 shrink-0 items-end justify-between gap-4 px-5 pb-4',
-          'bg-[var(--mobile-channel-color)] text-white',
+          'relative z-10 flex min-h-20 shrink-0 items-center justify-between gap-4',
+          'bg-card/80 px-5 py-3 shadow-soft backdrop-blur-md',
+          'dark:bg-gray-900/50',
         )}
       >
         <div className="flex min-w-0 items-center gap-3">
@@ -351,13 +351,13 @@ export function MobileLayout({
               className="h-8 w-8 shrink-0 rounded-md object-cover"
             />
           ) : (
-            <div className="h-8 w-8 shrink-0 rounded-md bg-white/20" />
+            <div className="h-8 w-8 shrink-0 rounded-md bg-primary/10" />
           )}
           <div className="min-w-0">
-            <h2 className="truncate text-base font-semibold leading-5">
+            <h2 className="truncate text-sm font-semibold leading-5 text-gray-600 dark:text-gray-400">
               {headerTitle}
             </h2>
-            <p className="mt-0.5 truncate text-xs text-white/85">
+            <p className="mt-0.5 truncate text-xs text-gray-400 dark:text-gray-500">
               {headerSubTitle}
             </p>
           </div>
@@ -366,7 +366,7 @@ export function MobileLayout({
         {showCloseButton && (
           <button
             type="button"
-            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white transition-colors hover:bg-white/15 focus:outline-none focus:ring-2 focus:ring-white/70"
+            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted focus:outline-none focus:ring-2 focus:ring-primary/40"
             onClick={onClose}
             aria-label={t('common.close')}
           >
@@ -375,7 +375,7 @@ export function MobileLayout({
         )}
       </header>
 
-      <main className="min-h-0 flex-1 overflow-hidden bg-muted/40">
+      <main className="min-h-0 flex-1 overflow-hidden bg-card/40">
         {messageListNode}
       </main>
 
@@ -471,7 +471,7 @@ export function MobileLayout({
         </section>
       )}
 
-      <footer className="shrink-0 border-t border-border bg-card px-3 py-3">
+      <footer className="shrink-0 border-t border-border bg-white/50 px-3 py-3 backdrop-blur-md dark:bg-gray-900/50">
         <form
           className="flex items-center gap-2"
           onSubmit={(event) => {
@@ -506,10 +506,11 @@ export function MobileLayout({
             readOnly={isInputReadOnly}
             disabled={!activeConversationId || sendMessage.isPending}
             className={cn(
-              'min-w-0 flex-1 rounded-full border border-border bg-background',
+              'min-w-0 flex-1 rounded-full border border-transparent',
+              'bg-gray-200/50 dark:bg-white/10',
               'px-4 py-2 text-sm text-foreground outline-none',
-              'placeholder:text-muted-foreground',
-              'focus:border-primary/60 focus:ring-2 focus:ring-primary/20',
+              'placeholder:text-gray-500/50',
+              'focus:bg-card focus:ring-2 focus:ring-primary/40',
               'disabled:cursor-not-allowed disabled:opacity-60',
               isInputReadOnly && 'cursor-not-allowed',
             )}
@@ -525,7 +526,7 @@ export function MobileLayout({
             type="submit"
             className={cn(
               'inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full',
-              'bg-[var(--mobile-channel-color)] text-white shadow-soft',
+              'bg-[var(--mobile-accent-color)] text-[var(--mobile-accent-foreground-color)] shadow-soft',
               'transition-transform hover:scale-105 active:scale-95',
               'focus:outline-none focus:ring-2 focus:ring-primary/40',
               'disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100',

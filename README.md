@@ -270,9 +270,10 @@ export function App() {
 #### 移动端布局
 
 **当前已实现（As-Is）**：`MobileLayout` 提供轻量移动端结构：
-Header + MessageList + Footer。Footer 内置快捷模板入口、单行输入框和
-发送按钮；模板入口使用底部 ActionSheet，并复用 `useTemplates` /
-`useSendMessage` 数据链路。
+Header + MessageList + Footer。默认视觉风格与 PC `DefaultChatLayout`
+保持同一套主题 token；Footer 内置快捷模板入口、单行输入框和发送按钮；
+模板入口使用底部 ActionSheet，并复用 `useTemplates` / `useSendMessage`
+数据链路。
 
 ```tsx
 import { MobileLayout } from '@feoe/bifrost-chat';
@@ -298,6 +299,9 @@ export function MobileApp() {
 
 如需在 Storybook 或特殊宿主中接管消息区，可通过
 `renderMessageList` 自定义渲染；未传时默认使用 `InfiniteMessageList`。
+如需覆盖移动端强调色，可在宿主主题中覆盖 `--primary` /
+`--primary-foreground`，或通过 `style` 覆盖 `--mobile-accent-color` /
+`--mobile-accent-foreground-color`。
 
 #### 仅模板输入场景
 

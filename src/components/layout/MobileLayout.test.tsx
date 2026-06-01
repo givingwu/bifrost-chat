@@ -148,10 +148,20 @@ describe('MobileLayout', () => {
   });
 
   it('应渲染移动端 header、消息区和底部输入区', () => {
-    render(<MobileLayout />);
+    const { container } = render(<MobileLayout />);
 
     expect(screen.getByText('叶+义')).toBeInTheDocument();
     expect(screen.getByText('Viber 会话')).toBeInTheDocument();
+    expect(
+      container
+        .querySelector('[data-component="mobile-layout"]')
+        ?.getAttribute('style'),
+    ).toContain('--mobile-accent-color: var(--primary)');
+    expect(
+      container
+        .querySelector('[data-component="mobile-layout"]')
+        ?.getAttribute('style'),
+    ).toContain('--mobile-accent-foreground-color: var(--primary-foreground)');
     expect(screen.getByTestId('mobile-message-list')).toHaveAttribute(
       'data-conversation-id',
       'conv-1',
