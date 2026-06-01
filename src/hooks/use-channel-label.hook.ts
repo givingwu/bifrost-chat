@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import type { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import { useTranslation } from '@/providers/I18n.provider';
 
@@ -10,7 +11,11 @@ import { useTranslation } from '@/providers/I18n.provider';
  */
 export const useChannelLabel = () => {
   const { t } = useTranslation();
-  return (channel: ChannelTypeEnum): string =>
-    t(`toolbar.channel.${channel.toLowerCase()}` as Parameters<typeof t>[0]) ||
-    channel;
+  return useCallback(
+    (channel: ChannelTypeEnum): string =>
+      t(
+        `toolbar.channel.${channel.toLowerCase()}` as Parameters<typeof t>[0],
+      ) || channel,
+    [t],
+  );
 };

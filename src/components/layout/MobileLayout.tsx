@@ -1,4 +1,3 @@
-import { FileText, Send, X } from 'lucide-react';
 import {
   type CSSProperties,
   type KeyboardEvent,
@@ -9,6 +8,9 @@ import {
   useRef,
   useState,
 } from 'react';
+import { MobileComposer } from '@/components/layout/MobileComposer';
+import { MobileHeader } from '@/components/layout/MobileHeader';
+import { MobileTemplateActionSheet } from '@/components/layout/MobileTemplateActionSheet';
 import { InfiniteMessageList } from '@/components/messages/InfiniteMessageList';
 import { useActiveConversationMetadata } from '@/hooks/use-active-conversation-metadata.hook';
 import { useChannelLabel } from '@/hooks/use-channel-label.hook';
@@ -22,17 +24,18 @@ import type { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import type { Conversation } from '@/interfaces/conversation.interface';
 import type { Template } from '@/interfaces/template.interface';
 import { useTranslation } from '@/providers/I18n.provider';
+import type { TemplatePreviewResult } from '@/services/core/template.service';
 import {
   useActiveConversationId,
   useComposerConfig,
   useStrategy,
 } from '@/store';
 import { cn } from '@/utils/class.util';
-
-const EMPTY_TEMPLATE_PARAMS = {
-  conversationId: '',
-  currentChannel: undefined,
-} as const;
+import { getDisplayTitle } from '@/utils/layout.util';
+import {
+  EMPTY_TEMPLATE_PARAMS,
+  translateOrFallback,
+} from '@/utils/mobile.utils';
 
 /**
  * 移动端消息列表自定义渲染参数。
@@ -54,7 +57,7 @@ export interface MobileLayoutProps {
   style?: CSSProperties;
   /** 头部标题；未传时使用当前激活会话用户名 */
   title?: ReactNode;
-  /** 头部副标题；未传时显示“渠道 会话” */
+  /** 头部副标题；未传时显示"渠道 会话" */
   subTitle?: ReactNode;
   /** 头部头像 URL；未传时使用当前激活会话头像 */
   avatarUrl?: string;
@@ -70,48 +73,6 @@ export interface MobileLayoutProps {
   getConversationDisplayTitle?: (conversation: Conversation) => string;
   /** 自定义消息列表渲染 */
   renderMessageList?: (props: MobileLayoutRenderMessageListProps) => ReactNode;
-}
-
-type TranslationFn = (key: string, options?: Record<string, unknown>) => string;
-
-/**
- * 读取翻译文案；当语言包未配置该 key 时回退到默认文案。
- *
- * @param t 翻译函数
- * @param key 文案 key
- * @param fallback 回退文案
- * @param options 插值参数
- * @returns 可直接展示的文案
- */
-function translateOrFallback(
-  t: TranslationFn,
-  key: string,
-  fallback: string,
-  options?: Record<string, unknown>,
-): string {
-  const value = t(key, options);
-  const target = value === key ? fallback : value;
-
-  if (!options) {
-    return target;
-  }
-
-  return Object.entries(options).reduce((result, [token, optionValue]) => {
-    const regex = new RegExp(`{{\\s*${token}\\s*}}`, 'g');
-    return result.replace(regex, String(optionValue));
-  }, target);
-}
-
-/**
- * 生成移动端模板按钮的单行展示文案。
- *
- * @param template 模板数据
- * @returns 模板名称和内容组成的文案
- */
-function formatTemplateLabel(template: Template): string {
-  return template.name
-    ? `[${template.name}] ${template.content}`
-    : template.content;
 }
 
 /**
@@ -146,7 +107,8 @@ export function MobileLayout({
   const inputRef = useRef<HTMLInputElement>(null);
 
   const [value, setValue] = useState('');
-  const [templateMetadata, setTemplateMetadata] = useState<unknown>();
+  const [templateMetadata, setTemplateMetadata] =
+    useState<TemplatePreviewResult>();
   const [isTemplateSheetOpen, setIsTemplateSheetOpen] = useState(false);
   const [renderingTemplateId, setRenderingTemplateId] = useState<
     string | undefined
@@ -164,12 +126,17 @@ export function MobileLayout({
     [activeConversationId, conversations],
   );
 
-  const templateQueryParams = customTemplates
-    ? EMPTY_TEMPLATE_PARAMS
-    : {
-        conversationId: activeConversationId ?? '',
-        currentChannel: activeChannel,
-      };
+  const templateQueryParams = useMemo(
+    () =>
+      customTemplates
+        ? EMPTY_TEMPLATE_PARAMS
+        : {
+            conversationId: activeConversationId ?? '',
+            currentChannel: activeChannel,
+          },
+    [customTemplates, activeConversationId, activeChannel],
+  );
+
   const {
     data: serverTemplates,
     isLoading: isTemplatesLoading,
@@ -181,10 +148,11 @@ export function MobileLayout({
   const channelLabel = getChannelLabel(activeChannel);
   const headerTitle =
     title ??
-    (activeConversation
-      ? (getConversationDisplayTitle?.(activeConversation) ??
-        activeConversation.user.name)
-      : t('conversation.title'));
+    getDisplayTitle(
+      activeConversation,
+      getConversationDisplayTitle,
+      t('conversation.title'),
+    );
   const headerSubTitle =
     subTitle ??
     translateOrFallback(t, 'mobile.subtitle', '{{channel}} 会话', {
@@ -197,18 +165,21 @@ export function MobileLayout({
     translateOrFallback(t, 'composer.placeholder.channel', '请输入消息内容');
   const canSend =
     !!activeConversationId && !!value.trim() && !sendMessage.isPending;
-  const maxLength = composerConfig.customMessageMaxLength;
   const isInputReadOnly =
     composerConfig.inputMode === 'template-only' &&
     composerConfig.allowTemplateEdit !== true;
-  const templateSheetId = 'bifrost-mobile-template-sheet';
+
+  const closeTemplateSheet = useCallback(() => {
+    setIsTemplateSheetOpen(false);
+    setTemplateError(null);
+  }, []);
 
   useEffect(() => {
     if (!isTemplateSheetOpen) return;
 
     const handleKeyDown = (event: globalThis.KeyboardEvent) => {
       if (event.key === 'Escape') {
-        setIsTemplateSheetOpen(false);
+        closeTemplateSheet();
       }
     };
 
@@ -217,7 +188,7 @@ export function MobileLayout({
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isTemplateSheetOpen]);
+  }, [isTemplateSheetOpen, closeTemplateSheet]);
 
   const handleSend = useCallback(async () => {
     if (!activeConversationId) return;
@@ -225,16 +196,20 @@ export function MobileLayout({
     const content = value.trim();
     if (!content) return;
 
-    await sendMessage.mutateAsync({
-      conversationId: activeConversationId,
-      content,
-      options:
-        templateMetadata === undefined ? undefined : { templateMetadata },
-    });
+    try {
+      await sendMessage.mutateAsync({
+        conversationId: activeConversationId,
+        content,
+        options:
+          templateMetadata === undefined ? undefined : { templateMetadata },
+      });
 
-    setValue('');
-    setTemplateMetadata(undefined);
-    inputRef.current?.focus();
+      setValue('');
+      setTemplateMetadata(undefined);
+      inputRef.current?.focus();
+    } catch {
+      // React Query / useSendMessage handles error state
+    }
   }, [activeConversationId, sendMessage, templateMetadata, value]);
 
   const handleInputKeyDown = useCallback(
@@ -247,6 +222,11 @@ export function MobileLayout({
     [handleSend],
   );
 
+  const handleValueChange = useCallback((newValue: string) => {
+    setValue(newValue);
+    setTemplateMetadata(undefined);
+  }, []);
+
   const handleTemplateSelect = useCallback(
     async (template: Template) => {
       if (!activeConversationId) return;
@@ -256,7 +236,7 @@ export function MobileLayout({
 
       try {
         let contentToUse = template.content;
-        let nextTemplateMetadata: unknown;
+        let nextTemplateMetadata: TemplatePreviewResult | undefined;
 
         if (template.code) {
           const preview = await previewTemplate({
@@ -286,7 +266,7 @@ export function MobileLayout({
           inputRef.current?.focus();
         }
 
-        setIsTemplateSheetOpen(false);
+        closeTemplateSheet();
       } catch {
         setTemplateError(t('template.previewFailed'));
       } finally {
@@ -296,12 +276,18 @@ export function MobileLayout({
     [
       activeChannel,
       activeConversationId,
+      closeTemplateSheet,
       composerConfig.templateMode,
       previewTemplate,
       sendMessage,
       t,
     ],
   );
+
+  const toggleTemplateSheet = useCallback(() => {
+    setTemplateError(null);
+    setIsTemplateSheetOpen((current) => !current);
+  }, []);
 
   const messageListNode = renderMessageList ? (
     renderMessageList({
@@ -324,7 +310,7 @@ export function MobileLayout({
     <section
       data-component="mobile-layout"
       className={cn(
-        'relative flex h-full w-full max-w-[430px] flex-col overflow-hidden',
+        'relative flex h-full w-full flex-col overflow-hidden',
         'bg-background text-foreground shadow-2xl',
         className,
       )}
@@ -336,212 +322,46 @@ export function MobileLayout({
         } as CSSProperties
       }
     >
-      <header
-        className={cn(
-          'relative z-10 flex min-h-20 shrink-0 items-center justify-between gap-4',
-          'bg-card/80 px-5 py-3 shadow-soft backdrop-blur-md',
-          'dark:bg-gray-900/50',
-        )}
-      >
-        <div className="flex min-w-0 items-center gap-3">
-          {resolvedAvatarUrl ? (
-            <img
-              src={resolvedAvatarUrl}
-              alt=""
-              className="h-8 w-8 shrink-0 rounded-md object-cover"
-            />
-          ) : (
-            <div className="h-8 w-8 shrink-0 rounded-md bg-primary/10" />
-          )}
-          <div className="min-w-0">
-            <h2 className="truncate text-sm font-semibold leading-5 text-gray-600 dark:text-gray-400">
-              {headerTitle}
-            </h2>
-            <p className="mt-0.5 truncate text-xs text-gray-400 dark:text-gray-500">
-              {headerSubTitle}
-            </p>
-          </div>
-        </div>
-
-        {showCloseButton && (
-          <button
-            type="button"
-            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted focus:outline-none focus:ring-2 focus:ring-primary/40"
-            onClick={onClose}
-            aria-label={t('common.close')}
-          >
-            <X className="h-5 w-5" aria-hidden="true" />
-          </button>
-        )}
-      </header>
+      <MobileHeader
+        title={headerTitle}
+        subTitle={headerSubTitle}
+        avatarUrl={resolvedAvatarUrl}
+        showCloseButton={showCloseButton}
+        onClose={onClose}
+      />
 
       <main className="min-h-0 flex-1 overflow-hidden bg-card/40">
         {messageListNode}
       </main>
 
       {isTemplateSheetOpen && (
-        <section
-          id={templateSheetId}
-          role="dialog"
-          aria-label={translateOrFallback(
-            t,
-            'mobile.template.title',
-            '选择快捷话术模板',
-          )}
-          className={cn(
-            'absolute inset-x-0 bottom-[72px] z-20 mx-3 max-h-[52%]',
-            'overflow-hidden rounded-t-2xl border border-border bg-card',
-            'shadow-2xl',
-          )}
-        >
-          <div className="flex items-center justify-between px-4 py-3">
-            <h3 className="text-sm font-semibold text-foreground">
-              {translateOrFallback(
-                t,
-                'mobile.template.title',
-                '选择快捷话术模板',
-              )}
-            </h3>
-            <button
-              type="button"
-              className="inline-flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted focus:outline-none focus:ring-2 focus:ring-primary/40"
-              onClick={() => setIsTemplateSheetOpen(false)}
-              aria-label={t('common.close')}
-            >
-              <X className="h-4 w-4" aria-hidden="true" />
-            </button>
-          </div>
-
-          <div className="max-h-[calc(52vh-56px)] overflow-y-auto px-4 pb-4">
-            {templateError && (
-              <p className="mb-3 rounded-md bg-error/10 px-3 py-2 text-xs text-error">
-                {templateError}
-              </p>
-            )}
-
-            {isTemplatesLoading ? (
-              <p className="py-8 text-center text-sm text-muted-foreground">
-                {t('template.panel.loading')}
-              </p>
-            ) : templatesError ? (
-              <div className="py-8 text-center">
-                <p className="text-sm text-muted-foreground">
-                  {t('template.panel.loadFailed')}
-                </p>
-                <button
-                  type="button"
-                  className="mt-3 rounded-md border border-border px-3 py-1.5 text-xs text-foreground"
-                  onClick={() => void refetchTemplates()}
-                >
-                  {t('template.panel.retry')}
-                </button>
-              </div>
-            ) : templates.length === 0 ? (
-              <p className="py-8 text-center text-sm text-muted-foreground">
-                {t('template.panel.noTemplates')}
-              </p>
-            ) : (
-              <div className="space-y-2">
-                {templates.map((template) => {
-                  const isRendering = renderingTemplateId === template.id;
-
-                  return (
-                    <button
-                      key={template.id}
-                      type="button"
-                      className={cn(
-                        'flex w-full items-center rounded-lg bg-muted/60 px-3 py-3',
-                        'text-left text-sm text-foreground transition-colors',
-                        'hover:bg-muted focus:outline-none focus:ring-2 focus:ring-primary/40',
-                        isRendering && 'cursor-wait opacity-70',
-                      )}
-                      onClick={() => void handleTemplateSelect(template)}
-                      disabled={isRendering}
-                      aria-busy={isRendering}
-                    >
-                      <span className="line-clamp-1 break-all">
-                        {formatTemplateLabel(template)}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </section>
+        <MobileTemplateActionSheet
+          templates={templates}
+          isLoading={isTemplatesLoading}
+          queryError={templatesError}
+          templateError={templateError}
+          renderingTemplateId={renderingTemplateId}
+          onSelect={handleTemplateSelect}
+          onClose={closeTemplateSheet}
+          onRetry={() => void refetchTemplates()}
+        />
       )}
 
-      <footer className="shrink-0 border-t border-border bg-white/50 px-3 py-3 backdrop-blur-md dark:bg-gray-900/50">
-        <form
-          className="flex items-center gap-2"
-          onSubmit={(event) => {
-            event.preventDefault();
-            void handleSend();
-          }}
-        >
-          <button
-            type="button"
-            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted focus:outline-none focus:ring-2 focus:ring-primary/40"
-            onClick={() => {
-              setTemplateError(null);
-              setIsTemplateSheetOpen((current) => !current);
-            }}
-            aria-label={translateOrFallback(
-              t,
-              'mobile.template.open',
-              '打开快捷话术模板',
-            )}
-            aria-expanded={isTemplateSheetOpen}
-            aria-controls={templateSheetId}
-            disabled={!activeConversationId}
-          >
-            <FileText className="h-5 w-5" aria-hidden="true" />
-          </button>
-
-          <input
-            ref={inputRef}
-            value={value}
-            placeholder={resolvedPlaceholder}
-            maxLength={maxLength}
-            readOnly={isInputReadOnly}
-            disabled={!activeConversationId || sendMessage.isPending}
-            className={cn(
-              'min-w-0 flex-1 rounded-full border border-transparent',
-              'bg-gray-200/50 dark:bg-white/10',
-              'px-4 py-2 text-sm text-foreground outline-none',
-              'placeholder:text-gray-500/50',
-              'focus:bg-card focus:ring-2 focus:ring-primary/40',
-              'disabled:cursor-not-allowed disabled:opacity-60',
-              isInputReadOnly && 'cursor-not-allowed',
-            )}
-            onChange={(event) => {
-              setValue(event.target.value);
-              setTemplateMetadata(undefined);
-            }}
-            onKeyDown={handleInputKeyDown}
-            aria-label={t('composer.aria.input')}
-          />
-
-          <button
-            type="submit"
-            className={cn(
-              'inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full',
-              'bg-[var(--mobile-accent-color)] text-[var(--mobile-accent-foreground-color)] shadow-soft',
-              'transition-transform hover:scale-105 active:scale-95',
-              'focus:outline-none focus:ring-2 focus:ring-primary/40',
-              'disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100',
-            )}
-            disabled={!canSend}
-            aria-label={translateOrFallback(
-              t,
-              'composer.aria.send',
-              '发送消息',
-            )}
-          >
-            <Send className="h-4 w-4" aria-hidden="true" />
-          </button>
-        </form>
-      </footer>
+      <MobileComposer
+        inputRef={inputRef}
+        value={value}
+        onValueChange={handleValueChange}
+        onSend={handleSend}
+        onKeyDown={handleInputKeyDown}
+        placeholder={resolvedPlaceholder}
+        maxLength={composerConfig.customMessageMaxLength}
+        readOnly={isInputReadOnly}
+        inputDisabled={!activeConversationId || sendMessage.isPending}
+        canSend={canSend}
+        isTemplateSheetOpen={isTemplateSheetOpen}
+        isTemplateButtonDisabled={!activeConversationId}
+        onToggleTemplateSheet={toggleTemplateSheet}
+      />
     </section>
   );
 }
