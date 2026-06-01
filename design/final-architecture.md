@@ -22,11 +22,14 @@
 
 以 `src/index.ts` 与 `src/components/index.ts` 为准。
 
-- 对外公开组件：`Topbar`、`AudioMessage`、`TemplatePanel` 等。
+- 对外公开组件：`Topbar`、`AudioMessage`、`TemplatePanel`、
+  `ChannelIcon`、`SmsChannelIcon`、`WhatsAppChannelIcon`、
+  `WaAgentChannelIcon`、`EmailChannelIcon`、`ViberChannelIcon`、
+  `RcsChannelIcon` 等。
 - 对外公开 Hooks：
   `useConversations`、`useCreateConversation`、`useInViewport`、
-  `useMarkAsRead`、`useMessages`、`useSendMessage`、`useTemplates`、
-  `useTotalUnread`、`useUnreadSync`。
+  `useChannelIcon`、`useMarkAsRead`、`useMessages`、`useSendMessage`、
+  `useTemplates`、`useTotalUnread`、`useUnreadSync`。
 - 对外公开 Providers：
   `ConfigProvider`、`I18nProvider`、`QueryProvider`、`ServiceProvider`。
 - 对外公开服务接口：

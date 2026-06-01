@@ -31,7 +31,7 @@
 - 接口抽象 + 依赖注入（ServiceProvider）
 - React Query（服务端状态）+ Zustand（客户端状态）
 - 默认布局组件 + 可替换的组合式组件
-- 内置 SMS、WhatsApp、WaAgent、Email、Viber、RCS 渠道枚举
+- 内置 SMS、WhatsApp、WaAgent、Email、Viber、RCS 渠道枚举与图标组件
 - TypeScript 类型完整，支持泛型服务参数
 - 内置国际化与主题能力
 
@@ -375,12 +375,28 @@ export function MobileApp() {
 - 组件导出以 `src/components/index.ts` 为准。
 - 当前公开范围覆盖基础组件、布局组件、Conversation 组件、消息组件、
   Composer 组件、Template 组件、Profile 组件和 Toolbar 组件。
+- 渠道图标公开导出：
+  `ChannelIcon`、`SmsChannelIcon`、`WhatsAppChannelIcon`、
+  `WaAgentChannelIcon`、`EmailChannelIcon`、`ViberChannelIcon`、
+  `RcsChannelIcon`、`CHANNEL_ICON_COMPONENTS`、`CHANNEL_BRAND_COLOR`。
 - `TemplatePicker`、`Tooltip` 不再属于公开导出。
+
+```tsx
+import {
+  ChannelIcon,
+  ChannelTypeEnum,
+  WhatsAppChannelIcon,
+} from '@feoe/bifrost-chat';
+
+<ChannelIcon channel={ChannelTypeEnum.RCS} size="md" title="RCS" />;
+<WhatsAppChannelIcon size={20} title="WhatsApp" />;
+```
 
 ### Hooks
 
 - `useConversations`
 - `useCreateConversation`
+- `useChannelIcon`
 - `useInViewport`
 - `useMarkAsRead`
 - `useMessages`

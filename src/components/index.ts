@@ -64,6 +64,24 @@ export { TemplateSearch } from './template/TemplateSearch';
 export { ChannelBadge } from './toolbar/ChannelBadge';
 export { ChannelButtonFactory } from './toolbar/ChannelButtonFactory';
 export { ChannelFilter } from './toolbar/ChannelFilter';
+export type {
+  ChannelIconComponent,
+  ChannelIconComponentProps,
+  ChannelIconProps,
+  ChannelIconSize,
+} from './toolbar/ChannelIcon';
+export {
+  CHANNEL_BRAND_COLOR,
+  CHANNEL_ICON_COMPONENTS,
+  CHANNEL_ICON_SIZE_PX,
+  ChannelIcon,
+  EmailChannelIcon,
+  RcsChannelIcon,
+  SmsChannelIcon,
+  ViberChannelIcon,
+  WaAgentChannelIcon,
+  WhatsAppChannelIcon,
+} from './toolbar/ChannelIcon';
 export { LanguageSwitcher } from './toolbar/LanguageSwitcher';
 export { NetworkStatus } from './toolbar/NetworkStatus';
 export { ThemeSwitcher } from './toolbar/ThemeSwitcher';
