@@ -179,6 +179,13 @@
     },
     "previewFailed": "Preview failed please check your template content and try again"
   },
+  "mobile": {
+    "subtitle": "{{channel}} conversation",
+    "template": {
+      "open": "Open quick reply templates",
+      "title": "Choose quick reply template"
+    }
+  },
   "emoji": {
     "title": "Select Emoji",
     "hint": "Click an emoji to insert it into the input",

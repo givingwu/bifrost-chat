@@ -179,6 +179,13 @@
     },
     "previewFailed": "模板预览失败，请检查模板内容后重试"
   },
+  "mobile": {
+    "subtitle": "{{channel}} 会话",
+    "template": {
+      "open": "打开快捷话术模板",
+      "title": "选择快捷话术模板"
+    }
+  },
   "emoji": {
     "title": "选择表情",
     "hint": "点击表情即可插入到输入框",

@@ -8,6 +8,10 @@ export type {
   DefaultChatLayoutRenderTopbar,
   DefaultChatLayoutRenderTopbarProps,
 } from '@/components/layout/DefaultChatLayout';
+export type {
+  MobileLayoutProps,
+  MobileLayoutRenderMessageListProps,
+} from '@/components/layout/MobileLayout';
 
 // Hooks - 会话相关 Hooks
 export * from '@/hooks';

@@ -267,6 +267,38 @@ export function App() {
 }
 ```
 
+#### 移动端布局
+
+**当前已实现（As-Is）**：`MobileLayout` 提供轻量移动端结构：
+Header + MessageList + Footer。Footer 内置快捷模板入口、单行输入框和
+发送按钮；模板入口使用底部 ActionSheet，并复用 `useTemplates` /
+`useSendMessage` 数据链路。
+
+```tsx
+import { MobileLayout } from '@feoe/bifrost-chat';
+
+export function MobileApp() {
+  return (
+    <ConfigProvider config={{ language: { code: LanguageCodeEnum.ZhCN } }}>
+      <QueryProvider>
+        <ServiceProvider
+          conversationService={conversationService}
+          messageService={messageService}
+          templateService={templateService}
+        >
+          <ChatContainer>
+            <MobileLayout onClose={() => closePanel()} />
+          </ChatContainer>
+        </ServiceProvider>
+      </QueryProvider>
+    </ConfigProvider>
+  );
+}
+```
+
+如需在 Storybook 或特殊宿主中接管消息区，可通过
+`renderMessageList` 自定义渲染；未传时默认使用 `InfiniteMessageList`。
+
 #### 仅模板输入场景
 
 当业务要求 Composer 默认不可自由输入，只允许通过模板回填内容时，
