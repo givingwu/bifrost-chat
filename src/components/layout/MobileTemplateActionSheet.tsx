@@ -2,7 +2,7 @@ import { X } from 'lucide-react';
 import type { Template } from '@/interfaces/template.interface';
 import { useTranslation } from '@/providers/I18n.provider';
 import { cn } from '@/utils/class.util';
-import { formatTemplateLabel, TEMPLATE_SHEET_ID } from '@/utils/mobile.utils';
+import { formatTemplateLabel, TEMPLATE_SHEET_ID } from '@/utils/mobile.util';
 
 export interface MobileTemplateActionSheetProps {
   templates: Template[];
@@ -38,7 +38,7 @@ export function MobileTemplateActionSheet({
       aria-modal="true"
       aria-label={sheetTitle}
       className={cn(
-        'absolute inset-x-0 bottom-[72px] z-20 mx-3 max-h-[52%]',
+        'absolute inset-x-0 bottom-18 z-20 mx-3 max-h-[52%]',
         'overflow-hidden rounded-t-2xl border border-border bg-card',
         'shadow-2xl',
       )}

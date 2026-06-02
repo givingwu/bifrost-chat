@@ -196,6 +196,8 @@ describe('MobileLayout', () => {
         conversationId: 'conv-1',
         content: '账单即将逾期通知（已渲染）',
         options: {
+          type: 'template',
+          templateCode: 'TPL_NOTICE',
           templateMetadata: {
             previewContent: '账单即将逾期通知（已渲染）',
           },

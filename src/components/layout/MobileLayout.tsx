@@ -18,13 +18,17 @@ import { useConversations } from '@/hooks/use-conversations.hook';
 import { useMessageStatusSync } from '@/hooks/use-message-status-sync.hook';
 import { useSendMessage } from '@/hooks/use-send-message.hook';
 import { useTemplatePreview } from '@/hooks/use-template-preview.hook';
+import {
+  type TemplateSendOptions,
+  useTemplateSelect,
+} from '@/hooks/use-template-select.hook';
 import { useTemplates } from '@/hooks/use-templates.hook';
 import { useUnreadSync } from '@/hooks/use-unread-sync.hook';
 import type { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import type { Conversation } from '@/interfaces/conversation.interface';
+import { MessageTypeEnum } from '@/interfaces/message.interface';
 import type { Template } from '@/interfaces/template.interface';
 import { useTranslation } from '@/providers/I18n.provider';
-import type { TemplatePreviewResult } from '@/services/core/template.service';
 import {
   useActiveConversationId,
   useComposerConfig,
@@ -35,43 +39,24 @@ import { getDisplayTitle } from '@/utils/layout.util';
 import {
   EMPTY_TEMPLATE_PARAMS,
   translateOrFallback,
-} from '@/utils/mobile.utils';
+} from '@/utils/mobile.util';
 
-/**
- * 移动端消息列表自定义渲染参数。
- */
 export interface MobileLayoutRenderMessageListProps {
-  /** 当前激活会话 ID */
   conversationId: string | undefined;
-  /** 当前激活渠道 */
   currentChannel: ChannelTypeEnum;
 }
 
-/**
- * MobileLayout 组件参数。
- */
 export interface MobileLayoutProps {
-  /** 外层容器类名 */
   className?: string;
-  /** 外层容器内联样式 */
   style?: CSSProperties;
-  /** 头部标题；未传时使用当前激活会话用户名 */
   title?: ReactNode;
-  /** 头部副标题；未传时显示"渠道 会话" */
   subTitle?: ReactNode;
-  /** 头部头像 URL；未传时使用当前激活会话头像 */
   avatarUrl?: string;
-  /** 是否显示关闭按钮 */
   showCloseButton?: boolean;
-  /** 点击关闭按钮回调 */
   onClose?: () => void;
-  /** 自定义模板列表；提供后不会请求 TemplateService */
   templates?: Template[];
-  /** 输入框占位文案 */
   placeholder?: string;
-  /** 自定义当前会话标题格式 */
   getConversationDisplayTitle?: (conversation: Conversation) => string;
-  /** 自定义消息列表渲染 */
   renderMessageList?: (props: MobileLayoutRenderMessageListProps) => ReactNode;
 }
 
@@ -81,6 +66,7 @@ export interface MobileLayoutProps {
  * @description
  * 布局由 header、消息区和底部输入区组成。模板入口使用底部 ActionSheet，
  * 数据仍通过现有 React Query hooks 与 ServiceProvider 注入服务获取。
+ * 模板选择逻辑通过 useTemplateSelect 与 PC 端保持一致。
  */
 export function MobileLayout({
   className,
@@ -107,12 +93,9 @@ export function MobileLayout({
   const inputRef = useRef<HTMLInputElement>(null);
 
   const [value, setValue] = useState('');
-  const [templateMetadata, setTemplateMetadata] =
-    useState<TemplatePreviewResult>();
+  const [pendingTemplateOptions, setPendingTemplateOptions] =
+    useState<TemplateSendOptions>();
   const [isTemplateSheetOpen, setIsTemplateSheetOpen] = useState(false);
-  const [renderingTemplateId, setRenderingTemplateId] = useState<
-    string | undefined
-  >();
   const [templateError, setTemplateError] = useState<string | null>(null);
 
   useUnreadSync();
@@ -174,6 +157,11 @@ export function MobileLayout({
     setTemplateError(null);
   }, []);
 
+  const clearTemplateState = useCallback(() => {
+    setValue('');
+    setPendingTemplateOptions(undefined);
+  }, []);
+
   useEffect(() => {
     if (!isTemplateSheetOpen) return;
 
@@ -200,17 +188,23 @@ export function MobileLayout({
       await sendMessage.mutateAsync({
         conversationId: activeConversationId,
         content,
-        options:
-          templateMetadata === undefined ? undefined : { templateMetadata },
+        options: pendingTemplateOptions as Parameters<
+          typeof sendMessage.mutateAsync
+        >[0]['options'],
       });
 
-      setValue('');
-      setTemplateMetadata(undefined);
+      clearTemplateState();
       inputRef.current?.focus();
     } catch {
       // React Query / useSendMessage handles error state
     }
-  }, [activeConversationId, sendMessage, templateMetadata, value]);
+  }, [
+    activeConversationId,
+    clearTemplateState,
+    pendingTemplateOptions,
+    sendMessage,
+    value,
+  ]);
 
   const handleInputKeyDown = useCallback(
     (event: KeyboardEvent<HTMLInputElement>) => {
@@ -222,67 +216,43 @@ export function MobileLayout({
     [handleSend],
   );
 
-  const handleValueChange = useCallback((newValue: string) => {
-    setValue(newValue);
-    setTemplateMetadata(undefined);
-  }, []);
+  const { renderingTemplateId, handleTemplateSelect } = useTemplateSelect({
+    activeConversationId,
+    activeChannel,
+    previewTemplate,
+    templateMode: composerConfig.templateMode ?? 'edit',
+    onDirectSend: useCallback(
+      async (content, options) => {
+        if (!activeConversationId) return;
 
-  const handleTemplateSelect = useCallback(
-    async (template: Template) => {
-      if (!activeConversationId) return;
-
-      setTemplateError(null);
-      setRenderingTemplateId(template.id);
-
-      try {
-        let contentToUse = template.content;
-        let nextTemplateMetadata: TemplatePreviewResult | undefined;
-
-        if (template.code) {
-          const preview = await previewTemplate({
-            conversationId: activeConversationId,
-            currentChannel: activeChannel,
-            templateCode: template.code,
-          });
-
-          nextTemplateMetadata = preview;
-          contentToUse = preview.previewContent ?? template.content;
-        }
-
-        if (composerConfig.templateMode === 'direct') {
-          await sendMessage.mutateAsync({
-            conversationId: activeConversationId,
-            content: contentToUse,
-            options:
-              nextTemplateMetadata === undefined
-                ? undefined
-                : { templateMetadata: nextTemplateMetadata },
-          });
-          setValue('');
-          setTemplateMetadata(undefined);
-        } else {
-          setValue(contentToUse);
-          setTemplateMetadata(nextTemplateMetadata);
-          inputRef.current?.focus();
-        }
-
+        await sendMessage.mutateAsync({
+          conversationId: activeConversationId,
+          content,
+          options: options as Parameters<
+            typeof sendMessage.mutateAsync
+          >[0]['options'],
+        });
+        clearTemplateState();
+      },
+      [activeConversationId, clearTemplateState, sendMessage],
+    ),
+    onEditFill: useCallback(
+      (content, _code, metadata) => {
+        setValue(content);
+        setPendingTemplateOptions({
+          type: MessageTypeEnum.Template,
+          templateCode: _code,
+          templateMetadata: metadata,
+        });
+        inputRef.current?.focus();
         closeTemplateSheet();
-      } catch {
-        setTemplateError(t('template.previewFailed'));
-      } finally {
-        setRenderingTemplateId(undefined);
-      }
-    },
-    [
-      activeChannel,
-      activeConversationId,
-      closeTemplateSheet,
-      composerConfig.templateMode,
-      previewTemplate,
-      sendMessage,
-      t,
-    ],
-  );
+      },
+      [closeTemplateSheet],
+    ),
+    onPreviewError: useCallback(() => {
+      setTemplateError(t('template.previewFailed'));
+    }, [t]),
+  });
 
   const toggleTemplateSheet = useCallback(() => {
     setTemplateError(null);
@@ -350,7 +320,7 @@ export function MobileLayout({
       <MobileComposer
         inputRef={inputRef}
         value={value}
-        onValueChange={handleValueChange}
+        onValueChange={setValue}
         onSend={handleSend}
         onKeyDown={handleInputKeyDown}
         placeholder={resolvedPlaceholder}
