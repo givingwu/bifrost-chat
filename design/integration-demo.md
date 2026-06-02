@@ -1,5 +1,9 @@
 # Bifrost-Chat SDK 接入示例
 
+> **历史示例（非 SSOT）**：本文保留电催接入背景。当前公开 API、
+> 服务签名与包名以 [`../README.md`](../README.md) 和
+> [`final-architecture.md`](./final-architecture.md) 为准。
+
 本文档提供完整的电催场景接入示例，展示如何使用 Bifrost-Chat SDK。
 
 ## 完整示例代码
@@ -41,7 +45,7 @@ import {
   MessageStatusEnum,
   MessageTypeEnum,
   ChannelTypeEnum,
-} from '@bifrost-chat/sdk';
+} from '@feoe/bifrost-chat';
 
 // ============================================
 // 第一步：定义场景特定的类型和配置
@@ -272,7 +276,14 @@ class FoxCollectMessageService implements IMessageService<any, any, any, any, an
    */
   async markAsRead(params: any): Promise<void> {
     // 使用 SDK 提供的 ACK 处理器创建已读 ACK
-    const ackMessage = AckHandler.createReadAck(params);
+    const ackMessage = AckHandler.createReadAck(
+      {
+        app: 'fox_collect.waiter',
+        pin: this.config.agentPin,
+        channelType: params.channelType,
+      },
+      params,
+    );
     this.wsManager.send(ackMessage);
   }
   
@@ -473,7 +484,7 @@ export default FoxCollectChatApp;
 ### 1. 安装 SDK
 
 ```bash
-npm install @bifrost-chat/sdk
+npm install @feoe/bifrost-chat
 ```
 
 ### 2. 创建自定义服务实现

@@ -11,7 +11,9 @@
 ## 2. 当前基线（As-Is）
 
 - 已有 `QueryProvider`、`ServiceProvider`、`ConfigProvider`。
-- 已有 `useConversations`、`useMessages`、`useSendMessage`、`useTemplates`。
+- 已有 `useConversations`、`useMessages`、`useSendMessage`、
+  `useTemplates`、`useTemplatePreview`、`useUnreadSync`、
+  `useOfflineSync`。
 - 默认布局已可运行。
 
 ## 3. 迁移步骤（To-Be）
@@ -33,8 +35,10 @@
 
 ### 步骤 4：模板链路治理
 
-- 当前：沿用 `TemplatePanel` -> `useSendMessage`。
-- 目标：演进独立模板 mutation/query（保持兼容）。
+- 当前：`TemplatePanel` / `MobileTemplateActionSheet` ->
+  `useTemplatePreview` -> `useTemplateSelect` ->
+  `useSendMessage` 或回填 Composer。
+- 目标：演进独立模板发送 mutation（保持兼容）。
 
 ### 步骤 5：验收
 
@@ -49,3 +53,4 @@
 - [ ] 模板目录统一为 `src/components/template/`
 - [ ] 无失效命令引用（如历史脚本名）
 - [ ] 关键文档均区分 As-Is / To-Be
+- [ ] 离线队列、错误类等未公开能力没有被写成包入口公共 API

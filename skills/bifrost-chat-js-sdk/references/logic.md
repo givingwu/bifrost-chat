@@ -4,12 +4,13 @@
 
 ### As-Is
 
-- React Query：会话、消息、模板列表
+- React Query：会话、消息、模板列表，模板预览，未读基线与 delta
 - Zustand：输入配置、面板开关、主题、语言、激活会话、策略等
+- Zustand persist：Composer 草稿分桶
 
 ### To-Be
 
-- 模板发送/预览链路独立 query/mutation。
+- 模板发送链路独立 mutation。
 
 禁止：同一份服务端列表在 React Query 与 Zustand 双写。
 
@@ -25,18 +26,20 @@ As-Is：
 
 - `useSendMessage` -> `messageService.send`
 - 已实现 optimistic update / rollback / success 更新
+- 可重试失败可通过注入的 `offlineMessageQueue` 保留并重试
 
 ## 4) 模板链路
 
 As-Is：
 
 - 查询：`useTemplates`
-- 默认发送：`TemplatePanel` -> `useSendMessage`
+- 预览：`useTemplatePreview` -> `templateService.preview`
+- 选择：`useTemplateSelect`
+- 默认发送：`TemplatePanel` / `MobileTemplateActionSheet` -> `useSendMessage`
 
 To-Be：
 
 - 发送：独立模板 mutation
-- 预览：独立模板 query
 
 ## 5) 测试优先级
 

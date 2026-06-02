@@ -5,6 +5,7 @@
 | 版本 | 日期 | 作者 | 变更说明 |
 |------|------|------|----------|
 | 1.0.0 | 2026-02-07 | Kilo Code | 初始版本 |
+| 1.1.0 | 2026-06-02 | Codex | 对齐当前包入口导出与 hooks |
 
 ---
 
@@ -21,9 +22,12 @@
 - ✅ 重试策略配置（指数退避/线性/固定）
 - ✅ 队列状态订阅
 - ✅ `ServiceProvider` 注入 `offlineMessageQueue`
+- ✅ `useOfflineSync` / `useRetryMessage` / `useDeleteFailedMessage`
+  从包入口公开导出
 
 ### 目标架构（To-Be）
 
+- [ ] 从包入口公开 `OfflineMessageQueueService` 或提供稳定的队列接口类型
 - [ ] 跨标签页同步
 - [ ] 消息去重
 - [ ] 消息合并（批量发送）
@@ -41,11 +45,10 @@
 
 ```tsx
 import { ServiceProvider } from '@feoe/bifrost-chat';
-import { OfflineMessageQueueService } from '@/services/offline-message-queue.service';
 
-const offlineMessageQueue = new OfflineMessageQueueService({
+const offlineMessageQueue = createHostOfflineMessageQueue({
   maxQueueSize: 500,
-  messageExpiration: 3 * 24 * 60 * 60 * 1000, // 3 天
+  messageExpiration: 3 * 24 * 60 * 60 * 1000,
   defaultMaxRetries: 3,
   retryStrategy: 'exponential',
 });
@@ -66,6 +69,10 @@ function App() {
 }
 ```
 
+说明：`ServiceProvider.offlineMessageQueue` 已支持注入；但当前包入口未公开
+内置 `OfflineMessageQueueService` 类。npm 接入方应注入宿主侧同形队列实现，
+或在内部工程中自行封装仓库内实现。
+
 ### 2. 在工具栏中显示队列状态
 
 > To-Be：当前版本没有内建 `OfflineQueueIndicator` /
@@ -74,7 +81,7 @@ function App() {
 
 ```tsx
 import { useEffect, useState } from 'react';
-import { useServices } from '@/providers/service.provider';
+import { useServices } from '@feoe/bifrost-chat';
 
 function OfflineQueueBadge() {
   const { offlineMessageQueue } = useServices();
@@ -97,11 +104,10 @@ function OfflineQueueBadge() {
 ### 3. 在消息气泡中添加重试按钮
 
 ```tsx
-import { MessageStatusEnum } from '@feoe/bifrost-chat';
-import { useRetryOfflineMessage } from '@/hooks/use-offline-sync.hook';
+import { MessageStatusEnum, useRetryMessage } from '@feoe/bifrost-chat';
 
 function MessageBubble({ message }) {
-  const { retryMessage, isRetrying } = useRetryOfflineMessage();
+  const retryMessage = useRetryMessage();
 
   return (
     <div className="message-bubble">
@@ -111,11 +117,17 @@ function MessageBubble({ message }) {
       {/* 失败消息的重试按钮 */}
       {message.status === MessageStatusEnum.Failed && (
         <button
-          onClick={() => retryMessage(message.id)}
-          disabled={isRetrying}
+          onClick={() => {
+            if (!message._offlineMessageId) return;
+            retryMessage.mutate({
+              conversationId: message.conversationId,
+              offlineMessageId: message._offlineMessageId,
+            });
+          }}
+          disabled={!message._offlineMessageId || retryMessage.isPending}
           className="retry-button"
         >
-          {isRetrying ? '重试中...' : '重试'}
+          {retryMessage.isPending ? '重试中...' : '重试'}
         </button>
       )}
     </div>
@@ -207,7 +219,7 @@ function SyncButton() {
 通过依赖注入上下文获取离线队列服务实例。
 
 ```tsx
-import { useServices } from '@/providers/service.provider';
+import { useServices } from '@feoe/bifrost-chat';
 
 const { offlineMessageQueue } = useServices();
 ```
@@ -234,22 +246,44 @@ const { sync, isSyncing, lastSyncAt } = useOfflineSync();
 | `isSyncing` | `boolean` | 是否正在同步 |
 | `lastSyncAt` | `number \| null` | 上次同步时间戳 |
 
-#### `useRetryOfflineMessage()`
+#### `useRetryMessage()`
 
 手动重试单条离线消息。
 
 ```tsx
-const { retryMessage, isRetrying } = useRetryOfflineMessage();
+import { useRetryMessage } from '@feoe/bifrost-chat';
 
-await retryMessage(messageId);
+const retryMessage = useRetryMessage();
+
+await retryMessage.mutateAsync({
+  conversationId,
+  offlineMessageId,
+});
 ```
 
 **返回值：**
 
+返回 React Query mutation 对象。mutation 参数为：
+
 | 属性 | 类型 | 说明 |
 |------|------|------|
-| `retryMessage` | `(messageId: string) => Promise<void>` | 重试消息 |
-| `isRetrying` | `boolean` | 是否正在重试 |
+| `conversationId` | `string` | 会话 ID |
+| `offlineMessageId` | `string` | 离线队列消息 ID |
+
+#### `useDeleteFailedMessage()`
+
+删除本地失败消息。
+
+```tsx
+import { useDeleteFailedMessage } from '@feoe/bifrost-chat';
+
+const deleteFailedMessage = useDeleteFailedMessage();
+
+await deleteFailedMessage.mutateAsync({
+  conversationId,
+  offlineMessageId,
+});
+```
 
 #### `useOfflineQueueIndicator()`（To-Be）
 
@@ -295,7 +329,7 @@ await retryMessage(messageId);
 ### 自定义重试逻辑
 
 ```tsx
-import { useServices } from '@/providers/service.provider';
+import { useServices } from '@feoe/bifrost-chat';
 
 function CustomRetry() {
   const { offlineMessageQueue: queueService } = useServices();
@@ -324,7 +358,7 @@ function CustomRetry() {
 
 ```tsx
 import { useEffect } from 'react';
-import { useServices } from '@/providers/service.provider';
+import { useServices } from '@feoe/bifrost-chat';
 
 function QueueMonitor() {
   const { offlineMessageQueue: queueService } = useServices();
@@ -351,7 +385,7 @@ function QueueMonitor() {
 ### 获取队列统计信息
 
 ```tsx
-import { useServices } from '@/providers/service.provider';
+import { useServices } from '@feoe/bifrost-chat';
 
 function QueueStats() {
   const { offlineMessageQueue: queueService } = useServices();
@@ -390,7 +424,7 @@ function QueueStats() {
 **解决方案：**
 
 ```tsx
-import { useServices } from '@/providers/service.provider';
+import { useServices } from '@feoe/bifrost-chat';
 
 const { offlineMessageQueue: queueService } = useServices();
 
@@ -411,7 +445,7 @@ if (!queueService) {
 
 ```tsx
 // 检查网络状态
-import { useNetwork } from '@/store';
+import { useNetwork } from '@feoe/bifrost-chat';
 
 const networkStatus = useNetwork().status;
 
@@ -481,4 +515,4 @@ useEffect(() => {
 
 - [离线消息队列架构设计](./offline-message-queue-design.md)
 - [消息接口定义](../src/interfaces/message.interface.ts)
-- [错误处理](../src/interfaces/error.interface.ts)
+- [错误处理](../src/errors/sdk.errors.ts)

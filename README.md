@@ -8,22 +8,17 @@
 
 基于 React 与 Tailwind CSS 的可嵌入聊天 SDK。
 
-[更新日志](CHANGELOG.md)
-[文档索引](DOCUMENTATION_INDEX.md)
+[更新日志](CHANGELOG.md) | [文档索引](DOCUMENTATION_INDEX.md)
 
 </div>
 
 ## 文档
 
-- **📚 完整文档索引**：[DOCUMENTATION_INDEX.md](DOCUMENTATION_INDEX.md) ⭐
-- **🏗️ 架构总览**：`design/README.md`
-- **🎯 架构基线（SSOT）**：`design/final-architecture.md`
-- **📝 命名规范**：`design/naming-conventions.md`
-
-- 架构总览：`design/README.md`
-- 架构基线（SSOT）：`design/final-architecture.md`
-- 文档导航：`design/README.md`
-- 命名规范：`design/naming-conventions.md`
+- **完整文档索引**：[DOCUMENTATION_INDEX.md](DOCUMENTATION_INDEX.md)
+- **设计文档导航**：[design/README.md](design/README.md)
+- **架构基线（SSOT）**：[design/final-architecture.md](design/final-architecture.md)
+- **命名规范**：[design/naming-conventions.md](design/naming-conventions.md)
+- **编码规范**：[CODESTYLE.md](CODESTYLE.md)
 
 ## 特性
 
@@ -34,13 +29,16 @@
 - 内置 SMS、WhatsApp、WaAgent、Email、Viber、RCS 渠道枚举与图标组件
 - TypeScript 类型完整，支持泛型服务参数
 - 内置国际化与主题能力
+- 支持模板预览、模板回填/直发、消息类型按渠道配置
+- 支持 Host 网络状态注入、离线失败消息注入与重试 hooks
 
 ## 技术栈
 
 - TypeScript
-- React 19+
-- Tailwind CSS 4+
+- React（开发环境 React 19，peer 依赖 `react >=16.9.0`）
+- Tailwind CSS 4
 - @tanstack/react-query
+- @tanstack/react-virtual
 - Zustand
 - Rslib
 - Vitest
@@ -62,15 +60,21 @@ yarn add @feoe/bifrost-chat
 
 ```tsx
 import {
-  MessageStatusEnum,
   type Conversation,
   type IConversationService,
   type IMessageService,
   type ITemplateService,
-  type MessageStatusUpdate,
+  type MarkAsReadMeta,
+  type MarkAsReadResult,
+  type MessageReceivedEvent,
+  type MessageStatusUpdatedEvent,
   type MessageSendResult,
+  type SendAttachmentResult,
+  type SendAudioResult,
   type StandardMessage,
   type Template,
+  type TemplatePreviewParams,
+  type TemplatePreviewResult,
 } from '@feoe/bifrost-chat';
 
 class MyConversationService implements IConversationService {
@@ -85,8 +89,7 @@ class MyConversationService implements IConversationService {
   }
 
   async create(params: unknown) {
-    // 电催新接口：创建会话也统一走 /chat/v2/session/info
-    const response = await fetch('/chat/v2/session/info', {
+    const response = await fetch('/api/conversations', {
       method: 'POST',
       body: JSON.stringify(params),
       headers: { 'Content-Type': 'application/json' },
@@ -95,7 +98,7 @@ class MyConversationService implements IConversationService {
   }
 
   async query(params: unknown) {
-    const response = await fetch('/chat/v2/session/query', {
+    const response = await fetch('/api/conversations/query', {
       method: 'POST',
       body: JSON.stringify(params),
       headers: { 'Content-Type': 'application/json' },
@@ -118,65 +121,61 @@ class MyMessageService implements IMessageService {
   }
 
   async send(conversationId: string, params: unknown) {
-    // 电催宿主通常在 send 内部先做频次检查，再真正发送
-    await fetch('/chat/v2/message/check', {
-      method: 'POST',
-      body: JSON.stringify({
-        chatId: conversationId,
-        ...params,
-      }),
-      headers: { 'Content-Type': 'application/json' },
-    });
-
-    const response = await fetch('/chat/v2/message/send', {
-      method: 'POST',
-      body: JSON.stringify({
-        chatId: conversationId,
-        ...params,
-      }),
-      headers: { 'Content-Type': 'application/json' },
-    });
+    const response = await fetch(
+      `/api/conversations/${conversationId}/messages`,
+      {
+        method: 'POST',
+        body: JSON.stringify(params),
+        headers: { 'Content-Type': 'application/json' },
+      },
+    );
     return (await response.json()) as MessageSendResult;
   }
 
-  async markAsRead(params: unknown) {
+  async markAsRead(
+    params: unknown,
+    _meta?: MarkAsReadMeta,
+  ): Promise<undefined | MarkAsReadResult> {
     await fetch('/api/messages/mark-read', {
       method: 'POST',
       body: JSON.stringify(params),
       headers: { 'Content-Type': 'application/json' },
     });
+    return undefined;
   }
 
-  subscribeToMessages(_callback: (message: StandardMessage) => void) {
+  subscribeToMessages(_callback: (event: MessageReceivedEvent) => void) {
     return () => {};
   }
 
-  subscribeToMessageStatus(_callback: (update: MessageStatusUpdate) => void) {
+  subscribeToMessageStatus(
+    _callback: (update: MessageStatusUpdatedEvent) => void,
+  ) {
     return () => {};
   }
 
-  async sendAttachment(params: unknown) {
+  async sendAttachment(params: unknown): Promise<SendAttachmentResult> {
     const response = await fetch('/api/messages/send-attachment', {
       method: 'POST',
       body: JSON.stringify(params),
       headers: { 'Content-Type': 'application/json' },
     });
-    return (await response.json()) as any;
+    return (await response.json()) as SendAttachmentResult;
   }
 
-  async sendAudio(params: unknown) {
+  async sendAudio(params: unknown): Promise<SendAudioResult> {
     const response = await fetch('/api/messages/send-audio', {
       method: 'POST',
       body: JSON.stringify(params),
       headers: { 'Content-Type': 'application/json' },
     });
-    return (await response.json()) as any;
+    return (await response.json()) as SendAudioResult;
   }
 }
 
 class MyTemplateService implements ITemplateService {
   async list(params: unknown) {
-    const response = await fetch('/chat/v2/template/query', {
+    const response = await fetch('/api/templates/query', {
       method: 'POST',
       body: JSON.stringify(params),
       headers: { 'Content-Type': 'application/json' },
@@ -184,21 +183,13 @@ class MyTemplateService implements ITemplateService {
     return (await response.json()) as Template[];
   }
 
-  async preview(params: {
-    conversationId: string;
-    currentChannel: string;
-    templateCode: string;
-  }) {
-    const response = await fetch('/chat/v2/template/render', {
+  async preview(params: TemplatePreviewParams) {
+    const response = await fetch('/api/templates/render', {
       method: 'POST',
-      body: JSON.stringify({
-        chatId: params.conversationId,
-        channelType: params.currentChannel,
-        template: params.templateCode,
-      }),
+      body: JSON.stringify(params),
       headers: { 'Content-Type': 'application/json' },
     });
-    return (await response.json()) as Template;
+    return (await response.json()) as TemplatePreviewResult;
   }
 }
 ```
@@ -375,11 +366,22 @@ export function MobileApp() {
 - 组件导出以 `src/components/index.ts` 为准。
 - 当前公开范围覆盖基础组件、布局组件、Conversation 组件、消息组件、
   Composer 组件、Template 组件、Profile 组件和 Toolbar 组件。
-- 渠道图标公开导出：
+- 布局组件：`ChatContainer`、`ChatLayout`、`DefaultChatLayout`、
+  `MobileLayout`。
+- Composer 组件：`Composer`、`ComposerToolbar`、`ComposerInput`、
+  `ComposerActions`、`ComposerAttachments`、`AttachmentPreview`、
+  `ComposerVoice`、`EmojiPicker`、`MentionPicker` 等。
+- 消息组件：`InfiniteMessageList`、`MessageList`、
+  `MessageRendererFactory`、`MessageContentRenderer`、`MessageBubble`、
+  `TextMessage`、`ImageMessage`、`AudioMessage`、`VideoMessage`、
+  `FileMessage`、`LocationMessage`、`RichMediaMessage`、
+  `WhatsAppMessage`、`UnsupportedMessage`、`StatusIndicator`。
+- 渠道工具栏与图标：
   `ChannelIcon`、`SmsChannelIcon`、`WhatsAppChannelIcon`、
   `WaAgentChannelIcon`、`EmailChannelIcon`、`ViberChannelIcon`、
-  `RcsChannelIcon`、`CHANNEL_ICON_COMPONENTS`、`CHANNEL_BRAND_COLOR`。
-- `TemplatePicker`、`Tooltip` 不再属于公开导出。
+  `RcsChannelIcon`、`CHANNEL_ICON_COMPONENTS`、`CHANNEL_ICON_SIZE_PX`、
+  `CHANNEL_BRAND_COLOR`。
+- `TemplatePicker`、`Tooltip`、`ComposerWithSend` 不属于当前公开导出。
 
 ```tsx
 import {
@@ -396,20 +398,41 @@ import {
 
 - `useConversations`
 - `useCreateConversation`
+- `useConversationDetail`
+- `useConversationMetadata`
+- `useActiveConversationMetadata`
+- `useSetActiveConversation`
+- `ActivateConversationScenario`
 - `useChannelIcon`
+- `useChannelLabel`
+- `useChannelUnread`
+- `useConversationUnread`
 - `useInViewport`
 - `useMarkAsRead`
+- `useMessageStatusSync`
+- `useMessageTypeConfig`
 - `useMessages`
+- `useOfflineSync`
+- `useRetryMessage`
+- `useDeleteFailedMessage`
 - `useSendMessage`
+- `useTemplatePreview`
+- `useTemplateSelect`
 - `useTemplates`
 - `useTotalUnread`
+- `useUnreadCount`
 - `useUnreadSync`
+- `useAudioRecorder`
+- `useComposerDraft`
+- `useComposerFocus`
+- `useComposerLogic`
 
 ### Providers
 
 - `ConfigProvider`、`useConfig`
-- `I18nProvider`
-- `QueryProvider`、`createQueryClient`、`queryKeys`
+- `I18nProvider`、`useTranslation`
+- `QueryProvider`、`createQueryClient`、`clearQueryCache`、
+  `defaultQueryClient`、`queryKeys`
 - `ServiceProvider`、`useServices`、`createNotImplementedServices`
 
 ### 类型与服务接口
@@ -417,17 +440,25 @@ import {
 - 业务实体与服务接口类型以 `src/index.ts` 为准。
 - 当前公开服务接口：`IConversationService`、`IMessageService`、
   `ITemplateService`、`INetworkService`
-- `SDKConfig`、`ChatSDK`、`WebSocket*` 相关类型不属于当前公开 API。
-  兼容导出除外：历史接入仍可使用 `WebSocketManager`、
-  `WebSocketEventTypeEnum`、`PacketConverter`、`MessageBuilder`。
+- 当前公开核心类型包含：`Conversation`、`StandardMessage`、`Template`、
+  `IConfigSettings`、`SDKConfig`、`MessageTypeConfig`、`NetworkState`、
+  `OfflineMessage`、`OfflineQueueConfig`、`WebSocketConfig` 等。
+- `ChatSDK` 类不属于当前实现；运行时入口是 Provider + Hooks。
+- 协议/实时兼容能力已从包入口导出：`PacketConverter`、
+  `PacketValidator`、`AckHandler`、`HeartbeatManager`、
+  `WebSocketManager`、`WebSocketEventTypeEnum`、`MessageBuilder` 等。
+- 错误类定义在 `src/errors/`，当前未从包入口导出为公共 API。
 
 ### Store 与工具
 
-- Store：`useChatStore`、`configureChatStore`、`useStrategy`、`useNetwork`、
-  `useTheme`、`useLanguage`、`useConversation`、`useProfile`、
+- Store：`useChatStore`、`configureChatStore`、`resetChatStore`、
+  `useStrategy`、`useNetwork`、`useTheme`、`useLanguage`、
+  `useConversation`、`useActiveConversationId`、`useProfile`、
   `useComposerConfig`、`useActions`
+- 草稿 Store：`useComposerDraftStore`、`buildComposerDraftKey`、
+  `resetComposerDraftStore`
 - 工具：`cn`、`formatTimestamp`、`formatDuration`、`createStorageHelper`、
-  `clearSDK`、`MessageBuilder`
+  `clearSDK`、`ConversationCacheHelper`、`MessageBuilder`
 - 语言包：`enUSMessages`、`zhCNMessages`
 
 ## 内部能力说明（未从包入口导出）
@@ -436,12 +467,14 @@ import {
 
 - `TemplatePicker`
 - `Tooltip`
-- `SDKConfig` / `ChatSDK`
+- `ChatSDK`
 - `MessageCacheHelper`
 - `MessageSyncService`
+- `OfflineMessageQueueService`
+- `useRetryOfflineMessage`
 - `useWebSocket`
 - `createWebSocketMessageHandler`
-- `useTranslation`
+- `SDKError` / `HTTPError` / `ValidationError` 等错误类
 
 兼容迁移说明：
 
@@ -453,6 +486,8 @@ import {
   `clearStorage: true`。
 - `clearStorage: true` 会清理旧版草稿 key 和当前按 channel 分桶的草稿 key。
 - 如宿主同时传入 `offlineMessageQueue`，`clearSDK()` 也会一并清理离线消息队列。
+- `ServiceProvider` 支持注入 `offlineMessageQueue`；当前包入口未公开内置
+  `OfflineMessageQueueService` 类，宿主可注入同形队列实现。
 
 如需对外开放，建议先在 `design/final-architecture.md` 中完成设计评审。
 

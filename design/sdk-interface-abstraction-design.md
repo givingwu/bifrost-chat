@@ -12,7 +12,7 @@
 
 ### 2.1 SDK 提供（As-Is）
 
-- 默认组件（ConversationList、InfiniteMessageList、ComposerWithSend 等）
+- 默认组件（ConversationList、InfiniteMessageList、Composer 等）
 - 服务接口契约（`IConversationService` / `IMessageService` / `ITemplateService`）
 - Provider（`ConfigProvider`、`QueryProvider`、`ServiceProvider`、`I18nProvider`）
 - 声明式 hooks（query + mutation）
@@ -29,14 +29,22 @@
 
 ```ts
 interface IConversationService<
-  TListParams = any,
-  TCreateParams = any,
-  TQueryParams = any,
+  TListParams = IConversationParams,
+  TCreateParams = unknown,
+  TQueryParams = unknown,
 > {
   list(params?: TListParams): Promise<Conversation[]>;
   get(conversationId: string): Promise<Conversation | null>;
   create(params: TCreateParams): Promise<Conversation>;
   query(params: TQueryParams): Promise<Conversation | null>;
+  subscribeToListUpdates?(
+    callback: (conversations: Conversation[]) => void,
+  ): () => void;
+  subscribeToConversationUpdates?(
+    conversationId: string,
+    callback: (conversation: Conversation) => void,
+  ): () => void;
+  getUnreadCount?(params?: UnreadCountParams): Promise<UnreadCountResult>;
 }
 ```
 
@@ -44,17 +52,20 @@ interface IConversationService<
 
 ```ts
 interface IMessageService<
-  TListParams = any,
-  TSendParams = any,
-  TReadParams = any,
-  TAttachmentParams = any,
-  TAudioParams = any,
+  TListParams = IMessageListParams,
+  TSendParams = SendMessageOptions,
+  TReadParams = AckPacketBody,
+  TAttachmentParams = SendAttachmentParams,
+  TAudioParams = SendAudioParams,
 > {
   list(conversationId: string, params: TListParams): Promise<StandardMessage[]>;
   send(conversationId: string, params: TSendParams): Promise<MessageSendResult>;
-  markAsRead(params: TReadParams): Promise<void>;
-  subscribeToMessages(callback: (message: StandardMessage) => void): () => void;
-  subscribeToMessageStatus(callback: (update: MessageStatusUpdate) => void): () => void;
+  markAsRead(
+    params: TReadParams,
+    meta?: MarkAsReadMeta,
+  ): Promise<undefined | MarkAsReadResult>;
+  subscribeToMessages(callback: (event: MessageReceivedEvent) => void): () => void;
+  subscribeToMessageStatus(callback: (event: MessageStatusUpdatedEvent) => void): () => void;
   sendAttachment(params: TAttachmentParams): Promise<SendAttachmentResult>;
   sendAudio(params: TAudioParams): Promise<SendAudioResult>;
 }
@@ -63,14 +74,12 @@ interface IMessageService<
 ### 3.3 ITemplateService
 
 ```ts
-interface ITemplateService<TListParams = any, TPreviewParams = any> {
+interface ITemplateService<
+  TListParams = ITemplateListParams,
+  TPreviewParams = TemplatePreviewParams,
+> {
   list(params: TListParams): Promise<Template[]>;
-  preview(
-    params: TPreviewParams,
-  ): Promise<{
-    previewContent: string;
-    params: Record<string, string>;
-  }>;
+  preview(params: TPreviewParams): Promise<TemplatePreviewResult>;
 }
 ```
 
@@ -83,6 +92,8 @@ interface ITemplateService<TListParams = any, TPreviewParams = any> {
   conversationService={conversationServiceImpl}
   messageService={messageServiceImpl}
   templateService={templateServiceImpl}
+  networkService={networkServiceImpl}
+  offlineMessageQueue={offlineMessageQueueImpl}
 >
   <ChatContainer>
     <DefaultChatLayout />
@@ -103,11 +114,17 @@ interface ITemplateService<TListParams = any, TPreviewParams = any> {
 - `useSendMessage` -> `messageService.send`
 - `useMarkAsRead` -> `messageService.markAsRead`
 - `useTemplates` -> `templateService.list`
+- `useTemplatePreview` -> `templateService.preview`
+- `useUnreadCount` / `useChannelUnread` / `useTotalUnread` ->
+  `conversationService.getUnreadCount`（若实现）
+- `useOfflineSync` / `useRetryMessage` / `useDeleteFailedMessage` ->
+  `offlineMessageQueue` + `messageService.send`
 
 ## 6. 目标架构（To-Be）
 
-- 模板链路分拆独立 mutation/query。
+- 模板发送链路分拆独立 mutation。
 - 实时订阅与缓存回灌模型标准化。
+- 离线队列类与错误类公共导出边界标准化。
 
 ## 7. 设计红线
 

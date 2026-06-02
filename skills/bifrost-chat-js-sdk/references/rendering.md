@@ -12,6 +12,8 @@
 - 会话：`useConversations`
 - 消息：`useMessages`
 - 模板：`useTemplates`
+- 模板预览：`useTemplatePreview`
+- 未读：`useUnreadSync` + `useChannelUnread` / `useConversationUnread`
 - 本地 UI 状态：`useChatStore`
 
 ## 3) 输入区约束
@@ -29,11 +31,13 @@
 
 ### As-Is
 
-- 模板选择在 `TemplatePanel`，默认通过 `useSendMessage` 发送。
+- 模板选择在 `TemplatePanel` / 移动端 ActionSheet。
+- `useTemplateSelect` 先通过 `useTemplatePreview` 渲染模板，再按
+  `composer.templateMode` 直接发送或回填 Composer。
 
 ### To-Be
 
-- 扩展独立模板发送与预览 hooks。
+- 扩展独立模板发送 hook。
 
 ## 5) 可访问性与性能
 

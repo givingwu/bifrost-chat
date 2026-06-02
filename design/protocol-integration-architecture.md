@@ -23,20 +23,20 @@ SDK 已实现以下核心协议：
 ### 核心服务接口
 
 ```typescript
-// src/services/template.service.ts
+// src/services/core/template.service.ts
 interface ITemplateService<TListParams, TPreviewParams> {
-  list(params?: TListParams): Promise<Template[]>;
-  preview(params: TPreviewParams): Promise<{
-    previewContent: string;
-    params: Record<string, string>;
-  }>;
+  list(params: TListParams): Promise<Template[]>;
+  preview(params: TPreviewParams): Promise<TemplatePreviewResult>;
 }
 
-// src/services/message.service.ts
-interface IMessageService<TListParams, TSendParams, TMarkAsReadParams, TSendAttachmentParams, TSendAudioParams> {
-  list(conversationId: string, params?: TListParams): Promise<StandardMessage[]>;
+// src/services/core/message.service.ts
+interface IMessageService<TListParams, TSendParams, TReadParams, TSendAttachmentParams, TSendAudioParams> {
+  list(conversationId: string, params: TListParams): Promise<StandardMessage[]>;
   send(conversationId: string, params: TSendParams): Promise<MessageSendResult>;
-  markAsRead(params: TMarkAsReadParams): Promise<void>;
+  markAsRead(
+    params: TReadParams,
+    meta?: MarkAsReadMeta,
+  ): Promise<undefined | MarkAsReadResult>;
   sendAttachment(params: TSendAttachmentParams): Promise<SendAttachmentResult>;
   sendAudio(params: TSendAudioParams): Promise<SendAudioResult>;
   subscribeToMessages(callback: (event: MessageReceivedEvent) => void): () => void;
@@ -47,23 +47,23 @@ interface IMessageService<TListParams, TSendParams, TMarkAsReadParams, TSendAtta
 ### 协议转换器
 
 ```typescript
-// src/services/default/protocol/packet.converter.ts
+// src/services/protocol/packet.converter.ts
 class PacketConverter {
   static toStandardMessage(packet: RawPacket, direction?: MessageDirectionEnum, currentPin?: string): StandardMessage;
   static toRawPacket(message: StandardMessage, fromApp: string, fromPin: string): RawPacket;
 }
 
-// src/services/default/protocol/ack-handler.ts
+// src/services/protocol/ack.handler.ts
 class AckHandler {
-  static createReadAck(params: ReadAckParams): RawPacket;
+  static createReadAck(ackFrom: AckFromParticipant, params: AckPacketBody): AckRawPacket;
   static parseDownstream(data: unknown): AckData | null;
   static isValidAckType(type: string): boolean;
   static ackTypeToMessageStatus(type: AckType): MessageStatusEnum;
 }
 
-// src/services/default/protocol/heartbeat.ts
+// src/services/protocol/heartbeat.manager.ts
 class HeartbeatManager {
-  static createHeartbeat(): RawPacket;
+  static createHeartbeat(params: HeartbeatParams): RawPacket;
   static isHeartbeatResponse(data: unknown): boolean;
 }
 ```

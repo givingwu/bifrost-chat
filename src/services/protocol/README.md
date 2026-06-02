@@ -58,6 +58,7 @@ import { PacketConverter } from '@feoe/bifrost-chat';
 const standardMessage: StandardMessage = {
   id: 'msg-123',
   tempId: 'temp-456',
+  conversationId: 'conv-789',
   direction: MessageDirectionEnum.Outgoing,
   channelType: ChannelTypeEnum.WhatsApp,
   status: MessageStatusEnum.Sent,
@@ -117,7 +118,7 @@ const standardMessage = PacketConverter.toStandardMessage(
 
 **主要方法：**
 
-- `createReadAck(params)` - 创建已读 ACK 消息
+- `createReadAck(ackFrom, params, options?)` - 创建已读 ACK 消息
 - `parseDownstream(data)` - 解析下行 ACK 消息
 - `isValidAckType(type)` - 验证 ACK 类型
 - `ackTypeToMessageStatus(type)` - 映射 ACK 类型到消息状态
@@ -129,17 +130,19 @@ const standardMessage = PacketConverter.toStandardMessage(
 **使用示例：**
 
 ```typescript
-import { AckHandler } from '@feoe/bifrost-chat';
+import { AckHandler, ChannelTypeEnum } from '@feoe/bifrost-chat';
 
 // 创建已读 ACK
 const ackMessage = AckHandler.createReadAck({
-  sender: 'agent-123',
   app: 'fox_collect.waiter',
+  pin: 'agent-123',
+  channelType: ChannelTypeEnum.WhatsApp,
+}, {
+  sender: 'customer-456',
+  app: 'im.waiter',
   mid: 'msg-456',
-  sessionId: 'conv-789',
-  datetime: Date.now(),
-  toApp: 'im.waiter',
-  toPin: 'customer-456',
+  chatId: 'conv-789',
+  timestamp: Date.now(),
 });
 
 // 解析下行 ACK
@@ -217,9 +220,16 @@ setInterval(() => {
 
 ```typescript
 import {
-  PacketConverter,
   AckHandler,
+  type AckPacketBody,
   HeartbeatManager,
+  type IMessageService,
+  MessageDirectionEnum,
+  type MessageSendResult,
+  MessageStatusEnum,
+  MessageTypeEnum,
+  PacketConverter,
+  type StandardMessage,
   WebSocketManager,
 } from '@feoe/bifrost-chat';
 
@@ -263,6 +273,7 @@ class FoxCollectMessageService implements IMessageService {
     const standardMessage: StandardMessage = {
       id: `temp_${Date.now()}`,
       tempId: `temp_${Date.now()}`,
+      conversationId,
       direction: MessageDirectionEnum.Outgoing,
       channelType: params.channelType,
       status: MessageStatusEnum.Sending,
@@ -296,18 +307,17 @@ class FoxCollectMessageService implements IMessageService {
     };
   }
   
-  async markAsRead(params: any): Promise<void> {
+  async markAsRead(params: AckPacketBody): Promise<void> {
     // 使用 ACK 处理器创建已读 ACK
-    const ackMessage = AckHandler.createReadAck({
-      sender: params.sender,
-      app: params.app,
-      mid: params.mid,
-      sessionId: params.sessionId,
-      datetime: params.datetime,
-      toApp: 'im.waiter',
-      toPin: params.receiverPin,
-    });
-    
+    const ackMessage = AckHandler.createReadAck(
+      {
+        app: 'fox_collect.waiter',
+        pin: this.config.agentPin,
+        channelType: params.channelType,
+      },
+      params,
+    );
+
     this.wsManager.send(ackMessage);
   }
 }

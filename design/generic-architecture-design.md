@@ -1,5 +1,9 @@
 # 通用型架构设计
 
+> **历史设计资料（非 SSOT）**：本文保留通用架构设计背景。当前公开
+> API、包名与服务签名以 [`../README.md`](../README.md) 和
+> [`final-architecture.md`](./final-architecture.md) 为准。
+
 ## 概述
 
 本文档描述了 Bifrost-Chat SDK 的通用型架构设计。SDK 只提供通用的核心功能，业务特定的场景由业务方自行注入 service 实现。
@@ -319,11 +323,11 @@ import {
   ServiceProvider,
   I18nProvider,
   DefaultChatLayout,
-} from '@bifrost-chat/sdk';
+} from '@feoe/bifrost-chat';
 import { FoxCollectConversationService } from './services/conversation.service';
 import { FoxCollectMessageService } from './services/message.service';
 import { FoxCollectTemplateService } from './services/template.service';
-import { WebSocketManager } from '@bifrost-chat/sdk';
+import { WebSocketManager } from '@feoe/bifrost-chat';
 
 function App() {
   // 1. 创建通信管理器（业务方选择 WebSocket / SSE / HTTP）

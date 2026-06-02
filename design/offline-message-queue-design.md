@@ -1,5 +1,9 @@
 # 离线消息队列架构设计
 
+> **当前边界**：`ServiceProvider.offlineMessageQueue` 注入能力已实现，
+> `useOfflineSync`、`useRetryMessage`、`useDeleteFailedMessage` 已从包入口
+> 导出；内置 `OfflineMessageQueueService` 类当前未从包入口公开。
+
 ## 文档版本
 
 | 版本 | 日期 | 作者 | 变更说明 |
@@ -52,7 +56,7 @@ graph TB
 
     subgraph Hooks Layer
         D[useSendMessage]
-        E[useRetryOfflineMessage]
+        E[useRetryMessage]
         F[useOfflineSync]
     end
 

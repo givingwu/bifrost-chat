@@ -42,13 +42,18 @@
 
 - 决策：使用 `SDKError` 体系。
 - 当前达成度：**已达成**。
+- 当前路径：`src/errors/`。
+- 当前导出边界：错误类未从包入口公开导出。
 - 当前类型：
   `SDKError`、`HTTPError`、`ValidationError`、`AuthorizationError`、
-  `ConfigurationError`、`NotImplementedError`、`MapperError`。
+  `ConfigurationError`、`NotImplementedError`、`MapperError`、
+  `OfflineQueueError`、`NetworkError` 与 WebSocket 专用错误。
 
 ## ADR-008：模板发送链路演进
 
 - 决策：当前默认链路可用，未来可独立 template mutation。
 - 当前达成度：**部分达成**。
-- 当前实现：`TemplatePanel` -> `useSendMessage`。
-- To-Be：`useSendTemplateMessage` / `useTemplatePreview`。
+- 当前实现：`TemplatePanel` / `MobileTemplateActionSheet` ->
+  `useTemplatePreview` -> `useTemplateSelect` -> `useSendMessage` 或回填
+  Composer。
+- To-Be：`useSendTemplateMessage`。

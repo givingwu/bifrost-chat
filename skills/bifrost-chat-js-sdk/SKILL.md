@@ -53,13 +53,18 @@ language: "zh-CN"
 - 公开导出以 `src/index.ts`、`src/components/index.ts` 为准。
 - Provider 统一命名为 `QueryProvider`。
 - 模板目录为 `src/components/template/`。
-- 错误类型以 `error.interface.ts` 为准。
+- 错误类型定义在 `src/errors/`，当前未从包入口公开导出。
+- 模板预览 `useTemplatePreview` 已公开；独立模板发送 mutation 仍是
+  To-Be。
+- `OfflineMessageQueueService` 当前未从包入口公开，`ServiceProvider` 只支持
+  注入同形队列实例。
 
 ## 目标架构（To-Be）关注点
 
-- 模板发送/预览链路独立化。
+- 模板发送链路独立 mutation 化。
 - 实时能力公开边界标准化。
 - 渠道策略矩阵完善。
+- 离线队列类与错误类公开边界决策。
 
 ## 强制约束
 

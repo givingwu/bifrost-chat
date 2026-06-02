@@ -33,7 +33,7 @@ graph TB
 
 ```mermaid
 sequenceDiagram
-  participant UI as ComposerWithSend
+  participant UI as Composer
   participant Hook as useSendMessage
   participant Cache as React Query Cache
   participant Svc as IMessageService
@@ -85,8 +85,11 @@ sequenceDiagram
 
 ```mermaid
 graph LR
-  TP[TemplatePanel] --> DSL[DefaultChatLayout.onTemplateSelect]
-  DSL --> USM[useSendMessage]
+  TP[TemplatePanel / MobileTemplateActionSheet] --> UTS[useTemplateSelect]
+  UTS --> UTP[useTemplatePreview]
+  UTP --> ITS[ITemplateService.preview]
+  UTS -->|direct| USM[useSendMessage]
+  UTS -->|edit| Draft[Composer Draft]
   USM --> IMS[IMessageService.send]
   USM --> MQC[Messages Query Cache]
 ```
@@ -96,9 +99,9 @@ graph LR
 ```mermaid
 graph LR
   TP[TemplatePanel] --> UST[useSendTemplateMessage]
-  UST --> ITS[ITemplateService.send]
+  UST --> IMS[IMessageService.send]
   UST --> MQC[Messages Query Cache]
-  UTP[useTemplatePreview] --> ITS
 ```
 
-说明：目标流尚未作为公开 API 落地，当前以 `useSendMessage` 路径为准。
+说明：模板预览已作为 As-Is 落地；目标流仅指独立模板发送 mutation，
+当前模板直发仍以 `useSendMessage` 路径为准。

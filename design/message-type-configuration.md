@@ -3,8 +3,8 @@
 ## 文档信息
 
 - **创建时间**: 2025-02-09
-- **状态**: 设计中
-- **版本**: v1.0
+- **状态**: 当前已实现（As-Is）+ 后续目标（To-Be）
+- **版本**: v1.1
 - **作者**: Bifrost-Chat SDK Team
 
 ## 1. 概述
@@ -82,12 +82,12 @@ const Component = useMemo(() => {
 }, [message.type]);
 ```
 
-## 3. 目标架构（To-Be）
+## 3. 当前配置链路（As-Is）
 
 ### 3.1 配置层级
 
 ```
-SDKConfig (全局默认配置)
+ConfigProvider.config.strategy (初始化全局配置)
   ↓
 StrategyState (运行时状态，渠道级配置)
   ↓
@@ -100,10 +100,10 @@ MessageContentRenderer (应用过滤逻辑)
 
 ```mermaid
 graph TD
-    A[SDKConfig.messageTypeConfig] --> B[全局默认配置]
-    C[渠道级配置] --> D[StrategyState.allowedMessageTypes]
-    B --> D
-    D --> E[useMessageTypeConfig Hook]
+    A[ConfigProvider.config.strategy] --> B[StrategyState]
+    C[渠道级配置 channelMessageTypeConfigs] --> B
+    D[全局 allowedMessageTypes] --> B
+    B --> E[useMessageTypeConfig Hook]
     E --> F[getAllowedMessageTypes]
     E --> G[isMessageTypeSupported]
     F --> H[MessageContentRenderer]
@@ -118,6 +118,8 @@ graph TD
 ```
 渠道级配置 > 全局默认配置 > 预设默认值
 ```
+
+说明：当前没有 `ChatSDK` 初始化类；运行时入口是 `ConfigProvider`。
 
 ## 4. 接口设计
 
@@ -197,8 +199,8 @@ export const DEFAULT_CHANNEL_MESSAGE_TYPES: Record<
     MessageTypeEnum.File,
   ],
 
-  // WABA: 支持所有类型
-  [ChannelTypeEnum.Waba]: [
+  // RCS: 支持富媒体与模板消息
+  [ChannelTypeEnum.RCS]: [
     MessageTypeEnum.Text,
     MessageTypeEnum.Image,
     MessageTypeEnum.Video,
@@ -211,17 +213,42 @@ export const DEFAULT_CHANNEL_MESSAGE_TYPES: Record<
 };
 ```
 
-### 4.3 扩展 SDK 配置
+### 4.3 ConfigProvider 初始化配置（As-Is）
 
-```typescript
-// src/interfaces/sdk.interface.ts
+```tsx
+import {
+  ChannelTypeEnum,
+  ConfigProvider,
+  MessageTypeDisplayStrategy,
+  MessageTypeEnum,
+} from '@feoe/bifrost-chat';
 
-export interface SDKConfig {
-  // ... 现有字段
-
-  /** 消息类型配置 */
-  messageTypeConfig?: MessageTypeConfig;
-}
+<ConfigProvider
+  config={{
+    strategy: {
+      allowedMessageTypes: [
+        MessageTypeEnum.Text,
+        MessageTypeEnum.Image,
+      ],
+      messageDisplayStrategy: MessageTypeDisplayStrategy.ShowUnsupported,
+      channelMessageTypeConfigs: {
+        [ChannelTypeEnum.SMS]: {
+          allowedTypes: [MessageTypeEnum.Text],
+          unsupportedMessage: 'SMS 仅支持文本消息',
+        },
+        [ChannelTypeEnum.RCS]: {
+          allowedTypes: [
+            MessageTypeEnum.Text,
+            MessageTypeEnum.Image,
+            MessageTypeEnum.RichMedia,
+          ],
+        },
+      },
+    },
+  }}
+>
+  {/* ... */}
+</ConfigProvider>
 ```
 
 ### 4.4 扩展策略状态
@@ -363,52 +390,57 @@ export const UnsupportedMessage = memo(
 
 ## 7. 使用示例
 
-### 7.1 SDK 初始化配置
+### 7.1 初始化配置
 
-```typescript
-import { ChatSDK } from '@bifrost-chat/sdk';
-import { MessageTypeEnum, ChannelTypeEnum } from '@bifrost-chat/interfaces';
+```tsx
+import {
+  ChannelTypeEnum,
+  ConfigProvider,
+  MessageTypeDisplayStrategy,
+  MessageTypeEnum,
+} from '@feoe/bifrost-chat';
 
-const sdk = new ChatSDK();
-
-await sdk.init({
-  endpoint: 'https://api.example.com',
-  messageTypeConfig: {
-    // 全局默认配置
-    defaultAllowedTypes: [
-      MessageTypeEnum.Text,
-      MessageTypeEnum.Image,
-      MessageTypeEnum.Video,
-    ],
-    defaultDisplayStrategy: MessageTypeDisplayStrategy.ShowUnsupported,
-
-    // 渠道级配置
-    channelConfigs: {
-      [ChannelTypeEnum.SMS]: {
-        allowedTypes: [MessageTypeEnum.Text],
-        displayStrategy: MessageTypeDisplayStrategy.ShowUnsupported,
-        unsupportedMessage: 'SMS 仅支持文本消息',
-      },
-      [ChannelTypeEnum.WhatsApp]: {
-        allowedTypes: [
-          MessageTypeEnum.Text,
-          MessageTypeEnum.Image,
-          MessageTypeEnum.Video,
-          MessageTypeEnum.Audio,
-          MessageTypeEnum.Template,
-        ],
+<ConfigProvider
+  config={{
+    strategy: {
+      allowedMessageTypes: [
+        MessageTypeEnum.Text,
+        MessageTypeEnum.Image,
+        MessageTypeEnum.Video,
+      ],
+      messageDisplayStrategy: MessageTypeDisplayStrategy.ShowUnsupported,
+      channelMessageTypeConfigs: {
+        [ChannelTypeEnum.SMS]: {
+          allowedTypes: [MessageTypeEnum.Text],
+          unsupportedMessage: 'SMS 仅支持文本消息',
+        },
+        [ChannelTypeEnum.WhatsApp]: {
+          allowedTypes: [
+            MessageTypeEnum.Text,
+            MessageTypeEnum.Image,
+            MessageTypeEnum.Video,
+            MessageTypeEnum.Audio,
+            MessageTypeEnum.Template,
+          ],
+        },
       },
     },
-  },
-});
+  }}
+>
+  {/* ... */}
+</ConfigProvider>
 ```
 
 ### 7.2 运行时更新配置
 
 ```typescript
-import { useChatStore } from '@bifrost-chat/store';
+import {
+  MessageTypeDisplayStrategy,
+  MessageTypeEnum,
+  useActions,
+} from '@feoe/bifrost-chat';
 
-const { actions } = useChatStore();
+const actions = useActions();
 
 // 更新当前渠道的消息类型配置
 actions.setAllowedMessageTypes([
@@ -425,7 +457,7 @@ actions.setMessageDisplayStrategy(
 ### 7.3 在组件中使用
 
 ```typescript
-import { useMessageTypeConfig } from '@bifrost-chat/hooks';
+import { useMessageTypeConfig } from '@feoe/bifrost-chat';
 
 const MyComponent = () => {
   const { isMessageTypeSupported } = useMessageTypeConfig();
@@ -467,14 +499,15 @@ const MyComponent = () => {
 ### 9.1 向后兼容性
 
 - 现有代码无需修改即可继续工作
-- 如果未配置 `messageTypeConfig`，将使用预设的默认值
+- 如果未配置 `strategy.allowedMessageTypes` 或
+  `strategy.channelMessageTypeConfigs`，将使用按渠道预设的默认值
 - 所有消息类型默认支持（保持旧行为）
 
 ### 9.2 逐步迁移
 
-1. **第一阶段**: 添加配置接口和状态管理，但不启用过滤
-2. **第二阶段**: 在开发环境启用过滤，验证配置正确性
-3. **第三阶段**: 在生产环境启用过滤
+1. **第一阶段**: 通过 `ConfigProvider.config.strategy` 增加全局默认配置
+2. **第二阶段**: 为差异明显的渠道补充 `channelMessageTypeConfigs`
+3. **第三阶段**: 在业务侧按国家/渠道注入配置，并用 Storybook 覆盖关键组合
 
 ## 10. 性能考虑
 
@@ -514,3 +547,4 @@ const MyComponent = () => {
 | 版本 | 日期 | 变更内容 | 作者 |
 |------|------|----------|------|
 | v1.0 | 2025-02-09 | 初始设计 | Bifrost-Chat SDK Team |
+| v1.1 | 2026-06-02 | 对齐当前 ConfigProvider/StrategyState 实现 | Codex |

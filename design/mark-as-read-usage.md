@@ -18,7 +18,7 @@ markAsRead 功能允许消息列表自动标记用户已查看的未读消息。
 ### 1. 使用 InfiniteMessageList（推荐）
 
 ```tsx
-import { InfiniteMessageList } from '@/components/messages/InfiniteMessageList';
+import { InfiniteMessageList } from '@feoe/bifrost-chat';
 
 function ChatPanel({ conversationId }) {
   return (
@@ -34,7 +34,7 @@ function ChatPanel({ conversationId }) {
 ### 2. 使用 MessageList
 
 ```tsx
-import { MessageList } from '@/components/messages/MessageList';
+import { MessageList } from '@feoe/bifrost-chat';
 
 function ChatPanel({ conversationId, messages }) {
   return (
@@ -80,29 +80,37 @@ function ChatPanel({ conversationId, messages }) {
 ### 1. 实现 IMessageService
 
 ```typescript
-import type { IMessageService } from '@/services/message.service';
-
-// 定义 markAsRead 参数类型
-interface MyMarkAsReadParams {
-  conversationId: string;
-  messageIds: string[];
-}
+import type {
+  AckPacketBody,
+  IMessageService,
+  MarkAsReadMeta,
+  MarkAsReadResult,
+} from '@feoe/bifrost-chat';
 
 class MyMessageService
-  implements IMessageService<any, any, MyMarkAsReadParams, any, any> {
-  
-  async markAsRead(params: MyMarkAsReadParams): Promise<void> {
+  implements IMessageService<any, any, AckPacketBody, any, any> {
+
+  async markAsRead(
+    params: AckPacketBody,
+    meta?: MarkAsReadMeta,
+  ): Promise<undefined | MarkAsReadResult> {
     // 调用你的 API 标记消息已读
-    await fetch('/api/messages/mark-read', {
+    const response = await fetch('/api/messages/mark-read', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        conversationId: params.conversationId,
-        messageIds: params.messageIds,
+        chatId: params.chatId,
+        mid: params.mid,
+        sender: params.sender,
+        app: params.app,
+        timestamp: params.timestamp,
+        requestId: meta?.requestId,
       }),
     });
+
+    return (await response.json()) as MarkAsReadResult;
   }
-  
+
   // ... 其他方法实现
 }
 ```
@@ -110,7 +118,7 @@ class MyMessageService
 ### 2. 注入服务
 
 ```tsx
-import { ServiceProvider } from '@/providers/service.provider';
+import { ServiceProvider } from '@feoe/bifrost-chat';
 import { MyMessageService } from './services/my-message.service';
 
 const messageService = new MyMessageService();
@@ -139,6 +147,27 @@ interface MarkAsReadParams {
 }
 ```
 
+### 严格 ACK meta（As-Is）
+
+当前 `useMarkAsRead` 会为每条可上报消息生成 ACK body，并在调用
+`messageService.markAsRead(params, meta)` 时传入：
+
+```typescript
+interface MarkAsReadMeta {
+  requestId: string;
+  conversationId: string;
+  messageId: string;
+  channelType?: ChannelTypeEnum;
+}
+
+interface MarkAsReadResult {
+  ackRequestId?: string;
+}
+```
+
+如果宿主返回 `ackRequestId`，SDK 会等待后续 ACK 回灌再确认消息状态；
+如果没有返回，SDK 会按兼容模式进行 fallback 更新。
+
 ## 工作流程
 
 ```
@@ -154,7 +183,7 @@ interface MarkAsReadParams {
     ↓
 防抖延迟（默认 1000ms）
     ↓
-调用 MessageService.markAsRead({ conversationId, messageIds })
+调用 MessageService.markAsRead(ackPacketBody, meta)
     ↓
 清空已读集合
 ```
@@ -223,8 +252,8 @@ enum MessageStatusEnum {
 ### 3. 服务端实现
 
 - 服务端需要实现 `markAsRead` 方法
-- 参数格式为 `{ conversationId: string, messageIds: string[] }`
-- 返回类型为 `Promise<void>`
+- 参数默认是协议 ACK body；宿主可通过泛型改成自己的参数结构
+- 返回类型为 `Promise<undefined | MarkAsReadResult>`
 
 ### 4. 性能考虑
 

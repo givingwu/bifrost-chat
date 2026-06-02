@@ -40,7 +40,7 @@ pnpm run test && pnpm run build && pnpm publish
 
 ### 分层结构
 
-1. **契约层** (`src/interfaces/*.interface.ts`) - 带泛型参数的服务接口
+1. **契约层** (`src/interfaces/*.interface.ts` + `src/services/core/*.service.ts`) - 带泛型参数的服务接口
 2. **Provider 层** (`src/providers/`) - Config、Query、Service、I18n providers
 3. **Hooks 层** (`src/hooks/`) - 用于数据获取和变更的 React Query hooks
 4. **UI 组件层** (`src/components/`) - 默认布局和可组合组件
@@ -50,8 +50,9 @@ pnpm run test && pnpm run build && pnpm publish
 
 | 状态类型 | 管理方式 | 示例 |
 |---|---|---|
-| 服务端状态 | React Query | 会话列表、消息列表、模板列表 |
+| 服务端状态 | React Query | 会话列表/详情、消息列表、模板列表、未读基线/增量 |
 | 客户端状态 | Zustand | 策略、主题、语言、输入区配置、当前会话 |
+| 草稿状态 | Zustand persist | Composer 按 `conversationId + channel` 分桶草稿 |
 
 **关键**：切勿在 Zustand 中存储服务端实体（会话、消息、模板）。请使用 React Query 和正确的缓存键。
 
@@ -73,19 +74,22 @@ pnpm run test && pnpm run build && pnpm publish
 
 SDK 定义接口但实现由宿主应用提供：
 
-- `IConversationService` - `src/interfaces/conversation.interface.ts`
-- `IMessageService` - `src/interfaces/message.interface.ts`
-- `ITemplateService` - `src/interfaces/template.interface.ts`
-- `INetworkService` (可选) - `src/interfaces/network.interface.ts`
+- `IConversationService` - `src/services/core/conversation.service.ts`
+- `IMessageService` - `src/services/core/message.service.ts`
+- `ITemplateService` - `src/services/core/template.service.ts`
+- `INetworkService` (可选) - `src/services/core/network.service.ts`
+- `offlineMessageQueue` (可选) - 通过 `ServiceProvider` 注入同形队列实现
 
 宿主实现这些服务并通过 `ServiceProvider` 注入。SDK 绝不直接调用后端 API。
 
 ### Query Keys
 
-使用 `src/providers/query-keys.ts` 中的 `queryKeys`：
+使用 `src/providers/query.provider.tsx` 中的 `queryKeys`：
 - `queryKeys.conversations.*`
 - `queryKeys.messages.*`
 - `queryKeys.templates.*`
+- `queryKeys.conversations.unread()`
+- `queryKeys.conversations.unreadDeltas.*`
 
 切勿使用 `sessions` 作为键前缀。
 
@@ -100,7 +104,8 @@ SDK 定义接口但实现由宿主应用提供：
 ### 状态管理
 - 服务端状态 → React Query 配合 infinite queries 分页
 - 客户端交互状态 → Zustand 切片
-- 未读数量 → 单一事实来源：`Conversation.unreadCount`
+- 未读数量 → React Query 中的服务端基线 + `unreadDeltas` 增量映射；
+  不进入 Zustand。
 
 ### 网络集成
 - 通过 ServiceProvider 可选注入 `INetworkService`
@@ -124,7 +129,8 @@ src/
 ├── providers/       # React Context providers
 ├── store/           # Zustand store
 │   └── slices/      # Store 切片（strategy、network 等）
-├── services/        # 服务包装器
+├── errors/          # SDK / 网络 / WebSocket 错误类型（当前未从包入口导出）
+├── services/        # core 契约、协议、WebSocket、消息缓存与队列能力
 ├── styles/          # 全局样式
 └── utils/           # 工具函数
 ```
@@ -168,11 +174,18 @@ src/
 - **组件导出**：`src/components/index.ts`
 - **输出目录**：`dist/` 目录
 
-仅 `src/index.ts` 和 `src/components/index.ts` 中的导出为公开 API。内部能力如 `useWebSocket` 和 `createWebSocketMessageHandler` **不**属于公开 API。
+仅 `src/index.ts` 和 `src/components/index.ts` 中的导出为公开 API。
+当前已公开 `useTranslation`、`useTemplatePreview`、`useOfflineSync`、
+`useRetryMessage`、`useDeleteFailedMessage`、`PacketConverter`、
+`AckHandler`、`HeartbeatManager`、`WebSocketManager` 等。
+内部能力如 `OfflineMessageQueueService`、`MessageCacheHelper`、
+`MessageSyncService`、`useWebSocket` 和 `createWebSocketMessageHandler`
+**不**属于当前包入口公开 API。
 
 ## 关键设计文档
 
 - **架构基线**：`design/final-architecture.md`（单一事实源 SSOT）
+- **文档索引**：`DOCUMENTATION_INDEX.md`
 - **文档导航**：`design/README.md`（所有设计文档索引）
 - **命名规范**：`design/naming-conventions.md`
 - **技能说明**：`skills/README.md`（skills 使用指南）
@@ -189,6 +202,8 @@ src/
 - `design/architecture-diagrams.md` - 构架图
 - `design/component-architecture.md` - 组件架构
 - `design/reactive-architecture-design.md` - 声明式架构
+- `design/message-type-configuration.md` - 消息类型配置
+- `design/conversation-pinning-usage.md` - 会话置顶
 
 **目标架构（To-Be）**：
 - `design/sdk-interface-abstraction-design.md` - 接口抽象设计
@@ -204,7 +219,7 @@ src/
 
 ## 错误处理
 
-使用 `src/interfaces/error.interface.ts` 中的错误类型：
+错误类型定义在 `src/errors/`，当前未从包入口公开导出：
 - `SDKError`
 - `HTTPError`
 - `ValidationError`
@@ -212,6 +227,9 @@ src/
 - `ConfigurationError`
 - `NotImplementedError`
 - `MapperError`
+- `OfflineQueueError`
+- `NetworkError`
+- WebSocket 专用错误
 
 ## 语言支持
 

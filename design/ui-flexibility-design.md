@@ -45,6 +45,18 @@
 </ChatContainer>
 ```
 
+### D. Mobile（移动端默认布局）
+
+```tsx
+<ChatContainer>
+  <MobileLayout onClose={handleClose} />
+</ChatContainer>
+```
+
+当前 `MobileLayout` 支持 `renderMessageList` 接管消息区，模板入口使用底部
+ActionSheet，并复用 `useTemplates`、`useTemplatePreview`、
+`useTemplateSelect` 与 `useSendMessage` 链路。
+
 ## 3. 约束
 
 - 自定义组件仍需通过 hooks 获取服务端状态。
@@ -54,4 +66,4 @@
 ## 4. 目标架构（To-Be）
 
 - 渠道策略矩阵配置化输出。
-- 模板链路独立 mutation/query 能力。
+- 模板发送链路独立 mutation 能力。

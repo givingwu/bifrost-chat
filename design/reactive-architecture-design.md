@@ -11,9 +11,13 @@
 | 状态 | 归属 | 说明 |
 |---|---|---|
 | 会话列表 | React Query | `useConversations` |
+| 会话详情/元数据 | React Query | `useConversationDetail` / `useConversationMetadata` |
 | 消息列表 | React Query | `useMessages`（Infinite Query） |
 | 模板列表 | React Query | `useTemplates` |
+| 模板预览 | React Query Mutation | `useTemplatePreview` |
+| 未读基线/增量 | React Query | `useUnreadCount` / `useChannelUnread` / `useConversationUnread` |
 | UI 交互态 | Zustand | `strategy/conversation/theme/language/network/profile/composer` |
+| Composer 草稿 | Zustand persist | `useComposerDraftStore` |
 
 补充：
 
@@ -33,23 +37,30 @@
 - `useSendMessage`：已实现 optimistic update + rollback + success 更新。
 - `useCreateConversation`：创建后失效会话列表缓存。
 - `useMarkAsRead`：消息已读 mutation。
+- `useTemplatePreview`：模板预览 mutation，调用 `templateService.preview`。
+- `useRetryMessage` / `useDeleteFailedMessage`：本地失败消息重试与删除。
 
-### 4.2 仓库内部能力（非公开导出）
+### 4.2 当前未从包入口公开的相关能力
 
-- `useSendAttachment`
-- `useSendAudio`
+- `useRetryOfflineMessage`（定义在 `use-offline-sync.hook.ts`，未通过
+  `src/hooks/index.ts` 导出）
+- `OfflineMessageQueueService`
+- `MessageCacheHelper`
+- `MessageSyncService`
 
 ### 4.3 目标架构（To-Be）
 
 - `useSendTemplateMessage`
-- `useTemplatePreview`
 
 ## 5. 实时更新
 
 ### 当前已实现（As-Is）
 
-- 存在 WebSocket 管理能力与 Query Cache 集成工具。
-- 该能力当前未从包入口公开导出。
+- `WebSocketManager`、协议 handler、`PacketConverter`、`AckHandler` 等已从
+  包入口导出。
+- `useUnreadSync`、`useMessageStatusSync`、`MessageBuilder` 与内部缓存工具
+  共同完成实时消息、ACK 和会话摘要回灌。
+- `MessageSyncService` / `MessageCacheHelper` 当前仍是内部能力。
 
 ### 目标架构（To-Be）
 
