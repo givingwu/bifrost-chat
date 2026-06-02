@@ -2,7 +2,7 @@ import { FileText, Send } from 'lucide-react';
 import type { KeyboardEvent, RefObject } from 'react';
 import { useTranslation } from '@/providers/I18n.provider';
 import { cn } from '@/utils/class.util';
-import { TEMPLATE_SHEET_ID, translateOrFallback } from '@/utils/mobile.utils';
+import { TEMPLATE_SHEET_ID, translateOrFallback } from '@/utils/mobile.util';
 
 export interface MobileComposerProps {
   inputRef: RefObject<HTMLInputElement | null>;

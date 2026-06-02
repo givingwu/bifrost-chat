@@ -1,12 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  useTransition,
-} from 'react';
+import { useCallback, useEffect, useMemo, useRef, useTransition } from 'react';
 import { Composer, type ComposerRef } from '@/components/composer/Composer';
 import { ConversationHeader } from '@/components/conversation/ConversationHeader';
 import { ConversationList } from '@/components/conversation/ConversationList';
@@ -29,13 +22,12 @@ import { useConversations } from '@/hooks/use-conversations.hook';
 import { useMessageStatusSync } from '@/hooks/use-message-status-sync.hook';
 import { useSendMessage } from '@/hooks/use-send-message.hook';
 import { useTemplatePreview } from '@/hooks/use-template-preview.hook';
+import { useTemplateSelect } from '@/hooks/use-template-select.hook';
 import { useTotalUnread } from '@/hooks/use-total-unread.hook';
 import { useUnreadSync } from '@/hooks/use-unread-sync.hook';
 import type { Conversation } from '@/interfaces/conversation.interface';
-import type { Template } from '@/interfaces/template.interface';
 import { useTranslation } from '@/providers/I18n.provider';
 import { ConversationCacheHelper } from '@/services/cache/conversation-cache-helper.service';
-import type { TemplatePreviewResult } from '@/services/core/template.service';
 import {
   useActions,
   useComposerConfig,
@@ -246,9 +238,6 @@ export function DefaultChatLayout({
 
   // 模板预览相关状态
   const { mutateAsync: previewTemplate } = useTemplatePreview();
-  const [renderingTemplateId, setRenderingTemplateId] = useState<
-    string | number | undefined
-  >();
 
   // Composer ref
   const composerRef = useRef<ComposerRef>(null);
@@ -389,79 +378,36 @@ export function DefaultChatLayout({
   );
 
   /**
-   * 处理模板选择
-   * 根据 templateMode 配置决定行为：
-   * - direct: 直接发送模板消息
-   * - edit: 调用 preview 获取预览内容后填充到输入框
+   * 共享模板选择 hook，与 MobileLayout 使用同一套逻辑。
    */
-  const handleTemplateSelect = useCallback(
-    async (template: Template) => {
-      if (!activeConversationId) {
-        console.warn(
-          '[DefaultChatLayout] handleTemplateSelect called without active conversation',
-        );
-        return;
-      }
-
-      setRenderingTemplateId(template.id);
-
-      try {
-        let contentToUse = template.content;
-        let templateMetadata: TemplatePreviewResult | undefined;
-
-        // 如果模板有 code，尝试获取预览内容
-        if (template.code) {
-          try {
-            templateMetadata = await previewTemplate({
-              conversationId: activeConversationId,
-              currentChannel: activeChannel,
-              templateCode: template.code,
-            });
-            contentToUse = templateMetadata.previewContent;
-          } catch (previewError) {
-            console.warn(
-              '[DefaultChatLayout] Template preview failed:',
-              previewError,
-            );
-            composerRef.current?.setTemplate({
-              content: template.content,
-              templateCode: template.code,
-              templateMetadata: undefined,
-              templateError: t('template.previewFailed'),
-            });
-            composerRef.current?.focus();
-            return;
-          }
-        }
-
-        if (templateMode === 'direct') {
-          // 直接发送模式
-          await handleSend(contentToUse, { templateMetadata });
-        } else {
-          // 编辑模式：填充到输入框
-          composerRef.current?.setValue(
-            contentToUse,
-            template.code,
-            templateMetadata,
-          );
-          composerRef.current?.focus();
-        }
-      } catch (error) {
-        console.error('[DefaultChatLayout] Failed to handle template:', error);
-        // 可以考虑在这里添加用户可见的错误提示
-      } finally {
-        setRenderingTemplateId(undefined);
-      }
-    },
-    [
-      activeConversationId,
-      activeChannel,
-      previewTemplate,
-      handleSend,
-      templateMode,
-      t,
-    ],
-  );
+  const { renderingTemplateId, handleTemplateSelect } = useTemplateSelect({
+    activeConversationId,
+    activeChannel,
+    previewTemplate,
+    templateMode: templateMode ?? 'edit',
+    onDirectSend: useCallback(
+      async (content, options) => {
+        await handleSend(content, options);
+      },
+      [handleSend],
+    ),
+    onEditFill: useCallback((content, code, metadata) => {
+      composerRef.current?.setValue(content, code, metadata);
+      composerRef.current?.focus();
+    }, []),
+    onPreviewError: useCallback(
+      (template) => {
+        composerRef.current?.setTemplate({
+          content: template.content,
+          templateCode: template.code,
+          templateMetadata: undefined,
+          templateError: t('template.previewFailed'),
+        });
+        composerRef.current?.focus();
+      },
+      [t],
+    ),
+  });
 
   // ---------------------------------------------------------------------------
   // Memoized Components
