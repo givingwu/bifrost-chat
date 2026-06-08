@@ -399,6 +399,30 @@ describe('useComposerDraftStore', () => {
         'draft 59',
       );
     });
+
+    it('裁剪时应按最近使用顺序保留已重新访问的草稿', () => {
+      const store = useComposerDraftStore.getState();
+
+      for (let index = 0; index < 50; index += 1) {
+        store.setCurrentDraft(`conv-lru-${index}`, ChannelTypeEnum.SMS);
+        store.setValue(`draft ${index}`);
+      }
+
+      store.setCurrentDraft('conv-lru-0', ChannelTypeEnum.SMS);
+      store.setCurrentDraft('conv-lru-50', ChannelTypeEnum.SMS);
+      store.setValue('draft 50');
+
+      const stored = localStorage.getItem('bifrost-drafts');
+      const parsed = JSON.parse(stored ?? '{}');
+
+      expect(parsed.state.drafts['conv-lru-0-channel-sms'].content).toBe(
+        'draft 0',
+      );
+      expect(parsed.state.drafts['conv-lru-1-channel-sms']).toBeUndefined();
+      expect(parsed.state.drafts['conv-lru-50-channel-sms'].content).toBe(
+        'draft 50',
+      );
+    });
   });
 
   describe('无 localStorage 降级', () => {

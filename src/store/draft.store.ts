@@ -570,6 +570,11 @@ export const useComposerDraftStore = create<ComposerDraftStore>()(
               // 清理 legacy keys
               removeLegacyKeys(conversationId, channel);
             }
+          } else {
+            // 已存在的草稿被重新访问时，移动到最近使用位置。
+            set((state) => ({
+              drafts: upsertDraft(state.drafts, newKey, state.drafts[newKey]),
+            }));
           }
         }
       },
