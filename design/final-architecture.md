@@ -81,7 +81,7 @@
 | 渠道策略与激活渠道 | Zustand | `strategy.slice.ts` |
 | 主题/语言/网络 | Zustand | `theme/language/network` slices |
 | Composer 功能配置 | Zustand | `composer.slice.ts` |
-| Composer 草稿 | Zustand persist | `draft.store.ts` 按 `conversationId + channel` 分桶 |
+| Composer 草稿 | Zustand persist | `draft.store.ts` 按 `conversationId + channel` 分桶；持久化内容有界并可在超配额时降级 |
 | 客户画像上下文 | Zustand | `profile.slice.ts` |
 | 会话/渠道未读展示数 | React Query | 服务端基线 + `unreadDeltas` 增量映射 |
 

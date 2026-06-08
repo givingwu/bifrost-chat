@@ -115,7 +115,7 @@ describe('useComposerDraft', () => {
     const stored = localStorage.getItem('bifrost-drafts');
     const parsed = JSON.parse(stored ?? '{}');
     const key = `conv-send-channel-sms`;
-    expect(parsed.state.drafts[key]?.content).toBe('');
+    expect(parsed.state.drafts[key]).toBeUndefined();
   });
 
   it('发送返回失败结果时不应清空输入和草稿', async () => {
@@ -228,6 +228,8 @@ describe('useComposerDraft', () => {
       expect(draftData.content).toBe('template content');
       expect(draftData.messageType).toBe(MessageTypeEnum.Template);
       expect(draftData.templateCode).toBe('template-123');
+      expect(draftData.templateParams).toEqual({ name: 'John' });
+      expect(draftData.templateMetadata).toBeUndefined();
     });
 
     it('应支持 setDraftData 批量设置', async () => {
@@ -277,7 +279,7 @@ describe('useComposerDraft', () => {
       });
     });
 
-    it('应在挂载时恢复 messageType 和 templateMetadata', async () => {
+    it('应在挂载时恢复 messageType 和旧格式 templateMetadata', async () => {
       const draftData: DraftData = {
         content: 'restored template',
         messageType: MessageTypeEnum.Template,

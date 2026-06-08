@@ -44,7 +44,8 @@ graph LR
 - Zustand：激活会话、搜索词、渠道策略、主题、语言、网络快照、
   Profile 上下文、Composer 配置。
 - 草稿：`draft.store.ts` 按 `conversationId + channel` 分桶并兼容迁移旧
-  localStorage key。
+  localStorage key；持久化数据只保留必要字段，过滤空草稿并限制数量与总体
+  积，localStorage 超配额时降级到内存草稿，避免异常冒泡到页面。
 - 可选离线队列：通过 `ServiceProvider.offlineMessageQueue` 注入，供
   `useSendMessage`、`useMessages`、`useOfflineSync`、`useRetryMessage` 等使用。
 

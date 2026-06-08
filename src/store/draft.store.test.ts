@@ -21,6 +21,7 @@ describe('useComposerDraftStore', () => {
   afterEach(() => {
     // 每个测试后重置 store 状态
     resetComposerDraftStore();
+    vi.restoreAllMocks();
   });
 
   describe('基本草稿操作', () => {
@@ -102,6 +103,23 @@ describe('useComposerDraftStore', () => {
 
       store.setCurrentDraft('conv-3', ChannelTypeEnum.Email);
       expect(store.getCurrentDraft().content).toBe('');
+    });
+
+    it('clearDraft 应删除当前 key，避免空草稿持续增长', () => {
+      const store = useComposerDraftStore.getState();
+
+      store.setCurrentDraft('conv-remove-empty', ChannelTypeEnum.SMS);
+      store.setValue('draft to remove');
+
+      const key = buildComposerDraftKey(
+        'conv-remove-empty',
+        ChannelTypeEnum.SMS,
+      );
+      expect(useComposerDraftStore.getState().drafts[key]).toBeDefined();
+
+      store.clearDraft();
+
+      expect(useComposerDraftStore.getState().drafts[key]).toBeUndefined();
     });
 
     it('getValue 应返回当前草稿内容', () => {
@@ -264,7 +282,7 @@ describe('useComposerDraftStore', () => {
       expect(parsed.state.drafts[key].content).toBe('persist me');
     });
 
-    it('持久化应包含所有草稿字段', () => {
+    it('持久化应排除 templateMetadata，避免写入超大模板对象', () => {
       const store = useComposerDraftStore.getState();
 
       store.setCurrentDraft('conv-full', ChannelTypeEnum.Email);
@@ -285,7 +303,84 @@ describe('useComposerDraftStore', () => {
       expect(storedDraft.messageType).toBe(MessageTypeEnum.Template);
       expect(storedDraft.templateCode).toBe('TPL-FULL');
       expect(storedDraft.templateParams).toEqual({ key: 'value' });
-      expect(storedDraft.templateMetadata).toEqual({ meta: 'data' });
+      expect(storedDraft.templateMetadata).toBeUndefined();
+      expect(store.getCurrentDraft().templateMetadata).toEqual({
+        meta: 'data',
+      });
+    });
+
+    it('localStorage 写入超配额时不应抛出到页面', () => {
+      const store = useComposerDraftStore.getState();
+      const originalSetItem = window.localStorage.setItem;
+      const quotaError = new DOMException(
+        'The quota has been exceeded.',
+        'QuotaExceededError',
+      );
+
+      const setItemSpy = vi
+        .spyOn(window.localStorage.__proto__, 'setItem')
+        .mockImplementation((...args: unknown[]) => {
+          const [key, value] = args as [string, string];
+
+          if (key === 'bifrost-drafts') {
+            throw quotaError;
+          }
+          return originalSetItem.call(window.localStorage, key, value);
+        });
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+      try {
+        expect(() => {
+          store.setCurrentDraft('conv-quota', ChannelTypeEnum.SMS);
+          store.setValue('quota safe draft');
+        }).not.toThrow();
+
+        expect(store.getCurrentDraft().content).toBe('quota safe draft');
+        expect(setItemSpy).toHaveBeenCalled();
+        expect(warnSpy).toHaveBeenCalledWith(
+          '[BifrostChat] Draft storage quota exceeded; using memory storage.',
+          quotaError,
+        );
+      } finally {
+        setItemSpy.mockRestore();
+        warnSpy.mockRestore();
+      }
+    });
+
+    it('连续切换空会话不应让 bifrost-drafts 增长空对象', () => {
+      const store = useComposerDraftStore.getState();
+
+      for (let index = 0; index < 50; index += 1) {
+        store.setCurrentDraft(`conv-empty-${index}`, ChannelTypeEnum.SMS);
+      }
+
+      const stored = localStorage.getItem('bifrost-drafts');
+      if (!stored) {
+        expect(useComposerDraftStore.getState().drafts).toEqual({});
+        return;
+      }
+
+      const parsed = JSON.parse(stored);
+      expect(parsed.state.drafts).toEqual({});
+    });
+
+    it('持久化草稿数量应限制为最近 50 条', () => {
+      const store = useComposerDraftStore.getState();
+
+      for (let index = 0; index < 60; index += 1) {
+        store.setCurrentDraft(`conv-limit-${index}`, ChannelTypeEnum.SMS);
+        store.setValue(`draft ${index}`);
+      }
+
+      const stored = localStorage.getItem('bifrost-drafts');
+      const parsed = JSON.parse(stored ?? '{}');
+      const draftKeys = Object.keys(parsed.state.drafts);
+
+      expect(draftKeys).toHaveLength(50);
+      expect(parsed.state.drafts['conv-limit-0-channel-sms']).toBeUndefined();
+      expect(parsed.state.drafts['conv-limit-59-channel-sms'].content).toBe(
+        'draft 59',
+      );
     });
   });
 
