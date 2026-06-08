@@ -588,13 +588,14 @@ export const useComposerDraftStore = create<ComposerDraftStore>()(
             // 如果分桶没有，尝试全局 legacy key
             if (!legacyData || !legacyData.content) {
               const globalData = readGlobalLegacyDraftData();
-              if (globalData && globalData.content) {
+
+              if (globalData?.content) {
                 legacyData = globalData;
               }
             }
 
             // 如果找到 legacy 数据，迁移到新 store
-            if (legacyData && legacyData.content) {
+            if (legacyData?.content) {
               set((state) => ({
                 drafts: upsertDraft(state.drafts, newKey, legacyData),
               }));
