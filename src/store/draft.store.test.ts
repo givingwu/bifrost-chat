@@ -309,6 +309,23 @@ describe('useComposerDraftStore', () => {
       });
     });
 
+    it('持久化不应裁剪正文内容，避免影响刷新后草稿展示', () => {
+      const store = useComposerDraftStore.getState();
+      const longContent = 'x'.repeat(64 * 1024);
+
+      store.setCurrentDraft('conv-long-content', ChannelTypeEnum.Email);
+      store.setValue(longContent);
+
+      const stored = localStorage.getItem('bifrost-drafts');
+      const parsed = JSON.parse(stored ?? '{}');
+      const key = buildComposerDraftKey(
+        'conv-long-content',
+        ChannelTypeEnum.Email,
+      );
+
+      expect(parsed.state.drafts[key].content).toBe(longContent);
+    });
+
     it('localStorage 写入超配额时不应抛出到页面', () => {
       const store = useComposerDraftStore.getState();
       const originalSetItem = window.localStorage.setItem;

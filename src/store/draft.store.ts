@@ -15,8 +15,6 @@ const LEGACY_GLOBAL_DRAFT_KEY = 'bifrost-chat-draft';
 const PERSIST_STORAGE_KEY = 'bifrost-drafts';
 const MAX_PERSISTED_DRAFTS = 50;
 const MAX_PERSISTED_DRAFT_BYTES = 512 * 1024;
-const MAX_SINGLE_DRAFT_BYTES = 32 * 1024;
-const MAX_PERSISTED_CONTENT_LENGTH = 16 * 1024;
 const MAX_TEMPLATE_PARAMS_BYTES = 8 * 1024;
 
 // ==================== 类型定义 ====================
@@ -295,43 +293,12 @@ function sanitizeTemplateParams(
  * 生成可持久化草稿，只保留恢复草稿需要的最小字段。
  */
 function sanitizeDraftForPersistence(draft: DraftData): DraftData {
-  const content = (draft.content ?? '').slice(0, MAX_PERSISTED_CONTENT_LENGTH);
-  const sanitized: DraftData = {
+  const content = draft.content ?? '';
+  return {
     content,
     messageType: draft.messageType,
     templateCode: draft.templateCode,
     templateParams: sanitizeTemplateParams(draft.templateParams),
-  };
-
-  try {
-    if (
-      getStringByteSize(JSON.stringify(sanitized)) <= MAX_SINGLE_DRAFT_BYTES
-    ) {
-      return sanitized;
-    }
-  } catch {
-    return { content };
-  }
-
-  const withoutParams: DraftData = {
-    content,
-    messageType: draft.messageType,
-    templateCode: draft.templateCode,
-  };
-
-  try {
-    if (
-      getStringByteSize(JSON.stringify(withoutParams)) <= MAX_SINGLE_DRAFT_BYTES
-    ) {
-      return withoutParams;
-    }
-  } catch {
-    return { content };
-  }
-
-  return {
-    ...withoutParams,
-    content: content.slice(0, MAX_SINGLE_DRAFT_BYTES / 2),
   };
 }
 
