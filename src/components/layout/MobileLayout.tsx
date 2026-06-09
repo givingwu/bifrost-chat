@@ -146,11 +146,17 @@ export function MobileLayout({
     placeholder ??
     composerConfig.placeholder ??
     translateOrFallback(t, 'composer.placeholder.channel', '请输入消息内容');
+  const isTemplateMessage =
+    pendingTemplateOptions?.type === MessageTypeEnum.Template;
+  const isTemplateLocked =
+    isTemplateMessage &&
+    composerConfig.templateMode === 'edit' &&
+    composerConfig.allowTemplateEdit !== true;
   const canSend =
     !!activeConversationId && !!value.trim() && !sendMessage.isPending;
-  const isInputReadOnly =
-    composerConfig.inputMode === 'template-only' &&
-    composerConfig.allowTemplateEdit !== true;
+  const isInputReadOnly = isTemplateMessage
+    ? isTemplateLocked
+    : composerConfig.inputMode === 'template-only';
 
   const closeTemplateSheet = useCallback(() => {
     setIsTemplateSheetOpen(false);

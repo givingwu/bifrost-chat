@@ -239,6 +239,7 @@ function MobileLayoutDemo({
             composer: {
               placeholder: '输入消息...',
               templateMode: 'edit',
+              allowTemplateEdit: false,
             },
           }}
         >
@@ -279,7 +280,7 @@ export const Default: Story = {
     docs: {
       description: {
         story:
-          '移动端基础布局：Header、消息列表、底部快捷模板入口、输入框和发送按钮。',
+          '移动端基础布局：Header、消息列表、底部快捷模板入口、输入框和发送按钮；模板回填后默认不可编辑，与 PC 端保持一致。',
       },
     },
   },

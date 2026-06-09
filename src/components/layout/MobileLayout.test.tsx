@@ -205,4 +205,21 @@ describe('MobileLayout', () => {
       });
     });
   });
+
+  it('edit 模式下回填模板后应与 PC 端一样禁止编辑', async () => {
+    render(<MobileLayout />);
+
+    fireEvent.click(screen.getByRole('button', { name: '打开快捷话术模板' }));
+    fireEvent.click(screen.getByRole('button', { name: /常规提醒/ }));
+
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText('输入消息...')).toHaveValue(
+        '账单即将逾期通知（已渲染）',
+      );
+    });
+
+    expect(screen.getByPlaceholderText('输入消息...')).toHaveAttribute(
+      'readonly',
+    );
+  });
 });
