@@ -86,7 +86,8 @@ export function MobileLayout({
   const { activeChannel } = useStrategy();
   const activeConversationId = useActiveConversationId();
   const composerConfig = useComposerConfig();
-  const { data: conversations = [] } = useConversations();
+  const { data: conversations = [], isLoading: isConversationsLoading } =
+    useConversations();
   const { metadata: conversationMetadata } = useActiveConversationMetadata();
   const sendMessage = useSendMessage({ conversationMetadata });
   const { mutateAsync: previewTemplate } = useTemplatePreview();
@@ -302,6 +303,8 @@ export function MobileLayout({
         title={headerTitle}
         subTitle={headerSubTitle}
         avatarUrl={resolvedAvatarUrl}
+        channel={activeChannel}
+        loading={isConversationsLoading}
         showCloseButton={showCloseButton}
         onClose={onClose}
       />

@@ -206,16 +206,44 @@ const services = {
 
 function MobileLayoutDemo({
   theme,
+  channel = ChannelTypeEnum.Viber,
   activeConversationId = activeConversation.id,
+  avatarUrl,
 }: {
   theme?: 'light' | 'dark';
+  channel?: ChannelTypeEnum;
   activeConversationId?: string;
+  avatarUrl?: string;
 }) {
+  const conversation = {
+    ...activeConversation,
+    channel,
+    supportedChannels: [channel],
+    user: {
+      ...activeConversation.user,
+      avatarUrl,
+    },
+  };
+
   const renderMessageList = activeConversationId
     ? () => (
         <MessageList messages={mobileMessages} enableVirtualization={false} />
       )
     : undefined;
+  const conversationService: IConversationService = {
+    async list() {
+      return [conversation];
+    },
+    async get() {
+      return conversation;
+    },
+    async create() {
+      return conversation;
+    },
+    async query() {
+      return conversation;
+    },
+  };
 
   return (
     <div
@@ -233,8 +261,8 @@ function MobileLayoutDemo({
               mode: theme === 'dark' ? ThemeModeEnum.Dark : ThemeModeEnum.Light,
             },
             strategy: {
-              activeChannel: ChannelTypeEnum.Viber,
-              allowedChannels: [ChannelTypeEnum.Viber],
+              activeChannel: channel,
+              allowedChannels: [channel],
             },
             composer: {
               placeholder: '输入消息...',
@@ -243,7 +271,11 @@ function MobileLayoutDemo({
             },
           }}
         >
-          <ServiceProvider {...services}>
+          <ServiceProvider
+            conversationService={conversationService}
+            messageService={services.messageService}
+            templateService={services.templateService}
+          >
             <ChatContainer>
               <MobileLayout
                 onClose={() => {
@@ -309,6 +341,68 @@ export const Dark: Story = {
     docs: {
       description: {
         story: '深色主题下的移动端布局，主题由 ConfigProvider 注入。',
+      },
+    },
+  },
+};
+
+/**
+ * WhatsApp 渠道
+ */
+export const WhatsAppChannel: Story = {
+  render: () => (
+    <MobileLayoutDemo
+      channel={ChannelTypeEnum.WhatsApp}
+      avatarUrl="https://i.pravatar.cc/64?u=wa"
+    />
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'WhatsApp 渠道：Header 背景为 WhatsApp 绿色品牌色，显示用户头像。',
+      },
+    },
+  },
+};
+
+/**
+ * SMS 渠道（无头像）
+ */
+export const SmsChannelNoAvatar: Story = {
+  render: () => <MobileLayoutDemo channel={ChannelTypeEnum.SMS} />,
+  parameters: {
+    docs: {
+      description: {
+        story: 'SMS 渠道：Header 背景为蓝色品牌色，无头像时显示 SMS 渠道图标。',
+      },
+    },
+  },
+};
+
+/**
+ * Email 渠道
+ */
+export const EmailChannel: Story = {
+  render: () => <MobileLayoutDemo channel={ChannelTypeEnum.Email} />,
+  parameters: {
+    docs: {
+      description: {
+        story: 'Email 渠道：Header 背景为橙色品牌色，渲染 Email 图标。',
+      },
+    },
+  },
+};
+
+/**
+ * RCS 渠道
+ */
+export const RcsChannel: Story = {
+  render: () => <MobileLayoutDemo channel={ChannelTypeEnum.RCS} />,
+  parameters: {
+    docs: {
+      description: {
+        story: 'RCS 渠道：Header 背景为青色品牌色。',
       },
     },
   },
