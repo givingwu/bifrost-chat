@@ -16,6 +16,7 @@ const PERSIST_STORAGE_KEY = 'bifrost-drafts';
 const MAX_PERSISTED_DRAFTS = 50;
 const MAX_PERSISTED_DRAFT_BYTES = 512 * 1024;
 const MAX_TEMPLATE_PARAMS_BYTES = 8 * 1024;
+const QUOTA_RETRY_DRAFT_LIMITS = [25, 10, 5, 1] as const;
 
 // ==================== 类型定义 ====================
 
@@ -70,6 +71,7 @@ export interface ComposerDraftActions {
 export type ComposerDraftStore = ComposerDraftState & ComposerDraftActions;
 
 type PersistedComposerDraftState = Pick<ComposerDraftState, 'drafts'>;
+type PersistableTemplateParam = string | number | boolean;
 
 // ==================== 工具函数 ====================
 
@@ -193,9 +195,21 @@ function getStringByteSize(value: string): number {
 }
 
 /**
+ * 安全序列化 JSON，避免异常对象阻断草稿持久化流程。
+ */
+function safeStringify(value: unknown): string | null {
+  try {
+    const serialized = JSON.stringify(value);
+    return typeof serialized === 'string' ? serialized : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * 判断模板参数是否包含可持久化内容。
  */
-function hasTemplateParams(params?: Record<string, string>): boolean {
+function hasTemplateParams(params?: Record<string, unknown>): boolean {
   return Boolean(params && Object.keys(params).length > 0);
 }
 
@@ -258,31 +272,57 @@ function upsertDraft(
 }
 
 /**
+ * 将运行时模板参数收敛为可持久化标量。
+ */
+function normalizeTemplateParamValue(
+  value: unknown,
+): PersistableTemplateParam | undefined {
+  if (typeof value === 'string' || typeof value === 'boolean') {
+    return value;
+  }
+
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value;
+  }
+
+  return undefined;
+}
+
+/**
  * 过滤并限制模板参数，避免宿主传入异常大对象。
+ *
+ * 公开 API 仍保持 Record<string, string>；这里额外兼容运行时传入的
+ * number / boolean，并按字符串写入草稿，避免扩大模板发送契约。
  */
 function sanitizeTemplateParams(
-  params?: Record<string, string>,
+  params?: Record<string, unknown>,
 ): Record<string, string> | undefined {
   if (!params) {
     return undefined;
   }
 
-  const safeParams = Object.fromEntries(
-    Object.entries(params).filter(([, value]) => {
-      return typeof value === 'string';
-    }),
+  const safeParams = Object.entries(params).reduce<Record<string, string>>(
+    (result, [key, value]) => {
+      const normalizedValue = normalizeTemplateParamValue(value);
+
+      if (normalizedValue !== undefined) {
+        result[key] = String(normalizedValue);
+      }
+
+      return result;
+    },
+    {},
   );
 
   if (Object.keys(safeParams).length === 0) {
     return undefined;
   }
 
-  try {
-    const serialized = JSON.stringify(safeParams);
-    if (getStringByteSize(serialized) > MAX_TEMPLATE_PARAMS_BYTES) {
-      return undefined;
-    }
-  } catch {
+  const serialized = safeStringify(safeParams);
+  if (
+    !serialized ||
+    getStringByteSize(serialized) > MAX_TEMPLATE_PARAMS_BYTES
+  ) {
     return undefined;
   }
 
@@ -318,14 +358,14 @@ function compactDraftsForPersistence(
 
   while (entries.length > 0) {
     const compacted = Object.fromEntries(entries);
+    const serialized = safeStringify({ drafts: compacted });
 
-    try {
-      const serialized = JSON.stringify({ drafts: compacted });
-      if (getStringByteSize(serialized) <= MAX_PERSISTED_DRAFT_BYTES) {
-        return compacted;
-      }
-    } catch {
+    if (!serialized) {
       return {};
+    }
+
+    if (getStringByteSize(serialized) <= MAX_PERSISTED_DRAFT_BYTES) {
+      return compacted;
     }
 
     entries.shift();
@@ -360,6 +400,31 @@ function compactStorageValue(
       options?.maxDrafts,
     ),
   };
+}
+
+/**
+ * 生成 setItem 重试负载。顺序从完整压缩值到更小的 LRU 子集。
+ */
+function createDraftStorageRetryPayloads(
+  value: StorageValue<PersistedComposerDraftState>,
+): string[] {
+  const payloads: string[] = [];
+  const retryValues = [
+    compactStorageValue(value),
+    ...QUOTA_RETRY_DRAFT_LIMITS.map((maxDrafts) => {
+      return compactStorageValue(value, { maxDrafts });
+    }),
+  ];
+
+  for (const retryValue of retryValues) {
+    const serialized = safeStringify(retryValue);
+
+    if (serialized && !payloads.includes(serialized)) {
+      payloads.push(serialized);
+    }
+  }
+
+  return payloads;
 }
 
 /**
@@ -399,23 +464,31 @@ function getBrowserLocalStorage(): Storage | null {
  * 判断是否为浏览器存储配额异常。
  */
 function isQuotaExceededError(error: unknown): boolean {
-  if (typeof DOMException !== 'undefined' && error instanceof DOMException) {
-    return (
-      error.name === 'QuotaExceededError' ||
-      error.name === 'NS_ERROR_DOM_QUOTA_REACHED'
-    );
-  }
-
   if (!error || typeof error !== 'object') {
     return false;
   }
 
-  const maybeError = error as { code?: number; name?: string };
+  const maybeError = error as {
+    code?: number;
+    name?: string;
+    message?: string;
+  };
+  const errorName = maybeError.name?.toLowerCase() ?? '';
+  const errorMessage = maybeError.message?.toLowerCase() ?? '';
+  const hasQuotaSignal =
+    errorName.includes('quota') || errorMessage.includes('quota');
+  const hasStorageSignal =
+    errorName.includes('storage') || errorMessage.includes('storage');
+  const hasExceededSignal =
+    errorMessage.includes('exceed') || errorMessage.includes('full');
+
   return (
     maybeError.name === 'QuotaExceededError' ||
     maybeError.name === 'NS_ERROR_DOM_QUOTA_REACHED' ||
     maybeError.code === 22 ||
-    maybeError.code === 1014
+    maybeError.code === 1014 ||
+    (hasQuotaSignal && hasExceededSignal) ||
+    (hasStorageSignal && hasExceededSignal)
   );
 }
 
@@ -451,49 +524,51 @@ function createSafeDraftStorage(): PersistStorage<PersistedComposerDraftState> {
       value: StorageValue<PersistedComposerDraftState>,
     ) => {
       const storage = getBrowserLocalStorage();
-      const compactedValue = compactStorageValue(value);
-      const serialized = JSON.stringify(compactedValue);
+      const retryPayloads = createDraftStorageRetryPayloads(value);
+      const defaultPayload = retryPayloads[0];
+      const fallbackPayload = retryPayloads[retryPayloads.length - 1];
+
+      if (!defaultPayload || !fallbackPayload) {
+        return;
+      }
 
       if (!storage) {
-        memoryStorage[name] = serialized;
+        memoryStorage[name] = defaultPayload;
         return;
       }
 
-      try {
-        storage.setItem(name, serialized);
-        delete memoryStorage[name];
-        return;
-      } catch (error) {
-        if (!isQuotaExceededError(error)) {
-          memoryStorage[name] = serialized;
-          console.warn(
-            '[BifrostChat] Draft persistence failed; using memory storage.',
-            error,
-          );
-          return;
-        }
-      }
+      let lastQuotaError: unknown;
 
-      const prunedValue = compactStorageValue(value, { maxDrafts: 10 });
-      const prunedSerialized = JSON.stringify(prunedValue);
-
-      try {
-        storage.setItem(name, prunedSerialized);
-        delete memoryStorage[name];
-        return;
-      } catch (error) {
+      for (const serialized of retryPayloads) {
         try {
-          storage.removeItem(name);
-        } catch {
-          // 忽略清理失败，继续降级到内存存储
-        }
+          storage.setItem(name, serialized);
+          delete memoryStorage[name];
+          return;
+        } catch (error) {
+          if (!isQuotaExceededError(error)) {
+            memoryStorage[name] = serialized;
+            console.warn(
+              '[BifrostChat] Draft persistence failed; using memory storage.',
+              error,
+            );
+            return;
+          }
 
-        memoryStorage[name] = prunedSerialized;
-        console.warn(
-          '[BifrostChat] Draft storage quota exceeded; using memory storage.',
-          error,
-        );
+          lastQuotaError = error;
+        }
       }
+
+      try {
+        storage.removeItem(name);
+      } catch {
+        // 忽略清理失败，继续降级到内存存储
+      }
+
+      memoryStorage[name] = fallbackPayload;
+      console.warn(
+        '[BifrostChat] Draft storage quota exceeded; using memory storage.',
+        lastQuotaError,
+      );
     },
 
     removeItem: (name: string) => {

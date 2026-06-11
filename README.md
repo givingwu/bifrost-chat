@@ -349,6 +349,11 @@ export function MobileApp() {
   `conversationId` 时退化为 `channel` 级缓存
 - 旧的 conversation 级草稿 key 会在首次读取时迁移到新的
   channel 级 key
+- 草稿持久化仅写入恢复输入所需的最小字段：`content`、`messageType`、
+  `templateCode`、安全标量化后的 `templateParams`；`templateMetadata`
+  仅保留在运行时内存中
+- 草稿持久化最多保留最近 50 条，并限制总体积；`localStorage` 超配额时
+  会按 LRU 逐级删除最旧草稿并重试，仍失败则降级到内存存储，避免错误冒泡到宿主页面
 - `clearDraftOnSend` 仅在发送结果为成功终态时清理草稿
 - 网络失败或可重试失败会保留离线队列；业务失败、鉴权失败、校验失败不会被当作离线消息
 - `draft` 与 `offline queue` 职责分离：前者是输入工作态，后者是待重试发送记录

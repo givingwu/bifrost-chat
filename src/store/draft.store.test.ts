@@ -364,6 +364,209 @@ describe('useComposerDraftStore', () => {
       }
     });
 
+    it('localStorage 超配额时应按 LRU 逐级删除最旧草稿并重试写入', () => {
+      const store = useComposerDraftStore.getState();
+
+      for (let index = 0; index < 12; index += 1) {
+        store.setCurrentDraft(`conv-quota-lru-${index}`, ChannelTypeEnum.SMS);
+        store.setValue(`draft ${index}`);
+      }
+
+      const originalSetItem = window.localStorage.setItem;
+      const quotaError = new DOMException(
+        'The quota has been exceeded.',
+        'QuotaExceededError',
+      );
+      const setItemSpy = vi
+        .spyOn(window.localStorage.__proto__, 'setItem')
+        .mockImplementation((...args: unknown[]) => {
+          const [key, value] = args as [string, string];
+
+          if (key === 'bifrost-drafts') {
+            const parsed = JSON.parse(value) as {
+              state: { drafts: Record<string, DraftData> };
+            };
+
+            if (Object.keys(parsed.state.drafts).length > 5) {
+              throw quotaError;
+            }
+          }
+
+          return originalSetItem.call(window.localStorage, key, value);
+        });
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+      try {
+        store.setCurrentDraft('conv-quota-lru-12', ChannelTypeEnum.SMS);
+        store.setValue('draft 12');
+
+        const stored = localStorage.getItem('bifrost-drafts');
+        expect(stored).not.toBeNull();
+
+        const parsed = JSON.parse(stored ?? '{}') as {
+          state: { drafts: Record<string, DraftData> };
+        };
+        const draftKeys = Object.keys(parsed.state.drafts);
+
+        expect(draftKeys).toHaveLength(5);
+        expect(
+          parsed.state.drafts['conv-quota-lru-7-channel-sms'],
+        ).toBeUndefined();
+        expect(
+          parsed.state.drafts['conv-quota-lru-8-channel-sms'].content,
+        ).toBe('draft 8');
+        expect(
+          parsed.state.drafts['conv-quota-lru-12-channel-sms'].content,
+        ).toBe('draft 12');
+        expect(warnSpy).not.toHaveBeenCalled();
+      } finally {
+        setItemSpy.mockRestore();
+        warnSpy.mockRestore();
+      }
+    });
+
+    it('应识别非标准 storage quota 错误并继续 LRU 重试', () => {
+      const store = useComposerDraftStore.getState();
+
+      for (let index = 0; index < 7; index += 1) {
+        store.setCurrentDraft(
+          `conv-quota-custom-${index}`,
+          ChannelTypeEnum.SMS,
+        );
+        store.setValue(`draft ${index}`);
+      }
+
+      const originalSetItem = window.localStorage.setItem;
+      const quotaError = {
+        name: 'StorageError',
+        message: 'Quota limit exceeded while saving local storage.',
+      };
+      const setItemSpy = vi
+        .spyOn(window.localStorage.__proto__, 'setItem')
+        .mockImplementation((...args: unknown[]) => {
+          const [key, value] = args as [string, string];
+
+          if (key === 'bifrost-drafts') {
+            const parsed = JSON.parse(value) as {
+              state: { drafts: Record<string, DraftData> };
+            };
+
+            if (Object.keys(parsed.state.drafts).length > 1) {
+              throw quotaError;
+            }
+          }
+
+          return originalSetItem.call(window.localStorage, key, value);
+        });
+
+      try {
+        store.setCurrentDraft('conv-quota-custom-7', ChannelTypeEnum.SMS);
+        store.setValue('draft 7');
+
+        const stored = localStorage.getItem('bifrost-drafts');
+        expect(stored).not.toBeNull();
+
+        const parsed = JSON.parse(stored ?? '{}') as {
+          state: { drafts: Record<string, DraftData> };
+        };
+        const draftKeys = Object.keys(parsed.state.drafts);
+
+        expect(draftKeys).toEqual(['conv-quota-custom-7-channel-sms']);
+        expect(
+          parsed.state.drafts['conv-quota-custom-7-channel-sms'].content,
+        ).toBe('draft 7');
+      } finally {
+        setItemSpy.mockRestore();
+      }
+    });
+
+    it('应识别仅通过 DOMException code 暴露的 quota 错误', () => {
+      const store = useComposerDraftStore.getState();
+
+      for (let index = 0; index < 3; index += 1) {
+        store.setCurrentDraft(`conv-quota-code-${index}`, ChannelTypeEnum.SMS);
+        store.setValue(`draft ${index}`);
+      }
+
+      const originalSetItem = window.localStorage.setItem;
+      const quotaError = new DOMException(
+        'Persistent storage is full.',
+        'UnknownError',
+      );
+      Object.defineProperty(quotaError, 'code', { value: 22 });
+
+      const setItemSpy = vi
+        .spyOn(window.localStorage.__proto__, 'setItem')
+        .mockImplementation((...args: unknown[]) => {
+          const [key, value] = args as [string, string];
+
+          if (key === 'bifrost-drafts') {
+            const parsed = JSON.parse(value) as {
+              state: { drafts: Record<string, DraftData> };
+            };
+
+            if (Object.keys(parsed.state.drafts).length > 1) {
+              throw quotaError;
+            }
+          }
+
+          return originalSetItem.call(window.localStorage, key, value);
+        });
+
+      try {
+        store.setCurrentDraft('conv-quota-code-3', ChannelTypeEnum.SMS);
+        store.setValue('draft 3');
+
+        const stored = localStorage.getItem('bifrost-drafts');
+        expect(stored).not.toBeNull();
+
+        const parsed = JSON.parse(stored ?? '{}') as {
+          state: { drafts: Record<string, DraftData> };
+        };
+
+        expect(Object.keys(parsed.state.drafts)).toEqual([
+          'conv-quota-code-3-channel-sms',
+        ]);
+        expect(
+          parsed.state.drafts['conv-quota-code-3-channel-sms'].content,
+        ).toBe('draft 3');
+      } finally {
+        setItemSpy.mockRestore();
+      }
+    });
+
+    it('持久化模板参数应保留安全标量并过滤非标量', () => {
+      const store = useComposerDraftStore.getState();
+
+      store.setCurrentDraft('conv-template-params', ChannelTypeEnum.Email);
+      store.setDraftData({
+        content: 'template params',
+        messageType: MessageTypeEnum.Template,
+        templateCode: 'TPL-PARAMS',
+        templateParams: {
+          name: 'Ada',
+          count: 3,
+          enabled: true,
+          invalidObject: { nested: true },
+          invalidArray: ['x'],
+          invalidNull: null,
+        } as unknown as Record<string, string>,
+      });
+
+      const stored = localStorage.getItem('bifrost-drafts');
+      const parsed = JSON.parse(stored ?? '{}') as {
+        state: { drafts: Record<string, DraftData> };
+      };
+      const storedDraft =
+        parsed.state.drafts['conv-template-params-channel-email'];
+
+      expect(storedDraft.templateParams).toEqual({
+        name: 'Ada',
+        count: '3',
+        enabled: 'true',
+      });
+    });
+
     it('连续切换空会话不应让 bifrost-drafts 增长空对象', () => {
       const store = useComposerDraftStore.getState();
 
