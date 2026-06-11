@@ -428,15 +428,13 @@ function createDraftStorageRetryPayloads(
 }
 
 /**
- * 解析已持久化数据，并兼容旧版本中写入的超大字段。
+ * 解析已持久化数据。读取阶段不压缩，避免正常恢复路径改变既有草稿形态。
  */
 function parsePersistedStorageValue(
   raw: string,
 ): StorageValue<PersistedComposerDraftState> | null {
   try {
-    return compactStorageValue(
-      JSON.parse(raw) as StorageValue<PersistedComposerDraftState>,
-    );
+    return JSON.parse(raw) as StorageValue<PersistedComposerDraftState>;
   } catch {
     return null;
   }
@@ -524,8 +522,8 @@ function createSafeDraftStorage(): PersistStorage<PersistedComposerDraftState> {
       value: StorageValue<PersistedComposerDraftState>,
     ) => {
       const storage = getBrowserLocalStorage();
+      const defaultPayload = safeStringify(value);
       const retryPayloads = createDraftStorageRetryPayloads(value);
-      const defaultPayload = retryPayloads[0];
       const fallbackPayload = retryPayloads[retryPayloads.length - 1];
 
       if (!defaultPayload || !fallbackPayload) {
@@ -538,6 +536,23 @@ function createSafeDraftStorage(): PersistStorage<PersistedComposerDraftState> {
       }
 
       let lastQuotaError: unknown;
+
+      try {
+        storage.setItem(name, defaultPayload);
+        delete memoryStorage[name];
+        return;
+      } catch (error) {
+        if (!isQuotaExceededError(error)) {
+          memoryStorage[name] = defaultPayload;
+          console.warn(
+            '[BifrostChat] Draft persistence failed; using memory storage.',
+            error,
+          );
+          return;
+        }
+
+        lastQuotaError = error;
+      }
 
       for (const serialized of retryPayloads) {
         try {
@@ -722,7 +737,7 @@ export const useComposerDraftStore = create<ComposerDraftStore>()(
       name: PERSIST_STORAGE_KEY,
       storage: createSafeDraftStorage(),
       // 只持久化 drafts，currentDraftKey 在运行时计算
-      partialize: (state) => createPersistedDraftState(state.drafts),
+      partialize: (state) => ({ drafts: state.drafts }),
     },
   ),
 );

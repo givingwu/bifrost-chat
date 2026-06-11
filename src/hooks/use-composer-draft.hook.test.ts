@@ -5,16 +5,19 @@ import {
   MessageStatusEnum,
   MessageTypeEnum,
 } from '@/interfaces/message.interface';
+import { resetComposerDraftStore } from '@/store/draft.store';
 import type { DraftData } from './use-composer-draft.hook';
 import { useComposerDraft } from './use-composer-draft.hook';
 
 describe('useComposerDraft', () => {
   beforeEach(() => {
     localStorage.clear();
+    resetComposerDraftStore();
     vi.clearAllMocks();
   });
 
   afterEach(() => {
+    resetComposerDraftStore();
     vi.useRealTimers();
   });
 
@@ -229,7 +232,10 @@ describe('useComposerDraft', () => {
       expect(draftData.messageType).toBe(MessageTypeEnum.Template);
       expect(draftData.templateCode).toBe('template-123');
       expect(draftData.templateParams).toEqual({ name: 'John' });
-      expect(draftData.templateMetadata).toBeUndefined();
+      expect(draftData.templateMetadata).toEqual({
+        templateId: 'template-123',
+        previewContent: 'template content',
+      });
     });
 
     it('应支持 setDraftData 批量设置', async () => {

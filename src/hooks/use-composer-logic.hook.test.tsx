@@ -17,6 +17,7 @@ import type { IConversationService } from '@/services/core/conversation.service'
 import type { IMessageService } from '@/services/core/message.service';
 import type { ITemplateService } from '@/services/core/template.service';
 import { useChatStore } from '@/store';
+import { resetComposerDraftStore } from '@/store/draft.store';
 import { useComposerLogic } from './use-composer-logic.hook';
 
 // Mock 模板预览 hook
@@ -105,6 +106,7 @@ function createWrapper() {
 describe('useComposerLogic', () => {
   beforeEach(() => {
     localStorage.clear();
+    resetComposerDraftStore();
     vi.clearAllMocks();
     // 重置 store 配置为默认状态
     useChatStore.setState({
@@ -134,6 +136,7 @@ describe('useComposerLogic', () => {
   });
 
   afterEach(() => {
+    resetComposerDraftStore();
     vi.useRealTimers();
   });
 

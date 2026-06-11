@@ -282,7 +282,7 @@ describe('useComposerDraftStore', () => {
       expect(parsed.state.drafts[key].content).toBe('persist me');
     });
 
-    it('持久化应排除 templateMetadata，避免写入超大模板对象', () => {
+    it('正常未超配额时应保留完整模板草稿，避免影响既有恢复能力', () => {
       const store = useComposerDraftStore.getState();
 
       store.setCurrentDraft('conv-full', ChannelTypeEnum.Email);
@@ -303,7 +303,7 @@ describe('useComposerDraftStore', () => {
       expect(storedDraft.messageType).toBe(MessageTypeEnum.Template);
       expect(storedDraft.templateCode).toBe('TPL-FULL');
       expect(storedDraft.templateParams).toEqual({ key: 'value' });
-      expect(storedDraft.templateMetadata).toBeUndefined();
+      expect(storedDraft.templateMetadata).toEqual({ meta: 'data' });
       expect(store.getCurrentDraft().templateMetadata).toEqual({
         meta: 'data',
       });
@@ -535,36 +535,66 @@ describe('useComposerDraftStore', () => {
       }
     });
 
-    it('持久化模板参数应保留安全标量并过滤非标量', () => {
+    it('超配额裁剪时模板参数应保留安全标量并过滤非标量', () => {
       const store = useComposerDraftStore.getState();
+      const originalSetItem = window.localStorage.setItem;
+      const quotaError = new DOMException(
+        'The quota has been exceeded.',
+        'QuotaExceededError',
+      );
+      const setItemSpy = vi
+        .spyOn(window.localStorage.__proto__, 'setItem')
+        .mockImplementation((...args: unknown[]) => {
+          const [key, value] = args as [string, string];
 
-      store.setCurrentDraft('conv-template-params', ChannelTypeEnum.Email);
-      store.setDraftData({
-        content: 'template params',
-        messageType: MessageTypeEnum.Template,
-        templateCode: 'TPL-PARAMS',
-        templateParams: {
+          if (key === 'bifrost-drafts') {
+            const parsed = JSON.parse(value) as {
+              state: { drafts: Record<string, DraftData> };
+            };
+            const storedDraft =
+              parsed.state.drafts['conv-template-params-channel-email'];
+
+            if (storedDraft?.templateMetadata !== undefined) {
+              throw quotaError;
+            }
+          }
+
+          return originalSetItem.call(window.localStorage, key, value);
+        });
+
+      try {
+        store.setCurrentDraft('conv-template-params', ChannelTypeEnum.Email);
+        store.setDraftData({
+          content: 'template params',
+          messageType: MessageTypeEnum.Template,
+          templateCode: 'TPL-PARAMS',
+          templateParams: {
+            name: 'Ada',
+            count: 3,
+            enabled: true,
+            invalidObject: { nested: true },
+            invalidArray: ['x'],
+            invalidNull: null,
+          } as unknown as Record<string, string>,
+          templateMetadata: { heavy: true },
+        });
+
+        const stored = localStorage.getItem('bifrost-drafts');
+        const parsed = JSON.parse(stored ?? '{}') as {
+          state: { drafts: Record<string, DraftData> };
+        };
+        const storedDraft =
+          parsed.state.drafts['conv-template-params-channel-email'];
+
+        expect(storedDraft.templateParams).toEqual({
           name: 'Ada',
-          count: 3,
-          enabled: true,
-          invalidObject: { nested: true },
-          invalidArray: ['x'],
-          invalidNull: null,
-        } as unknown as Record<string, string>,
-      });
-
-      const stored = localStorage.getItem('bifrost-drafts');
-      const parsed = JSON.parse(stored ?? '{}') as {
-        state: { drafts: Record<string, DraftData> };
-      };
-      const storedDraft =
-        parsed.state.drafts['conv-template-params-channel-email'];
-
-      expect(storedDraft.templateParams).toEqual({
-        name: 'Ada',
-        count: '3',
-        enabled: 'true',
-      });
+          count: '3',
+          enabled: 'true',
+        });
+        expect(storedDraft.templateMetadata).toBeUndefined();
+      } finally {
+        setItemSpy.mockRestore();
+      }
     });
 
     it('连续切换空会话不应让 bifrost-drafts 增长空对象', () => {
@@ -584,7 +614,7 @@ describe('useComposerDraftStore', () => {
       expect(parsed.state.drafts).toEqual({});
     });
 
-    it('持久化草稿数量应限制为最近 50 条', () => {
+    it('正常未超配额时不应主动裁剪草稿数量', () => {
       const store = useComposerDraftStore.getState();
 
       for (let index = 0; index < 60; index += 1) {
@@ -596,14 +626,16 @@ describe('useComposerDraftStore', () => {
       const parsed = JSON.parse(stored ?? '{}');
       const draftKeys = Object.keys(parsed.state.drafts);
 
-      expect(draftKeys).toHaveLength(50);
-      expect(parsed.state.drafts['conv-limit-0-channel-sms']).toBeUndefined();
+      expect(draftKeys).toHaveLength(60);
+      expect(parsed.state.drafts['conv-limit-0-channel-sms'].content).toBe(
+        'draft 0',
+      );
       expect(parsed.state.drafts['conv-limit-59-channel-sms'].content).toBe(
         'draft 59',
       );
     });
 
-    it('裁剪时应按最近使用顺序保留已重新访问的草稿', () => {
+    it('超配额裁剪时应按最近使用顺序保留已重新访问的草稿', () => {
       const store = useComposerDraftStore.getState();
 
       for (let index = 0; index < 50; index += 1) {
@@ -612,19 +644,46 @@ describe('useComposerDraftStore', () => {
       }
 
       store.setCurrentDraft('conv-lru-0', ChannelTypeEnum.SMS);
-      store.setCurrentDraft('conv-lru-50', ChannelTypeEnum.SMS);
-      store.setValue('draft 50');
-
-      const stored = localStorage.getItem('bifrost-drafts');
-      const parsed = JSON.parse(stored ?? '{}');
-
-      expect(parsed.state.drafts['conv-lru-0-channel-sms'].content).toBe(
-        'draft 0',
+      const originalSetItem = window.localStorage.setItem;
+      const quotaError = new DOMException(
+        'The quota has been exceeded.',
+        'QuotaExceededError',
       );
-      expect(parsed.state.drafts['conv-lru-1-channel-sms']).toBeUndefined();
-      expect(parsed.state.drafts['conv-lru-50-channel-sms'].content).toBe(
-        'draft 50',
-      );
+      const setItemSpy = vi
+        .spyOn(window.localStorage.__proto__, 'setItem')
+        .mockImplementation((...args: unknown[]) => {
+          const [key, value] = args as [string, string];
+
+          if (key === 'bifrost-drafts') {
+            const parsed = JSON.parse(value) as {
+              state: { drafts: Record<string, DraftData> };
+            };
+
+            if (Object.keys(parsed.state.drafts).length > 50) {
+              throw quotaError;
+            }
+          }
+
+          return originalSetItem.call(window.localStorage, key, value);
+        });
+
+      try {
+        store.setCurrentDraft('conv-lru-50', ChannelTypeEnum.SMS);
+        store.setValue('draft 50');
+
+        const stored = localStorage.getItem('bifrost-drafts');
+        const parsed = JSON.parse(stored ?? '{}');
+
+        expect(parsed.state.drafts['conv-lru-0-channel-sms'].content).toBe(
+          'draft 0',
+        );
+        expect(parsed.state.drafts['conv-lru-1-channel-sms']).toBeUndefined();
+        expect(parsed.state.drafts['conv-lru-50-channel-sms'].content).toBe(
+          'draft 50',
+        );
+      } finally {
+        setItemSpy.mockRestore();
+      }
     });
   });
 
