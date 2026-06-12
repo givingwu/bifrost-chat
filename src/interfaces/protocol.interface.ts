@@ -97,15 +97,6 @@ export enum PacketSenderTypeEnum {
 }
 
 /**
- * Packet `senderType` 入站兼容值。
- *
- * @description
- * 新代码应优先使用 `PacketSenderTypeEnum`；字符串值仅用于兼容历史或
- * 网络层原始 Packet。
- */
-export type PacketSenderType = PacketSenderTypeEnum | '0' | '1';
-
-/**
  * Packet 协议消息体（body）结构，用于类型安全的 Packet body 转换
  *
  * @description
@@ -265,7 +256,7 @@ export interface BaseRawPacket {
    * 发送者类型。
    * 协议约定 `PacketSenderTypeEnum.Chatbot` 表示机器人消息。
    */
-  senderType?: PacketSenderType | null;
+  senderType?: PacketSenderTypeEnum | null;
   /** 消息状态（见 MessageStatus） */
   status?: ServerMessageStatus;
 }
