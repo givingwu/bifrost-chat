@@ -16,6 +16,20 @@ import {
 } from '@/utils/message-height.util';
 import { MessageRendererFactory } from './MessageRendererFactory';
 
+const DATE_SEPARATOR_ESTIMATED_HEIGHT = 36;
+
+type MessageRenderItem =
+  | {
+      type: 'date-separator';
+      key: string;
+      label: string;
+    }
+  | {
+      type: 'message';
+      key: string;
+      message: StandardMessage;
+    };
+
 export interface MessageListProps {
   /** 消息流 */
   messages: StandardMessage[];
@@ -31,6 +45,124 @@ export interface MessageListProps {
   conversationId?: string;
   /** 是否启用反向渲染（column-reverse） */
   reverse?: boolean;
+}
+
+/**
+ * 将日期和时间数字补齐为两位字符串。
+ *
+ * @param value 日期或时间数值
+ * @returns 两位字符串
+ */
+function padDatePart(value: number): string {
+  return String(value).padStart(2, '0');
+}
+
+/**
+ * 获取消息时间戳对应的本地自然日 key。
+ *
+ * @param timestamp 消息时间戳
+ * @returns `YYYY-MM-DD` 日期 key；无效时间返回 undefined
+ */
+function getLocalDateKey(timestamp: number): string | undefined {
+  const date = new Date(timestamp);
+  if (Number.isNaN(date.getTime())) {
+    return undefined;
+  }
+
+  return [
+    date.getFullYear(),
+    padDatePart(date.getMonth() + 1),
+    padDatePart(date.getDate()),
+  ].join('-');
+}
+
+/**
+ * 格式化消息日期分隔符文本。
+ *
+ * @param timestamp 每天第一条消息的时间戳
+ * @returns `YYYY-MM-DD HH:mm:ss` 格式文本
+ */
+function formatMessageDateSeparator(timestamp: number): string | undefined {
+  const dateKey = getLocalDateKey(timestamp);
+  if (!dateKey) {
+    return undefined;
+  }
+
+  const date = new Date(timestamp);
+
+  return `${dateKey} ${[
+    padDatePart(date.getHours()),
+    padDatePart(date.getMinutes()),
+    padDatePart(date.getSeconds()),
+  ].join(':')}`;
+}
+
+/**
+ * 构建带日期分隔符的消息渲染项。
+ *
+ * @description
+ * 输入消息按当前展示顺序处理；当自然日变化时，在该天第一条消息前插入
+ * 一个日期分隔符。无效时间戳不生成分隔符，但仍渲染消息本身。
+ *
+ * @param messages 标准消息列表
+ * @returns 消息与日期分隔符混合的渲染项
+ */
+function buildMessageRenderItems(
+  messages: StandardMessage[],
+): MessageRenderItem[] {
+  const items: MessageRenderItem[] = [];
+  let previousDateKey: string | undefined;
+
+  messages.forEach((message, index) => {
+    const dateKey = getLocalDateKey(message.timestamp);
+    const label = formatMessageDateSeparator(message.timestamp);
+    const messageKey = message.id || message.tempId || `index-${index}`;
+
+    if (dateKey && dateKey !== previousDateKey && label) {
+      items.push({
+        type: 'date-separator',
+        key: `date-${dateKey}-${messageKey}`,
+        label,
+      });
+    }
+
+    items.push({
+      type: 'message',
+      key: `message-${messageKey}`,
+      message,
+    });
+
+    previousDateKey = dateKey ?? previousDateKey;
+  });
+
+  return items;
+}
+
+export interface MessageDateSeparatorProps {
+  /** 日期分隔符展示文案 */
+  label: string;
+}
+
+/**
+ * MessageDateSeparator：消息流中的自然日分隔符。
+ *
+ * @param props 日期分隔符属性
+ * @returns 居中显示的日期分隔符
+ */
+function MessageDateSeparator({ label }: MessageDateSeparatorProps) {
+  return (
+    <div
+      data-component="message-date-separator"
+      className="flex w-full justify-center py-2"
+    >
+      <time
+        dateTime={label.replace(' ', 'T')}
+        className="inline-flex whitespace-nowrap rounded-full bg-muted px-3 py-1 text-[11px] leading-none text-text-muted shadow-sm"
+      >
+        {label}
+      </time>
+    </div>
+  );
 }
 
 /**
@@ -130,21 +262,66 @@ export const MessageList = ({
   // 当禁用虚拟滚动时，count 设置为 0
   const shouldUseVirtualization =
     enableVirtualization && !reverse && messages.length >= 20;
-  const displayMessages = useMemo(
-    () => (reverse ? [...messages].reverse() : messages),
-    [messages, reverse],
+  const chronologicalRenderItems = useMemo(
+    () => buildMessageRenderItems(messages),
+    [messages],
+  );
+  const displayItems = useMemo(
+    () =>
+      reverse
+        ? [...chronologicalRenderItems].reverse()
+        : chronologicalRenderItems,
+    [chronologicalRenderItems, reverse],
+  );
+
+  const renderMessageItem = useCallback(
+    (message: StandardMessage, itemKey: string) => {
+      const messageId = message.id || message.tempId;
+
+      return (
+        <div key={itemKey} data-message-id={messageId}>
+          <MessageRendererFactory
+            message={message}
+            conversationId={conversationId}
+            onInViewport={handleMessageInViewport}
+          />
+        </div>
+      );
+    },
+    [conversationId, handleMessageInViewport],
+  );
+
+  const renderItem = useCallback(
+    (item: MessageRenderItem) => {
+      if (item.type === 'date-separator') {
+        return <MessageDateSeparator key={item.key} label={item.label} />;
+      }
+
+      return renderMessageItem(item.message, item.key);
+    },
+    [renderMessageItem],
   );
 
   const virtualizer = useVirtualizer({
-    count: shouldUseVirtualization ? messages.length : 0,
+    count: shouldUseVirtualization ? displayItems.length : 0,
     getScrollElement: () => scrollRef.current,
     getItemKey: (index) => {
-      const message = messages[index];
-      return getMessageHeightCacheKey(message) ?? index;
+      const item = displayItems[index];
+      if (!item) return index;
+      if (item.type === 'date-separator') return item.key;
+
+      return getMessageHeightCacheKey(item.message) ?? item.key;
     },
     estimateSize: (index) => {
-      const message = messages[index];
-      return getCachedMessageHeight(message) ?? estimateMessageHeight(message);
+      const item = displayItems[index];
+      if (!item || item.type === 'date-separator') {
+        return DATE_SEPARATOR_ESTIMATED_HEIGHT;
+      }
+
+      return (
+        getCachedMessageHeight(item.message) ??
+        estimateMessageHeight(item.message)
+      );
     },
     measureElement: (element) => {
       if (!element) return 0;
@@ -154,8 +331,9 @@ export const MessageList = ({
 
       // 缓存已测量的高度
       const dataIndex = Number(element.getAttribute('data-index'));
-      if (dataIndex >= 0 && dataIndex < messages.length) {
-        setCachedMessageHeight(messages[dataIndex], height);
+      const item = displayItems[dataIndex];
+      if (item?.type === 'message') {
+        setCachedMessageHeight(item.message, height);
       }
 
       return height;
@@ -194,19 +372,8 @@ export const MessageList = ({
           reverse ? 'flex-col-reverse' : 'flex-col'
         } gap-2 overflow-y-auto bg-card/60 p-4 shadow-soft`}
       >
-        {displayMessages.length ? (
-          displayMessages.map((message) => {
-            const messageId = message.id || message.tempId;
-            return (
-              <div key={messageId} data-message-id={messageId}>
-                <MessageRendererFactory
-                  message={message}
-                  conversationId={conversationId}
-                  onInViewport={handleMessageInViewport}
-                />
-              </div>
-            );
-          })
+        {displayItems.length ? (
+          displayItems.map((item) => renderItem(item))
         ) : (
           <div className="flex h-full flex-1 items-center justify-center">
             <span className="text-sm text-gray-400 dark:text-gray-500">
@@ -240,8 +407,11 @@ export const MessageList = ({
           }}
         >
           {virtualItems.map((virtualItem) => {
-            const message = messages[virtualItem.index];
-            const messageId = message?.id || message?.tempId;
+            const item = displayItems[virtualItem.index];
+            const messageId =
+              item?.type === 'message'
+                ? item.message.id || item.message.tempId
+                : undefined;
 
             return (
               <div
@@ -257,11 +427,7 @@ export const MessageList = ({
                   transform: `translateY(${virtualItem.start}px)`,
                 }}
               >
-                <MessageRendererFactory
-                  message={message}
-                  conversationId={conversationId}
-                  onInViewport={handleMessageInViewport}
-                />
+                {item ? renderItem(item) : null}
               </div>
             );
           })}

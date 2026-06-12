@@ -196,6 +196,48 @@ export const ConversationFlow = () => {
 };
 
 /**
+ * 按天分段 - 展示聊天记录日期分隔符
+ */
+export const GroupedByDay = () => {
+  const messages: StandardMessage[] = [
+    createMessage(
+      MessageDirectionEnum.Incoming,
+      MessageTypeEnum.Text,
+      MessageStatusEnum.Sent,
+      { text: '昨天上午的第一条咨询消息。' },
+      new Date(2026, 5, 10, 9, 15, 30).getTime(),
+    ),
+    createMessage(
+      MessageDirectionEnum.Outgoing,
+      MessageTypeEnum.Text,
+      MessageStatusEnum.Read,
+      { text: '收到，我帮你查一下订单状态。' },
+      new Date(2026, 5, 10, 9, 18, 5).getTime(),
+    ),
+    createMessage(
+      MessageDirectionEnum.Incoming,
+      MessageTypeEnum.Text,
+      MessageStatusEnum.Sent,
+      { text: '今天又有一个新的问题需要确认。' },
+      new Date(2026, 5, 11, 14, 2, 16).getTime(),
+    ),
+    createMessage(
+      MessageDirectionEnum.Outgoing,
+      MessageTypeEnum.Text,
+      MessageStatusEnum.Delivered,
+      { text: '可以，下面这段会话会归到今天的日期下。' },
+      new Date(2026, 5, 11, 14, 5, 42).getTime(),
+    ),
+  ];
+
+  return (
+    <div className="w-96 h-96 overflow-y-auto">
+      <MessageList messages={messages} enableVirtualization={false} />
+    </div>
+  );
+};
+
+/**
  * 不同状态 - 展示各种消息状态
  */
 export const DifferentStatuses = () => {
