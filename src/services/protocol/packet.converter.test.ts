@@ -365,7 +365,7 @@ describe('PacketConverter', () => {
       const rawPacket: RawPacket = {
         id: 'packet-string-sender-type',
         chatId: 'chat-789',
-        senderType: '1',
+        senderType: 1,
         from: {
           app: 'fox_collect.waiter',
           pin: 'agent-123',
