@@ -7,6 +7,7 @@ import {
   MessageTypeEnum,
   type StandardMessage,
 } from '@/interfaces/message.interface';
+import { PacketSenderTypeEnum } from '@/interfaces/protocol.interface';
 import { MessageBubble } from './MessageBubble';
 
 vi.mock('@/hooks/use-in-viewport.hook', () => ({
@@ -97,13 +98,13 @@ describe('MessageBubble', () => {
     expect(screen.queryByText(/^发送号码/)).toBeNull();
   });
 
-  it('senderType 为 1 的外发消息应展示 Chatbot 标识', () => {
+  it('senderType 为 Chatbot 枚举的外发消息应展示 Chatbot 标识', () => {
     render(
       <MessageBubble
         message={createMessage({
           direction: MessageDirectionEnum.Outgoing,
           metadata: {
-            senderType: 1,
+            senderType: PacketSenderTypeEnum.Chatbot,
           },
         })}
       />,
@@ -112,13 +113,13 @@ describe('MessageBubble', () => {
     expect(screen.getByText('Chatbot')).toBeInTheDocument();
   });
 
-  it('senderType 为 1 的客户消息不应展示 Chatbot 标识', () => {
+  it('senderType 为 Chatbot 枚举的客户消息不应展示 Chatbot 标识', () => {
     render(
       <MessageBubble
         message={createMessage({
           direction: MessageDirectionEnum.Incoming,
           metadata: {
-            senderType: 1,
+            senderType: PacketSenderTypeEnum.Chatbot,
           },
         })}
       />,

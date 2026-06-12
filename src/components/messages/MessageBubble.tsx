@@ -7,6 +7,7 @@ import {
   MessageTypeEnum,
   type StandardMessage,
 } from '@/interfaces/message.interface';
+import { PacketSenderTypeEnum } from '@/interfaces/protocol.interface';
 import { useTranslation } from '@/providers/I18n.provider';
 import { cn } from '@/utils/class.util';
 import { MessageActions } from './MessageActions';
@@ -44,10 +45,10 @@ function getChannelAccountTail(value: unknown): string | undefined {
  * 判断消息是否为 Chatbot 外发消息。
  *
  * @description
- * Packet 协议约定 senderType=1 表示机器人消息。UI 仅在外发消息上展示
- * Chatbot 标识，避免客户侧消息误标。
+ * Packet 协议转换层会将 senderType 归一化为 PacketSenderTypeEnum。
+ * UI 仅在外发消息上展示 Chatbot 标识，避免客户侧消息误标。
  *
- * @param senderType Packet metadata.senderType 原始值
+ * @param senderType Packet metadata.senderType 规范枚举值
  * @param isOutgoing 当前消息是否为外发消息
  * @returns 是否展示 Chatbot 标识
  */
@@ -59,7 +60,7 @@ function isChatbotOutgoingMessage(
     return false;
   }
 
-  return senderType === 1 || senderType === '1' || senderType === true;
+  return senderType === PacketSenderTypeEnum.Chatbot;
 }
 
 /**

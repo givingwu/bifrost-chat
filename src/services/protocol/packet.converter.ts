@@ -8,9 +8,40 @@ import {
 } from '@/interfaces/message.interface';
 import {
   isPacketBodyRecord,
+  PacketSenderTypeEnum,
   type RawPacket,
 } from '@/interfaces/protocol.interface';
 import { MessageBuilder } from '@/services/messaging/message-builder.service';
+
+/**
+ * 将 Packet senderType 原始值归一化为枚举。
+ *
+ * @description
+ * Packet 历史数据可能以数字或字符串表示 senderType。转换边界统一归一
+ * 为 `PacketSenderTypeEnum`，后续 UI 和业务判断只比较枚举值。
+ *
+ * @param senderType Packet 或 metadata 中的 senderType 原始值
+ * @returns 规范 senderType 枚举；无法识别时返回 undefined
+ */
+function normalizePacketSenderType(
+  senderType: unknown,
+): PacketSenderTypeEnum | undefined {
+  if (
+    senderType === PacketSenderTypeEnum.Chatbot ||
+    senderType === String(PacketSenderTypeEnum.Chatbot)
+  ) {
+    return PacketSenderTypeEnum.Chatbot;
+  }
+
+  if (
+    senderType === PacketSenderTypeEnum.Manual ||
+    senderType === String(PacketSenderTypeEnum.Manual)
+  ) {
+    return PacketSenderTypeEnum.Manual;
+  }
+
+  return undefined;
+}
 
 /**
  * 构建 Packet 顶层业务字段 metadata。
@@ -34,8 +65,9 @@ function buildPacketBusinessMetadata(
     metadata.channelAccount = packet.channelAccount;
   }
 
-  if (packet.senderType !== undefined && packet.senderType !== null) {
-    metadata.senderType = packet.senderType;
+  const senderType = normalizePacketSenderType(packet.senderType);
+  if (senderType !== undefined) {
+    metadata.senderType = senderType;
   }
 
   if (packet.entry) {
@@ -60,12 +92,9 @@ function buildRawPacketBusinessFields(
     fields.channelAccount = metadata.channelAccount;
   }
 
-  if (
-    typeof metadata?.senderType === 'string' ||
-    typeof metadata?.senderType === 'number' ||
-    metadata?.senderType === null
-  ) {
-    fields.senderType = metadata.senderType;
+  const senderType = normalizePacketSenderType(metadata?.senderType);
+  if (senderType !== undefined || metadata?.senderType === null) {
+    fields.senderType = senderType ?? null;
   }
 
   if (typeof metadata?.entry === 'string') {

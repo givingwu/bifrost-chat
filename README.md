@@ -30,7 +30,7 @@
 - TypeScript 类型完整，支持泛型服务参数
 - 内置国际化与主题能力
 - 支持模板预览、模板回填/直发、消息类型按渠道配置
-- 支持 Packet `channelAccount` / `senderType` 透传展示发送号码尾号与 Chatbot 标识
+- 支持 Packet `channelAccount` / `senderType`（`PacketSenderTypeEnum`）展示发送号码尾号与 Chatbot 标识
 - 支持 RCS 等渠道点击回调状态展示（`clicked`）
 - 支持 Host 网络状态注入、离线失败消息注入与重试 hooks
 

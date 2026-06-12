@@ -7,6 +7,7 @@ import {
 } from '@/interfaces/message.interface';
 import {
   PacketMessageTypeEnum,
+  PacketSenderTypeEnum,
   type RawPacket,
 } from '@/interfaces/protocol.interface';
 import { PacketConverter } from '@/services/protocol/packet.converter';
@@ -110,7 +111,7 @@ describe('PacketConverter', () => {
         },
         metadata: {
           channelAccount: '628123456789',
-          senderType: 1,
+          senderType: PacketSenderTypeEnum.Chatbot,
           entry: 'fox.collect.detail',
         },
       };
@@ -122,7 +123,7 @@ describe('PacketConverter', () => {
       );
 
       expect(rawPacket.channelAccount).toBe('628123456789');
-      expect(rawPacket.senderType).toBe(1);
+      expect(rawPacket.senderType).toBe(PacketSenderTypeEnum.Chatbot);
       expect(rawPacket.entry).toBe('fox.collect.detail');
     });
   });
@@ -327,7 +328,7 @@ describe('PacketConverter', () => {
         id: 'packet-business-fields',
         chatId: 'chat-789',
         channelAccount: '628123456789',
-        senderType: 1,
+        senderType: PacketSenderTypeEnum.Chatbot,
         entry: 'fox.collect.detail',
         from: {
           app: 'fox_collect.waiter',
@@ -353,11 +354,40 @@ describe('PacketConverter', () => {
       expect(message.metadata).toEqual(
         expect.objectContaining({
           channelAccount: '628123456789',
-          senderType: 1,
+          senderType: PacketSenderTypeEnum.Chatbot,
           entry: 'fox.collect.detail',
           chatId: 'chat-789',
         }),
       );
+    });
+
+    it('应该将字符串 senderType 归一化为 PacketSenderTypeEnum', () => {
+      const rawPacket: RawPacket = {
+        id: 'packet-string-sender-type',
+        chatId: 'chat-789',
+        senderType: '1',
+        from: {
+          app: 'fox_collect.waiter',
+          pin: 'agent-123',
+          channelType: ChannelTypeEnum.WhatsApp,
+        },
+        to: {
+          app: 'fox_collect.customer',
+          pin: 'customer-456',
+          channelType: ChannelTypeEnum.WhatsApp,
+        },
+        ptype: PacketMessageTypeEnum.ChatMessage,
+        body: {
+          type: MessageTypeEnum.Text,
+          content: { text: 'Hello from chatbot' },
+        },
+        ver: '1.0',
+        timestamp: 1234567890,
+      };
+
+      const message = PacketConverter.toStandardMessage(rawPacket);
+
+      expect(message.metadata?.senderType).toBe(PacketSenderTypeEnum.Chatbot);
     });
   });
 

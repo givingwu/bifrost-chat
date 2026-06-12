@@ -7,6 +7,7 @@ import {
   MessageTypeEnum,
   type StandardMessage,
 } from '@/interfaces/message.interface';
+import { PacketSenderTypeEnum } from '@/interfaces/protocol.interface';
 
 /**
  * MessageBubble 组件 Story 文档
@@ -374,7 +375,7 @@ export const WithChannelAccountAndChatbot: Story = {
       receiver: { app: 'fox_collect.customer', pin: 'customer-1' },
       metadata: {
         channelAccount: '628123456789',
-        senderType: 1,
+        senderType: PacketSenderTypeEnum.Chatbot,
       },
     },
     conversationId: 'conv-123',

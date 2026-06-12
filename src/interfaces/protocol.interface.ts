@@ -82,6 +82,30 @@ export enum PacketMessageTypeEnum {
 }
 
 /**
+ * Packet 发送者类型枚举。
+ *
+ * @description
+ * 协议层 `senderType` 字段的规范枚举值。服务端历史包可能下发字符串
+ * `'0'` / `'1'`，协议转换层会在进入 StandardMessage.metadata 前归一化
+ * 为该枚举，组件与业务判断应只比较枚举值。
+ */
+export enum PacketSenderTypeEnum {
+  /** 人工或普通发送者 */
+  Manual = 0,
+  /** Chatbot / AI 发送者 */
+  Chatbot = 1,
+}
+
+/**
+ * Packet `senderType` 入站兼容值。
+ *
+ * @description
+ * 新代码应优先使用 `PacketSenderTypeEnum`；字符串值仅用于兼容历史或
+ * 网络层原始 Packet。
+ */
+export type PacketSenderType = PacketSenderTypeEnum | '0' | '1';
+
+/**
  * Packet 协议消息体（body）结构，用于类型安全的 Packet body 转换
  *
  * @description
@@ -239,9 +263,9 @@ export interface BaseRawPacket {
   channelAccount?: string;
   /**
    * 发送者类型。
-   * 协议约定 `1` 表示机器人消息，`0` / null / undefined 表示普通消息。
+   * 协议约定 `PacketSenderTypeEnum.Chatbot` 表示机器人消息。
    */
-  senderType?: string | number | null;
+  senderType?: PacketSenderType | null;
   /** 消息状态（见 MessageStatus） */
   status?: ServerMessageStatus;
 }
