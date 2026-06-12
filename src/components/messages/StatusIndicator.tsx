@@ -5,11 +5,13 @@ import {
   Loader,
   Loader2,
   type LucideIcon,
+  MousePointerClick,
   RefreshCcw,
 } from 'lucide-react';
 import { memo, useMemo } from 'react';
 import { MessageStatusEnum } from '@/interfaces/message.interface';
 import { useTranslation } from '@/providers/I18n.provider';
+import { cn } from '@/utils/class.util';
 import { logger } from '@/utils/logger.util';
 
 export interface StatusIndicatorProps {
@@ -21,6 +23,8 @@ export interface StatusIndicatorProps {
   animate?: boolean;
   /** 是否显示悬浮状态提示 */
   showTooltip?: boolean;
+  /** 是否显示状态文字 */
+  showLabel?: boolean;
 }
 
 /**
@@ -53,6 +57,7 @@ interface StatusConfig {
  *   Sent      → 一√ 灰色（Fox 已入队，WA 尚未确认）
  *   Delivered → 两√ 灰色（客户手机已收，未读）
  *   Read      → 两√ 蓝色（客户已读）
+ *   Clicked   → 点击图标（客户点击消息内链接或按钮）
  *   Failed    → 红色感叹号
  *   Revoked / Deleted → 灰色感叹号
  */
@@ -62,6 +67,7 @@ export const StatusIndicator = memo(
     className = '',
     animate = true,
     showTooltip = true,
+    showLabel = false,
   }: StatusIndicatorProps) => {
     const { t } = useTranslation();
 
@@ -112,6 +118,12 @@ export const StatusIndicator = memo(
           icon: CheckCheck,
           size: 'h-4 w-4',
           colorClass: 'text-blue-500',
+        },
+        // ── 点击：客户点击了消息内链接或按钮 ─────────────────────────
+        [MessageStatusEnum.Clicked]: {
+          icon: MousePointerClick,
+          size: 'h-4 w-4',
+          colorClass: 'text-primary',
         },
         // ── 错误态 ────────────────────────────────────────────────────
         [MessageStatusEnum.Failed]: {
@@ -166,13 +178,25 @@ export const StatusIndicator = memo(
     } = config;
 
     // 构建类名
-    const iconClassName = `${size} ${colorClass} ${
-      shouldAnimate && animate ? 'animate-spin' : ''
-    } ${className}`.trim();
+    const iconClassName = cn(
+      size,
+      colorClass,
+      shouldAnimate && animate && 'animate-spin',
+      className,
+    );
 
     return (
-      <span title={showTooltip ? tooltip : undefined}>
+      <span
+        className={cn(
+          'inline-flex items-center gap-1',
+          showLabel && 'text-xs leading-none',
+        )}
+        title={showTooltip ? tooltip : undefined}
+      >
         <Icon className={iconClassName} aria-label={label} aria-live="polite" />
+        {showLabel && (
+          <span className={cn('whitespace-nowrap', colorClass)}>{label}</span>
+        )}
       </span>
     );
   },

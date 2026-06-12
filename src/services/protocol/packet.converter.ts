@@ -13,6 +13,69 @@ import {
 import { MessageBuilder } from '@/services/messaging/message-builder.service';
 
 /**
+ * 构建 Packet 顶层业务字段 metadata。
+ *
+ * @description
+ * Packet 协议中 `channelAccount` / `senderType` / `entry` 等字段不属于
+ * 标准消息的核心 identity，但默认消息气泡需要依赖这些字段展示发送号码
+ * 尾号和 Chatbot 标识，因此统一放入 StandardMessage.metadata 透传。
+ *
+ * @param packet 原始 Packet
+ * @returns 可合并进 StandardMessage.metadata 的业务字段
+ */
+function buildPacketBusinessMetadata(
+  packet: RawPacket,
+): Record<string, unknown> {
+  const metadata: Record<string, unknown> = {
+    chatId: packet.chatId,
+  };
+
+  if (packet.channelAccount) {
+    metadata.channelAccount = packet.channelAccount;
+  }
+
+  if (packet.senderType !== undefined && packet.senderType !== null) {
+    metadata.senderType = packet.senderType;
+  }
+
+  if (packet.entry) {
+    metadata.entry = packet.entry;
+  }
+
+  return metadata;
+}
+
+/**
+ * 从 StandardMessage.metadata 构建 RawPacket 顶层业务字段。
+ *
+ * @param metadata 标准消息 metadata
+ * @returns 可合并进 RawPacket 的顶层业务字段
+ */
+function buildRawPacketBusinessFields(
+  metadata: StandardMessage['metadata'],
+): Pick<RawPacket, 'channelAccount' | 'senderType' | 'entry'> {
+  const fields: Pick<RawPacket, 'channelAccount' | 'senderType' | 'entry'> = {};
+
+  if (typeof metadata?.channelAccount === 'string') {
+    fields.channelAccount = metadata.channelAccount;
+  }
+
+  if (
+    typeof metadata?.senderType === 'string' ||
+    typeof metadata?.senderType === 'number' ||
+    metadata?.senderType === null
+  ) {
+    fields.senderType = metadata.senderType;
+  }
+
+  if (typeof metadata?.entry === 'string') {
+    fields.entry = metadata.entry;
+  }
+
+  return fields;
+}
+
+/**
  * PacketConverter - Packet 协议转换器
  *
  * @description
@@ -78,6 +141,7 @@ export class PacketConverter {
       ),
       ver: '1.0',
       timestamp: message.timestamp,
+      ...buildRawPacketBusinessFields(message.metadata),
     };
 
     return rawPacket;
@@ -162,6 +226,7 @@ export class PacketConverter {
       metadata: {
         ...(packet.body as PacketBodyBase)?.chatInfo,
         ...extMetadata,
+        ...buildPacketBusinessMetadata(packet),
       },
     };
 

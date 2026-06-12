@@ -21,10 +21,7 @@ import {
   AckMessageTypeEnum,
   PacketMessageTypeEnum,
 } from '@/interfaces/protocol.interface';
-import {
-  isServerMessageStatus,
-  mapServerMessageStatusToLocal,
-} from '@/services/protocol/status.mapper';
+import { mapCallbackMessageStatusToLocal } from '@/services/protocol/status.mapper';
 
 /**
  * 默认队列配置
@@ -106,8 +103,9 @@ const OUTGOING_STATUS_PRIORITY: Record<MessageStatusEnum, number> = {
   [MessageStatusEnum.Sent]: 2,
   [MessageStatusEnum.Delivered]: 3,
   [MessageStatusEnum.Read]: 4,
-  [MessageStatusEnum.Revoked]: 5,
-  [MessageStatusEnum.Deleted]: 5,
+  [MessageStatusEnum.Clicked]: 5,
+  [MessageStatusEnum.Revoked]: 6,
+  [MessageStatusEnum.Deleted]: 6,
 };
 
 /**
@@ -995,6 +993,7 @@ export class MessageQueueService {
         : nextStatus === MessageStatusEnum.Delivered
           ? MessageQueueStageEnum.Delivered
           : nextStatus === MessageStatusEnum.Read ||
+              nextStatus === MessageStatusEnum.Clicked ||
               nextStatus === MessageStatusEnum.Revoked ||
               nextStatus === MessageStatusEnum.Deleted
             ? MessageQueueStageEnum.Completed
@@ -1084,25 +1083,13 @@ export class MessageQueueService {
     ackData: AckData,
   ): MessageStatusEnum | undefined {
     if ('status' in ackData.body) {
-      return isServerMessageStatus(ackData.body.status)
-        ? mapServerMessageStatusToLocal(ackData.body.status)
-        : undefined;
+      return mapCallbackMessageStatusToLocal(ackData.body.status);
     }
 
     const sendResult = ackData.body.sendResult;
-    if (typeof sendResult === 'string') {
-      switch (sendResult) {
-        case 'DELIVER_SUCCESS':
-          return MessageStatusEnum.Delivered;
-        case 'REPLIED':
-        case 'RECEIVER_OPENED':
-          return MessageStatusEnum.Read;
-        case 'SUBMIT_FAIL':
-        case 'DELIVER_FAIL':
-          return MessageStatusEnum.Failed;
-        default:
-          return undefined;
-      }
+    const mappedSendResult = mapCallbackMessageStatusToLocal(sendResult);
+    if (mappedSendResult) {
+      return mappedSendResult;
     }
 
     return undefined;

@@ -50,10 +50,10 @@ describe('FoxMessageAckHandler', () => {
     );
     expect(
       (result.extraEvents?.[0]?.data as MessageStatusUpdatedEvent).status,
-    ).toBe(MessageStatusEnum.Read);
+    ).toBe(MessageStatusEnum.Clicked);
   });
 
-  it('队列未命中时也应保留原始 fox_message_ack 事件', () => {
+  it('队列未命中时应保留原始事件，并在可解析时追加状态事件', () => {
     const result = handler.handle({
       packet: {
         id: 'fox-ack-2',
@@ -64,7 +64,7 @@ describe('FoxMessageAckHandler', () => {
         body: {
           type: PacketMessageTypeEnum.FoxMessageAck,
           mid: 999,
-          sendResult: 'DELIVER_SUCCESS',
+          sendResult: 'ACTION',
         } as unknown as RawPacket['body'],
         ver: '1.0',
         timestamp: 3_000,
@@ -72,6 +72,16 @@ describe('FoxMessageAckHandler', () => {
     });
 
     expect(result.eventData?.type).toBe(WebSocketEventTypeEnum.FoxMessageAck);
-    expect(result.extraEvents).toBeUndefined();
+    expect(result.extraEvents).toHaveLength(1);
+    expect(result.extraEvents?.[0]?.type).toBe(
+      WebSocketEventTypeEnum.MessageStatus,
+    );
+    expect(result.extraEvents?.[0]?.data).toEqual(
+      expect.objectContaining({
+        conversationId: 'conv-456',
+        messageId: '999',
+        status: MessageStatusEnum.Clicked,
+      }),
+    );
   });
 });

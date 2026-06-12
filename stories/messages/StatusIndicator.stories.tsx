@@ -23,6 +23,7 @@ const meta: Meta<typeof StatusIndicator> = {
         MessageStatusEnum.Sent,
         MessageStatusEnum.Delivered,
         MessageStatusEnum.Read,
+        MessageStatusEnum.Clicked,
         MessageStatusEnum.Failed,
       ],
       description: '消息状态',
@@ -54,6 +55,7 @@ export const AllStatuses = () => {
     MessageStatusEnum.Sent,
     MessageStatusEnum.Delivered,
     MessageStatusEnum.Read,
+    MessageStatusEnum.Clicked,
     MessageStatusEnum.Failed,
   ];
 
@@ -64,7 +66,7 @@ export const AllStatuses = () => {
           key={status}
           className="flex items-center gap-3 p-3 bg-muted rounded-lg"
         >
-          <StatusIndicator status={status} />
+          <StatusIndicator status={status} showLabel />
           <span className="text-sm font-medium">{status}</span>
         </div>
       ))}
@@ -98,6 +100,11 @@ export const StatusDescriptions = () => {
       desc: '消息已送达对方设备',
     },
     { status: MessageStatusEnum.Read, label: '已读', desc: '对方已查看消息' },
+    {
+      status: MessageStatusEnum.Clicked,
+      label: '点击',
+      desc: '客户点击了消息内链接或按钮',
+    },
     { status: MessageStatusEnum.Failed, label: '失败', desc: '消息发送失败' },
   ];
 
@@ -132,7 +139,7 @@ export const InMessage = () => {
           <p className="text-sm">Hello!</p>
           <div className="flex items-center justify-end gap-1 mt-1">
             <span className="text-xs opacity-70">10:30</span>
-            <StatusIndicator status={MessageStatusEnum.Read} />
+            <StatusIndicator status={MessageStatusEnum.Read} showLabel />
           </div>
         </div>
       </div>
@@ -141,7 +148,7 @@ export const InMessage = () => {
           <p className="text-sm">How are you?</p>
           <div className="flex items-center justify-end gap-1 mt-1">
             <span className="text-xs opacity-70">10:31</span>
-            <StatusIndicator status={MessageStatusEnum.Delivered} />
+            <StatusIndicator status={MessageStatusEnum.Delivered} showLabel />
           </div>
         </div>
       </div>

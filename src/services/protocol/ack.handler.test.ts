@@ -432,6 +432,24 @@ describe('AckHandler', () => {
       ).toBe(MessageStatusEnum.Delivered);
     });
 
+    it('应将点击状态回调解析为 Clicked', () => {
+      const ackData = AckHandler.parseDownstream({
+        ptype: PacketMessageTypeEnum.Ack,
+        body: {
+          type: AckMessageTypeEnum.MsgReadAck,
+          id: 'msg-123',
+          status: 'CLICK',
+        },
+      });
+
+      expect(ackData).toBeDefined();
+      expect(
+        AckHandler.ackDataToMessageStatus(
+          ackData as NonNullable<typeof ackData>,
+        ),
+      ).toBe(MessageStatusEnum.Clicked);
+    });
+
     it('当 body.status 非法时应返回 undefined，而不是回退为已读', () => {
       const ackData = AckHandler.parseDownstream({
         ptype: PacketMessageTypeEnum.Ack,

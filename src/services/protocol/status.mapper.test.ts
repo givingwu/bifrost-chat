@@ -15,6 +15,7 @@ describe('status.mapper', () => {
       expect(isServerMessageStatus('READ')).toBe(true);
       expect(isServerMessageStatus('REVOKE')).toBe(true);
       expect(isServerMessageStatus('DELETE')).toBe(true);
+      expect(isServerMessageStatus('CLICK')).toBe(true);
     });
 
     it('应接受有效的小写状态值（服务端实际下发格式）', () => {
@@ -23,6 +24,7 @@ describe('status.mapper', () => {
       expect(isServerMessageStatus('un_read')).toBe(true);
       expect(isServerMessageStatus('read')).toBe(true);
       expect(isServerMessageStatus('un_send')).toBe(true);
+      expect(isServerMessageStatus('clicked')).toBe(true);
     });
 
     it('应拒绝无效的状态值', () => {
@@ -57,6 +59,9 @@ describe('status.mapper', () => {
       expect(mapServerMessageStatusToLocal('DELETE')).toBe(
         MessageStatusEnum.Deleted,
       );
+      expect(mapServerMessageStatusToLocal('CLICK')).toBe(
+        MessageStatusEnum.Clicked,
+      );
     });
 
     it('小写 send_fail 应映射为 Failed（修复 #regression）', () => {
@@ -74,6 +79,9 @@ describe('status.mapper', () => {
       );
       expect(mapServerMessageStatusToLocal('read')).toBe(
         mapServerMessageStatusToLocal('READ'),
+      );
+      expect(mapServerMessageStatusToLocal('clicked')).toBe(
+        mapServerMessageStatusToLocal('CLICKED'),
       );
     });
   });

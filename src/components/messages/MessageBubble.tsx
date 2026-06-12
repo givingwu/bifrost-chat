@@ -1,3 +1,4 @@
+import { Bot } from 'lucide-react';
 import { memo, useEffect, useRef } from 'react';
 import { useInViewport } from '@/hooks/use-in-viewport.hook';
 import {
@@ -6,11 +7,81 @@ import {
   MessageTypeEnum,
   type StandardMessage,
 } from '@/interfaces/message.interface';
+import { useTranslation } from '@/providers/I18n.provider';
 import { cn } from '@/utils/class.util';
 import { MessageActions } from './MessageActions';
 import { MessageContentRenderer } from './MessageContentRenderer';
 import { MessageTimestamp } from './MessageTimestamp';
 import { StatusIndicator } from './StatusIndicator';
+
+/**
+ * 提取通道账号尾号。
+ *
+ * @description
+ * 优先展示账号中的最后 4 位数字；如果账号被脱敏导致不足 4 位数字，
+ * 则退回展示去空白后的最后 4 个字符。
+ *
+ * @param value Packet metadata.channelAccount 原始值
+ * @returns 可展示的账号尾号；无有效账号时返回 undefined
+ */
+function getChannelAccountTail(value: unknown): string | undefined {
+  if (typeof value !== 'string' && typeof value !== 'number') {
+    return undefined;
+  }
+
+  const compactValue = String(value).trim().replace(/\s+/g, '');
+  if (!compactValue) {
+    return undefined;
+  }
+
+  const digits = compactValue.replace(/\D/g, '');
+  const tailSource = digits.length >= 4 ? digits : compactValue;
+
+  return tailSource.slice(-4);
+}
+
+/**
+ * 判断消息是否为 Chatbot 外发消息。
+ *
+ * @description
+ * Packet 协议约定 senderType=1 表示机器人消息。UI 仅在外发消息上展示
+ * Chatbot 标识，避免客户侧消息误标。
+ *
+ * @param senderType Packet metadata.senderType 原始值
+ * @param isOutgoing 当前消息是否为外发消息
+ * @returns 是否展示 Chatbot 标识
+ */
+function isChatbotOutgoingMessage(
+  senderType: unknown,
+  isOutgoing: boolean,
+): boolean {
+  if (!isOutgoing) {
+    return false;
+  }
+
+  return senderType === 1 || senderType === '1' || senderType === true;
+}
+
+/**
+ * 提取影响 MessageBubble 尾部标识的 metadata 签名。
+ *
+ * @description
+ * React.memo 只比较关键字段；metadata 引用变化时需要确保发送号码和
+ * Chatbot 标识能触发重渲染。
+ *
+ * @param message 标准消息
+ * @returns 尾部标识签名
+ */
+function getMessageMetadataSignature(message: StandardMessage): string {
+  const isOutgoing = message.direction === MessageDirectionEnum.Outgoing;
+  const accountTail = getChannelAccountTail(message.metadata?.channelAccount);
+  const chatbot = isChatbotOutgoingMessage(
+    message.metadata?.senderType,
+    isOutgoing,
+  );
+
+  return `${accountTail ?? ''}:${chatbot ? 'bot' : 'human'}`;
+}
 
 export interface MessageBubbleProps {
   /** 标准消息 */
@@ -33,6 +104,14 @@ export interface MessageBubbleProps {
 export const MessageBubble = memo(
   ({ message, conversationId, onInViewport }: MessageBubbleProps) => {
     const isMe = message.direction === MessageDirectionEnum.Outgoing;
+    const { t } = useTranslation();
+    const channelAccountTail = getChannelAccountTail(
+      message.metadata?.channelAccount,
+    );
+    const isChatbotMessage = isChatbotOutgoingMessage(
+      message.metadata?.senderType,
+      isMe,
+    );
     const bubbleRef = useRef<HTMLDivElement>(null);
     const latestMessageRef = useRef(message);
     const [inViewport] = useInViewport(bubbleRef, {
@@ -74,10 +153,23 @@ export const MessageBubble = memo(
           >
             <MessageContentRenderer message={message} />
           </div>
-          <div className="mt-1 flex items-center gap-1 px-1">
+          <div className="mt-1 flex flex-wrap items-center gap-1 px-1">
+            {channelAccountTail && (
+              <span className="inline-flex items-center whitespace-nowrap rounded-full bg-muted px-1.5 py-0.5 text-[10px] leading-none text-text-muted">
+                {t('message.channelAccountTail', {
+                  tail: channelAccountTail,
+                })}
+              </span>
+            )}
+            {isChatbotMessage && (
+              <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-muted px-1.5 py-0.5 text-[10px] leading-none text-text-muted">
+                <Bot className="h-3 w-3" aria-hidden="true" />
+                {t('message.chatbot')}
+              </span>
+            )}
             {isMe && (
               <>
-                <StatusIndicator status={message.status} />
+                <StatusIndicator status={message.status} showLabel />
                 {message.status === MessageStatusEnum.Failed && (
                   <>
                     {/* 服务端失败消息：显示错误信息 */}
@@ -122,7 +214,7 @@ export const MessageBubble = memo(
                     )}
                   </>
                 )}
-                <StatusIndicator status={message.status} />
+                <StatusIndicator status={message.status} showLabel />
               </>
             )}
           </div>
@@ -148,6 +240,8 @@ export const MessageBubble = memo(
       prevMessage.direction === nextMessage.direction &&
       prevMessage.type === nextMessage.type &&
       prevMessage.timestamp === nextMessage.timestamp &&
+      getMessageMetadataSignature(prevMessage) ===
+        getMessageMetadataSignature(nextMessage) &&
       prevProps.conversationId === nextProps.conversationId &&
       prevProps.onInViewport === nextProps.onInViewport
     );

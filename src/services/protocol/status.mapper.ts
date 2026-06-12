@@ -20,6 +20,8 @@ export const SERVER_MESSAGE_STATUSES = [
   'DELIVER_FAIL',
   'UN_READ',
   'READ',
+  'CLICK',
+  'CLICKED',
   'REVOKE',
   'DELETE',
 ] as const;
@@ -55,11 +57,71 @@ export function mapServerMessageStatusToLocal(
     DELIVER_FAIL: MessageStatusEnum.Failed,
     UN_READ: MessageStatusEnum.Delivered,
     READ: MessageStatusEnum.Read,
+    CLICK: MessageStatusEnum.Clicked,
+    CLICKED: MessageStatusEnum.Clicked,
     REVOKE: MessageStatusEnum.Revoked,
     DELETE: MessageStatusEnum.Deleted,
   };
 
   return mapping[normalized] ?? MessageStatusEnum.Sending;
+}
+
+/**
+ * 渠道/供应商回调状态 → SDK MessageStatusEnum 映射。
+ *
+ * @description
+ * FOX-8642 要求 RCS 等渠道的链接、按钮、reply/action 回调展示为
+ * “点击”，且可以覆盖已读状态。该函数集中处理供应商原始回调值，
+ * 避免 WebSocket handler、ACK handler 与消息队列各自维护映射。
+ *
+ * @param status 渠道回调中的状态值，如 sent / failed / action / reply
+ * @returns 可识别的 SDK 消息状态；无法识别时返回 undefined
+ */
+export function mapCallbackMessageStatusToLocal(
+  status: unknown,
+): MessageStatusEnum | undefined {
+  if (typeof status !== 'string') {
+    return undefined;
+  }
+
+  const normalized = status.trim().toUpperCase();
+  if (!normalized) {
+    return undefined;
+  }
+
+  const mapping: Record<string, MessageStatusEnum> = {
+    ACTION: MessageStatusEnum.Clicked,
+    BUTTON_CLICK: MessageStatusEnum.Clicked,
+    BUTTON_CLICKED: MessageStatusEnum.Clicked,
+    CLICK: MessageStatusEnum.Clicked,
+    CLICKED: MessageStatusEnum.Clicked,
+    LINK_CLICK: MessageStatusEnum.Clicked,
+    LINK_CLICKED: MessageStatusEnum.Clicked,
+    REPLIED: MessageStatusEnum.Clicked,
+    REPLY: MessageStatusEnum.Clicked,
+
+    DELIVER_SUCCESS: MessageStatusEnum.Delivered,
+    DELIVERED: MessageStatusEnum.Delivered,
+    UN_READ: MessageStatusEnum.Delivered,
+
+    READ: MessageStatusEnum.Read,
+    RECEIVER_OPENED: MessageStatusEnum.Read,
+
+    SEND: MessageStatusEnum.Sent,
+    SENT: MessageStatusEnum.Sent,
+    SUBMITTED: MessageStatusEnum.Sent,
+    UN_SEND: MessageStatusEnum.Sent,
+
+    DELIVER_FAIL: MessageStatusEnum.Failed,
+    FAILED: MessageStatusEnum.Failed,
+    SEND_FAIL: MessageStatusEnum.Failed,
+    SUBMIT_FAIL: MessageStatusEnum.Failed,
+
+    DELETE: MessageStatusEnum.Deleted,
+    REVOKE: MessageStatusEnum.Revoked,
+  };
+
+  return mapping[normalized];
 }
 
 /**
@@ -74,6 +136,7 @@ export function mapLocalMessageStatusToServer(
     [MessageStatusEnum.Sent]: 'UN_SEND',
     [MessageStatusEnum.Delivered]: 'UN_READ',
     [MessageStatusEnum.Read]: 'READ',
+    [MessageStatusEnum.Clicked]: null,
     [MessageStatusEnum.Failed]: 'SEND_FAIL',
     [MessageStatusEnum.Queued]: 'UN_SEND',
     [MessageStatusEnum.Revoked]: 'REVOKE',

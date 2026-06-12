@@ -25,6 +25,8 @@ export enum MessageStatusEnum {
   Delivered = 'delivered',
   /** 消息已读（对方已查看） */
   Read = 'read',
+  /** 消息内链接或按钮已被点击 */
+  Clicked = 'clicked',
   /** 消息发送失败 */
   Failed = 'failed',
   /** 消息在离线队列中等待发送 */

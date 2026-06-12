@@ -360,6 +360,8 @@ interface RawPacket {
   timestamp: number;             // 服务端生成时间戳
   entry?: string;                // SDK 入口
   chatId?: string;               // 会话 ID
+  channelAccount?: string;       // 通道账号，用于展示发送号码尾号
+  senderType?: string | number | null; // 1 表示机器人消息
 }
 
 // MessageParticipant 结构
@@ -376,6 +378,8 @@ interface MessageParticipant {
 > - **body.type**（内容类型）：可选字段，用于标识消息内容的类型（如 `text`、`image`、`video` 等）
 > - 所有 socket 通信协议必须包含 `ptype` 字段
 > - 有效值包括：`auth`、`auth_fail`、`chat_message`、`ack`、`msg_receive_ack`、`msg_read_ack`、`client_heartbeat`、`status_switch`、`fox_message_ack`
+> - `channelAccount` / `senderType` 会透传到 `StandardMessage.metadata`，默认消息气泡用其展示发送号码尾号和 Chatbot 标识
+> - `fox_message_ack` 中的 `CLICK`、`CLICKED`、`ACTION`、`REPLY`、`REPLIED` 会映射为 `MessageStatusEnum.Clicked`
 
 ### AckMessageTypeEnum
 

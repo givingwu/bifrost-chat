@@ -125,10 +125,13 @@
       "sent": "Message sent",
       "delivered": "Message delivered",
       "read": "Message read",
+      "clicked": "Message clicked",
       "failed": "Message failed to send",
       "queued": "Message queued",
       "tooltip": "Status: {{status}}"
     },
+    "channelAccountTail": "Sender number {{tail}}",
+    "chatbot": "Chatbot",
     "retry": "Retry",
     "delete": "Delete",
     "retry_all": "Retry All",

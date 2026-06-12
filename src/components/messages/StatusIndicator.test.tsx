@@ -1,4 +1,4 @@
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { LanguageCodeEnum } from '@/interfaces/language.interface';
 import { MessageStatusEnum } from '@/interfaces/message.interface';
@@ -77,5 +77,27 @@ describe('StatusIndicator', () => {
     expect(icon).not.toBeNull();
     expect(wrapper).not.toHaveAttribute('title');
     expect(icon).toHaveAttribute('aria-label', 'Message delivered');
+  });
+
+  it('showLabel 为 true 时应显示状态文字', () => {
+    renderStatusIndicator({
+      status: MessageStatusEnum.Sent,
+      showLabel: true,
+    });
+
+    expect(screen.getByText('Message sent')).toBeInTheDocument();
+  });
+
+  it('应支持点击状态图标与文案', () => {
+    const { container } = renderStatusIndicator({
+      status: MessageStatusEnum.Clicked,
+      showLabel: true,
+    });
+
+    const icon = container.querySelector('svg');
+
+    expect(icon).not.toBeNull();
+    expect(icon).toHaveAttribute('aria-label', 'Message clicked');
+    expect(screen.getByText('Message clicked')).toBeInTheDocument();
   });
 });

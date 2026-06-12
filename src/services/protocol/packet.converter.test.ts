@@ -88,6 +88,43 @@ describe('PacketConverter', () => {
         text: 'Test message',
       });
     });
+
+    it('应该将 StandardMessage.metadata 中的业务字段转换为 RawPacket 顶层字段', () => {
+      const message = {
+        id: 'msg-123',
+        conversationId: 'chat-789',
+        direction: MessageDirectionEnum.Outgoing,
+        channelType: ChannelTypeEnum.WhatsApp,
+        status: MessageStatusEnum.Sent,
+        timestamp: Date.now(),
+        type: MessageTypeEnum.Text,
+        content: { text: 'Chatbot message' },
+        sender: {
+          pin: 'agent-123',
+          app: 'fox_collect.waiter',
+        },
+        receiver: {
+          pin: 'customer-456',
+          app: 'fox_collect.customer',
+          channelType: ChannelTypeEnum.WhatsApp,
+        },
+        metadata: {
+          channelAccount: '628123456789',
+          senderType: 1,
+          entry: 'fox.collect.detail',
+        },
+      };
+
+      const rawPacket = PacketConverter.toRawPacket(
+        message,
+        'fox_collect.waiter',
+        'agent-123',
+      );
+
+      expect(rawPacket.channelAccount).toBe('628123456789');
+      expect(rawPacket.senderType).toBe(1);
+      expect(rawPacket.entry).toBe('fox.collect.detail');
+    });
   });
 
   describe('toStandardMessage', () => {
@@ -282,7 +319,45 @@ describe('PacketConverter', () => {
 
       expect(message.type).toBe(MessageTypeEnum.Text);
       expect(message.content).toEqual({ text: '' });
-      expect(message.metadata).toEqual({});
+      expect(message.metadata).toEqual({ chatId: 'chat-plain-body' });
+    });
+
+    it('应该透传 Packet 顶层业务字段到 metadata', () => {
+      const rawPacket: RawPacket = {
+        id: 'packet-business-fields',
+        chatId: 'chat-789',
+        channelAccount: '628123456789',
+        senderType: 1,
+        entry: 'fox.collect.detail',
+        from: {
+          app: 'fox_collect.waiter',
+          pin: 'agent-123',
+          channelType: ChannelTypeEnum.WhatsApp,
+        },
+        to: {
+          app: 'fox_collect.customer',
+          pin: 'customer-456',
+          channelType: ChannelTypeEnum.WhatsApp,
+        },
+        ptype: PacketMessageTypeEnum.ChatMessage,
+        body: {
+          type: MessageTypeEnum.Text,
+          content: { text: 'Hello from chatbot' },
+        },
+        ver: '1.0',
+        timestamp: 1234567890,
+      };
+
+      const message = PacketConverter.toStandardMessage(rawPacket);
+
+      expect(message.metadata).toEqual(
+        expect.objectContaining({
+          channelAccount: '628123456789',
+          senderType: 1,
+          entry: 'fox.collect.detail',
+          chatId: 'chat-789',
+        }),
+      );
     });
   });
 

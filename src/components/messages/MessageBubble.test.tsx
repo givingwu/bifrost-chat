@@ -15,7 +15,15 @@ vi.mock('@/hooks/use-in-viewport.hook', () => ({
 
 vi.mock('@/providers/I18n.provider', () => ({
   useTranslation: () => ({
-    t: (key: string) => key,
+    t: (key: string, params?: Record<string, unknown>) => {
+      if (key === 'message.channelAccountTail') {
+        return `发送号码 ${String(params?.tail)}`;
+      }
+      if (key === 'message.chatbot') {
+        return 'Chatbot';
+      }
+      return key;
+    },
   }),
 }));
 
@@ -67,5 +75,55 @@ describe('MessageBubble', () => {
 
     expect(screen.getByText('SMS submit failed')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'message.retry' })).toBeNull();
+  });
+
+  it('有 channelAccount 时应展示发送号码尾号', () => {
+    render(
+      <MessageBubble
+        message={createMessage({
+          metadata: {
+            channelAccount: '628123456789',
+          },
+        })}
+      />,
+    );
+
+    expect(screen.getByText('发送号码 6789')).toBeInTheDocument();
+  });
+
+  it('没有 channelAccount 时不应展示发送号码区域', () => {
+    render(<MessageBubble message={createMessage({})} />);
+
+    expect(screen.queryByText(/^发送号码/)).toBeNull();
+  });
+
+  it('senderType 为 1 的外发消息应展示 Chatbot 标识', () => {
+    render(
+      <MessageBubble
+        message={createMessage({
+          direction: MessageDirectionEnum.Outgoing,
+          metadata: {
+            senderType: 1,
+          },
+        })}
+      />,
+    );
+
+    expect(screen.getByText('Chatbot')).toBeInTheDocument();
+  });
+
+  it('senderType 为 1 的客户消息不应展示 Chatbot 标识', () => {
+    render(
+      <MessageBubble
+        message={createMessage({
+          direction: MessageDirectionEnum.Incoming,
+          metadata: {
+            senderType: 1,
+          },
+        })}
+      />,
+    );
+
+    expect(screen.queryByText('Chatbot')).toBeNull();
   });
 });

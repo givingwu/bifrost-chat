@@ -232,6 +232,16 @@ export interface BaseRawPacket {
   entry?: string;
   /** 会话 ID（chat_message 类型必填） */
   chatId: string;
+  /**
+   * 通道账号。
+   * 用于 IM 工具展示发送号码尾号，例如 WhatsApp WABA 账号。
+   */
+  channelAccount?: string;
+  /**
+   * 发送者类型。
+   * 协议约定 `1` 表示机器人消息，`0` / null / undefined 表示普通消息。
+   */
+  senderType?: string | number | null;
   /** 消息状态（见 MessageStatus） */
   status?: ServerMessageStatus;
 }

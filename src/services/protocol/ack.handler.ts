@@ -14,10 +14,7 @@ import {
   PacketMessageTypeEnum,
 } from '@/interfaces/protocol.interface';
 import { MessageBuilder } from '@/services/messaging/message-builder.service';
-import {
-  isServerMessageStatus,
-  mapServerMessageStatusToLocal,
-} from '@/services/protocol/status.mapper';
+import { mapCallbackMessageStatusToLocal } from '@/services/protocol/status.mapper';
 import {
   buildOptionalFields,
   extractMessageId,
@@ -345,9 +342,7 @@ export class AckHandler {
     ackData: AckData,
   ): MessageStatusEnum | undefined {
     if (ackData.body.status !== undefined) {
-      return isServerMessageStatus(ackData.body.status)
-        ? mapServerMessageStatusToLocal(ackData.body.status)
-        : undefined;
+      return mapCallbackMessageStatusToLocal(ackData.body.status);
     }
 
     return AckHandler.ackTypeToMessageStatus(ackData.body.type);

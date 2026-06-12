@@ -467,6 +467,39 @@ describe('MessageCacheHelper', () => {
       expect(data?.pages[0]?.items[0]?.timestamp).toBe(2000);
     });
 
+    it('点击状态应覆盖 Read', () => {
+      queryClient.setQueryData(queryKeys.messages.list(conversationId), {
+        pages: [
+          {
+            items: [
+              {
+                id: 'msg-clicked-1',
+                status: MessageStatusEnum.Read,
+                timestamp: 1000,
+              } as StandardMessage,
+            ],
+          },
+        ],
+        pageParams: [undefined],
+      });
+
+      MessageCacheHelper.updateMessageInCache(
+        queryClient,
+        conversationId,
+        {
+          status: MessageStatusEnum.Clicked,
+          timestamp: 2000,
+        },
+        'msg-clicked-1',
+      );
+
+      const data = queryClient.getQueryData<InfiniteQueryData>(
+        queryKeys.messages.list(conversationId),
+      );
+
+      expect(data?.pages[0]?.items[0]?.status).toBe(MessageStatusEnum.Clicked);
+    });
+
     it('不应让 Failed 覆盖 Delivered', () => {
       queryClient.setQueryData(queryKeys.messages.list(conversationId), {
         pages: [

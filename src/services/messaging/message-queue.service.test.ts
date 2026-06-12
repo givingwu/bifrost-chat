@@ -1,5 +1,10 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { MessageStatusEnum } from '@/interfaces/message.interface';
+import { ChannelTypeEnum } from '@/interfaces/channel.interface';
+import {
+  MessageDirectionEnum,
+  MessageStatusEnum,
+  MessageTypeEnum,
+} from '@/interfaces/message.interface';
 import {
   type AckData,
   MessageQueueStageEnum,
@@ -136,7 +141,7 @@ describe('MessageQueueService', () => {
     expect(queue.findById('read-ack-new')).toBeDefined();
   });
 
-  it('应缓存并回放乱序到达的 fox_message_ack', () => {
+  it('应缓存并回放乱序到达的 fox_message_ack 点击事件', () => {
     queue.enqueue({
       requestId: 'req-123',
       tempId: 'temp-123',
@@ -164,10 +169,46 @@ describe('MessageQueueService', () => {
       messageId: '789',
       tempId: 'temp-123',
       channelType: undefined,
-      status: MessageStatusEnum.Read,
+      status: MessageStatusEnum.Clicked,
       timestamp: expect.any(Number),
     });
     expect(queue.findByTempId('temp-123')).toBeUndefined();
+  });
+
+  it('点击事件应覆盖已读状态', () => {
+    queue.enqueue({
+      requestId: 'req-123',
+      tempId: 'temp-123',
+      conversationId: 'conv-456',
+      rawMessage: {
+        id: '789',
+        tempId: 'temp-123',
+        conversationId: 'conv-456',
+        direction: MessageDirectionEnum.Outgoing,
+        channelType: ChannelTypeEnum.WhatsApp,
+        status: MessageStatusEnum.Read,
+        timestamp: 1_000,
+        type: MessageTypeEnum.Text,
+        content: { text: 'template' },
+        sender: { app: 'fox_collect.waiter', pin: 'agent-1' },
+        receiver: { app: 'fox_collect.customer', pin: 'customer-1' },
+      },
+    });
+    queue.bindServerMessageId('temp-123', '789');
+
+    const result = queue.handleAck({
+      id: '789',
+      ptype: PacketMessageTypeEnum.FoxMessageAck,
+      body: {
+        type: PacketMessageTypeEnum.FoxMessageAck,
+        mid: 789,
+        sendResult: 'ACTION',
+      },
+      timestamp: 4_000,
+    });
+
+    expect(result.handled).toBe(true);
+    expect(result.statusEvent?.status).toBe(MessageStatusEnum.Clicked);
   });
 
   it('应处理 msg_read_ack 状态回调并将消息更新为 delivered', () => {

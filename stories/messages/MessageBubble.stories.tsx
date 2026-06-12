@@ -97,6 +97,7 @@ export const MessageStatusEnumes = () => {
     MessageStatusEnum.Sent,
     MessageStatusEnum.Delivered,
     MessageStatusEnum.Read,
+    MessageStatusEnum.Clicked,
     MessageStatusEnum.Failed,
   ];
 
@@ -352,6 +353,51 @@ export const Sending: Story = {
       content: { text: '这是一条正在发送的消息' },
       sender: { app: 'bifrost-chat-sdk', pin: 'user-1' },
       receiver: { app: 'bifrost-chat-sdk', pin: 'user-2' },
+    },
+    conversationId: 'conv-123',
+  },
+};
+
+// 带发送号码尾号和 Chatbot 标识的消息
+export const WithChannelAccountAndChatbot: Story = {
+  args: {
+    message: {
+      conversationId: 'conv-123',
+      id: 'msg-chatbot-1',
+      direction: MessageDirectionEnum.Outgoing,
+      channelType: ChannelTypeEnum.WhatsApp,
+      status: MessageStatusEnum.Clicked,
+      timestamp: Date.now(),
+      type: MessageTypeEnum.Text,
+      content: { text: '这是一条由 Chatbot 发送的 WhatsApp 模板消息' },
+      sender: { app: 'fox_collect.waiter', pin: 'bot-agent' },
+      receiver: { app: 'fox_collect.customer', pin: 'customer-1' },
+      metadata: {
+        channelAccount: '628123456789',
+        senderType: 1,
+      },
+    },
+    conversationId: 'conv-123',
+  },
+};
+
+// 客户消息展示发送号码尾号
+export const IncomingWithChannelAccount: Story = {
+  args: {
+    message: {
+      conversationId: 'conv-123',
+      id: 'msg-incoming-account-1',
+      direction: MessageDirectionEnum.Incoming,
+      channelType: ChannelTypeEnum.WhatsApp,
+      status: MessageStatusEnum.Sent,
+      timestamp: Date.now(),
+      type: MessageTypeEnum.Text,
+      content: { text: '客户回复到了另一个 WABA 账号' },
+      sender: { app: 'fox_collect.customer', pin: 'customer-1' },
+      receiver: { app: 'fox_collect.waiter', pin: 'agent-1' },
+      metadata: {
+        channelAccount: '628987654321',
+      },
     },
     conversationId: 'conv-123',
   },

@@ -125,10 +125,13 @@
       "sent": "消息已发送",
       "delivered": "消息已送达",
       "read": "消息已读",
+      "clicked": "点击",
       "failed": "消息发送失败",
       "queued": "消息已排队",
       "tooltip": "状态：{{status}}"
     },
+    "channelAccountTail": "发送号码 {{tail}}",
+    "chatbot": "Chatbot",
     "retry": "重试",
     "delete": "删除",
     "retry_all": "全部重试",

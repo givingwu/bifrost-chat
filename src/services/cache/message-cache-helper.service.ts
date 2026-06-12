@@ -54,9 +54,10 @@ const MESSAGE_STATUS_PRIORITY: Record<MessageStatusEnum, number> = {
   [MessageStatusEnum.Sent]: 2,
   [MessageStatusEnum.Delivered]: 3,
   [MessageStatusEnum.Read]: 4,
+  [MessageStatusEnum.Clicked]: 5,
   [MessageStatusEnum.Failed]: 1,
-  [MessageStatusEnum.Revoked]: 5,
-  [MessageStatusEnum.Deleted]: 5,
+  [MessageStatusEnum.Revoked]: 6,
+  [MessageStatusEnum.Deleted]: 6,
 };
 
 function shouldApplyStatusUpdate(
@@ -79,6 +80,7 @@ function shouldApplyStatusUpdate(
     return ![
       MessageStatusEnum.Delivered,
       MessageStatusEnum.Read,
+      MessageStatusEnum.Clicked,
       MessageStatusEnum.Revoked,
       MessageStatusEnum.Deleted,
     ].includes(currentStatus);
