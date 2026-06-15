@@ -53,12 +53,18 @@ export interface ComposerDraftActions {
   setTemplate: (data: SetTemplatePayload) => void;
   /** 设置部分草稿数据 */
   setDraftData: (data: Partial<DraftData>) => void;
+  /** 按指定 key 设置部分草稿数据，不依赖 currentDraftKey */
+  setDraftDataByKey: (key: string, data: Partial<DraftData>) => void;
   /** 清除当前草稿 */
   clearDraft: () => void;
+  /** 按指定 key 清除草稿，不依赖 currentDraftKey */
+  clearDraftByKey: (key: string) => void;
   /** 清除所有草稿 */
   clearAllDrafts: () => void;
   /** 获取当前草稿数据 */
   getCurrentDraft: () => DraftData;
+  /** 按指定 key 获取草稿数据，不依赖 currentDraftKey */
+  getDraftByKey: (key: string | null) => DraftData;
   /** 获取当前草稿内容 */
   getValue: () => string;
   /** 判断当前草稿是否为空 */
@@ -702,12 +708,30 @@ export const useComposerDraftStore = create<ComposerDraftStore>()(
         });
       },
 
+      setDraftDataByKey: (key: string, data: Partial<DraftData>) => {
+        const { drafts } = get();
+
+        set({
+          drafts: upsertDraft(drafts, key, {
+            ...drafts[key],
+            ...data,
+          }),
+        });
+      },
+
       clearDraft: () => {
         const { currentDraftKey, drafts } = get();
         if (!currentDraftKey) return;
 
         const newDrafts = { ...drafts };
         delete newDrafts[currentDraftKey];
+        set({ drafts: newDrafts });
+      },
+
+      clearDraftByKey: (key: string) => {
+        const { drafts } = get();
+        const newDrafts = { ...drafts };
+        delete newDrafts[key];
         set({ drafts: newDrafts });
       },
 
@@ -722,6 +746,14 @@ export const useComposerDraftStore = create<ComposerDraftStore>()(
         }
 
         return drafts[currentDraftKey] || createEmptyDraft();
+      },
+
+      getDraftByKey: (key: string | null) => {
+        if (!key) {
+          return createEmptyDraft();
+        }
+
+        return get().drafts[key] || createEmptyDraft();
       },
 
       getValue: () => {

@@ -92,6 +92,39 @@ describe('useComposerDraft', () => {
     expect(parsed.state.drafts[key].content).toBe('channel scoped draft');
   });
 
+  it('多个草稿 hook 同时存在时应各自读写自己的会话渠道分桶', async () => {
+    const first = renderHook(() =>
+      useComposerDraft({
+        conversationId: 'conv-first',
+        channel: ChannelTypeEnum.SMS,
+      }),
+    );
+    const second = renderHook(() =>
+      useComposerDraft({
+        conversationId: 'conv-second',
+        channel: ChannelTypeEnum.WhatsApp,
+      }),
+    );
+
+    act(() => {
+      first.result.current.setValue('draft for first');
+    });
+
+    act(() => {
+      second.result.current.setValue('draft for second');
+    });
+
+    expect(first.result.current.value).toBe('draft for first');
+    expect(second.result.current.value).toBe('draft for second');
+
+    act(() => {
+      first.result.current.setValue('updated first');
+    });
+
+    expect(first.result.current.value).toBe('updated first');
+    expect(second.result.current.value).toBe('draft for second');
+  });
+
   it('发送成功后应清空输入并删除草稿', async () => {
     const onSend = vi.fn().mockResolvedValue(undefined);
 

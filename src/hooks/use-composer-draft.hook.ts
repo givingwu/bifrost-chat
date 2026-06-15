@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import type { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import type { MessageTypeEnum } from '@/interfaces/message.interface';
-import { useComposerDraftStore } from '@/store/draft.store';
+import {
+  buildComposerDraftKey,
+  useComposerDraftStore,
+} from '@/store/draft.store';
 import { resolveMessageSendOutcome } from '@/utils/message-send-result.util';
 
 const LEGACY_DRAFT_KEY_PREFIX = 'bifrost-chat-draft-';
@@ -107,30 +110,25 @@ export function useComposerDraft({
 }: UseComposerDraftOptions): UseComposerDraftResult {
   // ==================== 状态选择器 ====================
   const drafts = useComposerDraftStore((state) => state.drafts);
-  const currentDraftKey = useComposerDraftStore(
-    (state) => state.currentDraftKey,
+  const setCurrentDraft = useComposerDraftStore(
+    (state) => state.setCurrentDraft,
   );
+  const setDraftDataByKey = useComposerDraftStore(
+    (state) => state.setDraftDataByKey,
+  );
+  const clearDraftByKey = useComposerDraftStore(
+    (state) => state.clearDraftByKey,
+  );
+  const getDraftByKey = useComposerDraftStore((state) => state.getDraftByKey);
 
-  // 当前草稿数据
-  const currentDraftData = useMemo(() => {
-    if (!currentDraftKey) {
-      return { content: '', messageType: undefined };
+  const draftKey = useMemo(() => {
+    if (conversationId && channel) {
+      return buildComposerDraftKey(conversationId, channel);
     }
-    // 防御：确保 content 始终是字符串（即使 draft 对象存在但 content 是 undefined）
-    const draft = drafts[currentDraftKey];
-    return {
-      content: draft?.content ?? '',
-      messageType: draft?.messageType,
-      templateCode: draft?.templateCode,
-      templateParams: draft?.templateParams,
-      templateMetadata: draft?.templateMetadata,
-    };
-  }, [drafts, currentDraftKey]);
 
-  // ==================== 操作方法 ====================
-  const store = useComposerDraftStore.getState();
+    return null;
+  }, [channel, conversationId]);
 
-  // 生成当前会话的 key
   const draftStorageKey = useMemo(() => {
     if (conversationId && channel) {
       return buildConversationDraftStorageKey(conversationId, channel);
@@ -138,91 +136,136 @@ export function useComposerDraft({
     return null;
   }, [channel, conversationId]);
 
+  const emptyDraft = useMemo<DraftData>(
+    () => ({
+      content: '',
+      messageType: undefined,
+      templateCode: undefined,
+      templateParams: undefined,
+      templateMetadata: undefined,
+    }),
+    [],
+  );
+
+  // 当前草稿数据
+  const currentDraftData = useMemo(() => {
+    if (!draftKey) {
+      return emptyDraft;
+    }
+    // 防御：确保 content 始终是字符串（即使 draft 对象存在但 content 是 undefined）
+    const draft = drafts[draftKey];
+    return {
+      content: draft?.content ?? '',
+      messageType: draft?.messageType,
+      templateCode: draft?.templateCode,
+      templateParams: draft?.templateParams,
+      templateMetadata: draft?.templateMetadata,
+    };
+  }, [draftKey, drafts, emptyDraft]);
+
   // ==================== setValue ====================
   const loadedDraftKeyRef = useRef<string | null>(null);
   const previousDraftKeyRef = useRef<string | null>(null);
 
   const setValue = useCallback(
     (nextValue: string) => {
-      store.setValue(nextValue);
+      if (!draftKey) return;
+
+      setDraftDataByKey(draftKey, { content: nextValue });
     },
-    [store],
+    [draftKey, setDraftDataByKey],
   );
 
   // ==================== messageType ====================
   const setMessageType = useCallback(
     (type?: MessageTypeEnum) => {
-      store.setDraftData({ messageType: type });
+      if (!draftKey) return;
+
+      setDraftDataByKey(draftKey, { messageType: type });
     },
-    [store],
+    [draftKey, setDraftDataByKey],
   );
 
   // ==================== templateCode ====================
   const setTemplateCode = useCallback(
     (code?: string) => {
-      store.setDraftData({ templateCode: code });
+      if (!draftKey) return;
+
+      setDraftDataByKey(draftKey, { templateCode: code });
     },
-    [store],
+    [draftKey, setDraftDataByKey],
   );
 
   // ==================== templateParams ====================
   const setTemplateParams = useCallback(
     (params?: Record<string, string>) => {
-      store.setDraftData({ templateParams: params });
+      if (!draftKey) return;
+
+      setDraftDataByKey(draftKey, { templateParams: params });
     },
-    [store],
+    [draftKey, setDraftDataByKey],
   );
 
   // ==================== templateMetadata ====================
   const setTemplateMetadata = useCallback(
     (metadata?: unknown) => {
-      store.setDraftData({ templateMetadata: metadata });
+      if (!draftKey) return;
+
+      setDraftDataByKey(draftKey, { templateMetadata: metadata });
     },
-    [store],
+    [draftKey, setDraftDataByKey],
   );
 
   // ==================== setDraftData ====================
   const setDraftData = useCallback(
     (data: Partial<DraftData>) => {
-      store.setDraftData(data);
+      if (!draftKey) return;
+
+      setDraftDataByKey(draftKey, data);
     },
-    [store],
+    [draftKey, setDraftDataByKey],
   );
 
   // ==================== getDraftData ====================
   const getDraftData = useCallback((): DraftData => {
-    return store.getCurrentDraft();
-  }, [store]);
+    return getDraftByKey(draftKey);
+  }, [draftKey, getDraftByKey]);
 
   // ==================== clearDraft ====================
   const clearDraft = useCallback(() => {
-    store.clearDraft();
-  }, [store]);
+    if (!draftKey) return;
+
+    clearDraftByKey(draftKey);
+  }, [clearDraftByKey, draftKey]);
 
   // ==================== loadDraft ====================
   const loadDraft = useCallback((): string => {
-    return store.getCurrentDraft().content;
-  }, [store]);
+    return getDraftByKey(draftKey).content;
+  }, [draftKey, getDraftByKey]);
 
   // ==================== loadDraftData ====================
   const loadDraftData = useCallback((): DraftData => {
-    return store.getCurrentDraft();
-  }, [store]);
+    return getDraftByKey(draftKey);
+  }, [draftKey, getDraftByKey]);
 
   // ==================== saveDraft ====================
   const saveDraft = useCallback(
     (nextValue: string) => {
-      store.setValue(nextValue);
+      if (!draftKey) return;
+
+      setDraftDataByKey(draftKey, { content: nextValue });
     },
-    [store],
+    [draftKey, setDraftDataByKey],
   );
 
   // ==================== saveDraftData ====================
   const saveDraftData = useCallback(
     (data: DraftData) => {
-      store.setDraftData(data);
+      if (!draftKey) return;
+
+      setDraftDataByKey(draftKey, data);
     },
-    [store],
+    [draftKey, setDraftDataByKey],
   );
 
   // ==================== handleSend ====================
@@ -233,8 +276,10 @@ export function useComposerDraft({
 
       if (clearDraftOnSend && outcome.shouldClearDraft) {
         // 成功：清空草稿
-        store.setValue('');
-        store.setDraftData({
+        if (!draftKey) return;
+
+        setDraftDataByKey(draftKey, {
+          content: '',
           messageType: undefined,
           templateCode: undefined,
           templateParams: undefined,
@@ -243,10 +288,12 @@ export function useComposerDraft({
         clearDraft();
       } else if (outcome.shouldRollback && content) {
         // 失败需要回滚：回填内容到输入框，保留模板状态方便用户重新发送
-        store.setValue(content);
+        if (!draftKey) return;
+
+        setDraftDataByKey(draftKey, { content });
       }
     },
-    [clearDraft, clearDraftOnSend, onSend, store],
+    [clearDraft, clearDraftOnSend, draftKey, onSend, setDraftDataByKey],
   );
 
   // ==================== 初始化和切换会话 ====================
@@ -257,17 +304,17 @@ export function useComposerDraft({
       enableDraft &&
       !keepDraftOnSwitch &&
       previousKey &&
-      previousKey !== draftStorageKey
+      previousKey !== draftKey
     ) {
       // 不保留草稿时，清空旧 key 对应的草稿
       const oldKey = previousKey;
       if (oldKey && drafts[oldKey]) {
-        store.clearDraft();
+        clearDraftByKey(oldKey);
       }
     }
 
-    previousDraftKeyRef.current = draftStorageKey;
-  }, [draftStorageKey, enableDraft, keepDraftOnSwitch, drafts, store]);
+    previousDraftKeyRef.current = draftKey;
+  }, [clearDraftByKey, draftKey, enableDraft, keepDraftOnSwitch, drafts]);
 
   // ==================== 加载草稿 ====================
   useEffect(() => {
@@ -288,11 +335,12 @@ export function useComposerDraft({
     }
 
     // 设置当前 key（这会触发 legacy 迁移）
-    store.setCurrentDraft(conversationId, channel);
-    loadedDraftKeyRef.current = draftStorageKey;
+    setCurrentDraft(conversationId, channel);
+    loadedDraftKeyRef.current = draftKey;
   }, [
     channel,
     conversationId,
+    draftKey,
     draftStorageKey,
     enableDraft,
     setValue,
@@ -301,7 +349,7 @@ export function useComposerDraft({
     setTemplateParams,
     setTemplateMetadata,
     templateLocked,
-    store,
+    setCurrentDraft,
   ]);
 
   // ==================== 返回值 ====================

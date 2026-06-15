@@ -160,6 +160,35 @@ describe('useComposerDraftStore', () => {
       expect(draft.messageType).toBe(MessageTypeEnum.Template);
       expect(draft.templateCode).toBeUndefined();
     });
+
+    it('按 key 读写草稿时不应受 currentDraftKey 影响', () => {
+      const store = useComposerDraftStore.getState();
+      const firstKey = buildComposerDraftKey('conv-key-1', ChannelTypeEnum.SMS);
+      const secondKey = buildComposerDraftKey(
+        'conv-key-2',
+        ChannelTypeEnum.WhatsApp,
+      );
+
+      store.setCurrentDraft('conv-key-2', ChannelTypeEnum.WhatsApp);
+      store.setDraftDataByKey(firstKey, {
+        content: 'first draft',
+        messageType: MessageTypeEnum.Template,
+      });
+      store.setDraftDataByKey(secondKey, {
+        content: 'second draft',
+      });
+
+      expect(store.getDraftByKey(firstKey)).toMatchObject({
+        content: 'first draft',
+        messageType: MessageTypeEnum.Template,
+      });
+      expect(store.getDraftByKey(secondKey).content).toBe('second draft');
+
+      store.clearDraftByKey(firstKey);
+
+      expect(store.getDraftByKey(firstKey).content).toBe('');
+      expect(store.getDraftByKey(secondKey).content).toBe('second draft');
+    });
   });
 
   describe('buildComposerDraftKey', () => {
