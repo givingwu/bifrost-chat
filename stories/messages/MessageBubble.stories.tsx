@@ -382,7 +382,7 @@ export const WithChannelAccountAndChatbot: Story = {
   },
 };
 
-// 下行消息按“时间、状态、Chatbot、发送号码”展示补充信息
+// 下行消息按上行镜像展示补充信息：发送号码、Chatbot、状态、时间
 export const OutgoingSupplementInfoOrder: Story = {
   args: {
     message: {

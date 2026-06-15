@@ -140,7 +140,7 @@ describe('MessageBubble', () => {
     expect(screen.queryByText('Chatbot')).toBeNull();
   });
 
-  it('下行消息补充信息应按时间、状态、Chatbot、发送号码排序', () => {
+  it('下行消息补充信息应与上行消息镜像排序', () => {
     render(
       <MessageBubble
         message={createMessage({
@@ -154,9 +154,28 @@ describe('MessageBubble', () => {
     );
 
     expectElementsInOrder([
+      screen.getByText('发送号码 6789'),
+      screen.getByText('Chatbot'),
+      screen.getByTestId('mock-status'),
+      screen.getByTestId('mock-timestamp'),
+    ]);
+  });
+
+  it('上行消息补充信息应按时间、状态、发送号码排序', () => {
+    render(
+      <MessageBubble
+        message={createMessage({
+          direction: MessageDirectionEnum.Incoming,
+          metadata: {
+            channelAccount: '628123456789',
+          },
+        })}
+      />,
+    );
+
+    expectElementsInOrder([
       screen.getByTestId('mock-timestamp'),
       screen.getByTestId('mock-status'),
-      screen.getByText('Chatbot'),
       screen.getByText('发送号码 6789'),
     ]);
   });

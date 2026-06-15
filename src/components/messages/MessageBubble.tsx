@@ -157,7 +157,19 @@ export const MessageBubble = memo(
           <div className="mt-1 flex flex-wrap items-center gap-1 px-1">
             {isMe ? (
               <>
-                <MessageTimestamp timestamp={message.timestamp} />
+                {channelAccountTail && (
+                  <span className="inline-flex items-center whitespace-nowrap rounded-full bg-muted px-1.5 py-0.5 text-[10px] leading-none text-text-muted">
+                    {t('message.channelAccountTail', {
+                      tail: channelAccountTail,
+                    })}
+                  </span>
+                )}
+                {isChatbotMessage && (
+                  <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-muted px-1.5 py-0.5 text-[10px] leading-none text-text-muted">
+                    <Bot className="h-3 w-3" aria-hidden="true" />
+                    {t('message.chatbot')}
+                  </span>
+                )}
                 <StatusIndicator status={message.status} showLabel />
                 {message.status === MessageStatusEnum.Failed && (
                   <>
@@ -178,36 +190,12 @@ export const MessageBubble = memo(
                     )}
                   </>
                 )}
-                {isChatbotMessage && (
-                  <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-muted px-1.5 py-0.5 text-[10px] leading-none text-text-muted">
-                    <Bot className="h-3 w-3" aria-hidden="true" />
-                    {t('message.chatbot')}
-                  </span>
-                )}
-                {channelAccountTail && (
-                  <span className="inline-flex items-center whitespace-nowrap rounded-full bg-muted px-1.5 py-0.5 text-[10px] leading-none text-text-muted">
-                    {t('message.channelAccountTail', {
-                      tail: channelAccountTail,
-                    })}
-                  </span>
-                )}
+                <MessageTimestamp timestamp={message.timestamp} />
               </>
             ) : (
               <>
-                {channelAccountTail && (
-                  <span className="inline-flex items-center whitespace-nowrap rounded-full bg-muted px-1.5 py-0.5 text-[10px] leading-none text-text-muted">
-                    {t('message.channelAccountTail', {
-                      tail: channelAccountTail,
-                    })}
-                  </span>
-                )}
-                {isChatbotMessage && (
-                  <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-muted px-1.5 py-0.5 text-[10px] leading-none text-text-muted">
-                    <Bot className="h-3 w-3" aria-hidden="true" />
-                    {t('message.chatbot')}
-                  </span>
-                )}
                 <MessageTimestamp timestamp={message.timestamp} />
+                <StatusIndicator status={message.status} showLabel />
                 {message.status === MessageStatusEnum.Failed && (
                   <>
                     {/* 服务端失败消息：显示错误信息 */}
@@ -228,7 +216,19 @@ export const MessageBubble = memo(
                     )}
                   </>
                 )}
-                <StatusIndicator status={message.status} showLabel />
+                {isChatbotMessage && (
+                  <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-muted px-1.5 py-0.5 text-[10px] leading-none text-text-muted">
+                    <Bot className="h-3 w-3" aria-hidden="true" />
+                    {t('message.chatbot')}
+                  </span>
+                )}
+                {channelAccountTail && (
+                  <span className="inline-flex items-center whitespace-nowrap rounded-full bg-muted px-1.5 py-0.5 text-[10px] leading-none text-text-muted">
+                    {t('message.channelAccountTail', {
+                      tail: channelAccountTail,
+                    })}
+                  </span>
+                )}
               </>
             )}
           </div>
