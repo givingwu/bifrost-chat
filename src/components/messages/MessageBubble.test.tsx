@@ -62,6 +62,18 @@ function createMessage(overrides: Partial<StandardMessage>): StandardMessage {
 }
 
 describe('MessageBubble', () => {
+  function expectElementsInOrder(elements: HTMLElement[]) {
+    for (let index = 0; index < elements.length - 1; index += 1) {
+      const current = elements[index];
+      const next = elements[index + 1];
+
+      expect(
+        current.compareDocumentPosition(next) &
+          Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy();
+    }
+  }
+
   it('服务端 ACK 导致失败时，应展示错误文案（即使没有 _offlineMessageId）', () => {
     render(
       <MessageBubble
@@ -126,5 +138,26 @@ describe('MessageBubble', () => {
     );
 
     expect(screen.queryByText('Chatbot')).toBeNull();
+  });
+
+  it('下行消息补充信息应按时间、状态、Chatbot、发送号码排序', () => {
+    render(
+      <MessageBubble
+        message={createMessage({
+          direction: MessageDirectionEnum.Outgoing,
+          metadata: {
+            channelAccount: '628123456789',
+            senderType: PacketSenderTypeEnum.Chatbot,
+          },
+        })}
+      />,
+    );
+
+    expectElementsInOrder([
+      screen.getByTestId('mock-timestamp'),
+      screen.getByTestId('mock-status'),
+      screen.getByText('Chatbot'),
+      screen.getByText('发送号码 6789'),
+    ]);
   });
 });
