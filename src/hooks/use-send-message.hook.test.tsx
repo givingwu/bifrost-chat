@@ -9,6 +9,7 @@ import {
   MessageFailureTypeEnum,
   type MessageSendResult,
   MessageStatusEnum,
+  type MessageStatusUpdatedEvent,
   type StandardMessage,
 } from '@/interfaces/message.interface';
 import {
@@ -16,13 +17,20 @@ import {
   NetworkReachabilityEnum,
   NetworkStatusEnum,
 } from '@/interfaces/network.interface';
+import {
+  PacketMessageTypeEnum,
+  PacketSenderTypeEnum,
+  type RawPacket,
+} from '@/interfaces/protocol.interface';
 import { queryKeys } from '@/providers/query.provider';
 import { ServiceProvider } from '@/providers/service.provider';
 import type { IConversationService } from '@/services/core/conversation.service';
 import type { IMessageService } from '@/services/core/message.service';
 import type { ITemplateService } from '@/services/core/template.service';
 import { messageQueue } from '@/services/messaging/message-queue.service';
+import { MessageSyncService } from '@/services/messaging/message-sync.service';
 import { pendingMessageTracker } from '@/services/messaging/pending-message-tracker.service';
+import { AckPacketHandler } from '@/services/websocket/handlers/ack-packet.handler';
 import type { CurrentUser } from '@/store';
 import { useSendMessage } from './use-send-message.hook';
 
@@ -656,6 +664,88 @@ describe('useSendMessage Hook', () => {
       expect(sentMessage?.id).toBe('message-2001');
       expect(sentMessage?.error).toBeUndefined();
     });
+  });
+
+  it('服务返回 tempId 后，后续 ACK metadata 应能更新同一条 UI 消息', async () => {
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+      },
+    });
+    const conversationId = 'conv-ack-metadata';
+
+    queryClient.setQueryData(
+      queryKeys.messages.list(conversationId, ACTIVE_CHANNEL),
+      {
+        pages: [{ items: [] }],
+        pageParams: [1],
+      },
+    );
+
+    vi.mocked(mockMessageService.send).mockResolvedValue({
+      tempId: 'chat_1781695112582_rfdb77bnz',
+      messageId: 'server-message-id',
+      status: MessageStatusEnum.Sent,
+    } satisfies MessageSendResult);
+
+    const { result } = renderHook(() => useSendMessage(), {
+      wrapper: createTestWrapper(queryClient),
+    });
+
+    await act(async () => {
+      await result.current.mutateAsync({
+        conversationId,
+        content: 'hello ack metadata',
+      });
+    });
+
+    const packet = {
+      id: 'fd7d0e23d4c349758d847bb5c5e7308c',
+      chatId: conversationId,
+      from: {
+        app: 'fox_collect.waiter',
+        pin: '@im.kn.com',
+        channelType: ChannelTypeEnum.WhatsApp,
+      },
+      to: {
+        app: 'fox_collect.waiter',
+        pin: '0535286044634614ac8356a72d727228',
+        channelType: ChannelTypeEnum.WhatsApp,
+      },
+      ptype: PacketMessageTypeEnum.MessageStatusAck,
+      body: {
+        mid: 0,
+        app: 'fox_collect.waiter',
+        sender: '0535286044634614ac8356a72d727228',
+        id: 'chat_1781695112582_rfdb77bnz',
+        chatId: conversationId,
+        status: 'un_send',
+        timestamp: 1_781_695_113_819,
+        errorInfo: 'send msg fail',
+      },
+      mid: 0,
+      ver: null,
+      entry: null,
+      status: null,
+      channelAccount: 'whatsapp-account-001',
+      senderType: PacketSenderTypeEnum.Chatbot,
+      timestamp: 1_781_695_113_819,
+    } as unknown as RawPacket;
+
+    const ackResult = new AckPacketHandler().handle({ packet });
+    const syncService = new MessageSyncService(queryClient);
+    syncService.updateMessageStatus(
+      ackResult.eventData?.data as MessageStatusUpdatedEvent,
+    );
+
+    const message = getMessages(queryClient, conversationId)[0];
+    expect(message?.metadata).toEqual(
+      expect.objectContaining({
+        channelAccount: 'whatsapp-account-001',
+        senderType: PacketSenderTypeEnum.Chatbot,
+      }),
+    );
   });
 
   it('服务端返回网络失败结果时应保留失败消息并写入离线队列', async () => {

@@ -75,6 +75,22 @@ describe('MessageQueueService', () => {
     );
   });
 
+  it('应支持绑定额外 ACK 标识并在出队时清理', () => {
+    queue.enqueue({
+      requestId: 'req-123',
+      tempId: 'temp-123',
+      conversationId: 'conv-456',
+    });
+
+    queue.bindAckIdentifier('temp-123', 'ack-temp-789');
+
+    expect(queue.findById('ack-temp-789')?.conversationId).toBe('conv-456');
+
+    queue.dequeue('temp-123');
+
+    expect(queue.findById('ack-temp-789')).toBeUndefined();
+  });
+
   it('应通过 receipt ack 把原消息推进为 delivered/read', () => {
     queue.enqueueReceiptAck({
       ackRequestId: 'receive-ack-1',
