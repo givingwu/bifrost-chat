@@ -386,7 +386,13 @@ export class AckHandler {
     ackData: AckData,
   ): MessageStatusEnum | undefined {
     if (ackData.body.status !== undefined) {
-      return mapCallbackMessageStatusToLocal(ackData.body.status);
+      const mapped = mapCallbackMessageStatusToLocal(ackData.body.status);
+
+      if (mapped === MessageStatusEnum.Sent && ackData.body.errorInfo) {
+        return MessageStatusEnum.Failed;
+      }
+
+      return mapped;
     }
 
     return AckHandler.ackTypeToMessageStatus(ackData.body.type);

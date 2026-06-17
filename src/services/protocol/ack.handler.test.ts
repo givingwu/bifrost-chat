@@ -6,7 +6,7 @@ import {
   PacketMessageTypeEnum,
   PacketSenderTypeEnum,
 } from '@/interfaces/protocol.interface';
-import { AckHandler } from '@/services/protocol/ack.handler';
+import { type AckData, AckHandler } from '@/services/protocol/ack.handler';
 
 describe('AckHandler', () => {
   describe('createReadAck', () => {
@@ -486,6 +486,39 @@ describe('AckHandler', () => {
           ackData as NonNullable<typeof ackData>,
         ),
       ).toBe(MessageStatusEnum.Clicked);
+    });
+
+    it('应将 UN_SEND + errorInfo 解析为 Failed', () => {
+      const ackData: AckData = {
+        id: 'msg-123',
+        ptype: PacketMessageTypeEnum.MessageStatusAck,
+        body: {
+          type: PacketMessageTypeEnum.MessageStatusAck,
+          id: 'msg-123',
+          status: 'un_send',
+          errorInfo: 'send msg fail',
+        },
+      };
+
+      expect(AckHandler.ackDataToMessageStatus(ackData)).toBe(
+        MessageStatusEnum.Failed,
+      );
+    });
+
+    it('应将 UN_SEND 无 errorInfo 解析为 Sent', () => {
+      const ackData: AckData = {
+        id: 'msg-123',
+        ptype: PacketMessageTypeEnum.MessageStatusAck,
+        body: {
+          type: PacketMessageTypeEnum.MessageStatusAck,
+          id: 'msg-123',
+          status: 'un_send',
+        },
+      };
+
+      expect(AckHandler.ackDataToMessageStatus(ackData)).toBe(
+        MessageStatusEnum.Sent,
+      );
     });
 
     it('当 body.status 非法时应返回 undefined，而不是回退为已读', () => {
