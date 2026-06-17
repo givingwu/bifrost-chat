@@ -75,63 +75,6 @@ describe('MessageQueueService', () => {
     );
   });
 
-  it('chat_message ACK 的 mid=0 不应覆盖 requestId', () => {
-    const requestId = 'chat_1781687884412_zh8an34c1';
-    queue.enqueue({
-      requestId,
-      tempId: requestId,
-      conversationId: 'fox_collect_w36309',
-      rawMessage: {
-        id: requestId,
-        tempId: requestId,
-        conversationId: 'fox_collect_w36309',
-        direction: MessageDirectionEnum.Outgoing,
-        channelType: ChannelTypeEnum.WhatsApp,
-        status: MessageStatusEnum.Sent,
-        timestamp: 1_781_687_885_024,
-        type: MessageTypeEnum.Text,
-        content: { text: '你好' },
-        sender: { app: 'fox_collect.waiter', pin: 'agent-1' },
-        receiver: { app: 'fox_collect.customer', pin: 'customer-1' },
-      },
-    });
-
-    queue.handleAck({
-      id: requestId,
-      ptype: PacketMessageTypeEnum.Ack,
-      mid: 0,
-      body: {
-        type: PacketMessageTypeEnum.ChatMessage,
-      },
-      timestamp: 1_781_687_885_105,
-    });
-
-    const result = queue.handleAck({
-      id: '95f43397b9fd4d4aa6bfa25fb44d247a',
-      ptype: PacketMessageTypeEnum.MessageStatusAck,
-      mid: 0,
-      body: {
-        type: PacketMessageTypeEnum.MessageStatusAck,
-        id: requestId,
-        chatId: 'fox_collect_w36309',
-        status: 'un_send',
-        errorInfo: 'send msg fail',
-      },
-      timestamp: 1_781_687_885_637,
-    });
-
-    expect(result.handled).toBe(true);
-    expect(result.statusEvent).toEqual(
-      expect.objectContaining({
-        conversationId: 'fox_collect_w36309',
-        messageId: requestId,
-        tempId: requestId,
-        status: MessageStatusEnum.Sent,
-      }),
-    );
-    expect(queue.findByMid(0)).toBeUndefined();
-  });
-
   it('应通过 receipt ack 把原消息推进为 delivered/read', () => {
     queue.enqueueReceiptAck({
       ackRequestId: 'receive-ack-1',

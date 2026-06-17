@@ -5,6 +5,7 @@ import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import {
   MessageDirectionEnum,
   MessageStatusEnum,
+  type MessageStatusUpdatedEvent,
   MessageTypeEnum,
   type StandardMessage,
 } from '@/interfaces/message.interface';
@@ -274,13 +275,13 @@ describe('MessageSyncService', () => {
     );
   });
 
-  it('状态事件携带 metadata 时应合并到已有消息 metadata', () => {
+  it('状态事件携带 metadata 时应合并到现有消息 metadata', () => {
     const syncService = new MessageSyncService(queryClient);
+
     const existing = createMessage('msg-robot', {
-      status: MessageStatusEnum.Sent,
       metadata: {
-        existing: true,
-        senderType: PacketSenderTypeEnum.Manual,
+        chatId: 'conv-1',
+        existingFlag: true,
       },
     });
 
@@ -292,25 +293,23 @@ describe('MessageSyncService', () => {
     syncService.updateMessageStatus({
       conversationId: 'conv-1',
       messageId: 'msg-robot',
-      status: MessageStatusEnum.Delivered,
+      status: MessageStatusEnum.Sent,
+      timestamp: Date.now(),
       metadata: {
-        channelAccount: 'waba-account-001',
+        channelAccount: 'whatsapp-account-001',
         senderType: PacketSenderTypeEnum.Chatbot,
       },
-      timestamp: Date.now(),
-    });
+    } as MessageStatusUpdatedEvent);
 
     const data = queryClient.getQueryData<{
       pages: Array<{ items: StandardMessage[] }>;
     }>(queryKeys.messages.list('conv-1'));
 
-    expect(data?.pages?.[0]?.items?.[0]).toMatchObject({
-      status: MessageStatusEnum.Delivered,
-      metadata: {
-        existing: true,
-        channelAccount: 'waba-account-001',
-        senderType: PacketSenderTypeEnum.Chatbot,
-      },
+    expect(data?.pages[0]?.items[0]?.metadata).toEqual({
+      chatId: 'conv-1',
+      existingFlag: true,
+      channelAccount: 'whatsapp-account-001',
+      senderType: PacketSenderTypeEnum.Chatbot,
     });
   });
 

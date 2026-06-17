@@ -4,6 +4,7 @@ import {
   AckMessageTypeEnum,
   type AckPacketBody,
   PacketMessageTypeEnum,
+  PacketSenderTypeEnum,
 } from '@/interfaces/protocol.interface';
 import { AckHandler } from '@/services/protocol/ack.handler';
 
@@ -354,6 +355,43 @@ describe('AckHandler', () => {
 
       expect(ackData?.body.status).toBe('SEND_FAIL');
       expect(ackData?.body.errorInfo).toBe('provider rejected');
+    });
+
+    it('message_status_ack 应解析 packet 顶层 senderType 和 channelAccount', () => {
+      const data = {
+        ptype: PacketMessageTypeEnum.MessageStatusAck,
+        channelAccount: 'whatsapp-account-001',
+        senderType: 1,
+        body: {
+          id: 'msg-real-robot',
+          chatId: 'conv-robot',
+          status: 'un_send',
+          timestamp: 1769063279192,
+        },
+      };
+
+      const ackData = AckHandler.parseDownstream(data);
+
+      expect(ackData?.channelAccount).toBe('whatsapp-account-001');
+      expect(ackData?.senderType).toBe(PacketSenderTypeEnum.Chatbot);
+    });
+
+    it('普通 ACK 应解析 packet 顶层 senderType 和 channelAccount', () => {
+      const data = {
+        id: 'msg-ack-robot',
+        ptype: PacketMessageTypeEnum.Ack,
+        channelAccount: 'whatsapp-account-002',
+        senderType: '1',
+        body: {
+          type: PacketMessageTypeEnum.ChatMessage,
+        },
+        timestamp: 1769063279192,
+      };
+
+      const ackData = AckHandler.parseDownstream(data);
+
+      expect(ackData?.channelAccount).toBe('whatsapp-account-002');
+      expect(ackData?.senderType).toBe(PacketSenderTypeEnum.Chatbot);
     });
   });
 
