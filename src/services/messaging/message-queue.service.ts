@@ -118,11 +118,16 @@ const OUTGOING_STATUS_PRIORITY: Record<MessageStatusEnum, number> = {
  * @returns 转换后的服务端消息 ID，无效时返回 undefined
  */
 function toServerMessageId(value: unknown): string | undefined {
-  if (typeof value === 'string' && value) {
-    return value;
+  if (typeof value === 'string') {
+    const normalizedValue = value.trim();
+    if (normalizedValue && normalizedValue !== '0') {
+      return normalizedValue;
+    }
+    return undefined;
   }
 
-  if (typeof value === 'number' && Number.isFinite(value)) {
+  // 后端 ACK 中 mid=0 表示还没有有效服务端消息 ID。
+  if (typeof value === 'number' && Number.isFinite(value) && value > 0) {
     return String(value);
   }
 

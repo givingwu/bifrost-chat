@@ -443,6 +443,30 @@ describe('AckPacketHandler', () => {
         },
       });
 
+      handler.handle({
+        packet: {
+          id: requestId,
+          chatId: null as unknown as string,
+          ptype: PacketMessageTypeEnum.Ack,
+          from: {
+            app: 'fox_collect.waiter',
+            pin: '@im.kn.com',
+            clientType: null,
+            channelType: ChannelTypeEnum.WhatsApp,
+          },
+          to: {
+            app: 'fox_collect.waiter',
+            pin: '0535286044634614ac8356a72d727228',
+            clientType: ClientTypeEnum.Web,
+            channelType: ChannelTypeEnum.WhatsApp,
+          },
+          body: { type: PacketMessageTypeEnum.ChatMessage },
+          mid: 0,
+          ver: '1.0.0',
+          timestamp: 1_781_686_136_742,
+        } as unknown as RawPacket,
+      });
+
       const packet = {
         id: 'eced5d83fc764d3face9c81229854df9',
         chatId: conversationId,
