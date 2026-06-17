@@ -76,7 +76,6 @@ export class MessageSyncService {
     const updates = {
       status: event.status,
       ...(event.error !== undefined ? { error: event.error } : {}),
-      ...(event.metadata ? { metadata: event.metadata } : {}),
     };
 
     // 1) 始终兼容无 channel 的缓存

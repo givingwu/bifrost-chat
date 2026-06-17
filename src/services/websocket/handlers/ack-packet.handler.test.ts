@@ -2,15 +2,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import {
   ClientTypeEnum,
-  MessageDirectionEnum,
   MessageStatusEnum,
   type MessageStatusUpdatedEvent,
-  MessageTypeEnum,
 } from '@/interfaces/message.interface';
 import {
   AckMessageTypeEnum,
   PacketMessageTypeEnum,
-  PacketSenderTypeEnum,
   type RawPacket,
 } from '@/interfaces/protocol.interface';
 import { messageQueue } from '@/services/messaging/message-queue.service';
@@ -158,43 +155,6 @@ describe('AckPacketHandler', () => {
       expect(getStatusEventData(result).tempId).toBe('temp-origin-1');
       expect(getStatusEventData(result).status).toBe(
         MessageStatusEnum.Delivered,
-      );
-    });
-
-    it('队列命中 ACK 时应把 Packet 顶层业务字段透传到状态事件 metadata', () => {
-      messageQueue.enqueueReceiptAck({
-        ackRequestId: 'ack-robot',
-        conversationId: 'conv-robot',
-        targetMessageId: 'msg-origin-robot',
-        targetTempId: 'temp-origin-robot',
-        targetStatus: MessageStatusEnum.Delivered,
-      });
-
-      const packet: RawPacket = {
-        id: 'ack-robot',
-        chatId: 'conv-robot',
-        ptype: PacketMessageTypeEnum.Ack,
-        from: {
-          app: 'test',
-          pin: 'server',
-          channelType: ChannelTypeEnum.WhatsApp,
-        },
-        to: { app: 'test', pin: 'user' },
-        channelAccount: 'waba-account-003',
-        senderType: PacketSenderTypeEnum.Chatbot,
-        body: { type: AckMessageTypeEnum.MsgReceiveAck },
-        ver: '1.0',
-        timestamp: 1_700,
-      };
-
-      const result = handler.handle({ packet });
-
-      expect(getStatusEventData(result).metadata).toEqual(
-        expect.objectContaining({
-          chatId: 'conv-robot',
-          channelAccount: 'waba-account-003',
-          senderType: PacketSenderTypeEnum.Chatbot,
-        }),
       );
     });
 
@@ -388,135 +348,6 @@ describe('AckPacketHandler', () => {
       const result = handler.handle({ packet });
 
       expect(getStatusEventData(result).status).toBe(MessageStatusEnum.Read);
-    });
-
-    it('message_status_ack fallback 应把 Packet 顶层业务字段透传到状态事件 metadata', () => {
-      const packet = {
-        id: 'packet-wrapper-id',
-        chatId: null as unknown as string,
-        ptype: PacketMessageTypeEnum.MessageStatusAck,
-        from: { app: 'test', pin: 'server' },
-        to: { app: 'test', pin: 'user' },
-        channelAccount: 'waba-account-004',
-        senderType: PacketSenderTypeEnum.Chatbot,
-        body: {
-          id: 'msg-read-robot',
-          chatId: 'conv-robot',
-          status: 'READ',
-          timestamp: Date.now(),
-        },
-        ver: '1.0',
-        timestamp: Date.now(),
-      } as unknown as RawPacket;
-
-      const result = handler.handle({ packet });
-
-      expect(getStatusEventData(result).metadata).toEqual(
-        expect.objectContaining({
-          channelAccount: 'waba-account-004',
-          senderType: PacketSenderTypeEnum.Chatbot,
-        }),
-      );
-    });
-
-    it('队列已是 sent 时，message_status_ack 携带 senderType 仍应派发状态事件以合并 metadata', () => {
-      const requestId = 'chat_1781686136031_ayz62v6lp';
-      const conversationId = 'fox_collect_w37507';
-
-      messageQueue.enqueue({
-        requestId,
-        tempId: requestId,
-        conversationId,
-        channelType: ChannelTypeEnum.WhatsApp,
-        rawMessage: {
-          id: requestId,
-          tempId: requestId,
-          conversationId,
-          direction: MessageDirectionEnum.Outgoing,
-          channelType: ChannelTypeEnum.WhatsApp,
-          status: MessageStatusEnum.Sent,
-          timestamp: 1_781_686_136_618,
-          type: MessageTypeEnum.Text,
-          content: { text: '你好' },
-          sender: { app: 'fox_collect.waiter', pin: 'agent-1' },
-          receiver: { app: 'fox_collect.customer', pin: 'customer-1' },
-        },
-      });
-
-      handler.handle({
-        packet: {
-          id: requestId,
-          chatId: null as unknown as string,
-          ptype: PacketMessageTypeEnum.Ack,
-          from: {
-            app: 'fox_collect.waiter',
-            pin: '@im.kn.com',
-            clientType: null,
-            channelType: ChannelTypeEnum.WhatsApp,
-          },
-          to: {
-            app: 'fox_collect.waiter',
-            pin: '0535286044634614ac8356a72d727228',
-            clientType: ClientTypeEnum.Web,
-            channelType: ChannelTypeEnum.WhatsApp,
-          },
-          body: { type: PacketMessageTypeEnum.ChatMessage },
-          mid: 0,
-          ver: '1.0.0',
-          timestamp: 1_781_686_136_742,
-        } as unknown as RawPacket,
-      });
-
-      const packet = {
-        id: 'eced5d83fc764d3face9c81229854df9',
-        chatId: conversationId,
-        ptype: PacketMessageTypeEnum.MessageStatusAck,
-        from: {
-          app: 'fox_collect.waiter',
-          pin: '@im.kn.com',
-          clientType: null,
-          channelType: ChannelTypeEnum.WhatsApp,
-        },
-        to: {
-          app: 'fox_collect.waiter',
-          pin: '0535286044634614ac8356a72d727228',
-          clientType: null,
-          channelType: ChannelTypeEnum.WhatsApp,
-        },
-        channelAccount: 'whatsapp-account-001',
-        senderType: PacketSenderTypeEnum.Chatbot,
-        body: {
-          mid: 0,
-          app: 'fox_collect.waiter',
-          sender: '0535286044634614ac8356a72d727228',
-          id: requestId,
-          chatId: conversationId,
-          status: 'un_send',
-          timestamp: 1_781_686_137_719,
-          errorInfo: 'send msg fail',
-        },
-        mid: 0,
-        ver: null,
-        entry: null,
-        status: null,
-        timestamp: 1_781_686_137_719,
-      } as unknown as RawPacket;
-
-      const result = handler.handle({ packet });
-
-      expect(result.eventData).not.toBeNull();
-      expect(getStatusEventData(result)).toEqual(
-        expect.objectContaining({
-          conversationId,
-          messageId: requestId,
-          status: MessageStatusEnum.Sent,
-          metadata: expect.objectContaining({
-            chatId: conversationId,
-            channelAccount: 'whatsapp-account-001',
-            senderType: PacketSenderTypeEnum.Chatbot,
-          }),
-        }),
-      );
     });
 
     it('应处理 message_status_ack（SEND_FAIL + errorInfo → Failed + error）', () => {

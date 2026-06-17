@@ -118,16 +118,11 @@ const OUTGOING_STATUS_PRIORITY: Record<MessageStatusEnum, number> = {
  * @returns 转换后的服务端消息 ID，无效时返回 undefined
  */
 function toServerMessageId(value: unknown): string | undefined {
-  if (typeof value === 'string') {
-    const normalizedValue = value.trim();
-    if (normalizedValue && normalizedValue !== '0') {
-      return normalizedValue;
-    }
-    return undefined;
+  if (typeof value === 'string' && value) {
+    return value;
   }
 
-  // 后端 ACK 中 mid=0 表示还没有有效服务端消息 ID。
-  if (typeof value === 'number' && Number.isFinite(value) && value > 0) {
+  if (typeof value === 'number' && Number.isFinite(value)) {
     return String(value);
   }
 
@@ -988,10 +983,7 @@ export class MessageQueueService {
     }
 
     if (shouldKeepExistingOutgoingStatus(item.rawMessage?.status, nextStatus)) {
-      return {
-        handled: true,
-        statusEvent: this.createRetainedOutgoingStatusEvent(item, ackData),
-      };
+      return { handled: true };
     }
 
     const nextStage =
@@ -1071,31 +1063,6 @@ export class MessageQueueService {
         ? { error: this.extractErrorInfo(ackData) }
         : {}),
       timestamp: item.updatedAt,
-    };
-  }
-
-  /**
-   * 构建状态不推进时的回执事件。
-   *
-   * @description
-   * 有些 ACK 只携带新增业务字段，例如 message_status_ack 中的 senderType。
-   * 当前状态已相同或更高时不应降级，但仍要返回事件让上层合并 Packet metadata。
-   *
-   * @param item 外发消息队列项
-   * @param ackData ACK 数据
-   * @returns 保留当前状态的消息状态更新事件
-   */
-  private createRetainedOutgoingStatusEvent(
-    item: OutgoingMessageQueueItem,
-    ackData: AckData,
-  ): MessageStatusUpdatedEvent {
-    return {
-      conversationId: item.conversationId,
-      messageId: item.serverMessageId ?? item.requestId,
-      tempId: item.tempId,
-      channelType: item.channelType,
-      status: item.rawMessage?.status ?? MessageStatusEnum.Sent,
-      timestamp: ackData.timestamp ?? Date.now(),
     };
   }
 
