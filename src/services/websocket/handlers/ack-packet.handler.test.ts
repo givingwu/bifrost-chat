@@ -459,7 +459,7 @@ describe('AckPacketHandler', () => {
           clientType: null,
           channelType: ChannelTypeEnum.WhatsApp,
         },
-        channelAccount: null,
+        channelAccount: 'whatsapp-account-001',
         senderType: PacketSenderTypeEnum.Chatbot,
         body: {
           mid: 0,
@@ -488,6 +488,7 @@ describe('AckPacketHandler', () => {
           status: MessageStatusEnum.Sent,
           metadata: expect.objectContaining({
             chatId: conversationId,
+            channelAccount: 'whatsapp-account-001',
             senderType: PacketSenderTypeEnum.Chatbot,
           }),
         }),
