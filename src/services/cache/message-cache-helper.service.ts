@@ -116,6 +116,13 @@ function mergeMessageUpdates(
     mergedMessage.status = currentMessage.status;
   }
 
+  if (updates.metadata) {
+    mergedMessage.metadata = {
+      ...currentMessage.metadata,
+      ...updates.metadata,
+    };
+  }
+
   return mergedMessage;
 }
 

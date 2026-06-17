@@ -12,6 +12,7 @@ import {
   AckMessageTypeEnum,
   isPacketBodyRecord,
   PacketMessageTypeEnum,
+  PacketSenderTypeEnum,
 } from '@/interfaces/protocol.interface';
 import { MessageBuilder } from '@/services/messaging/message-builder.service';
 import { mapCallbackMessageStatusToLocal } from '@/services/protocol/status.mapper';
@@ -29,6 +30,10 @@ export interface AckData {
   id: string;
   /** 协议消息类型枚举 */
   ptype: PacketMessageTypeEnum;
+  /** Packet 顶层通道账号 */
+  channelAccount?: string;
+  /** Packet 顶层发送者类型 */
+  senderType?: PacketSenderTypeEnum;
   /** Body */
   body: {
     type: string;
@@ -97,6 +102,43 @@ export interface AckFromParticipant
  */
 // biome-ignore lint/complexity/noStaticOnlyClass: <- 该类仅包含静态方法，符合设计预期>
 export class AckHandler {
+  private static normalizeSenderType(
+    senderType: unknown,
+  ): PacketSenderTypeEnum | undefined {
+    if (
+      senderType === PacketSenderTypeEnum.Chatbot ||
+      senderType === String(PacketSenderTypeEnum.Chatbot)
+    ) {
+      return PacketSenderTypeEnum.Chatbot;
+    }
+
+    if (
+      senderType === PacketSenderTypeEnum.Manual ||
+      senderType === String(PacketSenderTypeEnum.Manual)
+    ) {
+      return PacketSenderTypeEnum.Manual;
+    }
+
+    return undefined;
+  }
+
+  private static buildPacketBusinessFields(
+    packet: Record<string, unknown>,
+  ): Pick<AckData, 'channelAccount' | 'senderType'> {
+    const fields: Pick<AckData, 'channelAccount' | 'senderType'> = {};
+
+    if (typeof packet.channelAccount === 'string' && packet.channelAccount) {
+      fields.channelAccount = packet.channelAccount;
+    }
+
+    const senderType = AckHandler.normalizeSenderType(packet.senderType);
+    if (senderType !== undefined) {
+      fields.senderType = senderType;
+    }
+
+    return fields;
+  }
+
   /**
    * 创建已读 ACK 消息
    *
@@ -222,6 +264,7 @@ export class AckHandler {
     return {
       id: messageId,
       ptype: packet.ptype as PacketMessageTypeEnum,
+      ...AckHandler.buildPacketBusinessFields(packet),
       body: {
         type: packet.body.type,
         ...buildOptionalFields({
@@ -272,6 +315,7 @@ export class AckHandler {
     return {
       id: messageId,
       ptype: PacketMessageTypeEnum.MessageStatusAck,
+      ...AckHandler.buildPacketBusinessFields(packet),
       body: {
         // type 设为 ptype 本身，因为新协议的 body 中没有独立的 type 字段
         type: PacketMessageTypeEnum.MessageStatusAck,

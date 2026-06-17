@@ -5,9 +5,11 @@ import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import {
   MessageDirectionEnum,
   MessageStatusEnum,
+  type MessageStatusUpdatedEvent,
   MessageTypeEnum,
   type StandardMessage,
 } from '@/interfaces/message.interface';
+import { PacketSenderTypeEnum } from '@/interfaces/protocol.interface';
 import { queryKeys } from '@/providers/query.provider';
 import { ConversationCacheHelper } from '@/services/cache/conversation-cache-helper.service';
 import { MessageCacheHelper } from '@/services/cache/message-cache-helper.service';
@@ -271,6 +273,44 @@ describe('MessageSyncService', () => {
       'msg-1',
       undefined,
     );
+  });
+
+  it('状态事件携带 metadata 时应合并到现有消息 metadata', () => {
+    const syncService = new MessageSyncService(queryClient);
+
+    const existing = createMessage('msg-robot', {
+      metadata: {
+        chatId: 'conv-1',
+        existingFlag: true,
+      },
+    });
+
+    queryClient.setQueryData(queryKeys.messages.list('conv-1'), {
+      pages: [{ items: [existing] }],
+      pageParams: [undefined],
+    });
+
+    syncService.updateMessageStatus({
+      conversationId: 'conv-1',
+      messageId: 'msg-robot',
+      status: MessageStatusEnum.Sent,
+      timestamp: Date.now(),
+      metadata: {
+        channelAccount: 'whatsapp-account-001',
+        senderType: PacketSenderTypeEnum.Chatbot,
+      },
+    } as MessageStatusUpdatedEvent);
+
+    const data = queryClient.getQueryData<{
+      pages: Array<{ items: StandardMessage[] }>;
+    }>(queryKeys.messages.list('conv-1'));
+
+    expect(data?.pages[0]?.items[0]?.metadata).toEqual({
+      chatId: 'conv-1',
+      existingFlag: true,
+      channelAccount: 'whatsapp-account-001',
+      senderType: PacketSenderTypeEnum.Chatbot,
+    });
   });
 
   it('状态事件缺失 channelType 时不应更新分片缓存', () => {

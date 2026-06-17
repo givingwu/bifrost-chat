@@ -7,7 +7,10 @@
  * @module services/websocket/handlers
  */
 
-import { MessageStatusEnum } from '@/interfaces/message.interface';
+import {
+  MessageStatusEnum,
+  type MessageStatusUpdatedEvent,
+} from '@/interfaces/message.interface';
 import {
   AckMessageTypeEnum,
   isPacketBodyRecord,
@@ -20,7 +23,7 @@ import type {
 import { WebSocketEventTypeEnum } from '@/interfaces/websocket.interface';
 import { messageQueue } from '@/services/messaging/message-queue.service';
 import { pendingMessageTracker } from '@/services/messaging/pending-message-tracker.service';
-import { AckHandler } from '@/services/protocol';
+import { type AckData, AckHandler } from '@/services/protocol/ack.handler';
 import { BasePacketHandler } from './base-packet.handler';
 
 /**
@@ -83,7 +86,11 @@ export class AckPacketHandler extends BasePacketHandler {
     if (queueResult.handled) {
       this.cleanupMapping(ackData.id);
 
-      if (!queueResult.statusEvent) {
+      const statusEvent = queueResult.statusEvent
+        ? this.withAckMetadata(queueResult.statusEvent, ackData)
+        : this.createRetainedAckStatusEvent(packet, ackData);
+
+      if (!statusEvent) {
         return {
           eventData: null,
           shouldContinue: false,
@@ -93,7 +100,7 @@ export class AckPacketHandler extends BasePacketHandler {
       return {
         eventData: this.createEventData(
           WebSocketEventTypeEnum.MessageStatus,
-          queueResult.statusEvent,
+          statusEvent,
         ),
         shouldContinue: true,
       };
@@ -121,10 +128,7 @@ export class AckPacketHandler extends BasePacketHandler {
       ackData.body.chatId,
     );
 
-    if (
-      !conversationId &&
-      packet.ptype !== PacketMessageTypeEnum.ClientHeartbeat
-    ) {
+    if (!conversationId) {
       console.warn('[AckPacketHandler] 无法确定 conversationId，跳过状态更新', {
         messageId,
         packetChatId: packet.chatId,
@@ -148,12 +152,15 @@ export class AckPacketHandler extends BasePacketHandler {
     // 处理完成后移除映射（无论成功与否）
     this.cleanupMapping(messageId);
 
+    const ackMetadata = this.buildAckMetadata(ackData, conversationId);
+
     // 构建 ACK 事件数据
     const ackEventData = {
       conversationId,
       messageId,
       channelType: packet.from.channelType ?? packet.to.channelType,
       timestamp: ackData.timestamp ?? Date.now(),
+      ...(ackMetadata ? { metadata: ackMetadata } : {}),
     };
 
     return {
@@ -223,5 +230,82 @@ export class AckPacketHandler extends BasePacketHandler {
    */
   private cleanupMapping(messageId: string): void {
     pendingMessageTracker.remove(messageId);
+  }
+
+  private createRetainedAckStatusEvent(
+    packet: PacketHandlerContext['packet'],
+    ackData: AckData,
+  ): MessageStatusUpdatedEvent | undefined {
+    const messageId = ackData.body.id ?? ackData.id;
+    const conversationId = this.resolveConversationId(
+      packet,
+      messageId,
+      ackData.body.chatId,
+    );
+    const status = AckHandler.ackDataToMessageStatus(ackData);
+    const metadata = conversationId
+      ? this.buildAckMetadata(ackData, conversationId)
+      : undefined;
+
+    if (!conversationId || !status || !metadata) {
+      return undefined;
+    }
+
+    return {
+      conversationId,
+      messageId,
+      channelType: packet.from.channelType ?? packet.to.channelType,
+      status,
+      ...(status === MessageStatusEnum.Failed && ackData.body.errorInfo
+        ? { error: ackData.body.errorInfo }
+        : {}),
+      metadata,
+      timestamp: ackData.timestamp ?? Date.now(),
+    };
+  }
+
+  private withAckMetadata(
+    statusEvent: MessageStatusUpdatedEvent,
+    ackData: AckData,
+  ): MessageStatusUpdatedEvent {
+    const metadata = this.buildAckMetadata(ackData, statusEvent.conversationId);
+
+    if (!metadata) {
+      return statusEvent;
+    }
+
+    return {
+      ...statusEvent,
+      metadata: {
+        ...statusEvent.metadata,
+        ...metadata,
+      },
+    };
+  }
+
+  private buildAckMetadata(
+    ackData: AckData,
+    conversationId: string,
+  ): Record<string, unknown> | undefined {
+    const metadata: Record<string, unknown> = {
+      chatId: ackData.body.chatId ?? conversationId,
+    };
+    let hasBusinessMetadata = false;
+
+    if (ackData.channelAccount) {
+      metadata.channelAccount = ackData.channelAccount;
+      hasBusinessMetadata = true;
+    }
+
+    if (ackData.senderType !== undefined) {
+      metadata.senderType = ackData.senderType;
+      hasBusinessMetadata = true;
+    }
+
+    if (!hasBusinessMetadata) {
+      return undefined;
+    }
+
+    return metadata;
   }
 }
