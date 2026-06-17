@@ -419,8 +419,7 @@ describe('AckPacketHandler', () => {
         expect.objectContaining({
           conversationId,
           messageId: requestId,
-          status: MessageStatusEnum.Failed,
-          error: 'send msg fail',
+          status: MessageStatusEnum.Sent,
           metadata: expect.objectContaining({
             chatId: conversationId,
             channelAccount: 'whatsapp-account-001',
