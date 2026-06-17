@@ -983,7 +983,10 @@ export class MessageQueueService {
     }
 
     if (shouldKeepExistingOutgoingStatus(item.rawMessage?.status, nextStatus)) {
-      return { handled: true };
+      return {
+        handled: true,
+        statusEvent: this.createRetainedOutgoingStatusEvent(item, ackData),
+      };
     }
 
     const nextStage =
@@ -1063,6 +1066,31 @@ export class MessageQueueService {
         ? { error: this.extractErrorInfo(ackData) }
         : {}),
       timestamp: item.updatedAt,
+    };
+  }
+
+  /**
+   * 构建状态不推进时的回执事件。
+   *
+   * @description
+   * 有些 ACK 只携带新增业务字段，例如 message_status_ack 中的 senderType。
+   * 当前状态已相同或更高时不应降级，但仍要返回事件让上层合并 Packet metadata。
+   *
+   * @param item 外发消息队列项
+   * @param ackData ACK 数据
+   * @returns 保留当前状态的消息状态更新事件
+   */
+  private createRetainedOutgoingStatusEvent(
+    item: OutgoingMessageQueueItem,
+    ackData: AckData,
+  ): MessageStatusUpdatedEvent {
+    return {
+      conversationId: item.conversationId,
+      messageId: item.serverMessageId ?? item.requestId,
+      tempId: item.tempId,
+      channelType: item.channelType,
+      status: item.rawMessage?.status ?? MessageStatusEnum.Sent,
+      timestamp: ackData.timestamp ?? Date.now(),
     };
   }
 
