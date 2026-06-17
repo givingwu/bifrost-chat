@@ -9,10 +9,15 @@ import {
   MessageTypeEnum,
   type StandardMessage,
 } from '@/interfaces/message.interface';
-import { PacketSenderTypeEnum } from '@/interfaces/protocol.interface';
+import {
+  PacketMessageTypeEnum,
+  PacketSenderTypeEnum,
+  type RawPacket,
+} from '@/interfaces/protocol.interface';
 import { queryKeys } from '@/providers/query.provider';
 import { ConversationCacheHelper } from '@/services/cache/conversation-cache-helper.service';
 import { MessageCacheHelper } from '@/services/cache/message-cache-helper.service';
+import { AckPacketHandler } from '@/services/websocket/handlers/ack-packet.handler';
 import { seedConversationCache } from '@/test-utils/conversation-cache.test-util';
 import { MessageSyncService } from './message-sync.service';
 
@@ -311,6 +316,91 @@ describe('MessageSyncService', () => {
       channelAccount: 'whatsapp-account-001',
       senderType: PacketSenderTypeEnum.Chatbot,
     });
+  });
+
+  it('message_status_ack 携带 AckData metadata 时应更新 UI 消息缓存', () => {
+    const syncService = new MessageSyncService(queryClient);
+    const ackHandler = new AckPacketHandler();
+    const existing = createMessage('chat_1781695112582_rfdb77bnz', {
+      direction: MessageDirectionEnum.Outgoing,
+      status: MessageStatusEnum.Read,
+      metadata: {
+        chatId: 'fox_collect_w37507',
+        existingFlag: true,
+      },
+    });
+
+    queryClient.setQueryData(queryKeys.messages.list('fox_collect_w37507'), {
+      pages: [{ items: [existing] }],
+      pageParams: [undefined],
+    });
+    queryClient.setQueryData(
+      queryKeys.messages.list('fox_collect_w37507', ChannelTypeEnum.WhatsApp),
+      {
+        pages: [{ items: [existing] }],
+        pageParams: [undefined],
+      },
+    );
+
+    const packet = {
+      id: 'fd7d0e23d4c349758d847bb5c5e7308c',
+      upid: null,
+      chatId: 'fox_collect_w37507',
+      from: {
+        app: 'fox_collect.waiter',
+        pin: '@im.kn.com',
+        clientType: null,
+        channelType: ChannelTypeEnum.WhatsApp,
+      },
+      to: {
+        app: 'fox_collect.waiter',
+        pin: '0535286044634614ac8356a72d727228',
+        clientType: null,
+        channelType: ChannelTypeEnum.WhatsApp,
+      },
+      ptype: PacketMessageTypeEnum.MessageStatusAck,
+      body: {
+        mid: 0,
+        app: 'fox_collect.waiter',
+        sender: '0535286044634614ac8356a72d727228',
+        id: 'chat_1781695112582_rfdb77bnz',
+        chatId: 'fox_collect_w37507',
+        status: 'un_send',
+        timestamp: 1_781_695_113_819,
+        errorInfo: 'send msg fail',
+      },
+      mid: 0,
+      ver: null,
+      entry: null,
+      status: null,
+      channelAccount: 'whatsapp-account-001',
+      senderType: PacketSenderTypeEnum.Chatbot,
+      timestamp: 1_781_695_113_819,
+    } as unknown as RawPacket;
+
+    const result = ackHandler.handle({ packet });
+    const event = result.eventData?.data as MessageStatusUpdatedEvent;
+
+    syncService.updateMessageStatus(event);
+
+    const unscopedData = queryClient.getQueryData<{
+      pages: Array<{ items: StandardMessage[] }>;
+    }>(queryKeys.messages.list('fox_collect_w37507'));
+    const channelData = queryClient.getQueryData<{
+      pages: Array<{ items: StandardMessage[] }>;
+    }>(queryKeys.messages.list('fox_collect_w37507', ChannelTypeEnum.WhatsApp));
+
+    for (const data of [unscopedData, channelData]) {
+      expect(data?.pages[0]?.items[0]).toMatchObject({
+        status: MessageStatusEnum.Read,
+        metadata: {
+          chatId: 'fox_collect_w37507',
+          existingFlag: true,
+          channelAccount: 'whatsapp-account-001',
+          senderType: PacketSenderTypeEnum.Chatbot,
+        },
+      });
+    }
   });
 
   it('状态事件缺失 channelType 时不应更新分片缓存', () => {

@@ -235,6 +235,14 @@ export class MessageQueueService {
    */
   private readonly serverMessageIdToTempId = new Map<string, string>();
   /**
+   * ACK 关联标识映射表（tempId → ack identifiers）
+   * - 用于清理通过服务返回 tempId 追加登记的 ACK 标识
+   */
+  private readonly ackIdentifierAliasesByTempId = new Map<
+    string,
+    Set<string>
+  >();
+  /**
    * 回执确认映射表（ackRequestId → 队列项）
    * - 用于通过回执请求 ID 查找队列项
    */
@@ -466,6 +474,52 @@ export class MessageQueueService {
     this.serverMessageIdToTempId.set(normalizedServerMessageId, item.tempId);
 
     return this.replayOrphanStatusAcks(item, normalizedServerMessageId);
+  }
+
+  /**
+   * 为外发消息队列项绑定额外 ACK 标识。
+   *
+   * @description
+   * 部分宿主服务会在 `send()` 结果中返回实际发包使用的 `tempId`，后续
+   * `message_status_ack.body.id` 也会使用该值。该方法只增加 ACK 查找别名，
+   * 不改变 UI 消息的本地 tempId，也不覆盖 serverMessageId。
+   *
+   * @param identifier 队列项标识符（tempId、requestId 或 serverMessageId）
+   * @param ackIdentifier 后续 ACK 可能携带的消息标识
+   * @returns 重放的孤立状态确认事件列表
+   */
+  bindAckIdentifier(
+    identifier: string,
+    ackIdentifier: string,
+  ): MessageStatusUpdatedEvent[] {
+    const item = this.findOutgoing(identifier);
+    if (!item) {
+      return [];
+    }
+
+    const normalizedAckIdentifier = toServerMessageId(ackIdentifier);
+    if (!normalizedAckIdentifier) {
+      return [];
+    }
+
+    if (
+      normalizedAckIdentifier === item.tempId ||
+      normalizedAckIdentifier === item.requestId ||
+      normalizedAckIdentifier === item.serverMessageId
+    ) {
+      return [];
+    }
+
+    this.requestIdToTempId.set(normalizedAckIdentifier, item.tempId);
+
+    const aliases =
+      this.ackIdentifierAliasesByTempId.get(item.tempId) ?? new Set<string>();
+    aliases.add(normalizedAckIdentifier);
+    this.ackIdentifierAliasesByTempId.set(item.tempId, aliases);
+
+    item.updatedAt = Date.now();
+
+    return this.replayOrphanStatusAcks(item, normalizedAckIdentifier);
   }
 
   /**
@@ -706,6 +760,15 @@ export class MessageQueueService {
     if (outgoingItem) {
       this.outgoingByTempId.delete(outgoingItem.tempId);
       this.requestIdToTempId.delete(outgoingItem.requestId);
+      const ackIdentifierAliases = this.ackIdentifierAliasesByTempId.get(
+        outgoingItem.tempId,
+      );
+      if (ackIdentifierAliases) {
+        for (const alias of ackIdentifierAliases) {
+          this.requestIdToTempId.delete(alias);
+        }
+        this.ackIdentifierAliasesByTempId.delete(outgoingItem.tempId);
+      }
       if (outgoingItem.serverMessageId) {
         this.serverMessageIdToTempId.delete(outgoingItem.serverMessageId);
       }
@@ -750,6 +813,7 @@ export class MessageQueueService {
     this.outgoingByTempId.clear();
     this.requestIdToTempId.clear();
     this.serverMessageIdToTempId.clear();
+    this.ackIdentifierAliasesByTempId.clear();
     this.receiptByAckRequestId.clear();
     this.orphanStatusAcksByMessageId.clear();
   }

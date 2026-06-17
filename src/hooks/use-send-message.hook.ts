@@ -543,6 +543,17 @@ export function useSendMessage<
         return;
       }
 
+      if (data.tempId) {
+        const replayedEvents = messageQueue.bindAckIdentifier(
+          tempId,
+          data.tempId,
+        );
+
+        for (const replayedEvent of replayedEvents) {
+          messageSyncService.updateMessageStatus(replayedEvent);
+        }
+      }
+
       // 更新会话摘要并置顶（发送成功后）
       // 仅依赖本地临时消息即可生成 preview 文本；timestamp 用发送完成时刻。
       ConversationCacheHelper.updateConversationSummary(
