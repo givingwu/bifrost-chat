@@ -8,6 +8,7 @@ import {
   MessageTypeEnum,
   type StandardMessage,
 } from '@/interfaces/message.interface';
+import { PacketSenderTypeEnum } from '@/interfaces/protocol.interface';
 import { queryKeys } from '@/providers/query.provider';
 import { ConversationCacheHelper } from '@/services/cache/conversation-cache-helper.service';
 import { MessageCacheHelper } from '@/services/cache/message-cache-helper.service';
@@ -271,6 +272,46 @@ describe('MessageSyncService', () => {
       'msg-1',
       undefined,
     );
+  });
+
+  it('状态事件携带 metadata 时应合并到已有消息 metadata', () => {
+    const syncService = new MessageSyncService(queryClient);
+    const existing = createMessage('msg-robot', {
+      status: MessageStatusEnum.Sent,
+      metadata: {
+        existing: true,
+        senderType: PacketSenderTypeEnum.Manual,
+      },
+    });
+
+    queryClient.setQueryData(queryKeys.messages.list('conv-1'), {
+      pages: [{ items: [existing] }],
+      pageParams: [undefined],
+    });
+
+    syncService.updateMessageStatus({
+      conversationId: 'conv-1',
+      messageId: 'msg-robot',
+      status: MessageStatusEnum.Delivered,
+      metadata: {
+        channelAccount: 'waba-account-001',
+        senderType: PacketSenderTypeEnum.Chatbot,
+      },
+      timestamp: Date.now(),
+    });
+
+    const data = queryClient.getQueryData<{
+      pages: Array<{ items: StandardMessage[] }>;
+    }>(queryKeys.messages.list('conv-1'));
+
+    expect(data?.pages?.[0]?.items?.[0]).toMatchObject({
+      status: MessageStatusEnum.Delivered,
+      metadata: {
+        existing: true,
+        channelAccount: 'waba-account-001',
+        senderType: PacketSenderTypeEnum.Chatbot,
+      },
+    });
   });
 
   it('状态事件缺失 channelType 时不应更新分片缓存', () => {

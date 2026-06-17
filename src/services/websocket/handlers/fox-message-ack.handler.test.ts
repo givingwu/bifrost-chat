@@ -5,6 +5,7 @@ import {
 } from '@/interfaces/message.interface';
 import {
   PacketMessageTypeEnum,
+  PacketSenderTypeEnum,
   type RawPacket,
 } from '@/interfaces/protocol.interface';
 import { WebSocketEventTypeEnum } from '@/interfaces/websocket.interface';
@@ -53,6 +54,44 @@ describe('FoxMessageAckHandler', () => {
     ).toBe(MessageStatusEnum.Clicked);
   });
 
+  it('队列命中时应把 Packet 顶层业务字段透传到状态事件 metadata', () => {
+    messageQueue.enqueue({
+      requestId: 'req-robot',
+      tempId: 'temp-robot',
+      conversationId: 'conv-robot',
+    });
+    messageQueue.bindServerMessageId('temp-robot', 'robot-mid');
+
+    const result = handler.handle({
+      packet: {
+        id: 'fox-ack-robot',
+        chatId: 'conv-robot',
+        ptype: PacketMessageTypeEnum.FoxMessageAck,
+        from: { app: 'test', pin: 'server' },
+        to: { app: 'test', pin: 'user' },
+        channelAccount: 'waba-account-001',
+        senderType: PacketSenderTypeEnum.Chatbot,
+        body: {
+          type: PacketMessageTypeEnum.FoxMessageAck,
+          id: 'robot-mid',
+          sendResult: 'REPLIED',
+        } as unknown as RawPacket['body'],
+        ver: '1.0',
+        timestamp: 2_100,
+      },
+    });
+
+    expect(result.extraEvents?.[0]?.data).toEqual(
+      expect.objectContaining({
+        metadata: expect.objectContaining({
+          chatId: 'conv-robot',
+          channelAccount: 'waba-account-001',
+          senderType: PacketSenderTypeEnum.Chatbot,
+        }),
+      }),
+    );
+  });
+
   it('队列未命中时应保留原始事件，并在可解析时追加状态事件', () => {
     const result = handler.handle({
       packet: {
@@ -61,6 +100,8 @@ describe('FoxMessageAckHandler', () => {
         ptype: PacketMessageTypeEnum.FoxMessageAck,
         from: { app: 'test', pin: 'server' },
         to: { app: 'test', pin: 'user' },
+        channelAccount: 'waba-account-002',
+        senderType: PacketSenderTypeEnum.Chatbot,
         body: {
           type: PacketMessageTypeEnum.FoxMessageAck,
           mid: 999,
@@ -81,6 +122,11 @@ describe('FoxMessageAckHandler', () => {
         conversationId: 'conv-456',
         messageId: '999',
         status: MessageStatusEnum.Clicked,
+        metadata: expect.objectContaining({
+          chatId: 'conv-456',
+          channelAccount: 'waba-account-002',
+          senderType: PacketSenderTypeEnum.Chatbot,
+        }),
       }),
     );
   });

@@ -8,6 +8,7 @@ import {
 import {
   AckMessageTypeEnum,
   PacketMessageTypeEnum,
+  PacketSenderTypeEnum,
   type RawPacket,
 } from '@/interfaces/protocol.interface';
 import { messageQueue } from '@/services/messaging/message-queue.service';
@@ -155,6 +156,43 @@ describe('AckPacketHandler', () => {
       expect(getStatusEventData(result).tempId).toBe('temp-origin-1');
       expect(getStatusEventData(result).status).toBe(
         MessageStatusEnum.Delivered,
+      );
+    });
+
+    it('队列命中 ACK 时应把 Packet 顶层业务字段透传到状态事件 metadata', () => {
+      messageQueue.enqueueReceiptAck({
+        ackRequestId: 'ack-robot',
+        conversationId: 'conv-robot',
+        targetMessageId: 'msg-origin-robot',
+        targetTempId: 'temp-origin-robot',
+        targetStatus: MessageStatusEnum.Delivered,
+      });
+
+      const packet: RawPacket = {
+        id: 'ack-robot',
+        chatId: 'conv-robot',
+        ptype: PacketMessageTypeEnum.Ack,
+        from: {
+          app: 'test',
+          pin: 'server',
+          channelType: ChannelTypeEnum.WhatsApp,
+        },
+        to: { app: 'test', pin: 'user' },
+        channelAccount: 'waba-account-003',
+        senderType: PacketSenderTypeEnum.Chatbot,
+        body: { type: AckMessageTypeEnum.MsgReceiveAck },
+        ver: '1.0',
+        timestamp: 1_700,
+      };
+
+      const result = handler.handle({ packet });
+
+      expect(getStatusEventData(result).metadata).toEqual(
+        expect.objectContaining({
+          chatId: 'conv-robot',
+          channelAccount: 'waba-account-003',
+          senderType: PacketSenderTypeEnum.Chatbot,
+        }),
       );
     });
 
@@ -348,6 +386,35 @@ describe('AckPacketHandler', () => {
       const result = handler.handle({ packet });
 
       expect(getStatusEventData(result).status).toBe(MessageStatusEnum.Read);
+    });
+
+    it('message_status_ack fallback 应把 Packet 顶层业务字段透传到状态事件 metadata', () => {
+      const packet = {
+        id: 'packet-wrapper-id',
+        chatId: null as unknown as string,
+        ptype: PacketMessageTypeEnum.MessageStatusAck,
+        from: { app: 'test', pin: 'server' },
+        to: { app: 'test', pin: 'user' },
+        channelAccount: 'waba-account-004',
+        senderType: PacketSenderTypeEnum.Chatbot,
+        body: {
+          id: 'msg-read-robot',
+          chatId: 'conv-robot',
+          status: 'READ',
+          timestamp: Date.now(),
+        },
+        ver: '1.0',
+        timestamp: Date.now(),
+      } as unknown as RawPacket;
+
+      const result = handler.handle({ packet });
+
+      expect(getStatusEventData(result).metadata).toEqual(
+        expect.objectContaining({
+          channelAccount: 'waba-account-004',
+          senderType: PacketSenderTypeEnum.Chatbot,
+        }),
+      );
     });
 
     it('应处理 message_status_ack（SEND_FAIL + errorInfo → Failed + error）', () => {

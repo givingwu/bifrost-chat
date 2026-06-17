@@ -21,6 +21,7 @@ import { WebSocketEventTypeEnum } from '@/interfaces/websocket.interface';
 import { messageQueue } from '@/services/messaging/message-queue.service';
 import { pendingMessageTracker } from '@/services/messaging/pending-message-tracker.service';
 import { AckHandler } from '@/services/protocol';
+import { withPacketBusinessMetadata } from '@/services/protocol/packet-business-metadata';
 import { BasePacketHandler } from './base-packet.handler';
 
 /**
@@ -93,7 +94,7 @@ export class AckPacketHandler extends BasePacketHandler {
       return {
         eventData: this.createEventData(
           WebSocketEventTypeEnum.MessageStatus,
-          queueResult.statusEvent,
+          withPacketBusinessMetadata(queueResult.statusEvent, packet),
         ),
         shouldContinue: true,
       };
@@ -149,12 +150,15 @@ export class AckPacketHandler extends BasePacketHandler {
     this.cleanupMapping(messageId);
 
     // 构建 ACK 事件数据
-    const ackEventData = {
-      conversationId,
-      messageId,
-      channelType: packet.from.channelType ?? packet.to.channelType,
-      timestamp: ackData.timestamp ?? Date.now(),
-    };
+    const ackEventData = withPacketBusinessMetadata(
+      {
+        conversationId,
+        messageId,
+        channelType: packet.from.channelType ?? packet.to.channelType,
+        timestamp: ackData.timestamp ?? Date.now(),
+      },
+      packet,
+    );
 
     return {
       eventData: this.createEventData(WebSocketEventTypeEnum.MessageStatus, {

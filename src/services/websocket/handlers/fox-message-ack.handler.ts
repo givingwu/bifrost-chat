@@ -21,6 +21,7 @@ import type {
 } from '@/interfaces/websocket.interface';
 import { WebSocketEventTypeEnum } from '@/interfaces/websocket.interface';
 import { messageQueue } from '@/services/messaging/message-queue.service';
+import { withPacketBusinessMetadata } from '@/services/protocol/packet-business-metadata';
 import { mapCallbackMessageStatusToLocal } from '@/services/protocol/status.mapper';
 import { BasePacketHandler } from './base-packet.handler';
 
@@ -81,8 +82,11 @@ export class FoxMessageAckHandler extends BasePacketHandler {
           },
     });
 
-    const statusEvent =
+    const rawStatusEvent =
       queueResult.statusEvent ?? this.createFallbackStatusEvent(context);
+    const statusEvent = rawStatusEvent
+      ? withPacketBusinessMetadata(rawStatusEvent, packet)
+      : undefined;
     const extraEvents = statusEvent
       ? [
           this.createEventData(

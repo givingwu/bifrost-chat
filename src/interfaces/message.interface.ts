@@ -296,6 +296,8 @@ export interface MessageStatusUpdate {
   status: StandardMessage['status'];
   /** 错误信息（可选，常用于失败回调） */
   error?: StandardMessage['error'];
+  /** 需要合并进消息的协议透传字段 */
+  metadata?: StandardMessage['metadata'];
   /** 更新时间戳 */
   timestamp: number;
 }

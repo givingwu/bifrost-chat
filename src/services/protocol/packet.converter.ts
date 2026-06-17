@@ -8,74 +8,13 @@ import {
 } from '@/interfaces/message.interface';
 import {
   isPacketBodyRecord,
-  PacketSenderTypeEnum,
   type RawPacket,
 } from '@/interfaces/protocol.interface';
 import { MessageBuilder } from '@/services/messaging/message-builder.service';
-
-/**
- * 将 Packet senderType 原始值归一化为枚举。
- *
- * @description
- * Packet 历史数据可能以数字或字符串表示 senderType。转换边界统一归一
- * 为 `PacketSenderTypeEnum`，后续 UI 和业务判断只比较枚举值。
- *
- * @param senderType Packet 或 metadata 中的 senderType 原始值
- * @returns 规范 senderType 枚举；无法识别时返回 undefined
- */
-function normalizePacketSenderType(
-  senderType: unknown,
-): PacketSenderTypeEnum | undefined {
-  if (
-    senderType === PacketSenderTypeEnum.Chatbot ||
-    senderType === String(PacketSenderTypeEnum.Chatbot)
-  ) {
-    return PacketSenderTypeEnum.Chatbot;
-  }
-
-  if (
-    senderType === PacketSenderTypeEnum.Manual ||
-    senderType === String(PacketSenderTypeEnum.Manual)
-  ) {
-    return PacketSenderTypeEnum.Manual;
-  }
-
-  return undefined;
-}
-
-/**
- * 构建 Packet 顶层业务字段 metadata。
- *
- * @description
- * Packet 协议中 `channelAccount` / `senderType` / `entry` 等字段不属于
- * 标准消息的核心 identity，但默认消息气泡需要依赖这些字段展示发送号码
- * 尾号和 Chatbot 标识，因此统一放入 StandardMessage.metadata 透传。
- *
- * @param packet 原始 Packet
- * @returns 可合并进 StandardMessage.metadata 的业务字段
- */
-function buildPacketBusinessMetadata(
-  packet: RawPacket,
-): Record<string, unknown> {
-  const metadata: Record<string, unknown> = {
-    chatId: packet.chatId,
-  };
-
-  if (packet.channelAccount) {
-    metadata.channelAccount = packet.channelAccount;
-  }
-
-  const senderType = normalizePacketSenderType(packet.senderType);
-  if (senderType !== undefined) {
-    metadata.senderType = senderType;
-  }
-
-  if (packet.entry) {
-    metadata.entry = packet.entry;
-  }
-
-  return metadata;
-}
+import {
+  buildPacketBusinessMetadata,
+  normalizePacketSenderType,
+} from './packet-business-metadata';
 
 /**
  * 从 StandardMessage.metadata 构建 RawPacket 顶层业务字段。

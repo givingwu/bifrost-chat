@@ -109,6 +109,13 @@ function mergeMessageUpdates(
     ...updates,
   };
 
+  if (updates.metadata) {
+    mergedMessage.metadata = {
+      ...currentMessage.metadata,
+      ...updates.metadata,
+    };
+  }
+
   if (
     'status' in updates &&
     !shouldApplyStatusUpdate(currentMessage.status, updates.status)
