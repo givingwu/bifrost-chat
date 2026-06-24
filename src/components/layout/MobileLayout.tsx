@@ -187,16 +187,10 @@ export function MobileLayout({
     () => resolveEffectiveMaxLength(isTemplateMessage),
     [isTemplateMessage, resolveEffectiveMaxLength],
   );
-  const inputMaxLength = Number.isFinite(effectiveMaxLength)
-    ? effectiveMaxLength
-    : undefined;
 
-  const setClampedValue = useCallback(
-    (nextValue: string) => {
-      setValue(clampComposerValue(nextValue, effectiveMaxLength));
-    },
-    [effectiveMaxLength],
-  );
+  const setComposerValue = useCallback((nextValue: string) => {
+    setValue(nextValue);
+  }, []);
 
   const closeTemplateSheet = useCallback(() => {
     setIsTemplateSheetOpen(false);
@@ -207,12 +201,6 @@ export function MobileLayout({
     setValue('');
     setPendingTemplateOptions(undefined);
   }, []);
-
-  useEffect(() => {
-    setValue((currentValue) =>
-      clampComposerValue(currentValue, effectiveMaxLength),
-    );
-  }, [effectiveMaxLength]);
 
   useEffect(() => {
     if (!isTemplateSheetOpen) return;
@@ -301,7 +289,7 @@ export function MobileLayout({
     ),
     onEditFill: useCallback(
       (content, _code, metadata) => {
-        setValue(clampComposerValue(content, resolveEffectiveMaxLength(true)));
+        setValue(content);
         setPendingTemplateOptions({
           type: MessageTypeEnum.Template,
           templateCode: _code,
@@ -310,7 +298,7 @@ export function MobileLayout({
         inputRef.current?.focus();
         closeTemplateSheet();
       },
-      [closeTemplateSheet, resolveEffectiveMaxLength],
+      [closeTemplateSheet],
     ),
     onPreviewError: useCallback(() => {
       setTemplateError(t('template.previewFailed'));
@@ -385,11 +373,11 @@ export function MobileLayout({
       <MobileComposer
         inputRef={inputRef}
         value={value}
-        onValueChange={setClampedValue}
+        onValueChange={setComposerValue}
         onSend={handleSend}
         onKeyDown={handleInputKeyDown}
         placeholder={resolvedPlaceholder}
-        maxLength={inputMaxLength}
+        maxLength={effectiveMaxLength}
         showCharCount={composerConfig.showCharCount !== false}
         readOnly={isInputReadOnly}
         inputDisabled={!activeConversationId || sendMessage.isPending}

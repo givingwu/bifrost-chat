@@ -211,13 +211,16 @@ function MobileLayoutDemo({
   activeConversationId = activeConversation.id,
   avatarUrl,
   customMessageMaxLength,
+  initialValue,
 }: {
   theme?: 'light' | 'dark';
   channel?: ChannelTypeEnum;
   activeConversationId?: string;
   avatarUrl?: string;
   customMessageMaxLength?: number;
+  initialValue?: string;
 }) {
+  const rootRef = useRef<HTMLDivElement>(null);
   const conversation = {
     ...activeConversation,
     channel,
@@ -227,6 +230,27 @@ function MobileLayoutDemo({
       avatarUrl,
     },
   };
+
+  useEffect(() => {
+    if (!initialValue) return;
+
+    const timer = window.setTimeout(() => {
+      const input = rootRef.current?.querySelector<HTMLInputElement>(
+        'input[placeholder="输入消息..."]',
+      );
+      const valueSetter = Object.getOwnPropertyDescriptor(
+        HTMLInputElement.prototype,
+        'value',
+      )?.set;
+
+      if (!input || !valueSetter) return;
+
+      valueSetter.call(input, initialValue);
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    }, 0);
+
+    return () => window.clearTimeout(timer);
+  }, [initialValue]);
 
   const renderMessageList = activeConversationId
     ? () => (
@@ -250,6 +274,7 @@ function MobileLayoutDemo({
 
   return (
     <div
+      ref={rootRef}
       className={`flex min-h-[860px] items-center justify-center bg-background p-6 ${
         theme === 'dark' ? 'dark' : ''
       }`}
@@ -452,12 +477,17 @@ export const RcsChannel: Story = {
  * 输入长度限制
  */
 export const LengthLimit: Story = {
-  render: () => <MobileLayoutDemo customMessageMaxLength={12} />,
+  render: () => (
+    <MobileLayoutDemo
+      customMessageMaxLength={12}
+      initialValue="这是一段超过限制的移动端输入"
+    />
+  ),
   parameters: {
     docs: {
       description: {
         story:
-          '移动端输入区展示当前字数和最大长度，超过限制时输入内容会被裁剪。',
+          '移动端输入区展示当前字数和最大长度，超过限制时字数文案使用错误色提示，发送时按当前上限裁剪实际发送内容。',
       },
     },
   },

@@ -10,7 +10,7 @@ export interface MobileComposerProps {
   inputRef: RefObject<HTMLInputElement | null>;
   /** 当前输入内容 */
   value: string;
-  /** 输入内容变更回调，调用方负责按当前渠道裁剪 */
+  /** 输入内容变更回调 */
   onValueChange: (value: string) => void;
   /** 发送当前输入内容 */
   onSend: () => void;
@@ -18,7 +18,7 @@ export interface MobileComposerProps {
   onKeyDown: (event: KeyboardEvent<HTMLInputElement>) => void;
   /** 输入框占位文案 */
   placeholder: string;
-  /** 当前生效的最大输入长度；为空时表示不限制 */
+  /** 当前生效的字数提示上限；为空时表示不限制 */
   maxLength: number | undefined;
   /** 是否显示字符计数 */
   showCharCount?: boolean;
@@ -62,6 +62,7 @@ export function MobileComposer({
   onToggleTemplateSheet,
 }: MobileComposerProps) {
   const { t } = useTranslation();
+  const isOverMaxLength = maxLength !== undefined && value.length > maxLength;
 
   return (
     <footer className="shrink-0 border-t border-border bg-white/50 px-3 py-3 backdrop-blur-md dark:bg-gray-900/50">
@@ -93,7 +94,6 @@ export function MobileComposer({
             ref={inputRef}
             value={value}
             placeholder={placeholder}
-            maxLength={maxLength}
             readOnly={readOnly}
             disabled={inputDisabled}
             className={cn(
@@ -111,6 +111,7 @@ export function MobileComposer({
             aria-describedby={
               showCharCount ? MOBILE_COMPOSER_CHAR_COUNT_ID : undefined
             }
+            aria-invalid={isOverMaxLength || undefined}
           />
 
           {showCharCount && (

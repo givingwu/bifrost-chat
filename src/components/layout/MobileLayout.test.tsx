@@ -247,18 +247,18 @@ describe('MobileLayout', () => {
     );
   });
 
-  it('未显式配置长度时应使用渠道默认上限并显示字数提示', () => {
+  it('未显式配置长度时应使用渠道默认上限显示字数提示', () => {
     render(<MobileLayout />);
 
     const input = screen.getByPlaceholderText('输入消息...');
 
-    expect(input).toHaveAttribute('maxlength', '4096');
+    expect(input).not.toHaveAttribute('maxlength');
     expect(screen.getByTestId('composer-char-count')).toHaveTextContent(
       '0 / 4096',
     );
   });
 
-  it('自定义消息超过渠道默认上限时应裁剪输入并更新字数提示', () => {
+  it('自定义消息超过渠道默认上限时应保留输入并以错误色提示', () => {
     render(<MobileLayout />);
 
     const input = screen.getByPlaceholderText('输入消息...');
@@ -266,13 +266,38 @@ describe('MobileLayout', () => {
       target: { value: 'x'.repeat(4100) },
     });
 
-    expect(input).toHaveValue('x'.repeat(4096));
-    expect(screen.getByTestId('composer-char-count')).toHaveTextContent(
-      '4096 / 4096',
-    );
+    const charCount = screen.getByTestId('composer-char-count');
+
+    expect(input).toHaveValue('x'.repeat(4100));
+    expect(charCount).toHaveTextContent('4100 / 4096');
+    expect(charCount).toHaveClass('text-destructive');
   });
 
-  it('模板回填超过上限且未忽略限制时应裁剪后再允许发送', async () => {
+  it('发送超长自定义消息时应按渠道上限裁剪实际发送内容', async () => {
+    mutateAsyncMock.mockResolvedValue({
+      tempId: 'tmp-1',
+      status: 'sent',
+    });
+
+    render(<MobileLayout />);
+
+    const input = screen.getByPlaceholderText('输入消息...');
+    fireEvent.change(input, {
+      target: { value: 'x'.repeat(4100) },
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '发送消息' }));
+
+    await waitFor(() => {
+      expect(mutateAsyncMock).toHaveBeenCalledWith({
+        conversationId: 'conv-1',
+        content: 'x'.repeat(4096),
+        options: undefined,
+      });
+    });
+  });
+
+  it('模板回填超过上限且未忽略限制时应保留原文提示并裁剪发送内容', async () => {
     previewTemplateMock.mockResolvedValue({
       previewContent: '模'.repeat(4100),
     });
@@ -288,9 +313,15 @@ describe('MobileLayout', () => {
 
     await waitFor(() => {
       expect(screen.getByPlaceholderText('输入消息...')).toHaveValue(
-        '模'.repeat(4096),
+        '模'.repeat(4100),
       );
     });
+    expect(screen.getByTestId('composer-char-count')).toHaveTextContent(
+      '4100 / 4096',
+    );
+    expect(screen.getByTestId('composer-char-count')).toHaveClass(
+      'text-destructive',
+    );
 
     fireEvent.click(screen.getByRole('button', { name: '发送消息' }));
 
