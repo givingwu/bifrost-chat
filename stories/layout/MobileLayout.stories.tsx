@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import type { Meta, StoryObj } from 'storybook-react-rsbuild';
 import { ChatContainer } from '@/components/layout/ChatContainer';
 import { MobileLayout } from '@/components/layout/MobileLayout';
@@ -294,6 +295,27 @@ function MobileLayoutDemo({
   );
 }
 
+function MobileLayoutTemplateSheetOpenDemo() {
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      const root = rootRef.current;
+      root
+        ?.querySelector<HTMLButtonElement>('[aria-label="打开快捷话术模板"]')
+        ?.click();
+    }, 0);
+
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  return (
+    <div ref={rootRef}>
+      <MobileLayoutDemo channel={ChannelTypeEnum.SMS} />
+    </div>
+  );
+}
+
 const meta: Meta<typeof MobileLayout> = {
   title: 'Layout/MobileLayout',
   component: MobileLayout,
@@ -378,6 +400,21 @@ export const SmsChannelNoAvatar: Story = {
     docs: {
       description: {
         story: 'SMS 渠道：Header 背景为蓝色品牌色，无头像时显示 SMS 渠道图标。',
+      },
+    },
+  },
+};
+
+/**
+ * 模板 ActionSheet 打开状态
+ */
+export const TemplateActionSheetOpen: Story = {
+  render: () => <MobileLayoutTemplateSheetOpenDemo />,
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '模板 ActionSheet 打开后使用高层级 overlay 覆盖消息区，避免对话内容遮挡模板列表。',
       },
     },
   },

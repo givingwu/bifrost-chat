@@ -213,6 +213,23 @@ describe('MobileLayout', () => {
     });
   });
 
+  it('打开模板 ActionSheet 时应使用高层级 overlay 覆盖消息区', () => {
+    const { container } = render(<MobileLayout />);
+
+    fireEvent.click(screen.getByRole('button', { name: '打开快捷话术模板' }));
+
+    const overlay = container.querySelector(
+      '[data-component="mobile-template-action-sheet-overlay"]',
+    );
+    const dialog = screen.getByRole('dialog', {
+      name: '选择快捷话术模板',
+    });
+
+    expect(overlay).toBeInTheDocument();
+    expect(overlay).toHaveClass('z-50');
+    expect(dialog).toHaveClass('pointer-events-auto');
+  });
+
   it('edit 模式下回填模板后应与 PC 端一样禁止编辑', async () => {
     render(<MobileLayout />);
 
