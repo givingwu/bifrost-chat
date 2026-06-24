@@ -25,6 +25,12 @@ const {
     current: {
       templateMode: 'edit' as 'direct' | 'edit',
       placeholder: '输入消息...',
+      ignoreMaxLengthForTemplateMessages: false,
+    } as {
+      templateMode: 'direct' | 'edit';
+      placeholder: string;
+      customMessageMaxLength?: number;
+      ignoreMaxLengthForTemplateMessages?: boolean;
     },
   },
   mutateAsyncMock: vi.fn(),
@@ -131,6 +137,7 @@ describe('MobileLayout', () => {
     composerConfigRef.current = {
       templateMode: 'edit',
       placeholder: '输入消息...',
+      ignoreMaxLengthForTemplateMessages: false,
     };
     mutateAsyncMock.mockReset();
     previewTemplateMock.mockReset();
@@ -221,5 +228,67 @@ describe('MobileLayout', () => {
     expect(screen.getByPlaceholderText('输入消息...')).toHaveAttribute(
       'readonly',
     );
+  });
+
+  it('未显式配置长度时应使用渠道默认上限并显示字数提示', () => {
+    render(<MobileLayout />);
+
+    const input = screen.getByPlaceholderText('输入消息...');
+
+    expect(input).toHaveAttribute('maxlength', '4096');
+    expect(screen.getByTestId('composer-char-count')).toHaveTextContent(
+      '0 / 4096',
+    );
+  });
+
+  it('自定义消息超过渠道默认上限时应裁剪输入并更新字数提示', () => {
+    render(<MobileLayout />);
+
+    const input = screen.getByPlaceholderText('输入消息...');
+    fireEvent.change(input, {
+      target: { value: 'x'.repeat(4100) },
+    });
+
+    expect(input).toHaveValue('x'.repeat(4096));
+    expect(screen.getByTestId('composer-char-count')).toHaveTextContent(
+      '4096 / 4096',
+    );
+  });
+
+  it('模板回填超过上限且未忽略限制时应裁剪后再允许发送', async () => {
+    previewTemplateMock.mockResolvedValue({
+      previewContent: '模'.repeat(4100),
+    });
+    mutateAsyncMock.mockResolvedValue({
+      tempId: 'tmp-1',
+      status: 'sent',
+    });
+
+    render(<MobileLayout />);
+
+    fireEvent.click(screen.getByRole('button', { name: '打开快捷话术模板' }));
+    fireEvent.click(screen.getByRole('button', { name: /常规提醒/ }));
+
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText('输入消息...')).toHaveValue(
+        '模'.repeat(4096),
+      );
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '发送消息' }));
+
+    await waitFor(() => {
+      expect(mutateAsyncMock).toHaveBeenCalledWith({
+        conversationId: 'conv-1',
+        content: '模'.repeat(4096),
+        options: {
+          type: 'template',
+          templateCode: 'TPL_NOTICE',
+          templateMetadata: {
+            previewContent: '模'.repeat(4100),
+          },
+        },
+      });
+    });
   });
 });

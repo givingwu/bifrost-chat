@@ -8,6 +8,11 @@ import {
   useRef,
   useState,
 } from 'react';
+import {
+  clampComposerValue,
+  resolveCustomMessageMaxLength,
+  shouldIgnoreComposerMaxLength,
+} from '@/components/composer/composer-length.util';
 import { MobileComposer } from '@/components/layout/MobileComposer';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { MobileTemplateActionSheet } from '@/components/layout/MobileTemplateActionSheet';
@@ -158,6 +163,40 @@ export function MobileLayout({
   const isInputReadOnly = isTemplateMessage
     ? isTemplateLocked
     : composerConfig.inputMode === 'template-only';
+  const customMessageMaxLength = useMemo(
+    () =>
+      resolveCustomMessageMaxLength({
+        channel: activeChannel,
+        customMessageMaxLength: composerConfig.customMessageMaxLength,
+      }),
+    [activeChannel, composerConfig.customMessageMaxLength],
+  );
+  const resolveEffectiveMaxLength = useCallback(
+    (nextIsTemplateMessage: boolean) => {
+      const shouldBypass = shouldIgnoreComposerMaxLength({
+        isTemplateMessage: nextIsTemplateMessage,
+        ignoreMaxLengthForTemplateMessages:
+          composerConfig.ignoreMaxLengthForTemplateMessages,
+      });
+
+      return shouldBypass ? undefined : customMessageMaxLength;
+    },
+    [composerConfig.ignoreMaxLengthForTemplateMessages, customMessageMaxLength],
+  );
+  const effectiveMaxLength = useMemo(
+    () => resolveEffectiveMaxLength(isTemplateMessage),
+    [isTemplateMessage, resolveEffectiveMaxLength],
+  );
+  const inputMaxLength = Number.isFinite(effectiveMaxLength)
+    ? effectiveMaxLength
+    : undefined;
+
+  const setClampedValue = useCallback(
+    (nextValue: string) => {
+      setValue(clampComposerValue(nextValue, effectiveMaxLength));
+    },
+    [effectiveMaxLength],
+  );
 
   const closeTemplateSheet = useCallback(() => {
     setIsTemplateSheetOpen(false);
@@ -168,6 +207,12 @@ export function MobileLayout({
     setValue('');
     setPendingTemplateOptions(undefined);
   }, []);
+
+  useEffect(() => {
+    setValue((currentValue) =>
+      clampComposerValue(currentValue, effectiveMaxLength),
+    );
+  }, [effectiveMaxLength]);
 
   useEffect(() => {
     if (!isTemplateSheetOpen) return;
@@ -188,7 +233,7 @@ export function MobileLayout({
   const handleSend = useCallback(async () => {
     if (!activeConversationId) return;
 
-    const content = value.trim();
+    const content = clampComposerValue(value.trim(), effectiveMaxLength);
     if (!content) return;
 
     try {
@@ -208,6 +253,7 @@ export function MobileLayout({
   }, [
     activeConversationId,
     clearTemplateState,
+    effectiveMaxLength,
     pendingTemplateOptions,
     sendMessage,
     value,
@@ -232,20 +278,30 @@ export function MobileLayout({
       async (content, options) => {
         if (!activeConversationId) return;
 
+        const nextContent = clampComposerValue(
+          content,
+          resolveEffectiveMaxLength(true),
+        );
+
         await sendMessage.mutateAsync({
           conversationId: activeConversationId,
-          content,
+          content: nextContent,
           options: options as Parameters<
             typeof sendMessage.mutateAsync
           >[0]['options'],
         });
         clearTemplateState();
       },
-      [activeConversationId, clearTemplateState, sendMessage],
+      [
+        activeConversationId,
+        clearTemplateState,
+        resolveEffectiveMaxLength,
+        sendMessage,
+      ],
     ),
     onEditFill: useCallback(
       (content, _code, metadata) => {
-        setValue(content);
+        setValue(clampComposerValue(content, resolveEffectiveMaxLength(true)));
         setPendingTemplateOptions({
           type: MessageTypeEnum.Template,
           templateCode: _code,
@@ -254,7 +310,7 @@ export function MobileLayout({
         inputRef.current?.focus();
         closeTemplateSheet();
       },
-      [closeTemplateSheet],
+      [closeTemplateSheet, resolveEffectiveMaxLength],
     ),
     onPreviewError: useCallback(() => {
       setTemplateError(t('template.previewFailed'));
@@ -329,11 +385,12 @@ export function MobileLayout({
       <MobileComposer
         inputRef={inputRef}
         value={value}
-        onValueChange={setValue}
+        onValueChange={setClampedValue}
         onSend={handleSend}
         onKeyDown={handleInputKeyDown}
         placeholder={resolvedPlaceholder}
-        maxLength={composerConfig.customMessageMaxLength}
+        maxLength={inputMaxLength}
+        showCharCount={composerConfig.showCharCount !== false}
         readOnly={isInputReadOnly}
         inputDisabled={!activeConversationId || sendMessage.isPending}
         canSend={canSend}

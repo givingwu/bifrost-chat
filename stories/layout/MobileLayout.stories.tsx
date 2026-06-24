@@ -209,11 +209,13 @@ function MobileLayoutDemo({
   channel = ChannelTypeEnum.Viber,
   activeConversationId = activeConversation.id,
   avatarUrl,
+  customMessageMaxLength,
 }: {
   theme?: 'light' | 'dark';
   channel?: ChannelTypeEnum;
   activeConversationId?: string;
   avatarUrl?: string;
+  customMessageMaxLength?: number;
 }) {
   const conversation = {
     ...activeConversation,
@@ -268,6 +270,7 @@ function MobileLayoutDemo({
               placeholder: '输入消息...',
               templateMode: 'edit',
               allowTemplateEdit: false,
+              customMessageMaxLength,
             },
           }}
         >
@@ -403,6 +406,21 @@ export const RcsChannel: Story = {
     docs: {
       description: {
         story: 'RCS 渠道：Header 背景为青色品牌色。',
+      },
+    },
+  },
+};
+
+/**
+ * 输入长度限制
+ */
+export const LengthLimit: Story = {
+  render: () => <MobileLayoutDemo customMessageMaxLength={12} />,
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '移动端输入区展示当前字数和最大长度，超过限制时输入内容会被裁剪。',
       },
     },
   },
