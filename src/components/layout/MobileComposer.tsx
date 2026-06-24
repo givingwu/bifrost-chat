@@ -62,7 +62,10 @@ export function MobileComposer({
   onToggleTemplateSheet,
 }: MobileComposerProps) {
   const { t } = useTranslation();
-  const isOverMaxLength = maxLength !== undefined && value.length > maxLength;
+  const safeLength = value?.length ?? 0;
+  const isNearMaxLength =
+    maxLength !== undefined && safeLength >= maxLength * 0.9;
+  const isAtMaxLength = maxLength !== undefined && safeLength >= maxLength;
 
   return (
     <footer className="shrink-0 border-t border-border bg-white/50 px-3 py-3 backdrop-blur-md dark:bg-gray-900/50">
@@ -104,6 +107,8 @@ export function MobileComposer({
               'focus:bg-card focus:ring-2 focus:ring-primary/40',
               'disabled:cursor-not-allowed disabled:opacity-60',
               readOnly && 'cursor-not-allowed',
+              isNearMaxLength && !isAtMaxLength && 'focus:ring-orange-400/40',
+              isAtMaxLength && 'focus:ring-red-400/40',
             )}
             onChange={(event) => onValueChange(event.target.value)}
             onKeyDown={onKeyDown}
@@ -111,7 +116,7 @@ export function MobileComposer({
             aria-describedby={
               showCharCount ? MOBILE_COMPOSER_CHAR_COUNT_ID : undefined
             }
-            aria-invalid={isOverMaxLength || undefined}
+            aria-invalid={isAtMaxLength || undefined}
           />
 
           {showCharCount && (

@@ -273,6 +273,33 @@ describe('MobileLayout', () => {
     expect(charCount).toHaveClass('text-destructive');
   });
 
+  it('自定义消息接近和达到上限时应显示输入框焦点颜色状态', () => {
+    composerConfigRef.current = {
+      ...composerConfigRef.current,
+      customMessageMaxLength: 10,
+    };
+
+    render(<MobileLayout />);
+
+    const input = screen.getByPlaceholderText('输入消息...');
+
+    fireEvent.change(input, {
+      target: { value: 'x'.repeat(9) },
+    });
+
+    expect(input).toHaveClass('focus:ring-orange-400/40');
+    expect(input).not.toHaveClass('focus:ring-red-400/40');
+    expect(input).not.toHaveAttribute('aria-invalid');
+
+    fireEvent.change(input, {
+      target: { value: 'x'.repeat(10) },
+    });
+
+    expect(input).not.toHaveClass('focus:ring-orange-400/40');
+    expect(input).toHaveClass('focus:ring-red-400/40');
+    expect(input).toHaveAttribute('aria-invalid', 'true');
+  });
+
   it('发送超长自定义消息时应按渠道上限裁剪实际发送内容', async () => {
     mutateAsyncMock.mockResolvedValue({
       tempId: 'tmp-1',
