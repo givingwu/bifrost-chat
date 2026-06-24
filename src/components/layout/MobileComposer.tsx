@@ -98,6 +98,7 @@ export function MobileComposer({
             value={value}
             placeholder={placeholder}
             readOnly={readOnly}
+            maxLength={maxLength}
             disabled={inputDisabled}
             className={cn(
               'w-full rounded-full border border-transparent',
