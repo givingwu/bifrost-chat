@@ -273,6 +273,25 @@ describe('MobileLayout', () => {
     expect(charCount).toHaveClass('text-destructive');
   });
 
+  it('输入有内容时应显示清空按钮，并在点击后清空输入', () => {
+    render(<MobileLayout />);
+
+    const input = screen.getByPlaceholderText('输入消息...');
+
+    expect(screen.queryByRole('button', { name: '清空输入' })).toBeNull();
+
+    fireEvent.change(input, {
+      target: { value: '需要清空的内容' },
+    });
+
+    const clearButton = screen.getByRole('button', { name: '清空输入' });
+
+    fireEvent.click(clearButton);
+
+    expect(input).toHaveValue('');
+    expect(screen.queryByRole('button', { name: '清空输入' })).toBeNull();
+  });
+
   it('自定义消息接近和达到上限时应显示输入框焦点颜色状态', () => {
     composerConfigRef.current = {
       ...composerConfigRef.current,

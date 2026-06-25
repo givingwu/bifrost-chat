@@ -446,6 +446,23 @@ export const TemplateActionSheetOpen: Story = {
 };
 
 /**
+ * 有内容输入态
+ */
+export const ClearableInput: Story = {
+  render: () => (
+    <MobileLayoutDemo initialValue="请客户确认今天是否可以先处理一部分账单。" />
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '移动端输入区有内容时在输入胶囊内展示清空图标；字数提示独立成行，避免与输入内容和发送按钮互相挤压。',
+      },
+    },
+  },
+};
+
+/**
  * Email 渠道
  */
 export const EmailChannel: Story = {

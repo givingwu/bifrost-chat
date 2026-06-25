@@ -202,6 +202,12 @@ export function MobileLayout({
     setPendingTemplateOptions(undefined);
   }, []);
 
+  const handleClearComposer = useCallback(() => {
+    clearTemplateState();
+    setTemplateError(null);
+    inputRef.current?.focus();
+  }, [clearTemplateState]);
+
   useEffect(() => {
     if (!isTemplateSheetOpen) return;
 
@@ -374,6 +380,7 @@ export function MobileLayout({
         inputRef={inputRef}
         value={value}
         onValueChange={setComposerValue}
+        onClear={handleClearComposer}
         onSend={handleSend}
         onKeyDown={handleInputKeyDown}
         placeholder={resolvedPlaceholder}
