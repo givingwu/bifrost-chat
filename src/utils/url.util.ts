@@ -40,6 +40,28 @@ export const isValidHttpUrl = (url: string): boolean => {
 };
 
 /**
+ * 验证是否为有效的媒体资源 URL（HTTP(S) 或 base64 data URI）
+ * @param url - 待验证的 URL 字符串
+ * @returns 是否为有效的媒体资源 URL
+ */
+export const isValidMediaUrl = (url: string): boolean => {
+  if (!url || typeof url !== 'string') {
+    return false;
+  }
+
+  try {
+    const urlObj = new URL(url);
+    return (
+      urlObj.protocol === 'http:' ||
+      urlObj.protocol === 'https:' ||
+      urlObj.protocol === 'data:'
+    );
+  } catch {
+    return false;
+  }
+};
+
+/**
  * 获取文件名的安全版本
  * @param url - URL 字符串
  * @param fallback - 回退文件名

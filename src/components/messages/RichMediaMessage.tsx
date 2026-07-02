@@ -1,6 +1,6 @@
 import { ImageOff } from 'lucide-react';
 import type { MessageContent } from '@/interfaces/message.interface';
-import { isValidHttpUrl } from '@/utils/url.util';
+import { isValidHttpUrl, isValidMediaUrl } from '@/utils/url.util';
 import { EmptyMessage } from './EmptyMessage';
 import { InvalidUrlMessage } from './InvalidUrlMessage';
 
@@ -45,7 +45,7 @@ export const RichMediaMessage = ({ content }: RichMediaMessageProps) => {
     );
   }
 
-  const isValidImageUrl = data.image ? isValidHttpUrl(data.image) : false;
+  const isValidImageUrl = data.image ? isValidMediaUrl(data.image) : false;
 
   return (
     <div className="flex max-w-sm flex-col overflow-hidden rounded-lg border border-border bg-card">
