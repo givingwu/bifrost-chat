@@ -38,7 +38,7 @@ export interface UseTemplateSelectOptions {
  *
  * @description
  * 封装模板预览 → 模式分发（直发 / 回填）的完整流程，
- * 由 DefaultChatLayout 和 MobileLayout 共同使用，确保两端行为一致。
+ * 由 DefaultChatLayout 和 MobileChatLayout 共同使用，确保两端行为一致。
  *
  * - 通过 `optionsRef` 持有最新回调引用，`handleTemplateSelect` 引用稳定不变。
  * - `direct` 模式始终携带 `{ type: Template, templateCode, templateMetadata }`。

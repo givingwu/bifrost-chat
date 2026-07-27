@@ -378,7 +378,7 @@ export function DefaultChatLayout({
   );
 
   /**
-   * 共享模板选择 hook，与 MobileLayout 使用同一套逻辑。
+   * 共享模板选择 hook，与 MobileChatLayout 使用同一套逻辑。
    */
   const { renderingTemplateId, handleTemplateSelect } = useTemplateSelect({
     activeConversationId,

@@ -31,7 +31,9 @@ export { LoadingState } from './LoadingState';
 export { ChatContainer } from './layout/ChatContainer';
 export { ChatLayout } from './layout/ChatLayout';
 export { DefaultChatLayout } from './layout/DefaultChatLayout';
-export { MobileLayout } from './layout/MobileLayout';
+export { MobileChatContainer } from './layout/MobileChatContainer';
+export { MobileChatLayout } from './layout/MobileChatLayout';
+export { MobileListLayout } from './layout/MobileListLayout';
 export { AudioMessage } from './messages/AudioMessage';
 // Message Components
 export { FileMessage } from './messages/FileMessage';
