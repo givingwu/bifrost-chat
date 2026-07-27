@@ -1,5 +1,6 @@
 import { FileText, Send, X } from 'lucide-react';
 import type { KeyboardEvent, RefObject } from 'react';
+import { useEffect, useRef } from 'react';
 import { ComposerCharCount } from '@/components/composer/ComposerCharCount';
 import { TEST_IDS } from '@/components/composer/composer.constants';
 import { useTranslation } from '@/providers/I18n.provider';
@@ -8,7 +9,7 @@ import { TEMPLATE_SHEET_ID, translateOrFallback } from '@/utils/mobile.util';
 
 export interface MobileComposerProps {
   /** 输入框 DOM 引用，用于模板回填和发送后恢复焦点 */
-  inputRef: RefObject<HTMLInputElement | null>;
+  inputRef: RefObject<HTMLTextAreaElement | null>;
   /** 当前输入内容 */
   value: string;
   /** 输入内容变更回调 */
@@ -18,7 +19,7 @@ export interface MobileComposerProps {
   /** 发送当前输入内容 */
   onSend: () => void;
   /** 输入框键盘事件处理 */
-  onKeyDown: (event: KeyboardEvent<HTMLInputElement>) => void;
+  onKeyDown: (event: KeyboardEvent<HTMLTextAreaElement>) => void;
   /** 输入框占位文案 */
   placeholder: string;
   /** 当前生效的字数提示上限；为空时表示不限制 */
@@ -41,12 +42,101 @@ export interface MobileComposerProps {
 
 const MOBILE_COMPOSER_CHAR_COUNT_ID = 'bifrost-mobile-composer-char-count';
 
+// 单行高度约 24px (leading-6 = 1.5rem × 16px = 24px)
+// 3 行最大高度约 72px
+const SINGLE_LINE_HEIGHT = 24;
+const MAX_ROWS = 3;
+const MAX_HEIGHT = SINGLE_LINE_HEIGHT * MAX_ROWS;
+
+/**
+ * AutoExpandTextarea：自动扩展高度的 textarea。
+ *
+ * @description
+ * 根据 content 自动调整高度，最小 1 行，最大 3 行。
+ */
+function AutoExpandTextarea({
+  textareaRef,
+  value,
+  placeholder,
+  readOnly,
+  disabled,
+  className,
+  onChange,
+  onKeyDown,
+  ariaLabel,
+  ariaInvalid,
+}: {
+  textareaRef: RefObject<HTMLTextAreaElement | null>;
+  value: string;
+  placeholder: string;
+  readOnly: boolean;
+  disabled: boolean;
+  className?: string;
+  onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+  onKeyDown: (e: KeyboardEvent<HTMLTextAreaElement>) => void;
+  ariaLabel: string;
+  ariaInvalid?: true | undefined;
+}) {
+  const internalRef = useRef<HTMLTextAreaElement>(null);
+
+  // 自动调整高度
+  useEffect(() => {
+    const textarea = textareaRef?.current || internalRef.current;
+    if (!textarea) return;
+
+    // 重置高度到最小值
+    textarea.style.height = 'auto';
+
+    // 计算新高度
+    const scrollHeight = textarea.scrollHeight;
+    const newHeight = Math.min(scrollHeight, MAX_HEIGHT);
+
+    textarea.style.height = `${newHeight}px`;
+  }, [value, textareaRef]);
+
+  return (
+    <textarea
+      ref={textareaRef || internalRef}
+      value={value}
+      placeholder={placeholder}
+      readOnly={readOnly}
+      disabled={disabled}
+      rows={1}
+      className={cn(
+        // 基础样式
+        'min-w-0 flex-1 bg-transparent px-0 py-0 resize-none',
+        // 固定高度范围
+        `min-h-[${SINGLE_LINE_HEIGHT}px] max-h-[${MAX_HEIGHT}px]`,
+        // 字体样式
+        'text-sm leading-6 text-foreground outline-none',
+        // 占位符样式
+        'placeholder:text-gray-500/50',
+        // 禁用/只读状态
+        'disabled:cursor-not-allowed disabled:opacity-60',
+        'read-only:cursor-not-allowed',
+        className,
+      )}
+      style={{
+        minHeight: SINGLE_LINE_HEIGHT,
+        maxHeight: MAX_HEIGHT,
+        height: 'auto',
+        overflowY: 'auto',
+      }}
+      onChange={onChange}
+      onKeyDown={onKeyDown}
+      aria-label={ariaLabel}
+      aria-invalid={ariaInvalid}
+    />
+  );
+}
+
 /**
  * MobileComposer：移动端底部输入区。
  *
  * @description
- * 只负责渲染输入、模板入口、发送按钮与字数提示；长度规则由
- * `MobileLayout` 根据当前渠道和 composer 配置计算后传入。
+ * - 使用 auto-expand textarea，最小 1 行，最大 3 行
+ * - 高度固定，避免 clear 按钮导致抖动
+ * - 字符计数显示在底部
  */
 export function MobileComposer({
   inputRef,
@@ -81,10 +171,18 @@ export function MobileComposer({
           void onSend();
         }}
       >
-        <div className="flex items-end gap-2">
+        {/* 输入区：固定高度避免抖动 */}
+        <div
+          className={cn(
+            'flex items-start gap-2',
+            // 确保高度始终一致
+            'min-h-[40px]',
+          )}
+        >
+          {/* 模板按钮 */}
           <button
             type="button"
-            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted focus:outline-none focus:ring-2 focus:ring-primary/40 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted focus:outline-none focus:ring-2 focus:ring-primary/40 disabled:cursor-not-allowed disabled:opacity-50"
             onClick={onToggleTemplateSheet}
             aria-label={translateOrFallback(
               t,
@@ -98,12 +196,13 @@ export function MobileComposer({
             <FileText className="h-5 w-5" aria-hidden="true" />
           </button>
 
+          {/* 输入框容器 */}
           <div
             className={cn(
-              'flex min-h-10 min-w-0 flex-1 items-center gap-1',
+              'flex min-h-9 min-w-0 flex-1 items-center gap-1.5',
               'rounded-2xl border border-transparent',
               'bg-gray-200/50 dark:bg-white/10',
-              'px-3 py-1.5 transition-all duration-200',
+              'px-3 py-1 transition-all duration-200',
               'focus-within:bg-card focus-within:ring-2 focus-within:ring-primary/40',
               inputDisabled && 'cursor-not-allowed opacity-60',
               readOnly && 'cursor-not-allowed',
@@ -113,34 +212,23 @@ export function MobileComposer({
               isAtMaxLength && 'focus-within:ring-red-400/40',
             )}
           >
-            <input
-              ref={inputRef}
+            <AutoExpandTextarea
+              textareaRef={inputRef}
               value={value}
               placeholder={placeholder}
               readOnly={readOnly}
               disabled={inputDisabled}
-              className={cn(
-                'min-w-0 flex-1 bg-transparent px-0 py-0',
-                'text-sm leading-6 text-foreground outline-none',
-                'placeholder:text-gray-500/50',
-                'disabled:cursor-not-allowed disabled:opacity-60',
-                readOnly && 'cursor-not-allowed',
-                isNearMaxLength && !isAtMaxLength && 'focus:ring-orange-400/40',
-                isAtMaxLength && 'focus:ring-red-400/40',
-              )}
+              className="py-1"
               onChange={(event) => onValueChange(event.target.value)}
               onKeyDown={onKeyDown}
-              aria-label={t('composer.aria.input')}
-              aria-describedby={
-                showCharCount ? MOBILE_COMPOSER_CHAR_COUNT_ID : undefined
-              }
-              aria-invalid={isAtMaxLength || undefined}
+              ariaLabel={t('composer.aria.input')}
+              ariaInvalid={isAtMaxLength || undefined}
             />
 
             {hasValue && (
               <button
                 type="button"
-                className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-background/80 hover:text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-background/80 hover:text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 disabled:cursor-not-allowed disabled:opacity-50 mt-0.5"
                 onClick={onClear}
                 disabled={inputDisabled}
                 aria-label={translateOrFallback(
@@ -150,15 +238,16 @@ export function MobileComposer({
                 )}
                 data-testid={TEST_IDS.COMPOSER_CLEAR}
               >
-                <X className="h-4 w-4" aria-hidden="true" />
+                <X className="h-3.5 w-3.5" aria-hidden="true" />
               </button>
             )}
           </div>
 
+          {/* 发送按钮 */}
           <button
             type="submit"
             className={cn(
-              'inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full',
+              'inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full',
               'bg-(--mobile-accent-color) text-(--mobile-accent-foreground-color) shadow-soft',
               'transition-transform hover:scale-105 active:scale-95',
               'focus:outline-none focus:ring-2 focus:ring-primary/40',
@@ -175,12 +264,13 @@ export function MobileComposer({
           </button>
         </div>
 
+        {/* 字符计数 */}
         {showCharCount && (
           <div className="grid grid-cols-[2.5rem_minmax(0,1fr)_2.5rem] gap-2">
             <span aria-hidden="true" />
             <div
               id={MOBILE_COMPOSER_CHAR_COUNT_ID}
-              className="flex min-w-0 justify-end px-2 leading-none"
+              className="flex min-w-0 justify-end px-2 leading-none text-xs text-muted-foreground"
               aria-live="polite"
             >
               <ComposerCharCount
