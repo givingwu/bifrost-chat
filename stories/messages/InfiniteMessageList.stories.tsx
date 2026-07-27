@@ -1,4 +1,6 @@
 import type { Meta } from 'storybook-react-rsbuild';
+import type { StoryObj } from 'storybook-react-rsbuild';
+type Story = StoryObj<any>;
 import { InfiniteMessageList } from '@/components/messages/InfiniteMessageList';
 import '@/styles/theme.css';
 
@@ -45,7 +47,7 @@ export default meta;
 /**
  * 默认状态的无限滚动消息列表
  */
-export const Default: Story = {
+export const Default= {
   args: {
     conversationId: 'conv-123',
   },
@@ -69,7 +71,7 @@ export const Default: Story = {
 /**
  * 空状态
  */
-export const Empty: Story = {
+export const Empty= {
   args: {
     conversationId: 'conv-empty',
   },
@@ -85,7 +87,7 @@ export const Empty: Story = {
 /**
  * 加载状态
  */
-export const Loading: Story = {
+export const Loading= {
   args: {
     conversationId: 'conv-loading',
   },
@@ -101,7 +103,7 @@ export const Loading: Story = {
 /**
  * 自定义样式
  */
-export const CustomStyling: Story = {
+export const CustomStyling= {
   args: {
     conversationId: 'conv-123',
     className: 'bg-muted',

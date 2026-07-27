@@ -64,7 +64,7 @@ const mockTemplates: Template[] = [
   },
 ];
 
-export const Default: Story = {
+export const Default= {
   args: {
     templates: mockTemplates,
     showCategory: true,
@@ -72,13 +72,13 @@ export const Default: Story = {
   },
 };
 
-export const Empty: Story = {
+export const Empty= {
   args: {
     templates: [],
   },
 };
 
-export const WithSelected: Story = {
+export const WithSelected= {
   args: {
     templates: mockTemplates,
     selectedId: '2',
@@ -87,7 +87,7 @@ export const WithSelected: Story = {
   },
 };
 
-export const WithUsageCount: Story = {
+export const WithUsageCount= {
   args: {
     templates: mockTemplates.map((t) => ({
       ...t,
@@ -98,7 +98,7 @@ export const WithUsageCount: Story = {
   },
 };
 
-export const WithoutCategory: Story = {
+export const WithoutCategory= {
   args: {
     templates: mockTemplates.map((t) => ({ ...t, category: undefined })),
     showCategory: false,
@@ -106,7 +106,7 @@ export const WithoutCategory: Story = {
   },
 };
 
-export const LongContent: Story = {
+export const LongContent= {
   args: {
     templates: [
       {

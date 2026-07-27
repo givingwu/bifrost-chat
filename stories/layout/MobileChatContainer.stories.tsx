@@ -269,7 +269,7 @@ const meta: Meta<typeof MobileChatContainer> = {
 
 export default meta;
 
-export const Default: Story = {
+export const Default= {
   render: () => <MobileChatContainerDemo />,
   parameters: {
     docs: {
@@ -280,7 +280,7 @@ export const Default: Story = {
   },
 };
 
-export const Dark: Story = {
+export const Dark= {
   render: () => <MobileChatContainerDemo theme="dark" />,
   parameters: {
     docs: {
@@ -291,7 +291,7 @@ export const Dark: Story = {
   },
 };
 
-export const InitialChatView: Story = {
+export const InitialChatView= {
   render: () => <MobileChatContainerDemo initialView="chat" />,
   parameters: {
     docs: {

@@ -232,7 +232,7 @@ export const FailedMessage = () => {
 };
 
 // 发送成功的消息
-export const Sent: Story = {
+export const Sent= {
   args: {
     message: {
       conversationId: 'conv-123',
@@ -251,7 +251,7 @@ export const Sent: Story = {
 };
 
 // 发送失败的消息（带操作按钮）
-export const Failed: Story = {
+export const Failed= {
   args: {
     message: {
       conversationId: 'conv-123',
@@ -274,7 +274,7 @@ export const Failed: Story = {
 };
 
 // 发送失败的消息（带详细错误信息）
-export const FailedWithError: Story = {
+export const FailedWithError= {
   args: {
     message: {
       conversationId: 'conv-123',
@@ -297,7 +297,7 @@ export const FailedWithError: Story = {
 };
 
 // 发送失败的消息（带详细错误信息）
-export const FailedWithIncomingError: Story = {
+export const FailedWithIncomingError= {
   args: {
     message: {
       conversationId: 'conv-123',
@@ -320,7 +320,7 @@ export const FailedWithIncomingError: Story = {
 };
 
 // 接收的消息
-export const IncomingMessage: Story = {
+export const IncomingMessage= {
   args: {
     message: {
       conversationId: 'conv-123',
@@ -339,7 +339,7 @@ export const IncomingMessage: Story = {
 };
 
 // 发送中的消息
-export const Sending: Story = {
+export const Sending= {
   args: {
     message: {
       conversationId: 'conv-123',
@@ -359,7 +359,7 @@ export const Sending: Story = {
 };
 
 // 带发送号码尾号和 Chatbot 标识的消息
-export const WithChannelAccountAndChatbot: Story = {
+export const WithChannelAccountAndChatbot= {
   args: {
     message: {
       conversationId: 'conv-123',
@@ -382,7 +382,7 @@ export const WithChannelAccountAndChatbot: Story = {
 };
 
 // 下行消息按上行镜像展示补充信息：发送号码、Chatbot、状态、时间
-export const OutgoingSupplementInfoOrder: Story = {
+export const OutgoingSupplementInfoOrder= {
   args: {
     message: {
       conversationId: 'conv-123',
@@ -405,7 +405,7 @@ export const OutgoingSupplementInfoOrder: Story = {
 };
 
 // 客户消息展示发送号码尾号
-export const IncomingWithChannelAccount: Story = {
+export const IncomingWithChannelAccount= {
   args: {
     message: {
       conversationId: 'conv-123',
@@ -427,7 +427,7 @@ export const IncomingWithChannelAccount: Story = {
 };
 
 // 图片消息（发送失败）
-export const FailedImage: Story = {
+export const FailedImage= {
   args: {
     message: {
       conversationId: 'conv-123',

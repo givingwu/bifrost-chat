@@ -29,7 +29,7 @@ const meta: Meta<typeof MessageActions> = {
 export default meta;
 
 // 基础示例
-export const Default: Story = {
+export const Default= {
   args: {
     message: {
       conversationId: 'conv-123',
@@ -52,7 +52,7 @@ export const Default: Story = {
 };
 
 // 带错误信息
-export const WithError: Story = {
+export const WithError= {
   args: {
     message: {
       conversationId: 'conv-123',
@@ -75,7 +75,7 @@ export const WithError: Story = {
 };
 
 // 无错误信息
-export const WithoutError: Story = {
+export const WithoutError= {
   args: {
     message: {
       conversationId: 'conv-123',
@@ -97,7 +97,7 @@ export const WithoutError: Story = {
 };
 
 // 非本地失败消息（不显示按钮）
-export const NotLocalFailed: Story = {
+export const NotLocalFailed= {
   args: {
     message: {
       conversationId: 'conv-123',
@@ -119,7 +119,7 @@ export const NotLocalFailed: Story = {
 };
 
 // 无 conversationId（不显示按钮）
-export const WithoutConversationId: Story = {
+export const WithoutConversationId= {
   args: {
     message: {
       conversationId: 'conv-123',
@@ -142,7 +142,7 @@ export const WithoutConversationId: Story = {
 };
 
 // 非失败状态（不显示按钮）
-export const NotFailedStatus: Story = {
+export const NotFailedStatus= {
   args: {
     message: {
       conversationId: 'conv-123',

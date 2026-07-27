@@ -43,7 +43,7 @@ export default meta;
 /**
  * 基础示例 - 默认图片
  */
-export const Default: Story = {
+export const Default= {
   args: {
     src: 'https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0?w=400',
     alt: '风景图片',
@@ -54,7 +54,7 @@ export const Default: Story = {
 /**
  * 懒加载 - 图片懒加载示例
  */
-export const LazyLoad: Story = {
+export const LazyLoad= {
   args: {
     src: 'https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0?w=400',
     alt: '懒加载图片',

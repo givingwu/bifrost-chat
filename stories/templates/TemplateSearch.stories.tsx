@@ -20,7 +20,7 @@ export default meta;
 /**
  * 默认状态的模板搜索
  */
-export const Default: Story = {
+export const Default= {
   render: () => (
     <div className="p-4 bg-muted rounded-lg w-80">
       <TemplateSearch />
@@ -31,7 +31,7 @@ export const Default: Story = {
 /**
  * 带搜索值的模板搜索
  */
-export const WithValue: Story = {
+export const WithValue= {
   render: () => (
     <div className="p-4 bg-muted rounded-lg w-80">
       <TemplateSearch value="问候" />
@@ -42,7 +42,7 @@ export const WithValue: Story = {
 /**
  * 带搜索回调的模板搜索
  */
-export const WithCallback: Story = {
+export const WithCallback= {
   render: () => {
     const handleSearch = (query: string) => {
       console.log('搜索查询:', query);
@@ -58,7 +58,7 @@ export const WithCallback: Story = {
 /**
  * 自定义占位符
  */
-export const CustomPlaceholder: Story = {
+export const CustomPlaceholder= {
   render: () => (
     <div className="p-4 bg-muted rounded-lg w-80">
       <TemplateSearch placeholder="搜索消息模板..." />
@@ -69,7 +69,7 @@ export const CustomPlaceholder: Story = {
 /**
  * 禁用状态
  */
-export const Disabled: Story = {
+export const Disabled= {
   render: () => (
     <div className="p-4 bg-muted rounded-lg w-80">
       <TemplateSearch disabled />

@@ -213,7 +213,7 @@ const meta: Meta<typeof MobileListLayout> = {
 
 export default meta;
 
-export const Default: Story = {
+export const Default= {
   render: () => <MobileListLayoutDemo />,
   parameters: {
     docs: {
@@ -224,7 +224,7 @@ export const Default: Story = {
   },
 };
 
-export const Dark: Story = {
+export const Dark= {
   render: () => <MobileListLayoutDemo theme="dark" />,
   parameters: {
     docs: {
@@ -235,7 +235,7 @@ export const Dark: Story = {
   },
 };
 
-export const WithoutSearch: Story = {
+export const WithoutSearch= {
   render: () => <MobileListLayoutDemo showAssetSearch={false} />,
   parameters: {
     docs: {
@@ -246,7 +246,7 @@ export const WithoutSearch: Story = {
   },
 };
 
-export const WithUnreadBadges: Story = {
+export const WithUnreadBadges= {
   render: () => <MobileListLayoutDemo />,
   parameters: {
     docs: {
@@ -283,7 +283,7 @@ function generateManyConversations(count: number): Conversation[] {
 
 const manyConversations = generateManyConversations(50);
 
-export const VirtualScroll: Story = {
+export const VirtualScroll= {
   render: () => (
     <div
       className="flex min-h-[860px] items-center justify-center bg-background p-6"

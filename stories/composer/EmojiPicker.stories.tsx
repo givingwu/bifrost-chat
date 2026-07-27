@@ -1,4 +1,6 @@
 import type { Meta } from 'storybook-react-rsbuild';
+import type { StoryObj } from 'storybook-react-rsbuild';
+type Story = StoryObj<any>;
 import { EmojiPicker } from '@/components/composer/EmojiPicker';
 import '@/styles/theme.css';
 

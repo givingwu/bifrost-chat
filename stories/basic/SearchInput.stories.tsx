@@ -48,8 +48,8 @@ export default meta;
 /**
  * 默认状态的搜索输入框
  */
-export const Default: Story = {
-  render: (args) => (
+export const Default= {
+  render: (args: any) => (
     <div className="w-80">
       <SearchInput {...args} />
     </div>
@@ -62,8 +62,8 @@ export const Default: Story = {
 /**
  * 带图标的搜索输入框
  */
-export const WithIcon: Story = {
-  render: (args) => (
+export const WithIcon= {
+  render: (args: any) => (
     <div className="w-80">
       <SearchInput {...args} icon={<Search className="h-4 w-4" />} />
     </div>
@@ -76,8 +76,8 @@ export const WithIcon: Story = {
 /**
  * 带边框的搜索输入框
  */
-export const Bordered: Story = {
-  render: (args) => (
+export const Bordered= {
+  render: (args: any) => (
     <div className="w-80">
       <SearchInput {...args} bordered />
     </div>
@@ -91,8 +91,8 @@ export const Bordered: Story = {
 /**
  * 小尺寸搜索输入框
  */
-export const Small: Story = {
-  render: (args) => (
+export const Small= {
+  render: (args: any) => (
     <div className="w-64">
       <SearchInput {...args} size="sm" />
     </div>
@@ -106,8 +106,8 @@ export const Small: Story = {
 /**
  * 大尺寸搜索输入框
  */
-export const Large: Story = {
-  render: (args) => (
+export const Large= {
+  render: (args: any) => (
     <div className="w-96">
       <SearchInput {...args} size="lg" />
     </div>
@@ -121,8 +121,8 @@ export const Large: Story = {
 /**
  * 禁用状态
  */
-export const Disabled: Story = {
-  render: (args) => (
+export const Disabled= {
+  render: (args: any) => (
     <div className="w-80">
       <SearchInput {...args} disabled />
     </div>
@@ -136,8 +136,8 @@ export const Disabled: Story = {
 /**
  * 带初始值的搜索输入框
  */
-export const WithValue: Story = {
-  render: (args) => (
+export const WithValue= {
+  render: (args: any) => (
     <div className="w-80">
       <SearchInput {...args} />
     </div>
@@ -152,7 +152,7 @@ export const WithValue: Story = {
 /**
  * 受控组件示例
  */
-export const Controlled: Story = {
+export const Controlled= {
   render: () => {
     // 这里可以添加受控组件的示例代码
     return (

@@ -38,7 +38,7 @@ export default meta;
 /**
  * 基础示例 - 默认按钮
  */
-export const Default: Story = {
+export const Default= {
   args: {
     children: '点击我',
     className:

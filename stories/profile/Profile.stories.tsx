@@ -40,7 +40,7 @@ const mockProfile = {
 /**
  * 基础示例 - 默认资料
  */
-export const Default: Story = {
+export const Default= {
   args: {
     profile: mockProfile,
   },
@@ -49,7 +49,7 @@ export const Default: Story = {
 /**
  * 简化资料 - 最小信息
  */
-export const Minimal: Story = {
+export const Minimal= {
   args: {
     profile: {
       name: 'John Doe',
@@ -62,7 +62,7 @@ export const Minimal: Story = {
 /**
  * 完整资料 - 包含所有信息
  */
-export const FullProfile: Story = {
+export const FullProfile= {
   args: {
     profile: {
       name: 'Alice Smith',
@@ -81,7 +81,7 @@ export const FullProfile: Story = {
 /**
  * 不同角色 - 展示不同用户角色
  */
-export const DifferentRoles: Story = {
+export const DifferentRoles= {
   render: () => {
     const roles = [
       { name: 'Customer', label: '普通客户' },

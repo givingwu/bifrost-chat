@@ -48,7 +48,7 @@ export default meta;
 /**
  * 基础示例 - 默认尺寸
  */
-export const Default: Story = {
+export const Default= {
   args: {
     src: 'https://i.pravatar.cc/150?img=12',
     alt: '用户头像',
@@ -120,7 +120,7 @@ export const CustomFallback = () => (
 /**
  * 可点击状态 - 支持点击交互的头像
  */
-export const Clickable: Story = {
+export const Clickable= {
   args: {
     src: 'https://i.pravatar.cc/150?img=12',
     alt: '可点击头像',
@@ -147,7 +147,7 @@ export const FailedImage = () => (
 /**
  * 懒加载 - 图片懒加载示例
  */
-export const LazyLoad: Story = {
+export const LazyLoad= {
   args: {
     src: 'https://i.pravatar.cc/150?img=12',
     alt: '懒加载头像',

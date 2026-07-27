@@ -69,7 +69,7 @@ const renderWithSnapshot = (config: ChatStoreInitialState) => {
 /**
  * 初始化：在首次挂载时把 config 写入 store。
  */
-export const StaticInitialization: Story = {
+export const StaticInitialization= {
   render: () =>
     renderWithSnapshot({
       language: { code: LanguageCodeEnum.ZhCN },
@@ -84,7 +84,7 @@ export const StaticInitialization: Story = {
 /**
  * ConfigProvider 初始化语言
  */
-export const LocaleOverride: Story = {
+export const LocaleOverride= {
   render: () =>
     renderWithSnapshot({
       language: { code: LanguageCodeEnum.EnUS },
@@ -98,7 +98,7 @@ export const LocaleOverride: Story = {
 /**
  * 同步行为：更新 config prop 会触发重新初始化。
  */
-export const ConfigSyncAfterMount: Story = {
+export const ConfigSyncAfterMount= {
   render: () => {
     const [nextLanguage, setNextLanguage] = useState(false);
 
@@ -148,7 +148,7 @@ export const ConfigSyncAfterMount: Story = {
 /**
  * 消息类型配置：基本配置
  */
-export const MessageTypeConfigBasic: Story = {
+export const MessageTypeConfigBasic= {
   render: () =>
     renderWithSnapshot({
       strategy: {
@@ -167,7 +167,7 @@ export const MessageTypeConfigBasic: Story = {
 /**
  * 消息类型配置：按渠道配置
  */
-export const MessageTypeConfigByChannel: Story = {
+export const MessageTypeConfigByChannel= {
   render: () =>
     renderWithSnapshot({
       strategy: {
@@ -206,7 +206,7 @@ export const MessageTypeConfigByChannel: Story = {
 /**
  * 消息类型配置：隐藏不支持的消息
  */
-export const MessageTypeConfigHideUnsupported: Story = {
+export const MessageTypeConfigHideUnsupported= {
   render: () =>
     renderWithSnapshot({
       strategy: {
@@ -220,7 +220,7 @@ export const MessageTypeConfigHideUnsupported: Story = {
 /**
  * 消息类型配置：组合配置
  */
-export const MessageTypeConfigCombined: Story = {
+export const MessageTypeConfigCombined= {
   render: () =>
     renderWithSnapshot({
       strategy: {

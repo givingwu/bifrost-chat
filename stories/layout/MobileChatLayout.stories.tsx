@@ -257,7 +257,7 @@ const meta: Meta<typeof MobileChatLayout> = {
 
 export default meta;
 
-export const Default: Story = {
+export const Default= {
   render: () => <MobileChatLayoutDemo />,
   parameters: {
     docs: {
@@ -269,7 +269,7 @@ export const Default: Story = {
   },
 };
 
-export const Dark: Story = {
+export const Dark= {
   render: () => <MobileChatLayoutDemo theme="dark" />,
   parameters: {
     docs: {
@@ -280,7 +280,7 @@ export const Dark: Story = {
   },
 };
 
-export const SMSChannel: Story = {
+export const SMSChannel= {
   render: () => <MobileChatLayoutDemo channel={ChannelTypeEnum.SMS} />,
   parameters: {
     docs: {
@@ -291,7 +291,7 @@ export const SMSChannel: Story = {
   },
 };
 
-export const ViberChannel: Story = {
+export const ViberChannel= {
   render: () => <MobileChatLayoutDemo channel={ChannelTypeEnum.Viber} />,
   parameters: {
     docs: {
@@ -302,7 +302,7 @@ export const ViberChannel: Story = {
   },
 };
 
-export const WithoutBackButton: Story = {
+export const WithoutBackButton= {
   render: () => <MobileChatLayoutDemo showBackButton={false} />,
   parameters: {
     docs: {
@@ -313,7 +313,7 @@ export const WithoutBackButton: Story = {
   },
 };
 
-export const WithoutCloseButton: Story = {
+export const WithoutCloseButton= {
   render: () => <MobileChatLayoutDemo showCloseButton={false} />,
   parameters: {
     docs: {

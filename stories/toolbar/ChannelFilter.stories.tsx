@@ -20,7 +20,7 @@ export default meta;
 /**
  * 基础示例：单渠道（无指示器）
  */
-export const SingleChannel: Story = {
+export const SingleChannel= {
   args: {
     channels: [ChannelTypeEnum.SMS],
     activeChannel: ChannelTypeEnum.SMS,
@@ -33,7 +33,7 @@ export const SingleChannel: Story = {
 /**
  * 多渠道示例
  */
-export const MultipleChannels: Story = {
+export const MultipleChannels= {
   args: {
     channels: [
       ChannelTypeEnum.SMS,
@@ -50,7 +50,7 @@ export const MultipleChannels: Story = {
 /**
  * 全部渠道（6 个）
  */
-export const AllChannels: Story = {
+export const AllChannels= {
   args: {
     channels: AvailableChannels,
     activeChannel: ChannelTypeEnum.WhatsApp,
@@ -65,7 +65,7 @@ export const AllChannels: Story = {
  *
  * 展示 RCS 与常见消息渠道并列时的激活态、未读数和 tooltip。
  */
-export const RCSChannel: Story = {
+export const RCSChannel= {
   args: {
     channels: [
       ChannelTypeEnum.SMS,
@@ -113,7 +113,7 @@ export const BrandColors = () => (
 /**
  * 非紧凑模式（显示文字）
  */
-export const NonCompact: Story = {
+export const NonCompact= {
   args: {
     channels: [
       ChannelTypeEnum.SMS,
@@ -135,7 +135,7 @@ export const NonCompact: Story = {
 /**
  * 无工具提示
  */
-export const WithoutTooltip: Story = {
+export const WithoutTooltip= {
   args: {
     channels: [
       ChannelTypeEnum.SMS,
@@ -152,7 +152,7 @@ export const WithoutTooltip: Story = {
 /**
  * 暗色模式
  */
-export const DarkMode: Story = {
+export const DarkMode= {
   args: {
     channels: AvailableChannels,
     activeChannel: ChannelTypeEnum.Viber,
@@ -170,7 +170,7 @@ export const DarkMode: Story = {
 /**
  * 无激活渠道
  */
-export const NoActiveChannel: Story = {
+export const NoActiveChannel= {
   args: {
     channels: [
       ChannelTypeEnum.SMS,
@@ -187,7 +187,7 @@ export const NoActiveChannel: Story = {
 /**
  * 渠道未读 Badge 示例
  */
-export const WithUnreadBadge: Story = {
+export const WithUnreadBadge= {
   args: {
     channels: AvailableChannels,
     activeChannel: ChannelTypeEnum.WhatsApp,
@@ -205,7 +205,7 @@ export const WithUnreadBadge: Story = {
 /**
  * 不传 unreadByChannel → 不显示 Badge
  */
-export const WithoutUnreadBadge: Story = {
+export const WithoutUnreadBadge= {
   args: {
     channels: [
       ChannelTypeEnum.SMS,
@@ -223,7 +223,7 @@ export const WithoutUnreadBadge: Story = {
  * 禁用态渠道（通过 supportedChannels 控制启用/禁用）
  * Email 和 Viber 不在 supportedChannels 中，因此被禁用
  */
-export const WithDisabledChannels: Story = {
+export const WithDisabledChannels= {
   args: {
     channels: AvailableChannels,
     activeChannel: ChannelTypeEnum.WhatsApp,
@@ -236,7 +236,7 @@ export const WithDisabledChannels: Story = {
 /**
  * 大量未读（测试 99+ 截断）
  */
-export const UnreadOverflow: Story = {
+export const UnreadOverflow= {
   args: {
     channels: [ChannelTypeEnum.SMS, ChannelTypeEnum.WhatsApp],
     activeChannel: ChannelTypeEnum.SMS,
@@ -255,7 +255,7 @@ export const UnreadOverflow: Story = {
  *
  * 自研 WhatsApp 代理渠道，使用稍深的绿色区分官方 WhatsApp
  */
-export const WaAgentChannel: Story = {
+export const WaAgentChannel= {
   args: {
     channels: [ChannelTypeEnum.WaAgent],
     activeChannel: ChannelTypeEnum.WaAgent,
@@ -272,7 +272,7 @@ export const WaAgentChannel: Story = {
  * - WhatsApp: #22C55E (green-500)
  * - WaAgent: #16A34A (green-600)
  */
-export const WhatsAppVsWaAgent: Story = {
+export const WhatsAppVsWaAgent= {
   args: {
     channels: [ChannelTypeEnum.WhatsApp, ChannelTypeEnum.WaAgent],
     activeChannel: ChannelTypeEnum.WaAgent,

@@ -53,7 +53,7 @@ export default meta;
 /**
  * 默认状态
  */
-export const Default: Story = {
+export const Default= {
   args: {
     conversationId: 'conv-123',
     channel: ChannelTypeEnum.WhatsApp,
@@ -63,7 +63,7 @@ export const Default: Story = {
 /**
  * WhatsApp 渠道
  */
-export const WhatsAppChannel: Story = {
+export const WhatsAppChannel= {
   args: {
     conversationId: 'conv-whatsapp',
     channel: ChannelTypeEnum.WhatsApp,
@@ -73,7 +73,7 @@ export const WhatsAppChannel: Story = {
 /**
  * SMS 渠道
  */
-export const SMSChannel: Story = {
+export const SMSChannel= {
   args: {
     conversationId: 'conv-sms',
     channel: ChannelTypeEnum.SMS,
@@ -83,7 +83,7 @@ export const SMSChannel: Story = {
 /**
  * Email 渠道
  */
-export const EmailChannel: Story = {
+export const EmailChannel= {
   args: {
     conversationId: 'conv-email',
     channel: ChannelTypeEnum.Email,
@@ -93,7 +93,7 @@ export const EmailChannel: Story = {
 /**
  * 禁用状态
  */
-export const Disabled: Story = {
+export const Disabled= {
   args: {
     conversationId: 'conv-disabled',
     channel: ChannelTypeEnum.WhatsApp,
@@ -104,7 +104,7 @@ export const Disabled: Story = {
 /**
  * 加载占位状态
  */
-export const Loading: Story = {
+export const Loading= {
   args: {
     conversationId: 'conv-loading',
     channel: ChannelTypeEnum.WhatsApp,
@@ -115,7 +115,7 @@ export const Loading: Story = {
 /**
  * 带发送回调
  */
-export const WithSendCallback: Story = {
+export const WithSendCallback= {
   args: {
     conversationId: 'conv-callback',
     channel: ChannelTypeEnum.WhatsApp,
@@ -132,7 +132,7 @@ export const WithSendCallback: Story = {
         status: MessageStatusEnum.Sent,
       };
     },
-    onSendAttachment: async (attachments, text) => {
+    onSendAttachment: async (attachments: any, text: any) => {
       console.log('Sending attachments:', { attachments, text });
       await new Promise((resolve) => setTimeout(resolve, 1000));
       console.log('Attachments sent!');
@@ -143,7 +143,7 @@ export const WithSendCallback: Story = {
 /**
  * 模板编辑态默认不受字数限制
  */
-export const TemplateIgnoresLengthLimit: Story = {
+export const TemplateIgnoresLengthLimit= {
   render: () => {
     const ref = useRef<ComposerRef>(null);
 
@@ -181,7 +181,7 @@ export const TemplateIgnoresLengthLimit: Story = {
 /**
  * 仅模板输入模式
  */
-export const TemplateOnlyMode: Story = {
+export const TemplateOnlyMode= {
   render: () => {
     const ref = useRef<ComposerRef>(null);
 

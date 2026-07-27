@@ -58,7 +58,7 @@ export default meta;
 /**
  * 基础示例 - 默认图标按钮
  */
-export const Default: Story = {
+export const Default= {
   args: {
     icon: <Send className="w-5 h-5" />,
     variant: 'ghost',

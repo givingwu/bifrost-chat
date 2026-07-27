@@ -1,4 +1,6 @@
 import type { Meta } from 'storybook-react-rsbuild';
+import type { StoryObj } from 'storybook-react-rsbuild';
+type Story = StoryObj<any>;
 import { TemplatePanel } from '@/components/template/TemplatePanel';
 import type { Template } from '@/interfaces/template.interface';
 import '@/styles/theme.css';
@@ -101,7 +103,7 @@ export default meta;
 /**
  * 默认状态的模板面板
  */
-export const Default: Story = {
+export const Default= {
   args: {
     templates: mockTemplates,
     showCategory: true,
@@ -127,7 +129,7 @@ export const Default: Story = {
 /**
  * 带选中状态的模板面板
  */
-export const WithSelected: Story = {
+export const WithSelected= {
   args: {
     templates: mockTemplates,
     selectedId: 'template-1',
@@ -145,7 +147,7 @@ export const WithSelected: Story = {
 /**
  * 显示使用次数
  */
-export const WithUsageCount: Story = {
+export const WithUsageCount= {
   args: {
     templates: mockTemplates.map((t) => ({
       ...t,
@@ -166,7 +168,7 @@ export const WithUsageCount: Story = {
 /**
  * 不显示分类标签
  */
-export const WithoutCategory: Story = {
+export const WithoutCategory= {
   args: {
     templates: mockTemplates,
     showCategory: false,
@@ -183,7 +185,7 @@ export const WithoutCategory: Story = {
 /**
  * 空状态
  */
-export const Empty: Story = {
+export const Empty= {
   args: {
     templates: [],
     showCategory: true,
@@ -200,12 +202,12 @@ export const Empty: Story = {
 /**
  * 带回调的模板面板
  */
-export const WithCallback: Story = {
+export const WithCallback= {
   args: {
     templates: mockTemplates,
     showCategory: true,
   },
-  render: (args) => {
+  render: (args: any) => {
     const handleSelect = (template: Template) => {
       console.log('Selected template:', template);
     };
@@ -223,12 +225,12 @@ export const WithCallback: Story = {
 /**
  * 点击即发送（示例）
  */
-export const ClickToSend: Story = {
+export const ClickToSend= {
   args: {
     templates: mockTemplates,
     showCategory: true,
   },
-  render: (args) => {
+  render: (args: any) => {
     const handleSelect = (template: Template) => {
       console.log('Send template content:', template.content);
     };
