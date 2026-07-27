@@ -1,3 +1,4 @@
+import type { InfiniteData, QueryKey } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   MessageStatusEnum,
@@ -5,6 +6,12 @@ import {
 } from '@/interfaces/message.interface';
 import { queryKeys } from '@/providers/query.provider';
 import { useServices } from '@/providers/service.provider';
+
+type MessagePage = {
+  items: StandardMessage[];
+};
+
+type MessageInfiniteData = InfiniteData<MessagePage, QueryKey>;
 
 /**
  * 重试失败消息的 Hook
@@ -83,11 +90,11 @@ export function useRetryMessage() {
       // 更新消息状态为 Sending
       queryClient.setQueryData(
         queryKeys.messages.list(conversationId),
-        (old: any) => {
+        (old: MessageInfiniteData | undefined) => {
           if (!old) return old;
           return {
             ...old,
-            pages: old.pages.map((page: any) => ({
+            pages: old.pages.map((page: MessagePage) => ({
               ...page,
               items: page.items.map((item: StandardMessage) =>
                 item._offlineMessageId === offlineMessageId
@@ -113,11 +120,11 @@ export function useRetryMessage() {
       // 更新消息状态为 Failed
       queryClient.setQueryData(
         queryKeys.messages.list(conversationId),
-        (old: any) => {
+        (old: MessageInfiniteData | undefined) => {
           if (!old) return old;
           return {
             ...old,
-            pages: old.pages.map((page: any) => ({
+            pages: old.pages.map((page: MessagePage) => ({
               ...page,
               items: page.items.map((item: StandardMessage) =>
                 item._offlineMessageId === offlineMessageId

@@ -44,7 +44,10 @@ export function useDeleteFailedMessage() {
       offlineMessageId: string;
     }
   >({
-    mutationFn: async ({ conversationId, offlineMessageId }) => {
+    mutationFn: async ({
+      conversationId: _conversationId,
+      offlineMessageId,
+    }) => {
       // 从离线队列中删除
       if (!offlineMessageQueue) {
         throw new Error('offlineMessageQueue is not available');
