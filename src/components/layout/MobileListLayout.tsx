@@ -134,7 +134,7 @@ export const MobileListLayout = memo(
     );
 
     // 默认空状态
-    const defaultEmptyState = (
+    const _defaultEmptyState = (
       <EmptyState
         message={t('conversation.empty') || '暂无消息记录'}
         icon={<MessageCircle className="h-12 w-12 text-gray-400" />}

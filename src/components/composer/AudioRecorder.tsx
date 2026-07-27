@@ -1,4 +1,4 @@
-import { Mic, MicOff, Pause, Play, Send, Trash2 } from 'lucide-react';
+import { MicOff, Pause, Play, Send, Trash2 } from 'lucide-react';
 import { memo, useCallback, useEffect, useState } from 'react';
 import { Button } from '@/components/Button';
 import { IconButton } from '@/components/IconButton';
@@ -54,7 +54,6 @@ export const AudioRecorder = memo<AudioRecorderProps>(
       status,
       duration,
       audioData,
-      startRecording,
       pauseRecording,
       resumeRecording,
       stopRecording,

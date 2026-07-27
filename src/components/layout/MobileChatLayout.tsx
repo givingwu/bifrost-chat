@@ -169,7 +169,7 @@ export function MobileChatLayout({
     translateOrFallback(t, 'mobile.subtitle', '{{channel}} 会话', {
       channel: channelLabel,
     });
-  const resolvedAvatarUrl = avatarUrl ?? activeConversation?.user.avatarUrl;
+  const _resolvedAvatarUrl = avatarUrl ?? activeConversation?.user.avatarUrl;
   const resolvedPlaceholder =
     placeholder ??
     composerConfig.placeholder ??

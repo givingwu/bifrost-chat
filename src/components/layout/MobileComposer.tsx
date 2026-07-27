@@ -78,11 +78,16 @@ function AutoExpandTextarea({
   ariaInvalid?: true | undefined;
 }) {
   const internalRef = useRef<HTMLTextAreaElement>(null);
+  const previousValue = useRef(value);
 
   // 自动调整高度
   useEffect(() => {
     const textarea = textareaRef?.current || internalRef.current;
     if (!textarea) return;
+
+    // 仅在内容实际变化时调整
+    if (value === previousValue.current) return;
+    previousValue.current = value;
 
     // 重置高度到最小值
     textarea.style.height = 'auto';
@@ -92,7 +97,7 @@ function AutoExpandTextarea({
     const newHeight = Math.min(scrollHeight, MAX_HEIGHT);
 
     textarea.style.height = `${newHeight}px`;
-  }, [value, textareaRef]);
+  }, [value, textareaRef?.current]);
 
   return (
     <textarea
