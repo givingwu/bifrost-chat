@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from 'storybook-react-rsbuild';
+import type { Meta } from 'storybook-react-rsbuild';
 import { MessageActions } from '@/components/messages/MessageActions';
 import {
   MessageDirectionEnum,
@@ -27,7 +27,6 @@ const meta: Meta<typeof MessageActions> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof MessageActions>;
 
 // 基础示例
 export const Default: Story = {

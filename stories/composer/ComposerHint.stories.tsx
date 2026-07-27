@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from 'storybook-react-rsbuild';
+import type { Meta } from 'storybook-react-rsbuild';
 import { ComposerHint } from '@/components/composer/ComposerHint';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import '@/styles/theme.css';
@@ -25,7 +25,6 @@ const meta: Meta<typeof ComposerHint> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof ComposerHint>;
 
 /**
  * WhatsApp 渠道

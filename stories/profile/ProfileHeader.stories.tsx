@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from 'storybook-react-rsbuild';
+import type { Meta } from 'storybook-react-rsbuild';
 import { ProfileHeader } from '@/components/profile/ProfileHeader';
 import '@/styles/theme.css';
 
@@ -19,7 +19,6 @@ const meta: Meta<typeof ProfileHeader> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof ProfileHeader>;
 
 export const Default = () => {
   return (

@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from 'storybook-react-rsbuild';
+import type { Meta } from 'storybook-react-rsbuild';
 import { VideoMessage } from '@/components/messages/VideoMessage';
 import '@/styles/theme.css';
 
@@ -23,7 +23,6 @@ const meta: Meta<typeof VideoMessage> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof VideoMessage>;
 
 /**
  * 基础示例 - 默认视频

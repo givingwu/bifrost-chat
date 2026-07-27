@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from 'storybook-react-rsbuild';
+import type { Meta } from 'storybook-react-rsbuild';
 import { AudioMessage } from '@/components/messages/AudioMessage';
 import '@/styles/theme.css';
 
@@ -23,7 +23,6 @@ const meta: Meta<typeof AudioMessage> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof AudioMessage>;
 
 /**
  * 基础示例 - 默认语音消息

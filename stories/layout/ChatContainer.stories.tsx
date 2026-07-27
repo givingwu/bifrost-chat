@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from 'storybook-react-rsbuild';
+import type { Meta } from 'storybook-react-rsbuild';
 import { ComposerToolbar } from '@/components/composer/ComposerToolbar';
 import { ConversationList } from '@/components/conversation/ConversationList';
 import { ChatContainer } from '@/components/layout/ChatContainer';
@@ -72,7 +72,6 @@ const meta: Meta<typeof ChatContainer> = {
 
 export default meta;
 // biome-ignore lint: Used for Storybook type inference
-type Story = StoryObj<typeof ChatContainer>;
 
 // Mock 数据
 const mockConversations = [

@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from 'storybook-react-rsbuild';
+import type { Meta } from 'storybook-react-rsbuild';
 import { MobileListLayout } from '@/components/layout/MobileListLayout';
 import {
   ConfigProvider,
@@ -212,7 +212,6 @@ const meta: Meta<typeof MobileListLayout> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof MobileListLayout>;
 
 export const Default: Story = {
   render: () => <MobileListLayoutDemo />,
@@ -270,7 +269,12 @@ function generateManyConversations(count: number): Conversation[] {
     lastMessage: `测试消息 ${i + 1} 的内容`,
     lastMessageTime: new Date(Date.now() - i * 60000000).toISOString(),
     unreadCount: i % 5 === 0 ? (i % 10) + 1 : 0,
-    channel: [ChannelTypeEnum.WhatsApp, ChannelTypeEnum.SMS, ChannelTypeEnum.Viber, ChannelTypeEnum.Email][i % 4],
+    channel: [
+      ChannelTypeEnum.WhatsApp,
+      ChannelTypeEnum.SMS,
+      ChannelTypeEnum.Viber,
+      ChannelTypeEnum.Email,
+    ][i % 4],
     status: ConversationStatusEnum.Active,
     supportedChannels: [ChannelTypeEnum.WhatsApp],
     metadata: { assetItemNumber: `ASSET-${String(i + 1).padStart(4, '0')}` },
@@ -292,7 +296,12 @@ export const VirtualScroll: Story = {
             theme: { mode: ThemeModeEnum.Light },
             strategy: {
               activeChannel: ChannelTypeEnum.WhatsApp,
-              allowedChannels: [ChannelTypeEnum.WhatsApp, ChannelTypeEnum.SMS, ChannelTypeEnum.Viber, ChannelTypeEnum.Email],
+              allowedChannels: [
+                ChannelTypeEnum.WhatsApp,
+                ChannelTypeEnum.SMS,
+                ChannelTypeEnum.Viber,
+                ChannelTypeEnum.Email,
+              ],
             },
           }}
         >

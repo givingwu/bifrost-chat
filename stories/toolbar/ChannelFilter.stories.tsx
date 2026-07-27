@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from 'storybook-react-rsbuild';
+import type { Meta } from 'storybook-react-rsbuild';
 import { ChannelFilter } from '@/components/toolbar/ChannelFilter';
 import { CHANNEL_BRAND_COLOR } from '@/hooks/use-channel-icon.hook';
 import {
@@ -16,7 +16,6 @@ const meta: Meta<typeof ChannelFilter> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof ChannelFilter>;
 
 /**
  * 基础示例：单渠道（无指示器）

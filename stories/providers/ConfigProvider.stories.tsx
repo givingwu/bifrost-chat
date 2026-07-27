@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import type { Meta, StoryObj } from 'storybook-react-rsbuild';
+import type { Meta } from 'storybook-react-rsbuild';
 import { ChatContainer } from '@/components/layout/ChatContainer';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import { LanguageCodeEnum } from '@/interfaces/language.interface';
@@ -36,7 +36,6 @@ const meta: Meta<typeof ConfigProvider> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof ConfigProvider>;
 
 const StoreSnapshot = ({ state }: { state: ChatStoreState }) => {
   return (

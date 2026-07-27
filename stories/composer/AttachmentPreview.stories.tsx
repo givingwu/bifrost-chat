@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from 'storybook-react-rsbuild';
+import type { Meta } from 'storybook-react-rsbuild';
 import { AttachmentPreview } from '@/components/composer/AttachmentPreview';
 import { MessageTypeEnum } from '@/index';
 import type { Attachment } from '@/interfaces/attachment.interface';
@@ -34,7 +34,6 @@ const meta: Meta<typeof AttachmentPreview> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof AttachmentPreview>;
 
 // 创建模拟 File 对象的辅助函数
 function createMockFile(name: string, type: string, size: number): File {

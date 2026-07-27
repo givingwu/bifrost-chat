@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { Meta, StoryObj } from 'storybook-react-rsbuild';
+import type { Meta } from 'storybook-react-rsbuild';
 import { ComposerActions } from '@/components/composer/ComposerActions';
 import '@/styles/theme.css';
 
@@ -34,7 +34,6 @@ const meta: Meta<typeof ComposerActions> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof ComposerActions>;
 
 /**
  * 基础示例 - 语音按钮（无内容）

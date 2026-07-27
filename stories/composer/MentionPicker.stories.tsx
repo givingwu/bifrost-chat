@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from 'storybook-react-rsbuild';
+import type { Meta } from 'storybook-react-rsbuild';
 import { MentionPicker } from '@/components/composer/MentionPicker';
 import '@/styles/theme.css';
 
@@ -23,7 +23,6 @@ const meta: Meta<typeof MentionPicker> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof MentionPicker>;
 
 export const Default = () => {
   const users = [

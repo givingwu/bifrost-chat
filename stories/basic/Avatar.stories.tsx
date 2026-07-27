@@ -1,5 +1,5 @@
 import { User } from 'lucide-react';
-import type { Meta, StoryObj } from 'storybook-react-rsbuild';
+import type { Meta } from 'storybook-react-rsbuild';
 import { Avatar } from '@/components/Avatar';
 import '@/styles/theme.css';
 
@@ -44,7 +44,6 @@ const meta: Meta<typeof Avatar> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof Avatar>;
 
 /**
  * 基础示例 - 默认尺寸

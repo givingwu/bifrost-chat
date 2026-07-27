@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from 'storybook-react-rsbuild';
+import type { Meta } from 'storybook-react-rsbuild';
 import { MobileChatLayout } from '@/components/layout/MobileChatLayout';
 import {
   ConfigProvider,
@@ -145,10 +145,10 @@ class ConversationService implements IConversationService {
 }
 
 class MessageService implements IMessageService {
-  sendAttachment(params: SendAttachmentParams): Promise<SendAttachmentResult> {
+  sendAttachment(_params: SendAttachmentParams): Promise<SendAttachmentResult> {
     throw new Error('Method not implemented.');
   }
-  sendAudio(params: SendAudioParams): Promise<SendAudioResult> {
+  sendAudio(_params: SendAudioParams): Promise<SendAudioResult> {
     throw new Error('Method not implemented.');
   }
   async list() {
@@ -256,7 +256,6 @@ const meta: Meta<typeof MobileChatLayout> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof MobileChatLayout>;
 
 export const Default: Story = {
   render: () => <MobileChatLayoutDemo />,

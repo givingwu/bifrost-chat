@@ -1,5 +1,5 @@
 import { ImageIcon } from 'lucide-react';
-import type { Meta, StoryObj } from 'storybook-react-rsbuild';
+import type { Meta } from 'storybook-react-rsbuild';
 import { Image } from '@/components/Image';
 import '@/styles/theme.css';
 
@@ -39,7 +39,6 @@ const meta: Meta<typeof Image> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof Image>;
 
 /**
  * 基础示例 - 默认图片

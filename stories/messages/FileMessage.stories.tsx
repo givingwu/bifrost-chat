@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from 'storybook-react-rsbuild';
+import type { Meta } from 'storybook-react-rsbuild';
 import { FileMessage } from '@/components/messages/FileMessage';
 import '@/styles/theme.css';
 
@@ -23,7 +23,6 @@ const meta: Meta<typeof FileMessage> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof FileMessage>;
 
 /**
  * 基础示例 - 默认文件

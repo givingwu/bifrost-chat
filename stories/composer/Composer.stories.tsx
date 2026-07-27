@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import type { Meta, StoryObj } from 'storybook-react-rsbuild';
+import type { Meta } from 'storybook-react-rsbuild';
 import type { ComposerRef } from '@/components/composer/Composer';
 import { Composer } from '@/components/composer/Composer';
 import { ChannelTypeEnum, MessageStatusEnum } from '@/index';
@@ -49,7 +49,6 @@ const meta: Meta<typeof Composer> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof Composer>;
 
 /**
  * 默认状态

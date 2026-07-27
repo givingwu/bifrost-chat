@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from 'storybook-react-rsbuild';
+import type { Meta } from 'storybook-react-rsbuild';
 import { ImageMessage } from '@/components/messages/ImageMessage';
 import '@/styles/theme.css';
 
@@ -24,7 +24,6 @@ const meta: Meta<typeof ImageMessage> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof ImageMessage>;
 
 /**
  * 基础示例 - 默认图片

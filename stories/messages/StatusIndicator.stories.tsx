@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from 'storybook-react-rsbuild';
+import type { Meta } from 'storybook-react-rsbuild';
 import { StatusIndicator } from '@/components/messages/StatusIndicator';
 import { MessageStatusEnum } from '@/interfaces/message.interface';
 
@@ -32,7 +32,6 @@ const meta: Meta<typeof StatusIndicator> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof StatusIndicator>;
 
 /**
  * 基础示例 - 已发送状态

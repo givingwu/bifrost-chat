@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { Meta, StoryObj } from 'storybook-react-rsbuild';
+import type { Meta } from 'storybook-react-rsbuild';
 import { ChannelButtonFactory } from '@/components/toolbar/ChannelButtonFactory';
 import {
   AvailableChannels,
@@ -32,7 +32,6 @@ const meta: Meta<typeof ChannelButtonFactory> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof ChannelButtonFactory>;
 
 /**
  * 基础示例 - SMS 渠道

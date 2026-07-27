@@ -1,5 +1,4 @@
-import { useRef } from 'react';
-import type { Meta, StoryObj } from 'storybook-react-rsbuild';
+import type { Meta } from 'storybook-react-rsbuild';
 import { ChatContainer } from '@/components/layout/ChatContainer';
 import { MobileChatContainer } from '@/components/layout/MobileChatContainer';
 import {
@@ -10,10 +9,12 @@ import {
   ServiceProvider,
 } from '@/index';
 import { AgentStatusEnum } from '@/interfaces/agent.interface';
+import type { SendAttachmentResult } from '@/interfaces/attachment.interface';
+import type { SendAudioResult } from '@/interfaces/audio.interface';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import {
-  ConversationStatusEnum,
   type Conversation,
+  ConversationStatusEnum,
 } from '@/interfaces/conversation.interface';
 import { LanguageCodeEnum } from '@/interfaces/language.interface';
 import {
@@ -23,13 +24,7 @@ import {
   MessageTypeEnum,
   type StandardMessage,
 } from '@/interfaces/message.interface';
-import type {
-  SendAttachmentResult,
-} from '@/interfaces/attachment.interface';
-import type {
-  SendAudioResult,
-} from '@/interfaces/audio.interface';
-import { Template } from '@/interfaces/template.interface';
+import type { Template } from '@/interfaces/template.interface';
 import { ThemeModeEnum } from '@/interfaces/theme.interface';
 import '@/styles/theme.css';
 
@@ -121,8 +116,20 @@ const mobileMessages: StandardMessage[] = [
 ];
 
 const quickTemplates: Template[] = [
-  { id: 'tpl-1', name: '常规提醒', code: 'TPL_OVERDUE_NOTICE', content: '账单即将逾期通知', category: '常用' },
-  { id: 'tpl-2', name: '严重警告', code: 'TPL_LEGAL_NOTICE', content: '法务诉讼最后通牒', category: '催收' },
+  {
+    id: 'tpl-1',
+    name: '常规提醒',
+    code: 'TPL_OVERDUE_NOTICE',
+    content: '账单即将逾期通知',
+    category: '常用',
+  },
+  {
+    id: 'tpl-2',
+    name: '严重警告',
+    code: 'TPL_LEGAL_NOTICE',
+    content: '法务诉讼最后通牒',
+    category: '催收',
+  },
 ];
 
 // Mock Services
@@ -208,7 +215,10 @@ const services = {
 function MobileChatContainerDemo({
   theme = 'light',
   initialView = 'list',
-}: { theme?: 'light' | 'dark'; initialView?: 'list' | 'chat' }) {
+}: {
+  theme?: 'light' | 'dark';
+  initialView?: 'list' | 'chat';
+}) {
   return (
     <div
       className={`flex min-h-[860px] items-center justify-center bg-background p-6 ${
@@ -220,7 +230,9 @@ function MobileChatContainerDemo({
         <ConfigProvider
           config={{
             language: { code: LanguageCodeEnum.ZhCN },
-            theme: { mode: theme === 'dark' ? ThemeModeEnum.Dark : ThemeModeEnum.Light },
+            theme: {
+              mode: theme === 'dark' ? ThemeModeEnum.Dark : ThemeModeEnum.Light,
+            },
             strategy: {
               activeChannel: ChannelTypeEnum.WhatsApp,
               allowedChannels: [
@@ -234,7 +246,10 @@ function MobileChatContainerDemo({
         >
           <ServiceProvider {...services}>
             <ChatContainer>
-              <MobileChatContainer initialView={initialView} initialConversationId="conv-1" />
+              <MobileChatContainer
+                initialView={initialView}
+                initialConversationId="conv-1"
+              />
             </ChatContainer>
           </ServiceProvider>
         </ConfigProvider>
@@ -253,7 +268,6 @@ const meta: Meta<typeof MobileChatContainer> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof MobileChatContainer>;
 
 export const Default: Story = {
   render: () => <MobileChatContainerDemo />,

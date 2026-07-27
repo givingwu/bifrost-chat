@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from 'storybook-react-rsbuild';
+import type { Meta } from 'storybook-react-rsbuild';
 import { ConversationPanel } from '@/components/conversation/ConversationPanel';
 import '@/styles/theme.css';
 
@@ -35,7 +35,6 @@ const meta: Meta<typeof ConversationPanel> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof ConversationPanel>;
 
 export const Default = () => {
   return (

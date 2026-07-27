@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { Meta, StoryObj } from 'storybook-react-rsbuild';
+import type { Meta } from 'storybook-react-rsbuild';
 import { ThemeSwitcher } from '@/components/toolbar/ThemeSwitcher';
 import { ThemeModeEnum } from '@/interfaces/theme.interface';
 import '@/styles/theme.css';
@@ -26,7 +26,6 @@ const meta: Meta<typeof ThemeSwitcher> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof ThemeSwitcher>;
 
 /**
  * 基础示例 - 系统主题

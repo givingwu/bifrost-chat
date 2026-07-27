@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from 'storybook-react-rsbuild';
+import type { Meta } from 'storybook-react-rsbuild';
 import { TemplateList } from '@/components/template/TemplateList';
 import type { Template } from '@/interfaces/template.interface';
 
@@ -15,7 +15,6 @@ const meta: Meta<typeof TemplateList> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof TemplateList>;
 
 const mockTemplates: Template[] = [
   {

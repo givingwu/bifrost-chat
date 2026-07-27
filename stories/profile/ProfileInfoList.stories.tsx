@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from 'storybook-react-rsbuild';
+import type { Meta } from 'storybook-react-rsbuild';
 import { ProfileInfoList } from '@/components/profile/ProfileInfoList';
 import '@/styles/theme.css';
 
@@ -19,7 +19,6 @@ const meta: Meta<typeof ProfileInfoList> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof ProfileInfoList>;
 
 export const Default = () => {
   return (

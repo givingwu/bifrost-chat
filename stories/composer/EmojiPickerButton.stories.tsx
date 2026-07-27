@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { Meta, StoryObj } from 'storybook-react-rsbuild';
+import type { Meta } from 'storybook-react-rsbuild';
 import { EmojiPickerButton } from '@/components/composer/EmojiPickerButton';
 import '@/styles/theme.css';
 
@@ -27,7 +27,6 @@ const meta: Meta<typeof EmojiPickerButton> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof EmojiPickerButton>;
 
 /**
  * 基础示例 - 默认表情按钮

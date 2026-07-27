@@ -1,5 +1,5 @@
 import { Plus, Send, Trash2 } from 'lucide-react';
-import type { Meta, StoryObj } from 'storybook-react-rsbuild';
+import type { Meta } from 'storybook-react-rsbuild';
 import { Button, CircularButton } from '@/components/Button';
 import '@/styles/theme.css';
 
@@ -34,7 +34,6 @@ const meta: Meta<typeof Button> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof Button>;
 
 /**
  * 基础示例 - 默认按钮

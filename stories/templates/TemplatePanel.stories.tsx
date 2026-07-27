@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from 'storybook-react-rsbuild';
+import type { Meta } from 'storybook-react-rsbuild';
 import { TemplatePanel } from '@/components/template/TemplatePanel';
 import type { Template } from '@/interfaces/template.interface';
 import '@/styles/theme.css';
@@ -97,7 +97,6 @@ const meta: Meta<typeof TemplatePanel> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof TemplatePanel>;
 
 /**
  * 默认状态的模板面板

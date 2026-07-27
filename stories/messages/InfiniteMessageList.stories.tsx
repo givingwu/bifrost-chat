@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from 'storybook-react-rsbuild';
+import type { Meta } from 'storybook-react-rsbuild';
 import { InfiniteMessageList } from '@/components/messages/InfiniteMessageList';
 import '@/styles/theme.css';
 
@@ -41,7 +41,6 @@ const meta: Meta<typeof InfiniteMessageList> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof InfiniteMessageList>;
 
 /**
  * 默认状态的无限滚动消息列表

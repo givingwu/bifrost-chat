@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from 'storybook-react-rsbuild';
+import type { Meta } from 'storybook-react-rsbuild';
 import { ConversationHeader } from '@/components/conversation/ConversationHeader';
 import { SearchInput } from '@/components/SearchInput';
 import '@/styles/theme.css';
@@ -36,7 +36,6 @@ const meta: Meta<typeof ConversationHeader> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof ConversationHeader>;
 
 export const Default = () => {
   return (

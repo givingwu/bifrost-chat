@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from 'storybook-react-rsbuild';
+import type { Meta } from 'storybook-react-rsbuild';
 import { RichMediaMessage } from '@/components/messages/RichMediaMessage';
 import '@/styles/theme.css';
 
@@ -24,7 +24,6 @@ const meta: Meta<typeof RichMediaMessage> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof RichMediaMessage>;
 
 /**
  * 基础示例 - 卡片消息

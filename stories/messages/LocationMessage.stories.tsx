@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from 'storybook-react-rsbuild';
+import type { Meta } from 'storybook-react-rsbuild';
 import { LocationMessage } from '@/components/messages/LocationMessage';
 import '@/styles/theme.css';
 
@@ -23,7 +23,6 @@ const meta: Meta<typeof LocationMessage> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof LocationMessage>;
 
 /**
  * 基础示例 - 默认位置消息

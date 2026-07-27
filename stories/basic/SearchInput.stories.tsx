@@ -1,5 +1,5 @@
 import { Search } from 'lucide-react';
-import type { Meta, StoryObj } from 'storybook-react-rsbuild';
+import type { Meta } from 'storybook-react-rsbuild';
 import { SearchInput } from '@/components/SearchInput';
 import '@/styles/theme.css';
 
@@ -44,7 +44,6 @@ const meta: Meta<typeof SearchInput> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof SearchInput>;
 
 /**
  * 默认状态的搜索输入框

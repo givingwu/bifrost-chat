@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { Meta, StoryObj } from 'storybook-react-rsbuild';
+import type { Meta } from 'storybook-react-rsbuild';
 import { NetworkStatus } from '@/components/toolbar/NetworkStatus';
 import { NetworkStatusEnum } from '@/interfaces/network.interface';
 import '@/styles/theme.css';
@@ -34,7 +34,6 @@ const meta: Meta<typeof NetworkStatus> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof NetworkStatus>;
 
 /**
  * 基础示例 - 已连接状态

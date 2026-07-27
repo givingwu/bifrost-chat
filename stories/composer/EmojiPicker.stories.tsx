@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from 'storybook-react-rsbuild';
+import type { Meta } from 'storybook-react-rsbuild';
 import { EmojiPicker } from '@/components/composer/EmojiPicker';
 import '@/styles/theme.css';
 
@@ -43,7 +43,6 @@ const meta: Meta<typeof EmojiPicker> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof EmojiPicker>;
 
 /**
  * 基础示例

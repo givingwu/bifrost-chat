@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from 'storybook-react-rsbuild';
+import type { Meta } from 'storybook-react-rsbuild';
 import { DefaultChatLayout } from '@/components/layout/DefaultChatLayout';
 import { InfiniteMessageList } from '@/components/messages/InfiniteMessageList';
 import enUS from '@/locales/en-US.json';
@@ -439,7 +439,6 @@ const meta: Meta<typeof DefaultChatLayout> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof DefaultChatLayout>;
 
 /**
  * 基础示例 - 默认布局

@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from 'storybook-react-rsbuild';
+import type { Meta } from 'storybook-react-rsbuild';
 import { MessageContentRenderer } from '@/components/messages/MessageContentRenderer';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import {
@@ -29,7 +29,6 @@ const meta: Meta<typeof MessageContentRenderer> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof MessageContentRenderer>;
 
 const baseMessage = {
   conversationId: 'conv-story-default',

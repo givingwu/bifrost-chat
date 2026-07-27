@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { Meta, StoryObj } from 'storybook-react-rsbuild';
+import type { Meta } from 'storybook-react-rsbuild';
 import { ConversationItem } from '@/components/conversation/ConversationItem';
 import { AgentStatusEnum } from '@/interfaces/agent.interface';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
@@ -33,7 +33,6 @@ const meta: Meta<typeof ConversationItem> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof ConversationItem>;
 
 const mockConversation: Conversation = {
   id: '1',

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { Meta, StoryObj } from 'storybook-react-rsbuild';
+import type { Meta } from 'storybook-react-rsbuild';
 import { LanguageSwitcher } from '@/components/toolbar/LanguageSwitcher';
 import { LanguageCodeEnum } from '@/interfaces/language.interface';
 import '@/styles/theme.css';
@@ -26,7 +26,6 @@ const meta: Meta<typeof LanguageSwitcher> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof LanguageSwitcher>;
 
 /**
  * 基础示例 - 英文

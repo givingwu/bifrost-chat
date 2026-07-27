@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from 'storybook-react-rsbuild';
+import type { Meta } from 'storybook-react-rsbuild';
 import { MessageList } from '@/components/messages/MessageList';
 import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import {
@@ -30,7 +30,6 @@ const meta: Meta<typeof MessageList> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof MessageList>;
 
 const createMessage = (
   direction: MessageDirectionEnum,

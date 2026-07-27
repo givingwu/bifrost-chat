@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from 'storybook-react-rsbuild';
+import type { Meta } from 'storybook-react-rsbuild';
 import { MessageTimestamp } from '@/components/messages/MessageTimestamp';
 
 /**
@@ -22,7 +22,6 @@ const meta: Meta<typeof MessageTimestamp> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof MessageTimestamp>;
 
 /**
  * 基础示例 - 当前时间

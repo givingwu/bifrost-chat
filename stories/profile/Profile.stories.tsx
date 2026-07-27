@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from 'storybook-react-rsbuild';
+import type { Meta } from 'storybook-react-rsbuild';
 import { Profile } from '@/components/profile/Profile';
 import '@/styles/theme.css';
 
@@ -27,7 +27,6 @@ const meta: Meta<typeof Profile> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof Profile>;
 
 const mockProfile = {
   name: 'Liam Walker',

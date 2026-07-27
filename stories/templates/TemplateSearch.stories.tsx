@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from 'storybook-react-rsbuild';
+import type { Meta } from 'storybook-react-rsbuild';
 import { TemplateSearch } from '@/components/template/TemplateSearch';
 import '@/styles/theme.css';
 
@@ -16,7 +16,6 @@ const meta: Meta<typeof TemplateSearch> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof TemplateSearch>;
 
 /**
  * 默认状态的模板搜索

@@ -9,7 +9,7 @@ import {
   X,
 } from 'lucide-react';
 import { useState } from 'react';
-import type { Meta, StoryObj } from 'storybook-react-rsbuild';
+import type { Meta } from 'storybook-react-rsbuild';
 import { IconButton } from '@/components/IconButton';
 import '@/styles/theme.css';
 
@@ -54,7 +54,6 @@ const meta: Meta<typeof IconButton> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof IconButton>;
 
 /**
  * 基础示例 - 默认图标按钮

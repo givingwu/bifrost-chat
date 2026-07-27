@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from 'storybook-react-rsbuild';
+import type { Meta } from 'storybook-react-rsbuild';
 import { ComposerAttachments } from '@/components/composer/ComposerAttachments';
 import '@/styles/theme.css';
 
@@ -37,7 +37,6 @@ const meta: Meta<typeof ComposerAttachments> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof ComposerAttachments>;
 
 /**
  * 基础示例 - 默认附件上传

@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from 'storybook-react-rsbuild';
+import type { Meta } from 'storybook-react-rsbuild';
 import { Topbar } from '@/components/toolbar/Topbar';
 import { TopbarTools } from '@/components/toolbar/TopbarTools';
 import '@/styles/theme.css';
@@ -32,7 +32,6 @@ const meta: Meta<typeof Topbar> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof Topbar>;
 
 export const Default = () => {
   return (

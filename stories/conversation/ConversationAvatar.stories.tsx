@@ -1,6 +1,5 @@
-import type { Meta, StoryObj } from 'storybook-react-rsbuild';
+import type { Meta } from 'storybook-react-rsbuild';
 import { ConversationAvatar } from '@/components/conversation/ConversationAvatar';
-import { ChannelTypeEnum } from '@/interfaces/channel.interface';
 import '@/styles/theme.css';
 
 /**
@@ -14,7 +13,6 @@ const meta: Meta<typeof ConversationAvatar> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof ConversationAvatar>;
 
 export const WhatsApp = () => {
   return (

@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from 'storybook-react-rsbuild';
+import type { Meta } from 'storybook-react-rsbuild';
 import { UnsupportedMessage } from '@/components/messages/UnsupportedMessage';
 import '@/styles/theme.css';
 
@@ -18,7 +18,6 @@ const meta: Meta<typeof UnsupportedMessage> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof UnsupportedMessage>;
 
 /**
  * 基础示例

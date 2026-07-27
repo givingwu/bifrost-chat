@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { Meta, StoryObj } from 'storybook-react-rsbuild';
+import type { Meta } from 'storybook-react-rsbuild';
 import { ComposerInput } from '@/components/composer/ComposerInput';
 import '@/styles/theme.css';
 
@@ -44,7 +44,6 @@ const meta: Meta<typeof ComposerInput> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof ComposerInput>;
 
 /**
  * 基础示例 - 默认输入框
