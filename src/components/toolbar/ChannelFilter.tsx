@@ -23,6 +23,43 @@ export interface ChannelFilterProps {
   showTooltip?: boolean;
   /** 紧凑模式（仅图标） */
   compact?: boolean;
+  /** 移动端模式（横向滚动文字列表） */
+  mobile?: boolean;
+  /**
+   * 各渠道未读数量，key = ChannelTypeEnum，value = 未读条数
+   * 传入时显示 badge，不传则不显示
+   *
+   * @example
+   * ```tsx
+   * const unreadByChannel = useChannelUnread(channels);
+   * <ChannelFilter unreadByChannel={unreadByChannel} ... />
+   * ```
+   */
+  unreadByChannel?: Partial<Record<ChannelTypeEnum, number>>;
+  /**
+   * 禁用的渠道及其 tooltip 提示，key = ChannelTypeEnum，value = tooltip 文案。
+   * 匹配的渠道按钮会置灰且不可点击，鼠标悬停显示自定义 tooltip。
+   */
+  disabledChannels?: Partial<Record<ChannelTypeEnum, string>>;
+  /** 自定义容器类名 */
+  className?: string;
+  /** 自定义容器样式 */
+  style?: CSSProperties;
+}
+
+export interface ChannelFilterProps {
+  /** 坐席状态（in_call 时触发互斥逻辑） */
+  status?: AgentStatusEnum;
+  /** 允许的渠道列表 */
+  channels: readonly ChannelTypeEnum[];
+  /** 当前激活的渠道 */
+  activeChannel: ChannelTypeEnum;
+  /** 点击渠道按钮回调 */
+  onChannelClick?: (type: ChannelTypeEnum) => void;
+  /** 是否显示工具提示 */
+  showTooltip?: boolean;
+  /** 紧凑模式（仅图标） */
+  compact?: boolean;
   /**
    * 各渠道未读数量，key = ChannelTypeEnum，value = 未读条数
    * 传入时显示 badge，不传则不显示
@@ -46,17 +83,15 @@ export interface ChannelFilterProps {
 }
 
 /**
- * ChannelFilter：策略驱动的渠道切换器（Apple 风格 Segmented Control）。
+ * ChannelFilter：策略驱动的渠道切换器。
  *
  * @description
- * - 紧凑的胶囊形状设计，仅显示图标节省空间
- * - 带有 300ms 平滑过渡的滑动白色指示器
- * - 悬停时显示完整渠道名称的工具提示
- * - 完全支持亮色/暗色模式切换
- * - 磨砂玻璃效果（backdrop-blur-md）
+ * 桌面端：Apple 风格 Segmented Control，紧凑的胶囊形状设计，仅显示图标节省空间
+ * 移动端：横向滚动的文字列表，active 用 primary color 高亮
  *
  * @example
  * ```tsx
+ * // 桌面端
  * <ChannelFilter
  *   channels={allowedChannels}
  *   activeChannel={activeChannel}
@@ -64,6 +99,15 @@ export interface ChannelFilterProps {
  *   unreadByChannel={useChannelUnread(allowedChannels)}
  *   compact
  *   showTooltip
+ * />
+ *
+ * // 移动端
+ * <ChannelFilter
+ *   channels={allowedChannels}
+ *   activeChannel={activeChannel}
+ *   onChannelClick={handleChannelChange}
+ *   unreadByChannel={useChannelUnread(allowedChannels)}
+ *   mobile
  * />
  * ```
  */
@@ -74,6 +118,7 @@ export const ChannelFilter = memo(
     onChannelClick,
     showTooltip = true,
     compact = true,
+    mobile = false,
     unreadByChannel,
     disabledChannels,
     className,
@@ -87,6 +132,70 @@ export const ChannelFilter = memo(
       [channels, activeChannel],
     );
 
+    // 移动端模式：横向滚动文字列表
+    if (mobile) {
+      return (
+        <div
+          className={cn('flex gap-2 overflow-x-auto scrollbar-hide', className)}
+          style={style}
+        >
+          {channels.map((channel) => {
+            const isActive = channel === activeChannel;
+            const label = getLabel(channel);
+            const count = unreadByChannel?.[channel] ?? 0;
+            const isDisabled = !!disabledChannels?.[channel];
+
+            return (
+              <button
+                type="button"
+                data-channel={channel}
+                key={channel}
+                disabled={isDisabled}
+                onClick={() => {
+                  if (!isDisabled) {
+                    onChannelClick?.(channel);
+                  }
+                }}
+                aria-label={label}
+                aria-pressed={isActive}
+                className={cn(
+                  'relative flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors',
+                  'shrink-0',
+                  isDisabled
+                    ? 'opacity-40 cursor-not-allowed text-gray-400'
+                    : isActive
+                      ? 'text-gray-900 dark:text-gray-100'
+                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200',
+                )}
+                style={
+                  isActive ? { color: CHANNEL_BRAND_COLOR[channel] } : undefined
+                }
+              >
+                <span>{label}</span>
+                {/* Unread badge */}
+                {unreadByChannel && count > 0 && (
+                  <span
+                    role="tooltip"
+                    aria-label={t('toolbar.channelFilter.unread', { count })}
+                    className={cn(
+                      'absolute top-0.5 right-0.5 z-20',
+                      'min-w-4 h-4 px-1',
+                      'flex items-center justify-center',
+                      'rounded-full bg-red-500 text-white text-xs font-bold leading-none',
+                      'ring-1 ring-white dark:ring-gray-900',
+                    )}
+                  >
+                    {count > 99 ? '99+' : count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      );
+    }
+
+    // 桌面端模式：Segmented Control
     return (
       <fieldset
         aria-label={t('toolbar.channelFilter.ariaLabel')}
