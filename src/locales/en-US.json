@@ -147,7 +147,10 @@
   "conversation": {
     "title": "Conversations",
     "empty": "No conversations yet",
+    "messageCenter": "Message Center",
     "search": "Search conversations",
+    "searchAssetPlaceholder": "Search asset number...",
+    "searchEmpty": "No conversations found for this asset",
     "ariaLabel": "Conversation with {{name}}{{unread, plural, =0 {} other {, {{count}} unread messages}}}",
     "panel": "Conversation panel",
     "searchAriaLabel": "Search conversations",

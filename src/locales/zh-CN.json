@@ -147,7 +147,10 @@
   "conversation": {
     "title": "会话",
     "empty": "暂无会话",
+    "messageCenter": "消息中心",
     "search": "搜索会话",
+    "searchAssetPlaceholder": "搜索资产编号...",
+    "searchEmpty": "未找到该资产相关的会话记录",
     "ariaLabel": "与 {{name}} 的会话{{unread, plural, =0 {} other {，有 {{count}} 条未读消息}}}",
     "panel": "会话面板",
     "searchAriaLabel": "搜索会话",
