@@ -90,13 +90,13 @@ export class IndexedDBImpl implements IStorage {
         for (const [storeName, storeDef] of Object.entries(
           this.config.stores,
         )) {
-          let objectStore: IDBObjectStore;
+          let objectStore: IDBObjectStore | undefined;
 
           if (db.objectStoreNames.contains(storeName)) {
             // 对象存储已存在，获取引用
             objectStore = (
               event.target as IDBOpenDBRequest
-            ).transaction!.objectStore(storeName);
+            ).transaction?.objectStore(storeName);
           } else {
             // 创建新对象存储
             objectStore = db.createObjectStore(storeName, {
@@ -108,8 +108,8 @@ export class IndexedDBImpl implements IStorage {
           // 创建索引（仅在不存在时创建）
           if (storeDef.indexes) {
             for (const index of storeDef.indexes) {
-              if (!objectStore.indexNames.contains(index.name)) {
-                objectStore.createIndex(
+              if (!objectStore?.indexNames.contains(index.name)) {
+                objectStore?.createIndex(
                   index.name,
                   index.keyPath,
                   index.options,
@@ -428,7 +428,7 @@ export class IndexedDBImpl implements IStorage {
       if (!operationsByStore.has(op.storeName)) {
         operationsByStore.set(op.storeName, []);
       }
-      operationsByStore.get(op.storeName)!.push(op);
+      operationsByStore.get(op.storeName)?.push(op);
     }
 
     // 为每个对象存储创建事务

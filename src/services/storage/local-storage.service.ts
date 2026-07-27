@@ -24,13 +24,6 @@ export class LocalStorageImpl implements IStorage {
   }
 
   /**
-   * 生成数据键
-   */
-  private getDataKey(storeName: string, key: string): string {
-    return `${this.getStoreKey(storeName)}_${key}`;
-  }
-
-  /**
    * 初始化存储
    */
   async open(): Promise<void> {
@@ -157,9 +150,9 @@ export class LocalStorageImpl implements IStorage {
    * 使用索引查询数据（LocalStorage 不支持）
    */
   async getByIndex<T>(
-    storeName: string,
+    _storeName: string,
     indexName: string,
-    value: IDBValidKey,
+    _value: IDBValidKey,
   ): Promise<T[]> {
     console.warn(
       `[LocalStorageHelper] Index queries not supported, returning empty array for index "${indexName}"`,
