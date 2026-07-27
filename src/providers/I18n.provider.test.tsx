@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { LanguageCodeEnum } from '@/interfaces/language.interface';
 import { I18nProvider, useTranslation } from '@/providers/I18n.provider';
@@ -112,7 +112,7 @@ describe('I18nProvider', () => {
       const mockMessagesEn = {
         title: 'English Title',
       };
-      const mockMessagesZh = {
+      const _mockMessagesZh = {
         title: '中文标题',
       };
 

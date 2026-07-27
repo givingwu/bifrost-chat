@@ -1,7 +1,6 @@
 import { render, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ChatContainer } from '@/components/layout/ChatContainer';
-import { LanguageCodeEnum } from '@/interfaces/language.interface';
 import { ThemeModeEnum } from '@/interfaces/theme.interface';
 import { ConfigProvider } from '@/providers/config.provider';
 

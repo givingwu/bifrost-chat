@@ -47,7 +47,7 @@ describe('resolveComposerCanSend', () => {
 
       expect(
         resolveComposerCanSend({
-          value: isNaN as unknown as string,
+          value: Number.isNaN as unknown as string,
           attachmentCount: 0,
           isSending: false,
         }),
