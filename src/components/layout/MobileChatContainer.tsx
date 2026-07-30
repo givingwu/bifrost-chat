@@ -100,7 +100,10 @@ export const MobileChatContainer = memo(
     return (
       <div
         data-component="mobile-chat-container"
-        className={cn('h-full w-full overflow-hidden', className)}
+        className={cn(
+          'h-full w-full overflow-hidden bg-muted text-foreground',
+          className,
+        )}
       >
         {view === 'list'
           ? (renderListView?.(listViewProps) ?? (

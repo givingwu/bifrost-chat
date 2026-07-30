@@ -130,4 +130,28 @@ describe('ChannelFilter', () => {
     renderWithProviders(<ChannelFilter {...defaultProps} />);
     expect(screen.queryAllByLabelText(/unread/).length).toBe(0);
   });
+
+  it('移动端模式应渲染 tablist，并用 aria-selected 标记激活渠道', () => {
+    renderWithProviders(
+      <ChannelFilter
+        {...defaultProps}
+        mobile
+        showTooltip={false}
+        unreadByChannel={{
+          [ChannelTypeEnum.WhatsApp]: 4,
+        }}
+      />,
+    );
+
+    expect(screen.getByRole('tablist')).toBeInTheDocument();
+    expect(getChannelButton(ChannelTypeEnum.WhatsApp)).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+    expect(getChannelButton(ChannelTypeEnum.SMS)).toHaveAttribute(
+      'aria-selected',
+      'false',
+    );
+    expect(screen.getByLabelText('4 unread')).toBeInTheDocument();
+  });
 });

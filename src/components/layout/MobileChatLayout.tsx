@@ -360,7 +360,7 @@ export function MobileChatLayout({
       data-component="mobile-chat-layout"
       className={cn(
         'relative flex h-full w-full flex-col overflow-hidden',
-        'bg-background text-foreground shadow-2xl',
+        'bg-muted text-foreground shadow-2xl',
         className,
       )}
       style={
@@ -372,13 +372,13 @@ export function MobileChatLayout({
       }
     >
       {/* 顶栏：返回 | 标题 | 关闭 */}
-      <header className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-800 bg-background">
+      <header className="flex items-center justify-between px-4 py-3 border-b border-border bg-background">
         <div className="flex items-center gap-2 flex-1 min-w-0">
           {onBack && (
             <button
               type="button"
               onClick={onBack}
-              className="rounded-full p-2 text-gray-500 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 shrink-0"
+              className="rounded-full p-2 text-muted-foreground transition-colors hover:bg-muted shrink-0"
               aria-label={t('common.back')}
             >
               <ArrowLeft className="h-5 w-5" />
@@ -388,7 +388,7 @@ export function MobileChatLayout({
             <h2 className="text-base font-semibold text-foreground truncate">
               {headerTitle}
             </h2>
-            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+            <p className="text-xs text-muted-foreground truncate">
               {headerSubTitle}
             </p>
           </div>
@@ -397,7 +397,7 @@ export function MobileChatLayout({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full p-2 text-gray-500 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 shrink-0"
+            className="rounded-full p-2 text-muted-foreground transition-colors hover:bg-muted shrink-0"
             aria-label={t('common.close')}
           >
             <X className="h-5 w-5" />
@@ -405,8 +405,8 @@ export function MobileChatLayout({
         )}
       </header>
 
-      {/* 消息区 */}
-      <main className="min-h-0 flex-1 overflow-hidden bg-card/40">
+      {/* 消息区：独立底色，与顶栏/外壳区分 */}
+      <main className="min-h-0 flex-1 overflow-hidden bg-secondary">
         {messageListNode}
       </main>
 

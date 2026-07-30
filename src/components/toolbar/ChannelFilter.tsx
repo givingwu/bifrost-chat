@@ -87,7 +87,7 @@ export interface ChannelFilterProps {
  *
  * @description
  * 桌面端：Apple 风格 Segmented Control，紧凑的胶囊形状设计，仅显示图标节省空间
- * 移动端：横向滚动的文字列表，active 用 primary color 高亮
+ * 移动端：横向滚动 Tab；激活态使用渠道品牌色底 + 白字，未激活态为浅底弱对比
  *
  * @example
  * ```tsx
@@ -132,11 +132,16 @@ export const ChannelFilter = memo(
       [channels, activeChannel],
     );
 
-    // 移动端模式：横向滚动文字列表
+    // 移动端模式：横向滚动 Tab，激活态用品牌色底 + 白字与未激活态拉开层级
     if (mobile) {
       return (
         <div
-          className={cn('flex gap-2 overflow-x-auto scrollbar-hide', className)}
+          role="tablist"
+          aria-label={t('toolbar.channelFilter.ariaLabel')}
+          className={cn(
+            'flex gap-2 overflow-x-auto scrollbar-hide px-3 py-1.5',
+            className,
+          )}
           style={style}
         >
           {channels.map((channel) => {
@@ -148,6 +153,7 @@ export const ChannelFilter = memo(
             return (
               <button
                 type="button"
+                role="tab"
                 data-channel={channel}
                 key={channel}
                 disabled={isDisabled}
@@ -157,18 +163,20 @@ export const ChannelFilter = memo(
                   }
                 }}
                 aria-label={label}
-                aria-pressed={isActive}
+                aria-selected={isActive}
                 className={cn(
-                  'relative flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors',
-                  'shrink-0',
+                  'relative flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors duration-200',
+                  'shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
                   isDisabled
-                    ? 'opacity-40 cursor-not-allowed text-gray-400'
+                    ? 'opacity-40 cursor-not-allowed text-muted-foreground bg-transparent'
                     : isActive
-                      ? 'text-gray-900 dark:text-gray-100'
-                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200',
+                      ? 'text-white'
+                      : 'text-muted-foreground bg-background/80 hover:bg-background hover:text-foreground',
                 )}
                 style={
-                  isActive ? { color: CHANNEL_BRAND_COLOR[channel] } : undefined
+                  isActive && !isDisabled
+                    ? { backgroundColor: CHANNEL_BRAND_COLOR[channel] }
+                    : undefined
                 }
               >
                 <span>{label}</span>
@@ -178,11 +186,11 @@ export const ChannelFilter = memo(
                     role="tooltip"
                     aria-label={t('toolbar.channelFilter.unread', { count })}
                     className={cn(
-                      'absolute top-0.5 right-0.5 z-20',
+                      'absolute -top-0.5 -right-0.5 z-20',
                       'min-w-4 h-4 px-1',
                       'flex items-center justify-center',
                       'rounded-full bg-red-500 text-white text-xs font-bold leading-none',
-                      'ring-1 ring-white dark:ring-gray-900',
+                      'ring-2 ring-background',
                     )}
                   >
                     {count > 99 ? '99+' : count}

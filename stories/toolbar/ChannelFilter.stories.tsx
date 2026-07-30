@@ -5,6 +5,7 @@ import {
   AvailableChannels,
   ChannelTypeEnum,
 } from '@/interfaces/channel.interface';
+import '@/styles/theme.css';
 
 const meta: Meta<typeof ChannelFilter> = {
   title: 'Toolbar/ChannelFilter',
@@ -20,7 +21,7 @@ export default meta;
 /**
  * 基础示例：单渠道（无指示器）
  */
-export const SingleChannel= {
+export const SingleChannel = {
   args: {
     channels: [ChannelTypeEnum.SMS],
     activeChannel: ChannelTypeEnum.SMS,
@@ -33,7 +34,7 @@ export const SingleChannel= {
 /**
  * 多渠道示例
  */
-export const MultipleChannels= {
+export const MultipleChannels = {
   args: {
     channels: [
       ChannelTypeEnum.SMS,
@@ -50,7 +51,7 @@ export const MultipleChannels= {
 /**
  * 全部渠道（6 个）
  */
-export const AllChannels= {
+export const AllChannels = {
   args: {
     channels: AvailableChannels,
     activeChannel: ChannelTypeEnum.WhatsApp,
@@ -65,7 +66,7 @@ export const AllChannels= {
  *
  * 展示 RCS 与常见消息渠道并列时的激活态、未读数和 tooltip。
  */
-export const RCSChannel= {
+export const RCSChannel = {
   args: {
     channels: [
       ChannelTypeEnum.SMS,
@@ -113,7 +114,7 @@ export const BrandColors = () => (
 /**
  * 非紧凑模式（显示文字）
  */
-export const NonCompact= {
+export const NonCompact = {
   args: {
     channels: [
       ChannelTypeEnum.SMS,
@@ -135,7 +136,7 @@ export const NonCompact= {
 /**
  * 无工具提示
  */
-export const WithoutTooltip= {
+export const WithoutTooltip = {
   args: {
     channels: [
       ChannelTypeEnum.SMS,
@@ -152,7 +153,7 @@ export const WithoutTooltip= {
 /**
  * 暗色模式
  */
-export const DarkMode= {
+export const DarkMode = {
   args: {
     channels: AvailableChannels,
     activeChannel: ChannelTypeEnum.Viber,
@@ -170,7 +171,7 @@ export const DarkMode= {
 /**
  * 无激活渠道
  */
-export const NoActiveChannel= {
+export const NoActiveChannel = {
   args: {
     channels: [
       ChannelTypeEnum.SMS,
@@ -187,7 +188,7 @@ export const NoActiveChannel= {
 /**
  * 渠道未读 Badge 示例
  */
-export const WithUnreadBadge= {
+export const WithUnreadBadge = {
   args: {
     channels: AvailableChannels,
     activeChannel: ChannelTypeEnum.WhatsApp,
@@ -205,7 +206,7 @@ export const WithUnreadBadge= {
 /**
  * 不传 unreadByChannel → 不显示 Badge
  */
-export const WithoutUnreadBadge= {
+export const WithoutUnreadBadge = {
   args: {
     channels: [
       ChannelTypeEnum.SMS,
@@ -223,7 +224,7 @@ export const WithoutUnreadBadge= {
  * 禁用态渠道（通过 supportedChannels 控制启用/禁用）
  * Email 和 Viber 不在 supportedChannels 中，因此被禁用
  */
-export const WithDisabledChannels= {
+export const WithDisabledChannels = {
   args: {
     channels: AvailableChannels,
     activeChannel: ChannelTypeEnum.WhatsApp,
@@ -236,7 +237,7 @@ export const WithDisabledChannels= {
 /**
  * 大量未读（测试 99+ 截断）
  */
-export const UnreadOverflow= {
+export const UnreadOverflow = {
   args: {
     channels: [ChannelTypeEnum.SMS, ChannelTypeEnum.WhatsApp],
     activeChannel: ChannelTypeEnum.SMS,
@@ -251,11 +252,49 @@ export const UnreadOverflow= {
 };
 
 /**
+ * 移动端 Tab 模式
+ *
+ * 横向滚动文字 Tab：激活态为渠道品牌色底 + 白字，未激活态为浅底弱对比。
+ * 激活/未激活共用字重与尺寸，避免切换时产生位移。
+ */
+export const MobileTabs = {
+  render: () => (
+    <div className="w-90 rounded-xl bg-secondary/60 p-1">
+      <ChannelFilter
+        channels={[
+          ChannelTypeEnum.SMS,
+          ChannelTypeEnum.WhatsApp,
+          ChannelTypeEnum.Email,
+          ChannelTypeEnum.Viber,
+        ]}
+        activeChannel={ChannelTypeEnum.WhatsApp}
+        onChannelClick={() => {}}
+        mobile
+        unreadByChannel={{
+          [ChannelTypeEnum.SMS]: 3,
+          [ChannelTypeEnum.WhatsApp]: 10,
+          [ChannelTypeEnum.Email]: 1,
+        }}
+      />
+    </div>
+  ),
+  parameters: {
+    layout: 'padded',
+    docs: {
+      description: {
+        story:
+          '移动端 ChannelFilter：激活 Tab 使用品牌色底色与白字，便于与未激活 Tab 区分。',
+      },
+    },
+  },
+};
+
+/**
  * WaAgent 渠道单独展示
  *
  * 自研 WhatsApp 代理渠道，使用稍深的绿色区分官方 WhatsApp
  */
-export const WaAgentChannel= {
+export const WaAgentChannel = {
   args: {
     channels: [ChannelTypeEnum.WaAgent],
     activeChannel: ChannelTypeEnum.WaAgent,
@@ -272,7 +311,7 @@ export const WaAgentChannel= {
  * - WhatsApp: #22C55E (green-500)
  * - WaAgent: #16A34A (green-600)
  */
-export const WhatsAppVsWaAgent= {
+export const WhatsAppVsWaAgent = {
   args: {
     channels: [ChannelTypeEnum.WhatsApp, ChannelTypeEnum.WaAgent],
     activeChannel: ChannelTypeEnum.WaAgent,

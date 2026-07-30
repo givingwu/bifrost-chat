@@ -145,13 +145,13 @@ export const MobileListLayout = memo(
       <section
         data-component="mobile-list-layout"
         className={cn(
-          'flex h-full w-full flex-col overflow-hidden bg-background',
+          'flex h-full w-full flex-col overflow-hidden bg-muted text-foreground',
           className,
         )}
         style={style}
       >
         {/* 顶栏：标题 + 关闭按钮 */}
-        <header className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-800">
+        <header className="flex items-center justify-between px-4 py-1.5 border-b border-border bg-background">
           <h1 className="text-lg font-semibold text-foreground">
             {(title ?? t('conversation.messageCenter')) || '消息中心'}
           </h1>
@@ -159,7 +159,7 @@ export const MobileListLayout = memo(
             <button
               type="button"
               onClick={onClose}
-              className="rounded-full p-2 text-gray-500 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
+              className="rounded-full p-2 text-muted-foreground transition-colors hover:bg-muted"
               aria-label={t('common.close')}
             >
               <X className="h-5 w-5" />
@@ -169,7 +169,7 @@ export const MobileListLayout = memo(
 
         {/* 全局资产搜索框 */}
         {showAssetSearch && (
-          <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-800">
+          <div className="px-4 py-3 bg-background">
             <SearchInput
               value={assetSearchQuery}
               onChange={handleAssetSearchChange}
@@ -178,13 +178,13 @@ export const MobileListLayout = memo(
                 (t('conversation.searchAssetPlaceholder') || '搜索资产编号...')
               }
               clearable
-              icon={<Search className="h-4 w-4 text-gray-400" />}
+              icon={<Search className="h-4 w-4 text-muted-foreground" />}
             />
           </div>
         )}
 
-        {/* 渠道切换 Tab（吸顶） */}
-        <div className="sticky top-0 py-1 border-b border-gray-200 dark:border-gray-800">
+        {/* 渠道切换 Tab（吸顶）：独立底色，强化与列表区对比 */}
+        <div className="sticky top-0 z-10 py-1">
           <ChannelFilter
             channels={allowedChannels}
             activeChannel={activeChannel}
@@ -196,7 +196,7 @@ export const MobileListLayout = memo(
         </div>
 
         {/* 会话列表 */}
-        <div className="flex-1 min-h-0 overflow-hidden">
+        <div className="flex-1 min-h-0 overflow-hidden bg-background">
           {filteredConversations !== null ? (
             // 搜索结果模式
             hasSearchResults ? (
