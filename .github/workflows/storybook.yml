@@ -40,7 +40,9 @@ jobs:
         run: pnpm run build:storybook
 
       - name: Add base tag for subdirectory
-        run: sed -i 's|<head>|<head><base href="/bifrost-chat/">|' storybook-static/index.html
+        run: |
+          sed -i 's|<head>|<head><base href="/bifrost-chat/">|' storybook-static/index.html
+          sed -i 's|<head>|<head><base href="/bifrost-chat/">|' storybook-static/iframe.html
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
