@@ -17,7 +17,6 @@ const getAbsolutePath = (value: string): string => {
 };
 
 const config: StorybookConfig = {
-  basePath: '/bifrost-chat/',
   stories: [
     '../stories/**/*.mdx',
     '../stories/**/*.stories.@(js|jsx|mjs|ts|tsx)',
