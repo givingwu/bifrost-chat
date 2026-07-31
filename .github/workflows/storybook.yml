@@ -38,8 +38,9 @@ jobs:
 
       - name: Build Storybook
         run: pnpm run build:storybook
-        env:
-          BASE_PATH: /bifrost-chat/
+
+      - name: Add base tag for subdirectory
+        run: sed -i 's|<head>|<head><base href="/bifrost-chat/">|' storybook-static/index.html
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
