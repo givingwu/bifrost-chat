@@ -29,8 +29,17 @@ const config: StorybookConfig = {
     },
   ],
   framework: {
-    name: getAbsolutePath('storybook-react-rsbuild'),
+    name: getAbsolutePath('storybook-react-rsbuild') as 'storybook-react-rsbuild',
     options: {},
+  },
+  // @ts-expect-error - rsbuildConfig 是 storybook-react-rsbuild 支持的选项
+  rsbuildConfig: {
+    output: {
+      publicPath: '/bifrost-chat/',
+    },
+    server: {
+      base: '/bifrost-chat/',
+    },
   },
   typescript: {
     reactDocgen: 'react-docgen-typescript',
