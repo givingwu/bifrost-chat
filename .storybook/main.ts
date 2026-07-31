@@ -35,10 +35,7 @@ const config: StorybookConfig = {
   // @ts-expect-error - rsbuildConfig 是 storybook-react-rsbuild 支持的选项
   rsbuildConfig: {
     output: {
-      publicPath: '/bifrost-chat/',
-    },
-    server: {
-      base: '/bifrost-chat/',
+      publicPath: './',
     },
   },
   typescript: {
