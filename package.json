@@ -15,11 +15,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://git.kuainiujinke.com/feoe/bifrost-chat"
+    "url": "git+https://github.com/givingwu/bifrost-chat.git"
   },
-  "homepage": "https://git.kuainiujinke.com/feoe/bifrost-chat#readme",
+  "homepage": "https://github.com/givingwu/bifrost-chat#readme",
   "bugs": {
-    "url": "https://git.kuainiujinke.com/feoe/bifrost-chat/issues"
+    "url": "https://github.com/givingwu/bifrost-chat/issues"
   },
   "exports": {
     ".": {
