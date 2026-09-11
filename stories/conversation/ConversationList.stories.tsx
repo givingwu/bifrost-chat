@@ -1,0 +1,306 @@
+import { useState } from 'react';
+import type { Meta } from 'storybook-react-rsbuild';
+import { ConversationList } from '@/components/conversation/ConversationList';
+import { AgentStatusEnum } from '@/interfaces/agent.interface';
+import { ChannelTypeEnum } from '@/interfaces/channel.interface';
+import type { Conversation } from '@/interfaces/conversation.interface';
+import '@/styles/theme.css';
+
+/**
+ * ConversationList 组件 Story 文档
+ *
+ * 展示会话列表的各种用法：
+ * - 不同数量的会话
+ * - 不同渠道的会话
+ * - 激活状态
+ * - 未读消息数
+ */
+
+const meta: Meta<typeof ConversationList> = {
+  title: 'Conversation/ConversationList',
+  component: ConversationList,
+  tags: ['autodocs'],
+  argTypes: {
+    conversations: {
+      control: false,
+      description: '会话列表',
+    },
+    onSelect: {
+      control: false,
+      description: '选择会话回调函数',
+    },
+  },
+};
+
+export default meta;
+
+const mockConversations: Conversation[] = [
+  {
+    id: '1',
+    user: {
+      id: 'user-1',
+      name: 'Liam Walker',
+      avatarUrl: 'https://i.pravatar.cc/150?img=12',
+      status: AgentStatusEnum.Online,
+    },
+    lastMessage: 'Thanks for the update! 👋',
+    lastMessageTime: '09:42 AM',
+    unreadCount: 2,
+    channel: ChannelTypeEnum.WhatsApp,
+    isActive: true,
+  },
+  {
+    id: '2',
+    user: {
+      id: 'user-2',
+      name: 'Sophia Reed',
+      avatarUrl: 'https://i.pravatar.cc/150?img=48',
+      status: AgentStatusEnum.Busy,
+    },
+    lastMessage: 'Need help with my order.',
+    lastMessageTime: '09:10 AM',
+    unreadCount: 0,
+    channel: ChannelTypeEnum.SMS,
+  },
+  {
+    id: '3',
+    user: {
+      id: 'user-3',
+      name: 'Evelyn Carter',
+      avatarUrl: 'https://i.pravatar.cc/150?img=16',
+      status: AgentStatusEnum.Offline,
+    },
+    lastMessage: 'Invoice sent via email.',
+    lastMessageTime: 'Yesterday',
+    unreadCount: 1,
+    channel: ChannelTypeEnum.Email,
+  },
+];
+
+/**
+ * 基础示例 - 默认会话列表
+ */
+export const Default = () => {
+  return (
+    <div className="w-80 h-96">
+      <ConversationList conversations={mockConversations} />
+    </div>
+  );
+};
+
+/**
+ * 空列表 - 无会话时
+ */
+export const Empty = () => {
+  return (
+    <div className="w-80 h-96">
+      <ConversationList conversations={[]} />
+    </div>
+  );
+};
+
+/**
+ * 长列表 - 展示多个会话
+ */
+export const LongList = () => {
+  const conversations: Conversation[] = Array.from({ length: 10 }, (_, i) => ({
+    id: `conv-${i + 1}`,
+    user: {
+      id: `user-${i + 1}`,
+      name: `User ${i + 1}`,
+      avatarUrl: `https://i.pravatar.cc/150?img=${i + 1}`,
+      status: AgentStatusEnum.Online,
+    },
+    lastMessage: `Message ${i + 1}`,
+    lastMessageTime: `${10 - i}:00 AM`,
+    unreadCount: i % 3,
+    channel: [
+      ChannelTypeEnum.SMS,
+      ChannelTypeEnum.WhatsApp,
+      ChannelTypeEnum.Email,
+    ][i % 3],
+    isActive: i === 0,
+  }));
+
+  return (
+    <div className="w-80 h-96 overflow-y-auto">
+      <ConversationList conversations={conversations} />
+    </div>
+  );
+};
+
+/**
+ * 不同渠道 - 展示混合渠道
+ */
+export const MixedChannels = () => {
+  const conversations: Conversation[] = [
+    {
+      id: '1',
+      user: {
+        id: 'user-1',
+        name: 'Alice (SMS)',
+        avatarUrl: 'https://i.pravatar.cc/150?img=1',
+        status: AgentStatusEnum.Online,
+      },
+      lastMessage: 'SMS message here',
+      lastMessageTime: '10:30 AM',
+      unreadCount: 0,
+      channel: ChannelTypeEnum.SMS,
+    },
+    {
+      id: '2',
+      user: {
+        id: 'user-2',
+        name: 'Bob (WhatsApp)',
+        avatarUrl: 'https://i.pravatar.cc/150?img=2',
+        status: AgentStatusEnum.Busy,
+      },
+      lastMessage: 'WhatsApp message here',
+      lastMessageTime: '10:15 AM',
+      unreadCount: 3,
+      channel: ChannelTypeEnum.WhatsApp,
+    },
+    {
+      id: '3',
+      user: {
+        id: 'user-3',
+        name: 'Carol (Email)',
+        avatarUrl: 'https://i.pravatar.cc/150?img=3',
+        status: AgentStatusEnum.Offline,
+      },
+      lastMessage: 'Email received',
+      lastMessageTime: 'Yesterday',
+      unreadCount: 1,
+      channel: ChannelTypeEnum.Email,
+    },
+  ];
+
+  return (
+    <div className="w-80 h-96">
+      <ConversationList conversations={conversations} />
+    </div>
+  );
+};
+
+/**
+ * 交互示例 - 点击选择
+ */
+export const Interactive = () => {
+  const [selectedId, setSelectedId] = useState<string>('1');
+
+  const conversations: Conversation[] = mockConversations.map((conv) => ({
+    ...conv,
+    isActive: conv.id === selectedId,
+  }));
+
+  return (
+    <div className="w-80 h-96">
+      <ConversationList
+        conversations={conversations}
+        onSelect={setSelectedId}
+      />
+      <p className="text-xs text-text-muted mt-2">已选择: {selectedId}</p>
+    </div>
+  );
+};
+
+/**
+ * 有未读消息 - 展示未读数
+ */
+export const WithUnread = () => {
+  const conversations: Conversation[] = [
+    {
+      id: '1',
+      user: {
+        id: 'user-1',
+        name: 'User 1',
+        avatarUrl: 'https://i.pravatar.cc/150?img=1',
+        status: AgentStatusEnum.Online,
+      },
+      lastMessage: 'New message',
+      lastMessageTime: '10:30 AM',
+      unreadCount: 5,
+      channel: ChannelTypeEnum.WhatsApp,
+    },
+    {
+      id: '2',
+      user: {
+        id: 'user-2',
+        name: 'User 2',
+        avatarUrl: 'https://i.pravatar.cc/150?img=2',
+        status: AgentStatusEnum.Busy,
+      },
+      lastMessage: 'Another message',
+      lastMessageTime: '10:00 AM',
+      unreadCount: 99,
+      channel: ChannelTypeEnum.SMS,
+    },
+  ];
+
+  return (
+    <div className="w-80 h-96">
+      <ConversationList conversations={conversations} />
+    </div>
+  );
+};
+
+/**
+ * 创建中占位 - 展示 Skeleton 与真实会话并存
+ */
+export const WithCreatingPlaceholder = () => {
+  const conversations: Conversation[] = [
+    {
+      id: 'creating:whatsapp:1',
+      user: {
+        id: 'creating-user',
+        name: '',
+        status: AgentStatusEnum.Offline,
+      },
+      lastMessage: '',
+      lastMessageTime: new Date().toISOString(),
+      unreadCount: 0,
+      channel: ChannelTypeEnum.WhatsApp,
+      metadata: {
+        localState: 'creating',
+        pendingSource: 'create',
+      },
+    },
+    ...mockConversations,
+  ];
+
+  return (
+    <div className="w-80 h-96">
+      <ConversationList conversations={conversations} />
+    </div>
+  );
+};
+
+/**
+ * 加载状态 - 初次加载显示骨架屏
+ */
+export const Loading = () => {
+  return (
+    <div className="w-80 h-96">
+      <ConversationList
+        conversations={null}
+        isLoading={true}
+        autoFetch={false}
+      />
+    </div>
+  );
+};
+
+/**
+ * 刷新状态 - 有数据时的加载状态
+ */
+export const Refreshing = () => {
+  return (
+    <div className="w-80 h-96">
+      <ConversationList
+        conversations={mockConversations}
+        isLoading={true}
+        autoFetch={false}
+      />
+    </div>
+  );
+};

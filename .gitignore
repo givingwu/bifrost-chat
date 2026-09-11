@@ -1,0 +1,24 @@
+# Local
+.DS_Store
+*.local
+*.log*
+
+# Sync
+.sync-timestamp
+*.sync.log
+
+# Dist
+.kilo/
+.worktrees/
+node_modules
+dist/
+demo/
+plans/
+coverage/
+doc_build/
+storybook-static
+
+# IDE
+.vscode/*
+!.vscode/extensions.json
+.idea

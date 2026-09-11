@@ -1,0 +1,55 @@
+# Source files
+src/
+stories/
+*.spec.ts
+*.test.ts
+*.test.tsx
+
+# Config files
+tsconfig.json
+biome.json
+postcss.config.cjs
+rslib.config.ts
+vitest.config.ts
+vitest.setup.ts
+
+# Documentation
+design/
+skills/
+specs/
+AGENTS.md
+plans/
+stories/
+
+# Development
+.vscode/
+.idea/
+.DS_Store
+*.log
+*.local
+
+# Build artifacts (keep dist/)
+node_modules/
+demo/
+
+# Storybook
+.storybook/
+storybook-static/
+
+# Git
+.git/
+.gitignore
+.github/
+
+# CI/CD
+.gitlab-ci.yml
+.travis.yml
+
+# Other
+pnpm-lock.yaml
+logo.jpeg
+
+# Keep these files
+!README.md
+!LICENSE
+!CHANGELOG.md

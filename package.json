@@ -1,0 +1,110 @@
+{
+  "name": "@feoe/bifrost-chat",
+  "description": "全渠道聊天 JS SDK 组件库 - 基于 React 和 Tailwind CSS",
+  "version": "1.0.0",
+  "type": "module",
+  "keywords": [
+    "Bifrost-chat",
+    "Bifrost-chat JS SDK",
+    "Omni-channel",
+    "Omni-channel chat",
+    "React Omni-channel",
+    "React Omni-channel chat"
+  ],
+  "author": "mountainwu",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/givingwu/bifrost-chat.git"
+  },
+  "homepage": "https://github.com/givingwu/bifrost-chat#readme",
+  "bugs": {
+    "url": "https://github.com/givingwu/bifrost-chat/issues"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./dist/index.css": {
+      "import": "./dist/index.css",
+      "default": "./dist/index.css"
+    },
+    "./styles": {
+      "import": "./dist/styles/index.css",
+      "default": "./dist/styles/index.css"
+    },
+    "./styles/theme": {
+      "import": "./dist/styles/theme.css",
+      "default": "./dist/styles/theme.css"
+    },
+    "./package.json": "./package.json"
+  },
+  "types": "./dist/src/index.d.ts",
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "sideEffects": [
+    "*.css",
+    "dist/styles/*.css"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "rslib build && pnpm run build:css",
+    "build:css": "node scripts/build-css.cjs",
+    "build:storybook": "storybook build",
+    "check:storybook": "node scripts/check-storybook.mjs",
+    "lint": "biome check --write",
+    "dev": "rslib build --watch",
+    "format": "biome format --write",
+    "storybook": "storybook dev",
+    "test": "vitest run",
+    "prepublishOnly": "pnpm run build && pnpm run test && pnpm run lint",
+    "release": "pnpm run test && pnpm run build && pnpm publish",
+    "release:dry": "pnpm run test && pnpm run build && pnpm publish --dry-run"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.3.8",
+    "@rsbuild/core": "~1.7.2",
+    "@rsbuild/plugin-node-polyfill": "^1.4.4",
+    "@rsbuild/plugin-react": "^1.4.3",
+    "@rslib/core": "^0.19.3",
+    "@storybook/addon-docs": "^10.2.12",
+    "@storybook/addon-onboarding": "^10.2.12",
+    "@tailwindcss/postcss": "^4.1.18",
+    "@tanstack/react-query-devtools": "^5.91.3",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.1",
+    "@types/react": "^19.2.8",
+    "@vitest/coverage-v8": "^4.0.18",
+    "autoprefixer": "^10.4.21",
+    "jsdom": "^26.1.0",
+    "postcss": "^8.5.3",
+    "react": "^19.2.3",
+    "storybook": "^10.2.12",
+    "storybook-addon-rslib": "^3.3.0",
+    "storybook-react-rsbuild": "^3.3.0",
+    "tailwindcss": "^4.1.18",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.17"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.90.20",
+    "@tanstack/react-virtual": "^3.13.18",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.563.0",
+    "tailwind-merge": "^3.4.0",
+    "zod": "^4.3.6",
+    "zustand": "^4.5.2"
+  },
+  "peerDependencies": {
+    "react": ">=16.9.0",
+    "react-dom": ">=16.9.0"
+  }
+}

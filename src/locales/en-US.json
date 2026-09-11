@@ -1,0 +1,227 @@
+{
+  "title": "Messages",
+  "common": {
+    "loading": "Loading...",
+    "retry": "Retry",
+    "close": "Close",
+    "search": "Search",
+    "clear": "Clear"
+  },
+  "time": {
+    "justNow": "just now",
+    "minutesAgo": "{{count}}m ago",
+    "hoursAgo": "{{count}}h ago",
+    "yesterday": "yesterday",
+    "daysAgo": "{{count}}d ago"
+  },
+  "toolbar": {
+    "channel": {
+      "sms": "Interactive SMS",
+      "whatsapp": "WhatsApp Business",
+      "wa_agent": "WhatsApp Agent",
+      "email": "Email",
+      "voip": "VoIP",
+      "viber": "Viber",
+      "rcs": "RCS",
+      "ivr": "IVR"
+    },
+    "network": {
+      "unknown": "Unknown",
+      "connected": "Connected",
+      "connecting": "Connecting",
+      "disconnected": "Disconnected",
+      "reconnecting": "Reconnecting",
+      "aria": {
+        "unknown": "Network status unknown",
+        "connected": "Network connected",
+        "connecting": "Network connecting",
+        "disconnected": "Network disconnected",
+        "reconnecting": "Network reconnecting"
+      }
+    },
+    "theme": {
+      "system": "System",
+      "light": "Light",
+      "dark": "Dark",
+      "ariaLabel": "Theme: {{mode}}"
+    },
+    "language": {
+      "ariaLabel": "Language: {{code}}"
+    },
+    "channelFilter": {
+      "ariaLabel": "Channel Filter",
+      "unread": "{{count}} unread",
+      "unsupportedCurrentConversation": "Current conversation does not support {{channel}}",
+      "channelDisabled": "{{channel}} channel is not enabled"
+    }
+  },
+  "composer": {
+    "placeholder": {
+      "default": "Enter message",
+      "channel": "Enter message please"
+    },
+    "send": "Send",
+    "audio": {
+      "recording": "Recording",
+      "pause": "Pause",
+      "resume": "Resume",
+      "stop": "Stop",
+      "send": "Send",
+      "delete": "Delete"
+    },
+    "attachment": {
+      "add": "Add Attachment",
+      "remove": "Remove Attachment",
+      "removeFile": "Remove {{name}}",
+      "maxSize": "File size exceeds limit",
+      "maxCount": "Maximum attachments limit reached",
+      "invalidType": "Unsupported file type"
+    },
+    "draft": {
+      "hint": "Unsent draft detected",
+      "restore": "Restore",
+      "discard": "Discard"
+    },
+    "hint": {
+      "newline": "Shift+Enter to insert a new line",
+      "sms": "SMS · 1 segment",
+      "whatsapp": "Secure Connection",
+      "wa_agent": "Agent Connection",
+      "email": "Rich text enabled",
+      "viber": "Viber Message",
+      "rcs": "RCS rich message",
+      "default": "Default Channel"
+    },
+    "aria": {
+      "send": "Send message",
+      "attachment": "Attach file",
+      "voiceInput": "Voice input",
+      "emoji": "Insert emoji",
+      "input": "Message input",
+      "clear": "Clear input",
+      "closeError": "Close error message",
+      "chooseChannel": "Choose Channel"
+    }
+  },
+  "message": {
+    "type": {
+      "text": "Text message",
+      "image": "Image message",
+      "audio": "Audio message"
+    },
+    "audio": {
+      "play": "Play audio",
+      "pause": "Pause playback",
+      "loading": "Loading",
+      "error": "Failed to load",
+      "progress": "Playback progress",
+      "invalidContent": "Invalid message content type, expected URL in content"
+    },
+    "invalidUrl": "No available URL",
+    "emptyContent": "{{type}}: Empty message",
+    "status": {
+      "created": "Creating message",
+      "sending": "Sending message",
+      "sent": "Message sent",
+      "delivered": "Message delivered",
+      "read": "Message read",
+      "clicked": "Message clicked",
+      "failed": "Message failed to send",
+      "queued": "Message queued",
+      "tooltip": "Status: {{status}}"
+    },
+    "channelAccountTail": "Sender number {{tail}}",
+    "chatbot": "Chatbot",
+    "retry": "Retry",
+    "delete": "Delete",
+    "retry_all": "Retry All",
+    "delete_all": "Delete All",
+    "failed_count": "{{count}} message(s) failed to send",
+    "not_sent": "Not Sent",
+    "error_reason": "Error: {{error}}",
+    "empty": "No content",
+    "unsupported": "Unsupported message type",
+    "unsupportedWithType": "Unsupported Message Type: {{type}}",
+    "warningIcon": "Warning icon"
+  },
+  "conversation": {
+    "title": "Conversations",
+    "empty": "No conversations yet",
+    "messageCenter": "Message Center",
+    "search": "Search conversations",
+    "searchAssetPlaceholder": "Search asset number...",
+    "searchEmpty": "No conversations found for this asset",
+    "ariaLabel": "Conversation with {{name}}{{unread, plural, =0 {} other {, {{count}} unread messages}}}",
+    "panel": "Conversation panel",
+    "searchAriaLabel": "Search conversations",
+    "error": {
+      "loadFailed": "Failed to load conversations"
+    },
+    "status": {
+      "active": "Active",
+      "waiting": "Waiting",
+      "closed": "Closed",
+      "archived": "Archived"
+    }
+  },
+  "template": {
+    "title": "Message Templates",
+    "search": "Search templates...",
+    "searchOrCreate": "Search or create template...",
+    "keyboardHint": "Use ↑↓ to select, Enter to confirm, ESC to close",
+    "keyboardHintSimple": "Use ↑↓ to select, Enter to confirm",
+    "list": "Template list",
+    "categorySelected": "{{label}} (Selected)",
+    "panel": {
+      "allCategories": "All",
+      "loading": "Loading...",
+      "loadFailed": "Failed to load",
+      "retry": "Retry",
+      "noTemplates": "No templates yet",
+      "noMatchTemplates": "No matching templates found",
+      "selectConversationFirst": "Please select a conversation first",
+      "showingCount": "Showing {{filtered}} / {{total}} templates",
+      "usageCount": "Used {{count}} times"
+    },
+    "previewFailed": "Preview failed please check your template content and try again"
+  },
+  "mobile": {
+    "subtitle": "{{channel}} conversation",
+    "template": {
+      "open": "Open quick reply templates",
+      "title": "Choose quick reply template"
+    }
+  },
+  "emoji": {
+    "title": "Select Emoji",
+    "hint": "Click an emoji to insert it into the input",
+    "picker": "Emoji picker",
+    "categories": "Emoji categories",
+    "list": "Emoji list",
+    "switchCategory": "Switch to {{name}} category",
+    "insert": "Insert emoji {{emoji}}",
+    "category": {
+      "emotion": "Emotion",
+      "gestures": "Gestures",
+      "hearts": "Hearts",
+      "symbols": "Symbols",
+      "animals": "Animals",
+      "food": "Food"
+    }
+  },
+  "mention": {
+    "search": "Search: {{query}}",
+    "hint": "Use ↑↓ to select, Enter to confirm"
+  },
+  "search": {
+    "placeholder": "Search..."
+  },
+  "image": {
+    "loadFailed": "Image failed to load"
+  },
+  "Gateway": {
+    "Plugin": {
+      "statusChangeConfirm": "Confirm changing plugin \"{{name}}\" status to {{status}}?"
+    }
+  }
+}

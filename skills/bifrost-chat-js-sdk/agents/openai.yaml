@@ -1,0 +1,4 @@
+interface:
+  display_name: "Bifrost Chat JS SDK"
+  short_description: "Build and maintain Bifrost Chat JS SDK workflows"
+  default_prompt: "Use $bifrost-chat-js-sdk to implement or review SDK architecture-safe changes."

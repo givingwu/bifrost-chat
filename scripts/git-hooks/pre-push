@@ -1,0 +1,109 @@
+#!/bin/bash
+
+###############################################################################
+# Bifrost Chat Git Pre-push Hook
+# 功能：推送到 main/master 分支前执行增量测试，失败则阻止推送
+# 安装：cp scripts/git-hooks/pre-push .git/hooks/pre-push
+# 权限：chmod +x .git/hooks/pre-push
+###############################################################################
+
+set -e
+
+should_run_test=false
+
+# pre-push 从 stdin 读取将要推送的 ref 变更：
+# <local ref> <local sha1> <remote ref> <remote sha1>
+while read -r local_ref local_sha remote_ref remote_sha; do
+  if [ "$remote_ref" = "refs/heads/main" ] || [ "$remote_ref" = "refs/heads/master" ]; then
+    should_run_test=true
+    break
+  fi
+done
+
+if [ "$should_run_test" != "true" ]; then
+  exit 0
+fi
+
+echo "🔍 检测到推送目标包含 main/master，开始分析变更..."
+
+# 获取远程最新的 commit（如果存在）
+if [ "$remote_sha" = "0000000000000000000000000000000000000000" ]; then
+  # 新分支，比较所有变更
+  base_sha="HEAD~1"
+else
+  base_sha="$remote_sha"
+fi
+
+# 获取变更的文件列表
+changed_files=$(git diff --name-only "$base_sha" "$local_sha" 2>/dev/null || git diff --name-only HEAD~1 HEAD)
+
+if [ -z "$changed_files" ]; then
+  echo "ℹ️  没有检测到变更文件，跳过测试"
+  exit 0
+fi
+
+echo "📝 变更的文件："
+echo "$changed_files" | sed 's/^/  - /'
+
+# 查找相关的测试文件
+test_files=""
+
+# 遍历变更的文件，找到对应的测试文件
+while IFS= read -r file; do
+  # 跳过非 TypeScript/JavaScript 文件
+  if [[ ! "$file" =~ \.(ts|tsx|js|jsx)$ ]]; then
+    continue
+  fi
+
+  # 获取文件名（不含扩展名）
+  basename_no_ext="${file%.*}"
+  dir=$(dirname "$file")
+
+  # 查找对应的测试文件
+  # 模式1: 同目录下 *.test.ts(x)
+  # 模式2: 同目录下 __tests__/*.test.ts(x)
+
+  # 检查同目录下的测试文件
+  for ext in "ts" "tsx"; do
+    test_file="${basename_no_ext}.test.${ext}"
+    if [ -f "$test_file" ]; then
+      test_files="$test_files $test_file"
+    fi
+  done
+
+  # 检查 __tests__ 目录
+  test_dir="${dir}/__tests__"
+  if [ -d "$test_dir" ]; then
+    filename=$(basename "$basename_no_ext")
+    for ext in "ts" "tsx"; do
+      test_file="${test_dir}/${filename}.test.${ext}"
+      if [ -f "$test_file" ]; then
+        test_files="$test_files $test_file"
+      fi
+    done
+  fi
+done <<< "$changed_files"
+
+# 去重
+test_files=$(echo "$test_files" | tr ' ' '\n' | sort -u | grep -v '^$' | tr '\n' ' ')
+
+if [ -z "$test_files" ]; then
+  echo "ℹ️  没有检测到相关的测试文件，跳过测试"
+  exit 0
+fi
+
+echo "🧪 检测到相关测试文件："
+echo "$test_files" | tr ' ' '\n' | grep -v '^$' | sed 's/^/  - /'
+
+echo ""
+echo "🚀 开始执行增量测试..."
+
+# 执行增量测试
+if pnpm vitest run $test_files; then
+  echo ""
+  echo "✅ 增量测试全部通过，继续推送"
+else
+  echo ""
+  echo "❌ 增量测试未通过，已阻止推送"
+  exit 1
+fi

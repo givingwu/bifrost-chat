@@ -1,0 +1,107 @@
+# 架构图（v3.1）
+
+## 1. 当前实现数据流（As-Is）
+
+```mermaid
+graph TB
+  subgraph Host[宿主应用]
+    S1[ConversationServiceImpl]
+    S2[MessageServiceImpl]
+    S3[TemplateServiceImpl]
+  end
+
+  subgraph SDK[SDK]
+    CP[ConfigProvider]
+    QP[QueryProvider]
+    SP[ServiceProvider]
+    ST[Zustand Store]
+    HK[Hooks]
+    UI[Default Components]
+  end
+
+  S1 --> SP
+  S2 --> SP
+  S3 --> SP
+  CP --> ST
+  SP --> HK
+  QP --> HK
+  HK --> UI
+  ST --> UI
+```
+
+## 2. 当前发送消息流程（As-Is）
+
+```mermaid
+sequenceDiagram
+  participant UI as Composer
+  participant Hook as useSendMessage
+  participant Cache as React Query Cache
+  participant Svc as IMessageService
+  participant Host as Host Impl
+  participant API as Backend
+  participant Queue as OfflineQueue
+
+  Note over UI,Queue: === 成功场景 ===
+  UI->>Hook: mutate({conversationId, content})
+  Hook->>Cache: onMutate(写临时消息, status=Sending)
+  Hook->>Svc: send(conversationId, params)
+  Svc->>Host: 调用宿主实现
+  Host->>API: 请求
+  API-->>Host: 响应成功
+  Host-->>Svc: MessageSendResult(status=Sent)
+  Svc-->>Hook: result
+  Hook->>Cache: onSuccess(更新 status=Sent)
+  Hook->>UI: 刷新
+
+  Note over UI,Queue: === 网络错误场景（离线队列） ===
+  UI->>Hook: mutate({conversationId, content})
+  Hook->>Cache: onMutate(写临时消息, status=Sending)
+  Hook->>Svc: send(conversationId, params)
+  Svc->>Host: 调用宿主实现
+  Host->>API: 请求
+  API-->>Host: ❌ 网络错误
+  Host-->>Svc: throw Error
+  Svc-->>Hook: ❌ throw Error
+  Hook->>Queue: enqueue(失败消息)
+  Hook->>Cache: onError(更新 status=Failed)
+  Note over Hook,UI: 保留消息，显示重试按钮
+  Hook->>UI: 刷新(显示 Failed 状态)
+
+  Note over UI,Cache: === 业务逻辑错误场景（完全回滚） ===
+  UI->>Hook: mutate({conversationId, content})
+  Hook->>Cache: onMutate(写临时消息, status=Sending)
+  Hook->>Svc: send(conversationId, params)
+  Svc->>Host: 调用宿主实现
+  Host->>API: 请求
+  API-->>Host: 响应(业务错误, 如配额限制)
+  Host-->>Svc: MessageSendResult(status=Failed, error="Quota exceeded")
+  Svc-->>Hook: result
+  Hook->>Cache: onSuccess(检测到 status=Failed, 回滚到 previousMessages)
+  Note over Hook,UI: 临时消息被移除，恢复到发送前状态
+  Hook->>UI: 刷新（消息消失）
+```
+
+## 3. 当前模板链路（As-Is）
+
+```mermaid
+graph LR
+  TP[TemplatePanel / MobileTemplateActionSheet] --> UTS[useTemplateSelect]
+  UTS --> UTP[useTemplatePreview]
+  UTP --> ITS[ITemplateService.preview]
+  UTS -->|direct| USM[useSendMessage]
+  UTS -->|edit| Draft[Composer Draft]
+  USM --> IMS[IMessageService.send]
+  USM --> MQC[Messages Query Cache]
+```
+
+## 4. 目标数据流（To-Be）
+
+```mermaid
+graph LR
+  TP[TemplatePanel] --> UST[useSendTemplateMessage]
+  UST --> IMS[IMessageService.send]
+  UST --> MQC[Messages Query Cache]
+```
+
+说明：模板预览已作为 As-Is 落地；目标流仅指独立模板发送 mutation，
+当前模板直发仍以 `useSendMessage` 路径为准。

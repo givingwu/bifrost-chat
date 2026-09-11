@@ -1,0 +1,4 @@
+interface:
+  display_name: "Bifrost Chat UI Design"
+  short_description: "Design and validate Bifrost Chat UI component quality"
+  default_prompt: "Use $bifrost-chat-ui-design to refine theme tokens and Storybook UI states."

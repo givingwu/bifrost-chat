@@ -1,0 +1,579 @@
+import { useQueryClient } from '@tanstack/react-query';
+import { useCallback, useEffect, useMemo, useRef, useTransition } from 'react';
+import { Composer, type ComposerRef } from '@/components/composer/Composer';
+import { ConversationHeader } from '@/components/conversation/ConversationHeader';
+import { ConversationList } from '@/components/conversation/ConversationList';
+import { ConversationPanel } from '@/components/conversation/ConversationPanel';
+import { ChatLayout } from '@/components/layout/ChatLayout';
+import { UnsupportedChannelWarning } from '@/components/layout/UnsupportedChannelWarning';
+import { InfiniteMessageList } from '@/components/messages/InfiniteMessageList';
+import type { ProfileAction } from '@/components/profile/ProfileHeader';
+import {
+  ProfilePanel,
+  type ProfilePanelProps,
+} from '@/components/profile/ProfilePanel';
+import { SearchInput } from '@/components/SearchInput';
+import { Topbar, type TopbarProps } from '@/components/toolbar/Topbar';
+import { TopbarTools } from '@/components/toolbar/TopbarTools';
+import { useActiveConversationMetadata } from '@/hooks/use-active-conversation-metadata.hook';
+import { useComposerFocus } from '@/hooks/use-composer-focus.hook';
+import { useConversationAutoSelect } from '@/hooks/use-conversation-auto-select.hook';
+import { useConversations } from '@/hooks/use-conversations.hook';
+import { useMessageStatusSync } from '@/hooks/use-message-status-sync.hook';
+import { useSendMessage } from '@/hooks/use-send-message.hook';
+import { useTemplatePreview } from '@/hooks/use-template-preview.hook';
+import { useTemplateSelect } from '@/hooks/use-template-select.hook';
+import { useTotalUnread } from '@/hooks/use-total-unread.hook';
+import { useUnreadSync } from '@/hooks/use-unread-sync.hook';
+import type { Conversation } from '@/interfaces/conversation.interface';
+import { useTranslation } from '@/providers/I18n.provider';
+import { ConversationCacheHelper } from '@/services/cache/conversation-cache-helper.service';
+import {
+  useActions,
+  useComposerConfig,
+  useConversation,
+  useProfile,
+  useStrategy,
+} from '@/store';
+import { cn } from '@/utils/class.util';
+import { filterConversations } from '@/utils/conversation-filter.util';
+import {
+  buildSubTitleNode,
+  checkChannelSupport,
+  getDisplayTitle,
+  TRANSLATION_KEYS,
+} from '@/utils/layout.util';
+
+// ============================================================================
+// Types & Interfaces
+// ============================================================================
+
+export interface DefaultChatLayoutRenderTopbarProps
+  extends Omit<TopbarProps, 'avatarUrl'> {
+  TopbarComponent: typeof Topbar;
+  /** 当前激活会话（供宿主在 renderTopbar / renderMeta 中访问会话元数据） */
+  conversation?: Conversation;
+}
+
+export type DefaultChatLayoutRenderTopbar =
+  | React.ReactNode
+  | ((props: DefaultChatLayoutRenderTopbarProps) => React.ReactNode);
+
+export type DefaultChatLayoutRenderProfilePanel =
+  | React.ReactNode
+  | ((props: ProfilePanelProps) => React.ReactNode);
+
+export interface DefaultChatLayoutConversationHeaderProps {
+  /** 会话列表头部标题 */
+  title?: React.ReactNode;
+  /** 会话列表头部扩展区 */
+  extra?: React.ReactNode;
+}
+
+export interface DefaultChatLayoutProps extends Omit<TopbarProps, 'avatarUrl'> {
+  className?: string;
+  style?: React.CSSProperties;
+  /**
+   * 顶部栏自定义渲染：
+   * - 直接传入 ReactNode：完全自定义
+   * - 传入函数：在保持默认 Topbar 行为的基础上包一层（例如增加拖拽区域）
+   */
+  renderTopbar?: DefaultChatLayoutRenderTopbar;
+  /**
+   * 全量未读总数变化回调（所有会话的未读之和）
+   * 便于业务方做标题栏徽章、埋点等
+   */
+  onTotalUnreadChange?: (total: number) => void;
+  /**
+   * 客户画像头部快捷操作按钮
+   * 不传则不渲染按钮栏
+   *
+   * @example
+   * ```tsx
+   * profileActions={[
+   *   { icon: <Phone className="h-4 w-4" />, label: '拨打电话', onClick: () => callPhone(profile?.phone) },
+   *   { icon: <Mail  className="h-4 w-4" />, label: '发送邮件', onClick: () => openMail(profile?.email) },
+   * ]}
+   * ```
+   */
+  profileActions?: ProfileAction[];
+  /**
+   * 自定义渲染会话列表项的元数据区域
+   * 在人名和最后消息之间渲染
+   * @example
+   * ```tsx
+   * renderConversationItemMeta={(conv) => (
+   *   <div className="text-xs text-gray-500">
+   *     <span>({conv.metadata?.relationship})</span>
+   *     <span className="ml-2">{conv.metadata?.assetItemNumber}</span>
+   *   </div>
+   * )}
+   * ```
+   */
+  renderConversationItemMeta?: (conversation: Conversation) => React.ReactNode;
+  /**
+   * 自定义渲染 Topbar 的元数据区域
+   * 在标题和副标题之间渲染，接收当前激活会话作为参数。
+   * 旧的无参用法（`() => ReactNode`）运行时不受影响。
+   * @example
+   * ```tsx
+   * renderTopbarMeta={(conversation) => (
+   *   <button
+   *     className="text-xs text-blue-500 hover:underline"
+   *     onClick={() => navigateToAsset(conversation?.metadata?.assetItemNumber)}
+   *   >
+   *     {conversation?.metadata?.assetItemNumber}
+   *   </button>
+   * )}
+   * ```
+   */
+  renderTopbarMeta?: (conversation?: Conversation) => React.ReactNode;
+  /**
+   * 自定义会话列表项标题 formatter
+   *
+   * 左侧列表第一行 和 右侧 Topbar 标题同时使用此 formatter，实现两处展示统一。
+   * 未传时回退到 `conversation.user.name`。
+   *
+   * @example
+   * ```tsx
+   * getConversationDisplayTitle={(conv) =>
+   *   conv.metadata?.relationship
+   *     ? `${conv.user.name}（${conv.metadata.relationship}）`
+   *     : conv.user.name
+   * }
+   * ```
+   */
+  getConversationDisplayTitle?: (conversation: Conversation) => string;
+  /**
+   * 自定义右侧面板渲染：
+   * - 直接传入 ReactNode：完全自定义
+   * - 传入函数：接收面板所需参数，返回自定义渲染内容
+   * @example
+   * ```tsx
+   * renderProfilePanel={(props) => (
+   *   <CustomProfilePanel {...props} />
+   * )}
+   * ```
+   */
+  renderProfilePanel?: DefaultChatLayoutRenderProfilePanel;
+  /**
+   * 会话列表头部的展示配置。
+   * 仅用于覆盖标题与头部扩展区，不暴露搜索状态，避免与 store/config 边界重叠。
+   */
+  conversationHeaderProps?: DefaultChatLayoutConversationHeaderProps;
+}
+
+/**
+ * 发送消息的选项类型（与 Composer 组件的 onSend 签名保持一致）
+ */
+interface SendMessageOptions {
+  templateMetadata?: unknown;
+  [key: string]: unknown;
+}
+
+/**
+ * DefaultChatLayout：默认布局组件
+ *
+ * @description
+ * 完整的聊天布局，包含会话列表、消息区域、输入框和右侧面板。
+ * 使用 React Query Hooks 和 Zustand Store 进行状态管理。
+ *
+ * @example
+ * ```tsx
+ * function App() {
+ *   return (
+ *     <QueryProvider>
+ *       <ServiceProvider {...services}>
+ *         <DefaultChatLayout>
+ *           <InfiniteMessageList conversationId="conv-123" />
+ *         </DefaultChatLayout>
+ *       </ServiceProvider>
+ *     </QueryProvider>
+ *   );
+ * }
+ * ```
+ */
+export function DefaultChatLayout({
+  title,
+  subTitle,
+  extra,
+  renderTopbar,
+  className,
+  style,
+  onTotalUnreadChange,
+  profileActions,
+  renderConversationItemMeta,
+  renderTopbarMeta,
+  getConversationDisplayTitle,
+  renderProfilePanel,
+  conversationHeaderProps,
+}: DefaultChatLayoutProps) {
+  // ---------------------------------------------------------------------------
+  // Hooks & State
+  // ---------------------------------------------------------------------------
+  const actions = useActions();
+  const { t } = useTranslation();
+  const { profile } = useProfile();
+  const queryClient = useQueryClient();
+  const { activeChannel } = useStrategy();
+  const { templateMode } = useComposerConfig();
+
+  const {
+    data: conversations = [],
+    isFetching: isConversationsFetching, // isFetching：当发起获取请求时，始终为 True，适用于背景加载指示器
+    isLoading: isConversationsLoading, // isLoading: 当查询处于加载状态且没有可用的缓存数据时为 True，非常适合初始加载旋转器
+  } = useConversations();
+
+  const { activeConversationId, searchQuery } = useConversation();
+
+  // 后台静默同步会话元数据（内部已调用 useConversationDetail，无需重复调用）
+  const {
+    metadata: conversationMetadata,
+    isPending: isConversationDetailLoading,
+  } = useActiveConversationMetadata();
+  const sendMessage = useSendMessage({ conversationMetadata });
+
+  // 使用 useTransition 标记搜索过滤为过渡更新（低优先级）
+  const [isSearchPending, startTransition] = useTransition();
+
+  // 模板预览相关状态
+  const { mutateAsync: previewTemplate } = useTemplatePreview();
+
+  // Composer ref
+  const composerRef = useRef<ComposerRef>(null);
+
+  // ---------------------------------------------------------------------------
+  // Computed Values
+  // ---------------------------------------------------------------------------
+
+  // 从会话列表或详情缓存中获取当前激活的会话
+  const activeConversation = useMemo(
+    () =>
+      conversations.find(
+        (conversation) => conversation.id === activeConversationId,
+      ) ??
+      (activeConversationId
+        ? ConversationCacheHelper.findConversation(
+            queryClient,
+            activeConversationId,
+          )
+        : undefined),
+    [activeConversationId, conversations, queryClient],
+  );
+
+  // 检查当前渠道是否被会话支持
+  const isChannelSupported = useMemo(() => {
+    // 切换会话时，列表/缓存可能先给出短暂的 `[]`（或不完整数据）。
+    // 这里只信任“会话详情接口返回”的 supportedChannels。
+    // 详情 pending 或 supportedChannels 还未返回时，先保持 Composer 默认渲染，避免闪烁。
+    if (isConversationDetailLoading) return true;
+
+    const supportedChannels = conversationMetadata?.supportedChannels;
+    if (supportedChannels === undefined) return true;
+
+    return checkChannelSupport(supportedChannels, activeChannel);
+  }, [
+    activeChannel,
+    conversationMetadata?.supportedChannels,
+    isConversationDetailLoading,
+  ]);
+
+  // 计算 title
+  const titleNode = useMemo(
+    () =>
+      title ??
+      getDisplayTitle(
+        activeConversation,
+        getConversationDisplayTitle,
+        t(TRANSLATION_KEYS.CONVERSATION_TITLE),
+      ),
+    [activeConversation, getConversationDisplayTitle, t, title],
+  );
+
+  // 计算 subtitle
+  const subTitleNode = useMemo(
+    () =>
+      buildSubTitleNode(
+        activeConversation,
+        activeChannel,
+        subTitle,
+        renderTopbarMeta,
+        t,
+      ),
+    [activeConversation, activeChannel, subTitle, renderTopbarMeta, t],
+  );
+
+  // 搜索过滤后的会话列表
+  const filteredConversations = useMemo(
+    () => filterConversations(conversations, searchQuery),
+    [conversations, searchQuery],
+  );
+
+  // ---------------------------------------------------------------------------
+  // Custom Hooks
+  // ---------------------------------------------------------------------------
+
+  // Composer 焦点管理
+  useComposerFocus(
+    isConversationDetailLoading ? undefined : activeConversationId,
+    composerRef,
+  );
+
+  // 会话自动选择
+  useConversationAutoSelect({
+    conversations,
+    activeConversationId,
+    isConversationsFetching,
+    queryClient,
+  });
+
+  // ---------------------------------------------------------------------------
+  // Callbacks
+  // ---------------------------------------------------------------------------
+
+  const handleSearchSubmit = useCallback(
+    (value: string) => {
+      actions.setSearchQuery(value);
+    },
+    [actions],
+  );
+
+  const handleSelectConversation = useCallback(
+    (conversationId: string) => {
+      actions.setActiveConversationId(conversationId);
+    },
+    [actions],
+  );
+
+  const handleSearchChange = useCallback(
+    (value: string) => {
+      // 使用 startTransition 标记状态更新为低优先级
+      // 确保输入框的更新优先于搜索过滤
+      startTransition(() => {
+        actions.setSearchQuery(value);
+      });
+    },
+    [actions],
+  );
+
+  /**
+   * 统一的消息发送处理函数
+   */
+  const handleSend = useCallback(
+    async (content: string, options?: SendMessageOptions) => {
+      if (!activeConversationId) {
+        console.warn(
+          '[DefaultChatLayout] handleSend called without active conversation',
+        );
+        return undefined;
+      }
+
+      return sendMessage.mutateAsync({
+        conversationId: activeConversationId,
+        content,
+        options,
+      });
+    },
+    [activeConversationId, sendMessage],
+  );
+
+  /**
+   * 共享模板选择 hook，与 MobileChatLayout 使用同一套逻辑。
+   */
+  const { renderingTemplateId, handleTemplateSelect } = useTemplateSelect({
+    activeConversationId,
+    activeChannel,
+    previewTemplate,
+    templateMode: templateMode ?? 'edit',
+    onDirectSend: useCallback(
+      async (content, options) => {
+        await handleSend(content, options);
+      },
+      [handleSend],
+    ),
+    onEditFill: useCallback((content, code, metadata) => {
+      composerRef.current?.setValue(content, code, metadata);
+      composerRef.current?.focus();
+    }, []),
+    onPreviewError: useCallback(
+      (template) => {
+        composerRef.current?.setTemplate({
+          content: template.content,
+          templateCode: template.code,
+          templateMetadata: undefined,
+          templateError: t('template.previewFailed'),
+        });
+        composerRef.current?.focus();
+      },
+      [t],
+    ),
+  });
+
+  // ---------------------------------------------------------------------------
+  // Memoized Components
+  // ---------------------------------------------------------------------------
+
+  const topbarNode = useMemo(() => {
+    // 函数形式：外部拿到默认 Topbar 所需的参数与组件
+    if (typeof renderTopbar === 'function') {
+      return renderTopbar({
+        title: titleNode,
+        subTitle: subTitleNode,
+        extra: <TopbarTools extra={extra} />,
+        TopbarComponent: Topbar,
+        conversation: activeConversation,
+      });
+    }
+
+    // 兼容老用法：直接传入 ReactNode
+    if (renderTopbar) {
+      return renderTopbar;
+    }
+
+    // 默认实现
+    return (
+      <Topbar
+        title={titleNode}
+        subTitle={subTitleNode}
+        extra={<TopbarTools extra={extra} />}
+      />
+    );
+  }, [renderTopbar, extra, activeConversation, titleNode, subTitleNode]);
+
+  const composerNode = useMemo(() => {
+    if (!activeConversationId) return null;
+
+    // 初始默认展示输入框 Composer；当 API 明确返回当前会话不支持该渠道后，
+    // 才切换到不支持渠道提示组件。
+    if (!isChannelSupported)
+      return <UnsupportedChannelWarning channel={activeChannel} />;
+
+    return (
+      <Composer
+        key={`${activeConversationId}-${activeChannel}`}
+        ref={composerRef}
+        conversationId={activeConversationId}
+        channel={activeChannel}
+        loading={isConversationDetailLoading}
+        onSend={handleSend}
+      />
+    );
+  }, [
+    activeConversationId,
+    isChannelSupported,
+    activeChannel,
+    isConversationDetailLoading,
+    handleSend,
+  ]);
+
+  const conversationListClassName = useMemo(
+    () =>
+      cn(
+        'transition-opacity duration-150',
+        isSearchPending && 'opacity-80',
+        !isConversationsLoading && isConversationsFetching && 'opacity-60',
+      ),
+    [isSearchPending, isConversationsLoading, isConversationsFetching],
+  );
+
+  const conversationHeaderSearchNode = useMemo(
+    () => (
+      <SearchInput
+        type="search"
+        placeholder={t('conversation.search')}
+        value={searchQuery}
+        onChange={handleSearchChange}
+        onEnter={handleSearchSubmit}
+        clearable
+        aria-label={t('conversation.searchAriaLabel')}
+      />
+    ),
+    [handleSearchChange, handleSearchSubmit, searchQuery, t],
+  );
+
+  // ---------------------------------------------------------------------------
+  // Side Effects
+  // ---------------------------------------------------------------------------
+
+  // 全量未读总数
+  const { totalUnread } = useTotalUnread();
+
+  // 库内订阅实时消息/状态
+  useUnreadSync();
+
+  // 消息状态实时同步
+  useMessageStatusSync();
+
+  // 未读消息变化回调
+  useEffect(() => {
+    onTotalUnreadChange?.(totalUnread);
+  }, [totalUnread, onTotalUnreadChange]);
+
+  // ---------------------------------------------------------------------------
+  // Render
+  // ---------------------------------------------------------------------------
+
+  return (
+    <ChatLayout
+      className={cn('max-w-350 h-[80vh]', className)}
+      containerClassName="w-270 min-w-0"
+      style={style}
+      topbar={topbarNode}
+      conversationPanel={
+        <ConversationPanel
+          className="w-80"
+          header={
+            <ConversationHeader
+              title={
+                conversationHeaderProps?.title ?? t(TRANSLATION_KEYS.TITLE)
+              }
+              extra={conversationHeaderProps?.extra}
+              search={conversationHeaderSearchNode}
+            />
+          }
+        >
+          <ConversationList
+            className={conversationListClassName}
+            conversations={filteredConversations}
+            onSelect={handleSelectConversation}
+            renderItemMeta={renderConversationItemMeta}
+            getConversationDisplayTitle={getConversationDisplayTitle}
+          />
+        </ConversationPanel>
+      }
+      composer={composerNode}
+      profilePanel={
+        renderProfilePanel ? (
+          typeof renderProfilePanel === 'function' ? (
+            renderProfilePanel({
+              profile,
+              profileActions,
+              activeConversationId: activeConversationId ?? undefined,
+              activeChannel,
+              renderingTemplateId,
+              onTemplateSelect: handleTemplateSelect,
+              isChannelSupported,
+            })
+          ) : (
+            renderProfilePanel
+          )
+        ) : (
+          <ProfilePanel
+            profile={profile}
+            profileActions={profileActions}
+            activeConversationId={activeConversationId ?? undefined}
+            activeChannel={activeChannel}
+            renderingTemplateId={renderingTemplateId}
+            onTemplateSelect={handleTemplateSelect}
+            isChannelSupported={isChannelSupported}
+          />
+        )
+      }
+    >
+      <InfiniteMessageList
+        conversationId={activeConversationId}
+        currentChannel={activeChannel}
+      />
+    </ChatLayout>
+  );
+}

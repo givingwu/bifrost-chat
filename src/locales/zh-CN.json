@@ -1,0 +1,227 @@
+{
+  "title": "消息",
+  "common": {
+    "loading": "加载中...",
+    "retry": "重试",
+    "close": "关闭",
+    "search": "搜索",
+    "clear": "清除"
+  },
+  "time": {
+    "justNow": "刚刚",
+    "minutesAgo": "{{count}}分钟前",
+    "hoursAgo": "{{count}}小时前",
+    "yesterday": "昨天",
+    "daysAgo": "{{count}}天前"
+  },
+  "toolbar": {
+    "channel": {
+      "sms": "交互短信",
+      "whatsapp": "WhatsApp",
+      "wa_agent": "自研 WhatsApp",
+      "email": "邮件",
+      "voip": "VoIP",
+      "viber": "Viber",
+      "rcs": "RCS",
+      "ivr": "IVR"
+    },
+    "network": {
+      "unknown": "未知",
+      "connected": "已连接",
+      "connecting": "连接中",
+      "disconnected": "已断开",
+      "reconnecting": "重连中",
+      "aria": {
+        "unknown": "网络状态未知",
+        "connected": "网络已连接",
+        "connecting": "网络连接中",
+        "disconnected": "网络已断开",
+        "reconnecting": "网络重连中"
+      }
+    },
+    "theme": {
+      "system": "系统",
+      "light": "浅色",
+      "dark": "深色",
+      "ariaLabel": "主题：{{mode}}"
+    },
+    "language": {
+      "ariaLabel": "语言：{{code}}"
+    },
+    "channelFilter": {
+      "ariaLabel": "渠道筛选",
+      "unread": "{{count}} 条未读",
+      "unsupportedCurrentConversation": "当前会话暂不支持 {{channel}}",
+      "channelDisabled": "{{channel}} 渠道未启用"
+    }
+  },
+  "composer": {
+    "placeholder": {
+      "default": "输入内容",
+      "channel": "请输入消息内容"
+    },
+    "send": "发送",
+    "audio": {
+      "recording": "录音中",
+      "pause": "暂停",
+      "resume": "继续",
+      "stop": "停止",
+      "send": "发送",
+      "delete": "删除"
+    },
+    "attachment": {
+      "add": "添加附件",
+      "remove": "移除附件",
+      "removeFile": "移除 {{name}}",
+      "maxSize": "文件大小超过限制",
+      "maxCount": "附件数量超过限制",
+      "invalidType": "不支持的文件类型"
+    },
+    "draft": {
+      "hint": "检测到未发送的草稿",
+      "restore": "恢复",
+      "discard": "丢弃"
+    },
+    "hint": {
+      "newline": "Shift+Enter 换行",
+      "sms": "SMS · 1 segment",
+      "whatsapp": "安全连接",
+      "wa_agent": "自研代理",
+      "email": "已启用富文本",
+      "viber": "Viber 消息",
+      "rcs": "RCS 富媒体消息",
+      "default": "默认渠道"
+    },
+    "aria": {
+      "send": "发送消息",
+      "attachment": "添加附件",
+      "voiceInput": "语音输入",
+      "emoji": "插入表情",
+      "input": "消息输入框",
+      "clear": "清空输入",
+      "closeError": "关闭错误提示",
+      "chooseChannel": "选择渠道"
+    }
+  },
+  "message": {
+    "type": {
+      "text": "文本消息",
+      "image": "图片消息",
+      "audio": "语音消息"
+    },
+    "audio": {
+      "play": "播放语音",
+      "pause": "暂停播放",
+      "loading": "加载中",
+      "error": "加载失败",
+      "progress": "播放进度",
+      "invalidContent": "无效的消息内容类型，期望内容中有 URL 链接"
+    },
+    "invalidUrl": "无可用 URL",
+    "emptyContent": "{{type}}: 空消息",
+    "status": {
+      "created": "消息创建中",
+      "sending": "消息发送中",
+      "sent": "消息已发送",
+      "delivered": "消息已送达",
+      "read": "消息已读",
+      "clicked": "消息已点击",
+      "failed": "消息发送失败",
+      "queued": "消息已排队",
+      "tooltip": "状态：{{status}}"
+    },
+    "channelAccountTail": "发送号码 {{tail}}",
+    "chatbot": "Chatbot",
+    "retry": "重试",
+    "delete": "删除",
+    "retry_all": "全部重试",
+    "delete_all": "全部删除",
+    "failed_count": "{{count}} 条消息发送失败",
+    "not_sent": "未发送",
+    "error_reason": "错误：{{error}}",
+    "empty": "无内容",
+    "unsupported": "不支持的消息类型",
+    "unsupportedWithType": "不支持的消息类型：{{type}}",
+    "warningIcon": "警告图标"
+  },
+  "conversation": {
+    "title": "会话",
+    "empty": "暂无会话",
+    "messageCenter": "消息中心",
+    "search": "搜索会话",
+    "searchAssetPlaceholder": "搜索资产编号...",
+    "searchEmpty": "未找到该资产相关的会话记录",
+    "ariaLabel": "与 {{name}} 的会话{{unread, plural, =0 {} other {，有 {{count}} 条未读消息}}}",
+    "panel": "会话面板",
+    "searchAriaLabel": "搜索会话",
+    "error": {
+      "loadFailed": "加载会话失败"
+    },
+    "status": {
+      "active": "活跃",
+      "waiting": "等待中",
+      "closed": "已关闭",
+      "archived": "已归档"
+    }
+  },
+  "template": {
+    "title": "消息模板",
+    "search": "搜索模板...",
+    "searchOrCreate": "搜索或创建模板...",
+    "keyboardHint": "使用 ↑↓ 选择，Enter 确认，ESC 关闭",
+    "keyboardHintSimple": "使用 ↑↓ 选择，Enter 确认",
+    "list": "模板列表",
+    "categorySelected": "{{label}}（已选中）",
+    "panel": {
+      "allCategories": "全部",
+      "loading": "加载中...",
+      "loadFailed": "加载失败",
+      "retry": "重试",
+      "noTemplates": "暂无模板",
+      "noMatchTemplates": "未找到匹配的模板",
+      "selectConversationFirst": "请先选择会话",
+      "showingCount": "显示 {{filtered}} / {{total}} 个模板",
+      "usageCount": "使用 {{count}} 次"
+    },
+    "previewFailed": "模板预览失败，请检查模板内容后重试"
+  },
+  "mobile": {
+    "subtitle": "{{channel}} 会话",
+    "template": {
+      "open": "打开快捷话术模板",
+      "title": "选择快捷话术模板"
+    }
+  },
+  "emoji": {
+    "title": "选择表情",
+    "hint": "点击表情即可插入到输入框",
+    "picker": "表情选择器",
+    "categories": "表情分类",
+    "list": "表情列表",
+    "switchCategory": "切换到{{name}}分类",
+    "insert": "插入表情 {{emoji}}",
+    "category": {
+      "emotion": "表情",
+      "gestures": "手势",
+      "hearts": "爱心",
+      "symbols": "符号",
+      "animals": "动物",
+      "food": "食物"
+    }
+  },
+  "mention": {
+    "search": "搜索: {{query}}",
+    "hint": "使用 ↑↓ 选择，Enter 确认"
+  },
+  "search": {
+    "placeholder": "搜索..."
+  },
+  "image": {
+    "loadFailed": "图片加载失败"
+  },
+  "Gateway": {
+    "Plugin": {
+      "statusChangeConfirm": "确认将插件 \"{{name}}\" 的状态更改为 {{status}} 吗？"
+    }
+  }
+}
