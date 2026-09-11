@@ -515,6 +515,19 @@ pnpm run format
 pnpm run storybook
 ```
 
+### 静态 Storybook 部署（As-Is）
+
+```bash
+pnpm run build:storybook
+pnpm run check:storybook
+```
+
+构建通过 `rsbuildFinal` 设置 `output.assetPrefix: './'`，使预览脚本、
+样式和异步分包相对于 `iframe.html` 加载。直接上传 `storybook-static/`
+即可，无需设置 `BASE_PATH` 或注入 `<base>` 标签。Pages 工作流会在上传部署
+产物前，检查根路径、`/bifrost-chat/` 和嵌套路径下的入口资源 URL 及文件是否
+有效。此检查验证资源路径，不替代浏览器渲染验收。
+
 ## 反馈
 
 - 需求与问题：仓库 issue（见 package.json 中 `bugs.url`）

@@ -1,6 +1,6 @@
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-
+import { mergeRsbuildConfig } from '@rsbuild/core';
 import type { StorybookConfig } from 'storybook-react-rsbuild';
 
 /**
@@ -29,15 +29,19 @@ const config: StorybookConfig = {
     },
   ],
   framework: {
-    name: getAbsolutePath('storybook-react-rsbuild') as 'storybook-react-rsbuild',
+    name: getAbsolutePath(
+      'storybook-react-rsbuild',
+    ) as 'storybook-react-rsbuild',
     options: {},
   },
-  // @ts-expect-error - rsbuildConfig 是 storybook-react-rsbuild 支持的选项
-  rsbuildConfig: {
-    output: {
-      publicPath: './',
-    },
-  },
+  // Keep preview CSS, entry scripts and lazy chunks relative to iframe.html
+  // so the same static build works at both / and /bifrost-chat/.
+  rsbuildFinal: (config) =>
+    mergeRsbuildConfig(config, {
+      output: {
+        assetPrefix: './',
+      },
+    }),
   typescript: {
     reactDocgen: 'react-docgen-typescript',
     check: true,

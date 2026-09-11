@@ -59,6 +59,7 @@
     "build": "rslib build && pnpm run build:css",
     "build:css": "node scripts/build-css.cjs",
     "build:storybook": "storybook build",
+    "check:storybook": "node scripts/check-storybook.mjs",
     "lint": "biome check --write",
     "dev": "rslib build --watch",
     "format": "biome format --write",

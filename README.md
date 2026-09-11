@@ -397,6 +397,20 @@ pnpm run format
 pnpm run storybook
 ```
 
+### Static Storybook deployment (As-Is)
+
+```bash
+pnpm run build:storybook
+pnpm run check:storybook
+```
+
+The build uses `rsbuildFinal` with `output.assetPrefix: './'` so preview
+scripts, styles and lazy chunks load relative to `iframe.html`. Upload
+`storybook-static/` as-is; no `BASE_PATH` or injected `<base>` tag is needed.
+The Pages workflow checks entrypoint asset URLs and files at the root, at
+`/bifrost-chat/` and at a nested path before uploading the deployment artifact.
+This check validates asset paths, not browser rendering.
+
 ## Feedback
 
 - Issues: See `bugs.url` in package.json
