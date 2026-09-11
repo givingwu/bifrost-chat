@@ -256,7 +256,7 @@ describe('AckPacketHandler', () => {
         id: 'chat-123',
         chatId: null as unknown as string,
         ptype: PacketMessageTypeEnum.Ack,
-        from: { app: 'test', pin: '@im.kn.com' },
+        from: { app: 'test', pin: 'system@example.com' },
         to: {
           app: 'test',
           pin: 'user',
@@ -355,7 +355,7 @@ describe('AckPacketHandler', () => {
 
     it('队列状态不推进时，message_status_ack 仍应派发 metadata 状态事件', () => {
       const requestId = 'chat_1781687884412_zh8an34c1';
-      const conversationId = 'fox_collect_w36309';
+      const conversationId = 'example_chat_w36309';
 
       messageQueue.enqueue({
         requestId,
@@ -372,8 +372,8 @@ describe('AckPacketHandler', () => {
           timestamp: 1_781_687_885_024,
           type: MessageTypeEnum.Text,
           content: { text: '你好' },
-          sender: { app: 'fox_collect.waiter', pin: 'agent-1' },
-          receiver: { app: 'fox_collect.customer', pin: 'customer-1' },
+          sender: { app: 'example_chat.waiter', pin: 'agent-1' },
+          receiver: { app: 'example_chat.customer', pin: 'customer-1' },
         },
       });
 
@@ -382,13 +382,13 @@ describe('AckPacketHandler', () => {
         chatId: conversationId,
         ptype: PacketMessageTypeEnum.MessageStatusAck,
         from: {
-          app: 'fox_collect.waiter',
-          pin: '@im.kn.com',
+          app: 'example_chat.waiter',
+          pin: 'system@example.com',
           clientType: null,
           channelType: ChannelTypeEnum.WhatsApp,
         },
         to: {
-          app: 'fox_collect.waiter',
+          app: 'example_chat.waiter',
           pin: '0535286044634614ac8356a72d727228',
           clientType: null,
           channelType: ChannelTypeEnum.WhatsApp,
@@ -397,7 +397,7 @@ describe('AckPacketHandler', () => {
         senderType: PacketSenderTypeEnum.Chatbot,
         body: {
           mid: 0,
-          app: 'fox_collect.waiter',
+          app: 'example_chat.waiter',
           sender: '0535286044634614ac8356a72d727228',
           id: requestId,
           chatId: conversationId,
@@ -484,21 +484,21 @@ describe('AckPacketHandler', () => {
         chatId: null as unknown as string,
         ptype: PacketMessageTypeEnum.MessageStatusAck,
         from: {
-          app: 'fox_collect.waiter',
-          pin: '@im.kn.com',
+          app: 'example_chat.waiter',
+          pin: 'system@example.com',
           channelType: ChannelTypeEnum.SMS,
         },
         to: {
-          app: 'fox_collect.waiter',
+          app: 'example_chat.waiter',
           pin: '927d6623454d4015b7057f3678149a9c',
           channelType: ChannelTypeEnum.SMS,
         },
         body: {
           mid: 0,
-          app: 'fox_collect.waiter',
+          app: 'example_chat.waiter',
           sender: '927d6623454d4015b7057f3678149a9c',
           id: '1a2e88ee-69ae-48d8-8098-e2022590007a',
-          chatId: 'fox_collect_u37366',
+          chatId: 'example_chat_u37366',
           status: 'send_fail', // 服务端实际下发小写
           timestamp: 1773735173760,
           errorInfo: 'SMS submit failed',
@@ -512,7 +512,7 @@ describe('AckPacketHandler', () => {
       expect(result.eventData).not.toBeNull();
       expect(getStatusEventData(result).status).toBe(MessageStatusEnum.Failed);
       expect(getStatusEventData(result).conversationId).toBe(
-        'fox_collect_u37366',
+        'example_chat_u37366',
       );
       expect(getStatusEventData(result).messageId).toBe(
         '1a2e88ee-69ae-48d8-8098-e2022590007a',

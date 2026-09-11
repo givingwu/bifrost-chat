@@ -2,7 +2,7 @@
 
 > **版本**: V2.0  
 > **最后更新**: 2026-02-09  
-> **模型定义模块**: `fox-common-model` (`qsq.fox.common.model.bifrost`)
+> **范围（To-Be）**: 通用宿主协议与服务端集成示例；应用标识、服务名称及接口均为示例，实际契约由宿主提供。SDK 当前实现（As-Is）以 [`design/final-architecture.md`](../design/final-architecture.md) 为准。
 
 ---
 
@@ -40,11 +40,11 @@
   - [4.12 坐席会话自动移除](#412-坐席会话自动移除)
   - [4.13 外部系统推送消息](#413-外部系统推送消息)
 - [5. HTTP 接口文档](#5-http-接口文档)
-  - [5.1 消息管理 (Hermod)](#51-消息管理-hermod)
-  - [5.2 会话管理 (Hermod)](#52-会话管理-hermod)
-  - [5.3 坐席状态管理 (Hermod)](#53-坐席状态管理-hermod)
-  - [5.4 消息路由 (Hugin)](#54-消息路由-hugin)
-  - [5.5 回调通知 (Hugin)](#55-回调通知-hugin)
+  - [5.1 消息管理 (Messaging)](#51-消息管理-messaging)
+  - [5.2 会话管理 (Messaging)](#52-会话管理-messaging)
+  - [5.3 坐席状态管理 (Messaging)](#53-坐席状态管理-messaging)
+  - [5.4 消息路由 (Adapter)](#54-消息路由-adapter)
+  - [5.5 回调通知 (Adapter)](#55-回调通知-adapter)
 - [6. 消息状态映射规则](#6-消息状态映射规则)
 - [7. 客户端开发指南](#7-客户端开发指南)
   - [7.1 连接管理](#71-连接管理)
@@ -67,7 +67,7 @@
                        │ WebSocket (JSON)
                        ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                  Heimdall (网关层)                            │
+│                  Gateway (网关层)                            │
 │  ┌────────────┐  ┌────────────┐  ┌────────────────────┐     │
 │  │ WebSocket  │  │  鉴权服务   │  │ 心跳 & 连接管理      │     │
 │  │  Server    │  │ AuthService│  │ HeartbeatHandler   │     │
@@ -76,7 +76,7 @@
 └────────┼────────────────────────────────────────────────────┘
          ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                   Hermod (核心逻辑层)                         │
+│                   Messaging (核心逻辑层)                         │
 │  ┌────────────┐  ┌────────────┐  ┌──────────────────┐       │
 │  │ 消息路由    │  │ 消息持久化  │  │  离线消息管理     │       │
 │  │ & 投递      │  │ MySQL      │  │  Redis Set       │       │
@@ -90,9 +90,9 @@
          │ Feign / MQ
          ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                   Hugin (业务适配层)                          │
+│                   Adapter (业务适配层)                          │
 │  ┌────────────┐  ┌────────────────┐  ┌─────────────────┐    │
-│  │ 消息处理    │  │ Fox Collect    │  │  外部渠道回调     │    │
+│  │ 消息处理    │  │ 示例业务    │  │  外部渠道回调     │    │
 │  │ Handler    │  │ 坐席分配        │  │  Callback       │    │
 │  └────────────┘  └────────────────┘  └─────────────────┘    │
 └─────────────────────────────────────────────────────────────┘
@@ -102,25 +102,25 @@
 
 | 组件 | 职责 | 端口/协议 |
 |:---|:---|:---|
-| **Heimdall** | WebSocket 长连接管理、客户端鉴权、心跳检测、消息推送/接收 | WebSocket + TCP |
-| **Hermod** | 消息路由分发、消息持久化(MySQL)、离线消息存储(Redis Set)、会话管理、多端同步 | HTTP + TCP + MQ |
-| **Hugin** | 业务适配(Fox Collect)、消息转换、坐席分配、外部渠道回调处理 | HTTP + MQ |
+| **Gateway** | WebSocket 长连接管理、客户端鉴权、心跳检测、消息推送/接收 | WebSocket + TCP |
+| **Messaging** | 消息路由分发、消息持久化(MySQL)、离线消息存储(Redis Set)、会话管理、多端同步 | HTTP + TCP + MQ |
+| **Adapter** | 业务适配(示例业务)、消息转换、坐席分配、外部渠道回调处理 | HTTP + MQ |
 
 ### 1.3 数据流转路径
 
 **上行消息** (客户端发送):
 ```
-客户端 → Heimdall(WebSocket) → Hugin(业务处理) → Hermod(存储/路由) → Heimdall(TCP) → 接收方客户端
+客户端 → Gateway(WebSocket) → Adapter(业务处理) → Messaging(存储/路由) → Gateway(TCP) → 接收方客户端
 ```
 
 **下行消息** (服务端推送):
 ```
-Hermod(查找接入点) → Heimdall(TCP投递) → 接收方客户端(WebSocket推送)
+Messaging(查找接入点) → Gateway(TCP投递) → 接收方客户端(WebSocket推送)
 ```
 
 **离线消息**:
 ```
-投递失败 → MQ → Hermod → Redis Set 存储 → 用户上线 → 批量推送
+投递失败 → MQ → Messaging → Redis Set 存储 → 用户上线 → 批量推送
 ```
 
 ### 1.4 技术栈
@@ -142,7 +142,7 @@ Hermod(查找接入点) → Heimdall(TCP投递) → 接收方客户端(WebSocket
 ### 2.1 环境要求
 
 - **传输协议**: WebSocket (ws/wss)
-- **连接地址**: `ws://{heimdall_host}:{port}/ws`
+- **连接地址**: `ws://{gateway_host}:{port}/ws`
 - **数据格式**: JSON (UTF-8)
 - **Token 获取**: 从业务后端系统获取 JWT Token
 
@@ -161,11 +161,11 @@ Hermod(查找接入点) → Heimdall(TCP投递) → 接收方客户端(WebSocket
 
 ## 3. 消息协议定义
 
-> 以下协议定义均来自 `fox-common-model` 模块 (`qsq.fox.common.model.bifrost`)
+> 以下为通用协议示例；宿主应按自身后端契约适配
 
 ### 3.1 基础包结构 Packet
 
-**Java 类**: `qsq.fox.common.model.bifrost.entity.Packet<T extends Serializable>`
+**示例 Java 类**: `com.example.messaging.entity.Packet<T extends Serializable>`
 
 所有客户端与服务端之间的通信都封装在 `Packet` 对象中。
 
@@ -190,8 +190,8 @@ Hermod(查找接入点) → Heimdall(TCP投递) → 接收方客户端(WebSocket
   "id": "550e8400-e29b-41d4-a716-446655440000",
   "upid": null,
   "chatId": "session_abc_123",
-  "from": { "app": "fox_collect.customer", "pin": "user_001", "clientType": "web", "channelType": "whatsapp" },
-  "to": { "app": "fox_collect.waiter", "pin": "agent_001", "clientType": "web", "channelType": "whatsapp" },
+  "from": { "app": "example_chat.customer", "pin": "user_001", "clientType": "web", "channelType": "whatsapp" },
+  "to": { "app": "example_chat.waiter", "pin": "agent_001", "clientType": "web", "channelType": "whatsapp" },
   "ptype": "chat_message",
   "body": { "type": "text", "content": "你好", "ext": {} },
   "mid": 0,
@@ -204,7 +204,7 @@ Hermod(查找接入点) → Heimdall(TCP投递) → 接收方客户端(WebSocket
 
 ### 3.2 身份标识 Uid
 
-**Java 类**: `qsq.fox.common.model.bifrost.entity.Uid`
+**示例 Java 类**: `com.example.messaging.entity.Uid`
 
 | 字段 | 类型 | 必填 | 说明 |
 |:---|:---|:---|:---|
@@ -216,7 +216,7 @@ Hermod(查找接入点) → Heimdall(TCP投递) → 接收方客户端(WebSocket
 **JSON 示例**:
 ```json
 {
-  "app": "fox_collect.customer",
+  "app": "example_chat.customer",
   "pin": "enc_01_12345_678",
   "clientType": "web",
   "channelType": "whatsapp"
@@ -225,7 +225,7 @@ Hermod(查找接入点) → Heimdall(TCP投递) → 接收方客户端(WebSocket
 
 ### 3.3 协议类型 PType
 
-**Java 类**: `qsq.fox.common.model.bifrost.enums.PType`
+**示例 Java 类**: `com.example.messaging.enums.PType`
 
 | 枚举值 | 方向 | Body 类型 | 说明 |
 |:---|:---|:---|:---|
@@ -243,7 +243,7 @@ Hermod(查找接入点) → Heimdall(TCP投递) → 接收方客户端(WebSocket
 
 #### 3.4.1 客户端类型 ClientType
 
-**Java 类**: `qsq.fox.common.model.bifrost.enums.ClientType`
+**示例 Java 类**: `com.example.messaging.enums.ClientType`
 
 | 枚举值 | code | 说明 |
 |:---|:---|:---|
@@ -255,7 +255,7 @@ Hermod(查找接入点) → Heimdall(TCP投递) → 接收方客户端(WebSocket
 
 #### 3.4.2 渠道类型 ChannelType
 
-**Java 类**: `qsq.fox.common.model.bifrost.enums.ChannelType`
+**示例 Java 类**: `com.example.messaging.enums.ChannelType`
 
 | 枚举值 | code | 说明 |
 |:---|:---|:---|
@@ -267,7 +267,7 @@ Hermod(查找接入点) → Heimdall(TCP投递) → 接收方客户端(WebSocket
 
 #### 3.4.3 消息内容类型 MsgContentType
 
-**Java 类**: `qsq.fox.common.model.bifrost.enums.MsgContentType`
+**示例 Java 类**: `com.example.messaging.enums.MsgContentType`
 
 | 枚举值 | 说明 |
 |:---|:---|
@@ -280,7 +280,7 @@ Hermod(查找接入点) → Heimdall(TCP投递) → 接收方客户端(WebSocket
 
 #### 3.4.4 消息状态 MessageStatus
 
-**Java 类**: `qsq.fox.common.model.bifrost.enums.MessageStatus`
+**示例 Java 类**: `com.example.messaging.enums.MessageStatus`
 
 | 枚举值 | code | 说明 |
 |:---|:---|:---|
@@ -293,7 +293,7 @@ Hermod(查找接入点) → Heimdall(TCP投递) → 接收方客户端(WebSocket
 
 #### 3.4.5 坐席状态 AgentStatus
 
-**Java 类**: `qsq.fox.common.model.bifrost.enums.AgentStatus`
+**示例 Java 类**: `com.example.messaging.enums.AgentStatus`
 
 | 枚举值 | 说明 |
 |:---|:---|
@@ -305,18 +305,18 @@ Hermod(查找接入点) → Heimdall(TCP投递) → 接收方客户端(WebSocket
 
 #### 3.4.6 应用标识 AppEnum
 
-**Java 类**: `qsq.fox.common.model.bifrost.enums.AppEnum`
+**示例 Java 类**: `com.example.messaging.enums.AppEnum`
 
 | 枚举值 | code | 说明 |
 |:---|:---|:---|
-| `fox_collect_waiter` | fox_collect.waiter | Fox 催收坐席端 |
-| `fox_collect_customer` | fox_collect.customer | Fox 催收客户端 |
-| `fox_argus_waiter` | fox_argus.waiter | Fox 风控坐席端 |
-| `fox_argus_customer` | fox_argus.customer | Fox 风控客户端 |
+| `example_chat_waiter` | example_chat.waiter | 示例催收坐席端 |
+| `example_chat_customer` | example_chat.customer | 示例催收客户端 |
+| `support_chat_waiter` | support_chat.waiter | 示例客服坐席端 |
+| `support_chat_customer` | support_chat.customer | 示例客服客户端 |
 
 #### 3.4.7 连接类型 ConnType
 
-**Java 类**: `qsq.fox.common.model.bifrost.enums.ConnType`
+**示例 Java 类**: `com.example.messaging.enums.ConnType`
 
 | 枚举值 | id | 说明 |
 |:---|:---|:---|
@@ -326,17 +326,17 @@ Hermod(查找接入点) → Heimdall(TCP投递) → 接收方客户端(WebSocket
 
 #### 3.4.8 消息入口 EntryEnum
 
-**Java 类**: `qsq.fox.common.model.bifrost.enums.EntryEnum`
+**示例 Java 类**: `com.example.messaging.enums.EntryEnum`
 
 | 枚举值 | code | 说明 |
 |:---|:---|:---|
-| `fox_system` | fox.system | 系统入口 |
-| `fox_collect_detail` | fox.collect | 催收详情页入口 |
-| `fox_telesales_detail` | fox.telesales | 电销详情页入口 |
+| `example_system` | example.system | 系统入口 |
+| `example_chat_detail` | example.chat | 催收详情页入口 |
+| `example_sales_detail` | example.sales | 电销详情页入口 |
 
 #### 3.4.9 服务质量 SLA
 
-**Java 类**: `qsq.fox.common.model.bifrost.enums.SLA`
+**示例 Java 类**: `com.example.messaging.enums.SLA`
 
 | 枚举值 | 说明 |
 |:---|:---|
@@ -361,7 +361,7 @@ Hermod(查找接入点) → Heimdall(TCP投递) → 接收方客户端(WebSocket
   "id": "uuid-auth-001",
   "ptype": "auth",
   "from": {
-    "app": "fox_collect.waiter",
+    "app": "example_chat.waiter",
     "pin": "agent_001",
     "clientType": "web",
     "channelType": "whatsapp"
@@ -404,7 +404,7 @@ Hermod(查找接入点) → Heimdall(TCP投递) → 接收方客户端(WebSocket
 
 **方向**: 双向
 
-**Java 类**: `qsq.fox.common.model.bifrost.entity.ChatMessage<T>`
+**示例 Java 类**: `com.example.messaging.entity.ChatMessage<T>`
 
 | 字段 | 类型 | 必填 | 说明 |
 |:---|:---|:---|:---|
@@ -418,8 +418,8 @@ Hermod(查找接入点) → Heimdall(TCP投递) → 接收方客户端(WebSocket
   "id": "uuid-msg-001",
   "ptype": "chat_message",
   "chatId": "session_abc_123",
-  "from": { "app": "fox_collect.customer", "pin": "user_001", "clientType": "web", "channelType": "whatsapp" },
-  "to": { "app": "fox_collect.waiter", "pin": "agent_001", "clientType": "web", "channelType": "whatsapp" },
+  "from": { "app": "example_chat.customer", "pin": "user_001", "clientType": "web", "channelType": "whatsapp" },
+  "to": { "app": "example_chat.waiter", "pin": "agent_001", "clientType": "web", "channelType": "whatsapp" },
   "body": {
     "type": "text",
     "content": "你好，请问逾期还款怎么处理？",
@@ -436,8 +436,8 @@ Hermod(查找接入点) → Heimdall(TCP投递) → 接收方客户端(WebSocket
   "id": "uuid-msg-002",
   "ptype": "chat_message",
   "chatId": "session_abc_123",
-  "from": { "app": "fox_collect.waiter", "pin": "agent_001", "clientType": "web", "channelType": "whatsapp" },
-  "to": { "app": "fox_collect.customer", "pin": "user_001", "clientType": "web", "channelType": "whatsapp" },
+  "from": { "app": "example_chat.waiter", "pin": "agent_001", "clientType": "web", "channelType": "whatsapp" },
+  "to": { "app": "example_chat.customer", "pin": "user_001", "clientType": "web", "channelType": "whatsapp" },
   "body": {
     "type": "image",
     "content": "https://cdn.example.com/images/repayment_guide.png",
@@ -454,8 +454,8 @@ Hermod(查找接入点) → Heimdall(TCP投递) → 接收方客户端(WebSocket
   "id": "uuid-msg-001",
   "ptype": "chat_message",
   "chatId": "session_abc_123",
-  "from": { "app": "fox_collect.customer", "pin": "user_001", "clientType": "web", "channelType": "whatsapp" },
-  "to": { "app": "fox_collect.waiter", "pin": "agent_001", "clientType": "web", "channelType": "whatsapp" },
+  "from": { "app": "example_chat.customer", "pin": "user_001", "clientType": "web", "channelType": "whatsapp" },
+  "to": { "app": "example_chat.waiter", "pin": "agent_001", "clientType": "web", "channelType": "whatsapp" },
   "body": {
     "type": "text",
     "content": "你好，请问逾期还款怎么处理？",
@@ -471,7 +471,7 @@ Hermod(查找接入点) → Heimdall(TCP投递) → 接收方客户端(WebSocket
 
 **方向**: 服务端 → 客户端
 
-**Java 类**: `qsq.fox.common.model.bifrost.entity.Ack`
+**示例 Java 类**: `com.example.messaging.entity.Ack`
 
 | 字段 | 类型 | 说明 |
 |:---|:---|:---|
@@ -483,7 +483,7 @@ Hermod(查找接入点) → Heimdall(TCP投递) → 接收方客户端(WebSocket
   "id": "uuid-msg-001",
   "ptype": "ack",
   "from": { "app": "system", "pin": "system" },
-  "to": { "app": "fox_collect.customer", "pin": "user_001", "clientType": "web", "channelType": "whatsapp" },
+  "to": { "app": "example_chat.customer", "pin": "user_001", "clientType": "web", "channelType": "whatsapp" },
   "body": { "type": "chat_message" },
   "mid": 4896573,
   "ver": "1.0.0",
@@ -497,7 +497,7 @@ Hermod(查找接入点) → Heimdall(TCP投递) → 接收方客户端(WebSocket
 
 **方向**: 客户端 → 服务端
 
-**Java 类**: `qsq.fox.common.model.bifrost.entity.MsgReceiveAck`
+**示例 Java 类**: `com.example.messaging.entity.MsgReceiveAck`
 
 | 字段 | 类型 | 必填 | 说明 |
 |:---|:---|:---|:---|
@@ -513,11 +513,11 @@ Hermod(查找接入点) → Heimdall(TCP投递) → 接收方客户端(WebSocket
 {
   "id": "uuid-ack-001",
   "ptype": "msg_receive_ack",
-  "from": { "app": "fox_collect.waiter", "pin": "agent_001", "clientType": "web", "channelType": "whatsapp" },
+  "from": { "app": "example_chat.waiter", "pin": "agent_001", "clientType": "web", "channelType": "whatsapp" },
   "body": {
     "mid": 4896573,
     "id": "uuid-msg-001",
-    "app": "fox_collect.customer",
+    "app": "example_chat.customer",
     "sender": "user_001",
     "chatId": "session_abc_123",
     "timestamp": 1700000011000
@@ -531,7 +531,7 @@ Hermod(查找接入点) → Heimdall(TCP投递) → 接收方客户端(WebSocket
 
 **方向**: 客户端 → 服务端
 
-**Java 类**: `qsq.fox.common.model.bifrost.entity.MsgReadAck`
+**示例 Java 类**: `com.example.messaging.entity.MsgReadAck`
 
 | 字段 | 类型 | 必填 | 说明 |
 |:---|:---|:---|:---|
@@ -547,11 +547,11 @@ Hermod(查找接入点) → Heimdall(TCP投递) → 接收方客户端(WebSocket
 {
   "id": "uuid-read-001",
   "ptype": "msg_read_ack",
-  "from": { "app": "fox_collect.waiter", "pin": "agent_001", "clientType": "web", "channelType": "whatsapp" },
+  "from": { "app": "example_chat.waiter", "pin": "agent_001", "clientType": "web", "channelType": "whatsapp" },
   "body": {
     "mid": 4896573,
     "id": "uuid-msg-001",
-    "app": "fox_collect.customer",
+    "app": "example_chat.customer",
     "sender": "user_001",
     "chatId": "session_abc_123",
     "timestamp": 1700000015000
@@ -572,7 +572,7 @@ Hermod(查找接入点) → Heimdall(TCP投递) → 接收方客户端(WebSocket
 {
   "id": "uuid-hb-001",
   "ptype": "client_heartbeat",
-  "from": { "app": "fox_collect.waiter", "pin": "agent_001", "clientType": "web", "channelType": "whatsapp" },
+  "from": { "app": "example_chat.waiter", "pin": "agent_001", "clientType": "web", "channelType": "whatsapp" },
   "ver": "1.0.0",
   "timestamp": 1700000030000
 }
@@ -582,7 +582,7 @@ Hermod(查找接入点) → Heimdall(TCP投递) → 接收方客户端(WebSocket
 
 **方向**: 双向
 
-**Java 类**: `qsq.fox.common.model.bifrost.entity.StatusSwitch`
+**示例 Java 类**: `com.example.messaging.entity.StatusSwitch`
 
 | 字段 | 类型 | 必填 | 说明 |
 |:---|:---|:---|:---|
@@ -594,7 +594,7 @@ Hermod(查找接入点) → Heimdall(TCP投递) → 接收方客户端(WebSocket
 {
   "id": "uuid-status-001",
   "ptype": "status_switch",
-  "from": { "app": "fox_collect.waiter", "pin": "agent_001", "clientType": "web", "channelType": "whatsapp" },
+  "from": { "app": "example_chat.waiter", "pin": "agent_001", "clientType": "web", "channelType": "whatsapp" },
   "body": {
     "status": "ready",
     "ext": null
@@ -606,17 +606,17 @@ Hermod(查找接入点) → Heimdall(TCP投递) → 接收方客户端(WebSocket
 
 #### 3.5.9 fox_message_ack — 渠道消息回调确认
 
-**方向**: 服务端内部（Hugin → Hermod）
+**方向**: 服务端内部（Adapter → Messaging）
 
-此协议用于外部渠道（SMS/Email/WhatsApp/Viber）的消息状态回调，由 Hugin 发起，Hermod 消费。客户端不直接处理此协议。
+此协议用于外部渠道（SMS/Email/WhatsApp/Viber）的消息状态回调，由 Adapter 发起，Messaging 消费。客户端不直接处理此协议。
 
 **完整 JSON 示例**:
 ```json
 {
-  "id": "uuid-fox-ack-001",
+  "id": "uuid-channel-ack-001",
   "ptype": "fox_message_ack",
-  "from": { "app": "fox_collect.customer", "pin": "user_001", "clientType": "web", "channelType": "sms" },
-  "to": { "app": "fox_collect.waiter", "pin": "agent_001", "clientType": "web", "channelType": "sms" },
+  "from": { "app": "example_chat.customer", "pin": "user_001", "clientType": "web", "channelType": "sms" },
+  "to": { "app": "example_chat.waiter", "pin": "agent_001", "clientType": "web", "channelType": "sms" },
   "body": {
     "type": "text",
     "content": "回复内容",
@@ -636,9 +636,9 @@ Hermod(查找接入点) → Heimdall(TCP投递) → 接收方客户端(WebSocket
 
 ### 3.6 服务端内部消息结构 Message
 
-**Java 类**: `qsq.fox.common.model.bifrost.entity.Message`
+**示例 Java 类**: `com.example.messaging.entity.Message`
 
-此结构用于 Hermod 内部消息路由，客户端无需直接处理，但了解有助于理解系统行为。
+此结构用于 Messaging 内部消息路由，客户端无需直接处理，但了解有助于理解系统行为。
 
 | 字段 | 类型 | 默认值 | 说明 |
 |:---|:---|:---|:---|
@@ -662,7 +662,7 @@ Hermod(查找接入点) → Heimdall(TCP投递) → 接收方客户端(WebSocket
 
 ### 3.7 接入点结构 AccessPoint
 
-**Java 类**: `qsq.fox.common.model.bifrost.entity.AccessPoint`
+**示例 Java 类**: `com.example.messaging.entity.AccessPoint`
 
 | 字段 | 类型 | 说明 |
 |:---|:---|:---|
@@ -682,7 +682,7 @@ Hermod(查找接入点) → Heimdall(TCP投递) → 接收方客户端(WebSocket
 
 #### 3.8.1 SMS 回调 (SmsResultDTO)
 
-**Java 类**: `qsq.fox.common.model.bifrost.entity.message.SmsResultDTO`
+**示例 Java 类**: `com.example.messaging.entity.message.SmsResultDTO`
 
 | 字段 | 类型 | 说明 |
 |:---|:---|:---|
@@ -701,7 +701,7 @@ Hermod(查找接入点) → Heimdall(TCP投递) → 接收方客户端(WebSocket
 
 #### 3.8.2 Email 回调 (EmailResultDTO)
 
-**Java 类**: `qsq.fox.common.model.bifrost.entity.message.EmailResultDTO`
+**示例 Java 类**: `com.example.messaging.entity.message.EmailResultDTO`
 
 | 字段 | 类型 | 说明 |
 |:---|:---|:---|
@@ -723,7 +723,7 @@ Hermod(查找接入点) → Heimdall(TCP投递) → 接收方客户端(WebSocket
 
 #### 3.8.3 WhatsApp 回调 (WhatsappResultDTO)
 
-**Java 类**: `qsq.fox.common.model.bifrost.entity.message.WhatsappResultDTO`
+**示例 Java 类**: `com.example.messaging.entity.message.WhatsappResultDTO`
 
 | 字段 | 类型 | 说明 |
 |:---|:---|:---|
@@ -746,13 +746,13 @@ Hermod(查找接入点) → Heimdall(TCP投递) → 接收方客户端(WebSocket
 
 #### 3.8.4 Viber 回调 (ViberResultDTO)
 
-**Java 类**: `qsq.fox.common.model.bifrost.entity.message.ViberResultDTO`
+**示例 Java 类**: `com.example.messaging.entity.message.ViberResultDTO`
 
 结构与 `WhatsappResultDTO` 完全一致，字段定义相同。
 
 #### 3.8.5 通用回调包装 (MessageResultDTO)
 
-**Java 类**: `qsq.fox.common.model.bifrost.entity.message.MessageResultDTO<T>`
+**示例 Java 类**: `com.example.messaging.entity.message.MessageResultDTO<T>`
 
 | 字段 | 类型 | 说明 |
 |:---|:---|:---|
@@ -779,11 +779,11 @@ Hermod(查找接入点) → Heimdall(TCP投递) → 接收方客户端(WebSocket
 ```mermaid
 sequenceDiagram
     participant C as 客户端
-    participant H as Heimdall (网关)
+    participant H as Gateway (网关)
     participant AS as AuthService (鉴权)
     participant R as Redis
     participant MQ as RabbitMQ
-    participant HM as Hermod (核心)
+    participant HM as Messaging (核心)
 
     C->>H: 1. 建立 WebSocket 连接
     Note over C, H: TCP 三次握手 + WebSocket 升级
@@ -806,7 +806,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant C as 客户端
-    participant H as Heimdall (网关)
+    participant H as Gateway (网关)
     participant AS as AuthService
 
     C->>H: 发送 Packet(ptype: auth, body: {token: 无效})
@@ -822,7 +822,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant C as 客户端
-    participant H as Heimdall (网关)
+    participant H as Gateway (网关)
 
     loop 每 30 秒
         C->>H: 发送 Packet(ptype: client_heartbeat)
@@ -840,20 +840,20 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant CA as 发送方
-    participant H1 as Heimdall (网关)
-    participant HG as Hugin (适配层)
-    participant HM as Hermod (核心)
+    participant H1 as Gateway (网关)
+    participant HG as Adapter (适配层)
+    participant HM as Messaging (核心)
     participant DB as MySQL
     participant R as Redis
     participant MQ as RabbitMQ
-    participant H2 as Heimdall (接收方网关)
+    participant H2 as Gateway (接收方网关)
     participant CB as 接收方
 
     CA->>H1: 1. 发送 Packet(ptype: chat_message, to: B)
-    H1->>HG: 2. 路由到 Hugin
+    H1->>HG: 2. 路由到 Adapter
     HG->>HG: 3. 根据 from.app 选择策略 (ChatMessageStrategy)
     HG->>HG: 4. 构建 Message 对象 (设置 SLA, 状态等)
-    HG->>HM: 5. 调用 Hermod 发送消息 (Feign: /msg/send)
+    HG->>HM: 5. 调用 Messaging 发送消息 (Feign: /msg/send)
     HM->>R: 6. 幂等校验 (setIfAbsent idempotent:{id})
     HM->>HM: 7. 生成会话 ID (chatId) 和消息 ID (mid)
     HM->>MQ: 8. 异步持久化 (message_save_topic)
@@ -872,18 +872,18 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant CB as 接收方
-    participant H as Heimdall (网关)
-    participant HG as Hugin (适配层)
-    participant HM as Hermod (核心)
+    participant H as Gateway (网关)
+    participant HG as Adapter (适配层)
+    participant HM as Messaging (核心)
     participant R as Redis
 
     H->>CB: 1. 推送 Packet(ptype: chat_message, mid: 123)
     CB->>CB: 2. 本地存储消息 (根据 mid 去重)
     CB->>CB: 3. 更新 UI 展示
     CB->>H: 4. 回复 Packet(ptype: msg_receive_ack, body: {mid: 123})
-    H->>HG: 5. 转发到 Hugin
-    HG->>MQ: 6. 发送确认消息 (bifrost_fox_message_ack_topic)
-    MQ->>HM: 7. Hermod 消费确认消息
+    H->>HG: 5. 转发到 Adapter
+    HG->>MQ: 6. 发送确认消息 (channel_message_ack_topic)
+    MQ->>HM: 7. Messaging 消费确认消息
     HM->>R: 8. 从离线 Set 中移除对应消息 (srem)
 ```
 
@@ -892,14 +892,14 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant C as 客户端
-    participant H as Heimdall (网关)
-    participant HG as Hugin (适配层)
-    participant HM as Hermod (核心)
+    participant H as Gateway (网关)
+    participant HG as Adapter (适配层)
+    participant HM as Messaging (核心)
     participant R as Redis
 
     Note over C: 用户打开会话页面
     C->>H: 1. 发送 Packet(ptype: msg_read_ack, body: {mid: 123, chatId: "..."})
-    H->>HG: 2. 转发到 Hugin
+    H->>HG: 2. 转发到 Adapter
     HG->>MQ: 3. 发送已读事件
     MQ->>HM: 4. 消费已读事件
     HM->>R: 5. 更新会话已读位置 (readMid)
@@ -912,11 +912,11 @@ sequenceDiagram
 sequenceDiagram
     participant C1 as 发送方-设备1
     participant C2 as 发送方-设备2
-    participant HM as Hermod (核心)
-    participant H as Heimdall (网关)
+    participant HM as Messaging (核心)
+    participant H as Gateway (网关)
     participant CB as 接收方
 
-    C1->>HM: 发送消息 (via Hugin)
+    C1->>HM: 发送消息 (via Adapter)
     HM->>HM: 存储消息，生成 mid
 
     par 投递给接收方
@@ -934,13 +934,13 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant C as 坐席客户端
-    participant H as Heimdall (网关)
-    participant HM as Hermod (核心)
+    participant H as Gateway (网关)
+    participant HM as Messaging (核心)
     participant R as Redis
     participant MQ as RabbitMQ
 
     C->>H: 1. 发送 Packet(ptype: status_switch, body: {status: ready})
-    H->>HM: 2. 转发到 Hermod (Feign: /user/status/switch)
+    H->>HM: 2. 转发到 Messaging (Feign: /user/status/switch)
     HM->>R: 3. 更新坐席状态 (Hash: user:status:{app}:{pin})
     HM->>MQ: 4. 广播状态变更事件
     HM-->>H: 5. 返回成功
@@ -951,8 +951,8 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    participant HM as Hermod (核心)
-    participant H as Heimdall (网关)
+    participant HM as Messaging (核心)
+    participant H as Gateway (网关)
     participant MQ as RabbitMQ
     participant R as Redis (Set)
 
@@ -978,9 +978,9 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant MQ as RabbitMQ
-    participant HM as Hermod (核心)
+    participant HM as Messaging (核心)
     participant R as Redis
-    participant H as Heimdall (网关)
+    participant H as Gateway (网关)
     participant C as 客户端
 
     MQ->>HM: 1. 消费登录事件 (BIFROST_USER_LOGIN_TOPIC)
@@ -1004,14 +1004,14 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant EXT as 外部渠道 (SMS/WhatsApp)
-    participant HG as Hugin (适配层)
+    participant HG as Adapter (适配层)
     participant MQ as RabbitMQ
-    participant HM as Hermod (核心)
+    participant HM as Messaging (核心)
     participant DB as MySQL
 
     EXT->>HG: 1. 回调通知 (/callback/message)
     HG->>HG: 2. 构建 Packet(ptype: fox_message_ack)
-    HG->>MQ: 3. 发送到 bifrost_fox_message_ack_topic
+    HG->>MQ: 3. 发送到 channel_message_ack_topic
     MQ->>HM: 4. MessageConsumer 消费
     HM->>HM: 5. 根据 from.app 获取策略 (MessageProcessStrategy)
     HM->>HM: 6. 调用 msgCallbackProcess(packet)
@@ -1031,14 +1031,14 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    participant HM as Hermod (核心)
+    participant HM as Messaging (核心)
     participant CS as ChatService
     participant APS as AccessPointService
     participant DS as DeliveryService
-    participant H as Heimdall (网关)
+    participant H as Gateway (网关)
     participant OA as 旧坐席客户端
 
-    HM->>HM: 1. FoxCollectCustomerMessageStrategy 处理消息同步
+    HM->>HM: 1. ExampleCustomerMessageStrategy 处理消息同步
     HM->>HM: 2. 解析 chaInfo 中的 deleteOriginalAgentChat
     alt deleteOriginalAgentChat = true
         HM->>CS: 3. removeChat(originalAgent, chatId) — 清理 Redis 会话数据
@@ -1058,9 +1058,9 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant BIZ as 业务系统
-    participant HG as Hugin (适配层)
-    participant HM as Hermod (核心)
-    participant H as Heimdall (网关)
+    participant HG as Adapter (适配层)
+    participant HM as Messaging (核心)
+    participant H as Gateway (网关)
     participant C as 客户端
 
     BIZ->>HG: 1. POST /route/push/message (DeliverPacket)
@@ -1076,7 +1076,7 @@ sequenceDiagram
 
 ## 5. HTTP 接口文档
 
-### 5.1 消息管理 (Hermod)
+### 5.1 消息管理 (Messaging)
 
 **基础路径**: `/msg`
 
@@ -1095,8 +1095,8 @@ sequenceDiagram
     "id": "uuid-001",
     "mid": 4896573,
     "chatId": "session_abc_123",
-    "from": { "app": "fox_collect.customer", "pin": "user_001", "clientType": "web" },
-    "to": { "app": "fox_collect.waiter", "pin": "agent_001", "clientType": "web" },
+    "from": { "app": "example_chat.customer", "pin": "user_001", "clientType": "web" },
+    "to": { "app": "example_chat.waiter", "pin": "agent_001", "clientType": "web" },
     "ptype": "chat_message",
     "body": { "type": "text", "content": "你好" },
     "ver": "1.0.0",
@@ -1117,8 +1117,8 @@ sequenceDiagram
     "id": "uuid-001",
     "sla": "reliable",
     "data": { /* Packet 对象 */ },
-    "from": { "app": "fox_collect.customer", "pin": "user_001", "clientType": "web" },
-    "tos": [{ "app": "fox_collect.waiter", "pin": "agent_001", "clientType": "web" }],
+    "from": { "app": "example_chat.customer", "pin": "user_001", "clientType": "web" },
+    "tos": [{ "app": "example_chat.waiter", "pin": "agent_001", "clientType": "web" }],
     "storeOffline": true,
     "deliver": true
   }
@@ -1135,7 +1135,7 @@ sequenceDiagram
   | `sessionId` | Query | String | 会话 ID |
 - **响应**: 无返回体（HTTP 200 表示成功）
 
-### 5.2 会话管理 (Hermod)
+### 5.2 会话管理 (Messaging)
 
 **基础路径**: `/chat`
 
@@ -1157,7 +1157,7 @@ sequenceDiagram
     "data": [
       {
         "sid": "session_abc_123",
-        "app": "fox_collect.waiter",
+        "app": "example_chat.waiter",
         "pin": "agent_001",
         "name": "坐席张三",
         "newUnreadCount": true,
@@ -1199,7 +1199,7 @@ sequenceDiagram
   }
   ```
 
-### 5.3 坐席状态管理 (Hermod)
+### 5.3 坐席状态管理 (Messaging)
 
 **基础路径**: `/user`
 
@@ -1212,14 +1212,14 @@ sequenceDiagram
   {
     "id": "uuid-status-001",
     "ptype": "status_switch",
-    "from": { "app": "fox_collect.waiter", "pin": "agent_001", "clientType": "web" },
+    "from": { "app": "example_chat.waiter", "pin": "agent_001", "clientType": "web" },
     "body": { "status": "ready", "ext": null },
     "timestamp": 1700000050000
   }
   ```
 - **响应**: 无返回体（HTTP 200 表示成功）
 
-### 5.4 消息路由 (Hugin)
+### 5.4 消息路由 (Adapter)
 
 **基础路径**: `/route`
 
@@ -1242,7 +1242,7 @@ sequenceDiagram
 - **请求体**: `Packet<?>` 对象
 - **响应**: `ResResult<?>`
 
-### 5.5 回调通知 (Hugin)
+### 5.5 回调通知 (Adapter)
 
 **基础路径**: `/callback`
 

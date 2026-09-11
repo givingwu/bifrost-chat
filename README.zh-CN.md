@@ -535,4 +535,4 @@ pnpm run check:storybook
 
 ## 许可证
 
-[MIT](LICENSE) © FEOF
+[MIT](LICENSE)

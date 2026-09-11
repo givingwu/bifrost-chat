@@ -6,7 +6,7 @@ describe('HeartbeatManager', () => {
   describe('createHeartbeat', () => {
     it('应该创建正确的心跳消息', () => {
       const heartbeat = HeartbeatManager.createHeartbeat({
-        fromApp: 'fox_collect.waiter',
+        fromApp: 'example_chat.waiter',
         fromPin: 'agent-123',
         toApp: 'im.waiter',
         toPin: 'customer-456',
@@ -20,7 +20,7 @@ describe('HeartbeatManager', () => {
       expect(heartbeat.id).toMatch(
         /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i,
       );
-      expect(heartbeat.from.app).toBe('fox_collect.waiter');
+      expect(heartbeat.from.app).toBe('example_chat.waiter');
       expect(heartbeat.from.pin).toBe('agent-123');
       expect(heartbeat.to.app).toBe('im.waiter');
       expect(heartbeat.to.pin).toBe('customer-456');
@@ -28,13 +28,13 @@ describe('HeartbeatManager', () => {
 
     it('应该生成唯一的心跳 ID', () => {
       const heartbeat1 = HeartbeatManager.createHeartbeat({
-        fromApp: 'fox_collect.waiter',
+        fromApp: 'example_chat.waiter',
         fromPin: 'agent-123',
         toApp: 'im.waiter',
         toPin: 'customer-456',
       });
       const heartbeat2 = HeartbeatManager.createHeartbeat({
-        fromApp: 'fox_collect.waiter',
+        fromApp: 'example_chat.waiter',
         fromPin: 'agent-123',
         toApp: 'im.waiter',
         toPin: 'customer-456',
@@ -46,7 +46,7 @@ describe('HeartbeatManager', () => {
     it('应该使用当前时间戳', () => {
       const beforeTime = Date.now();
       const heartbeat = HeartbeatManager.createHeartbeat({
-        fromApp: 'fox_collect.waiter',
+        fromApp: 'example_chat.waiter',
         fromPin: 'agent-123',
         toApp: 'im.waiter',
         toPin: 'customer-456',
@@ -114,7 +114,7 @@ describe('HeartbeatManager', () => {
   describe('createHeartbeatAck', () => {
     it('应该创建心跳 ACK 响应', () => {
       const originalHeartbeat = HeartbeatManager.createHeartbeat({
-        fromApp: 'fox_collect.waiter',
+        fromApp: 'example_chat.waiter',
         fromPin: 'agent-123',
         toApp: 'im.waiter',
         toPin: 'customer-456',
@@ -138,7 +138,7 @@ describe('HeartbeatManager', () => {
   describe('isValidHeartbeat', () => {
     it('应该识别有效的心跳消息', () => {
       const heartbeat = HeartbeatManager.createHeartbeat({
-        fromApp: 'fox_collect.waiter',
+        fromApp: 'example_chat.waiter',
         fromPin: 'agent-123',
         toApp: 'im.waiter',
         toPin: 'customer-456',

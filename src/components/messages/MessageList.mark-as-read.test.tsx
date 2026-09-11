@@ -99,11 +99,11 @@ function createMessage(
     content: { text: `message-${id}` },
     // 添加 sender 信息（消息发送者，即对方）
     sender: {
-      app: 'fox_collect.customer',
+      app: 'example_chat.customer',
       pin: `customer-${id}`,
     },
     receiver: {
-      app: 'fox_collect.waiter',
+      app: 'example_chat.waiter',
       pin: 'agent-001',
     },
   };
@@ -203,7 +203,7 @@ describe('MessageList markAsRead', () => {
     expect(mockMessageService.markAsRead).toHaveBeenCalledWith(
       expect.objectContaining({
         sender: 'customer-msg-visible',
-        app: 'fox_collect.customer',
+        app: 'example_chat.customer',
         mid: 'msg-visible',
         chatId: 'conv-mark-read',
         timestamp: expect.any(Number),

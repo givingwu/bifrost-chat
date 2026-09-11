@@ -18,7 +18,7 @@ import { MessageBuilder } from '@/services/messaging/message-builder.service';
  * ```typescript
  * // 创建心跳消息
  * const heartbeat = HeartbeatManager.createHeartbeat({
- *   fromApp: 'fox_collect.waiter',
+ *   fromApp: 'example_chat.waiter',
  *   fromPin: 'agent-123',
  *   toApp: 'im.waiter',
  *   toPin: 'customer-456',

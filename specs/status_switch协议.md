@@ -7,11 +7,11 @@
   "ptype": "status_switch",
   "id": "status-123",
   "from": {
-    "app": "fox_collect.waiter",
+    "app": "example_chat.waiter",
     "pin": "agent-456"
   },
   "to": {
-    "app": "fox.collect"
+    "app": "example.chat"
   },
   "body": {
     "status": "ready",

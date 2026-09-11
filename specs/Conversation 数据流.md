@@ -1,5 +1,7 @@
 # Conversation 数据流
 
+> 通用宿主集成示例（To-Be）：宿主组件及路径仅用于说明接入方式，不属于当前 SDK 实现（As-Is）。
+
 ## system 系统级别打开弹窗
 
 - 渲染 [ConversationList](../src/components/conversation/ConversationList.tsx)，内部执行 [useConversations](../src/hooks/use-conversations.hook.ts) 的 hook 从 IM 获取会话列表
@@ -12,8 +14,8 @@
 
 ## customer 用户级别打开弹窗
 
-- 点击 ChatIcon 打开弹窗，FoxChatModal 渲染
-- FoxChatLayout 渲染时调用 useCreateChat hook：
+- 点击 ChatIcon 打开弹窗，HostChatModal 渲染
+- HostChatLayout 渲染时调用 useCreateChat hook：
    - useChannelSync: 判断 supportedChannels 是否支持 activeChannel，
      若不支持则 setActiveChannel 更新到 supportedChannels[0]
    - useConversationInitializer: 查找或创建会话
@@ -46,7 +48,7 @@ sequenceDiagram
     participant Store as Zustand Store
     participant Service as IConversationService
 
-    Host->>SDK: 打开 FoxChat Modal
+    Host->>SDK: 打开 HostChat Modal
     SDK->>RQ: useConversations
     RQ->>Service: list 全量会话
     Service-->>RQ: Conversation[]
@@ -73,7 +75,7 @@ sequenceDiagram
 ### 关键实现位置
 - System 模式自动激活: [`use-conversation-auto-select.hook.ts`](../src/hooks/use-conversation-auto-select.hook.ts)
   - 受 `strategy.autoSelectFirstConversation` 控制，customer 模式下为 `false`，由 `useConversationInitializer` 管理激活
-- channelFilterEnabled 配置: [`chat.util.ts:42-43`](../../../fox/fox-admin-ui/packages/components/src/utils/chat.util.ts)
+- channelFilterEnabled 配置: `chat.util.ts:42-43`
 
 ---
 
@@ -114,7 +116,7 @@ sequenceDiagram
     Hook-->>Host: 会话初始化完成
 ```
 ### 关键实现位置
-- Customer 模式初始化: [`create-chat.hook.ts`](../../../fox/fox-admin-ui/packages/components/src/hooks/create-chat.hook.ts)
+- Customer 模式初始化: `create-chat.hook.ts`
 - Pending 会话缓存: SDK [`ConversationCacheHelper`](../src/services/cache/conversation-cache-helper.service.ts)
 
 ---

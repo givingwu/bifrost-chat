@@ -1,7 +1,5 @@
 # ACK 协议
 
-实时文档见 https://kylith.atlassian.net/wiki/spaces/m78rqGL1Q4UV/pages/463505994/ACK
-
 ## ACK 消息类型总览
 
 目前共有 3 类 ACK：
@@ -37,7 +35,7 @@ export enum AckMessageTypeEnum {
     "ptype": "msg_read_ack",
     "body": {
         "sender" : "12424",
-        "app" : "fox_collect.waiter",
+        "app" : "example_chat.waiter",
         "mid" ： "* 服务端消息id",
         "chatId" "会话组装规则",
         "timestamp": 1769063160893
@@ -89,11 +87,11 @@ export enum AckMessageTypeEnum {
 {
     "id": "bced3b54-1d08-cd89-c596-c85c517fb65f",
     "from": {
-        "app": "fox_collect.customer",
-        "pin": "@im.kn.com"
+        "app": "example_chat.customer",
+        "pin": "system@example.com"
     },
     "to": {
-        "app": "fox_collect.customer",
+        "app": "example_chat.customer",
         "clientType": "",
         "pin": "1234"
     },

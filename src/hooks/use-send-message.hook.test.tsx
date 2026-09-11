@@ -366,7 +366,7 @@ describe('useSendMessage Hook', () => {
         channel: ChannelTypeEnum.WhatsApp,
         metadata: {
           customerPin: 'customer-13800000000',
-          customerApp: 'fox_collect.customer',
+          customerApp: 'example_chat.customer',
         },
       },
     ]);
@@ -400,7 +400,7 @@ describe('useSendMessage Hook', () => {
       content: '电催模板消息',
       channelType: 'whatsapp',
       receiver: {
-        app: 'fox_collect.customer',
+        app: 'example_chat.customer',
         pin: 'customer-13800000000',
         channelType: 'whatsapp',
         clientType: undefined,
@@ -410,7 +410,7 @@ describe('useSendMessage Hook', () => {
     const optimisticMessage = getMessages(queryClient, conversationId)[0];
     expect(optimisticMessage?.receiver).toEqual(
       expect.objectContaining({
-        app: 'fox_collect.customer',
+        app: 'example_chat.customer',
         pin: 'customer-13800000000',
       }),
     );
@@ -704,19 +704,19 @@ describe('useSendMessage Hook', () => {
       id: 'fd7d0e23d4c349758d847bb5c5e7308c',
       chatId: conversationId,
       from: {
-        app: 'fox_collect.waiter',
-        pin: '@im.kn.com',
+        app: 'example_chat.waiter',
+        pin: 'system@example.com',
         channelType: ChannelTypeEnum.WhatsApp,
       },
       to: {
-        app: 'fox_collect.waiter',
+        app: 'example_chat.waiter',
         pin: '0535286044634614ac8356a72d727228',
         channelType: ChannelTypeEnum.WhatsApp,
       },
       ptype: PacketMessageTypeEnum.MessageStatusAck,
       body: {
         mid: 0,
-        app: 'fox_collect.waiter',
+        app: 'example_chat.waiter',
         sender: '0535286044634614ac8356a72d727228',
         id: 'chat_1781695112582_rfdb77bnz',
         chatId: conversationId,

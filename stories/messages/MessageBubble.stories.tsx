@@ -232,7 +232,7 @@ export const FailedMessage = () => {
 };
 
 // 发送成功的消息
-export const Sent= {
+export const Sent = {
   args: {
     message: {
       conversationId: 'conv-123',
@@ -251,7 +251,7 @@ export const Sent= {
 };
 
 // 发送失败的消息（带操作按钮）
-export const Failed= {
+export const Failed = {
   args: {
     message: {
       conversationId: 'conv-123',
@@ -274,7 +274,7 @@ export const Failed= {
 };
 
 // 发送失败的消息（带详细错误信息）
-export const FailedWithError= {
+export const FailedWithError = {
   args: {
     message: {
       conversationId: 'conv-123',
@@ -297,7 +297,7 @@ export const FailedWithError= {
 };
 
 // 发送失败的消息（带详细错误信息）
-export const FailedWithIncomingError= {
+export const FailedWithIncomingError = {
   args: {
     message: {
       conversationId: 'conv-123',
@@ -320,7 +320,7 @@ export const FailedWithIncomingError= {
 };
 
 // 接收的消息
-export const IncomingMessage= {
+export const IncomingMessage = {
   args: {
     message: {
       conversationId: 'conv-123',
@@ -339,7 +339,7 @@ export const IncomingMessage= {
 };
 
 // 发送中的消息
-export const Sending= {
+export const Sending = {
   args: {
     message: {
       conversationId: 'conv-123',
@@ -359,7 +359,7 @@ export const Sending= {
 };
 
 // 带发送号码尾号和 Chatbot 标识的消息
-export const WithChannelAccountAndChatbot= {
+export const WithChannelAccountAndChatbot = {
   args: {
     message: {
       conversationId: 'conv-123',
@@ -370,8 +370,8 @@ export const WithChannelAccountAndChatbot= {
       timestamp: Date.now(),
       type: MessageTypeEnum.Text,
       content: { text: '这是一条由 Chatbot 发送的 WhatsApp 模板消息' },
-      sender: { app: 'fox_collect.waiter', pin: 'bot-agent' },
-      receiver: { app: 'fox_collect.customer', pin: 'customer-1' },
+      sender: { app: 'example_chat.waiter', pin: 'bot-agent' },
+      receiver: { app: 'example_chat.customer', pin: 'customer-1' },
       metadata: {
         channelAccount: '628123456789',
         senderType: PacketSenderTypeEnum.Chatbot,
@@ -382,7 +382,7 @@ export const WithChannelAccountAndChatbot= {
 };
 
 // 下行消息按上行镜像展示补充信息：发送号码、Chatbot、状态、时间
-export const OutgoingSupplementInfoOrder= {
+export const OutgoingSupplementInfoOrder = {
   args: {
     message: {
       conversationId: 'conv-123',
@@ -393,8 +393,8 @@ export const OutgoingSupplementInfoOrder= {
       timestamp: new Date('2026-06-15T02:51:00.000Z').getTime(),
       type: MessageTypeEnum.Text,
       content: { text: '这是一条用于校验补充信息顺序的下行消息' },
-      sender: { app: 'fox_collect.waiter', pin: 'bot-agent' },
-      receiver: { app: 'fox_collect.customer', pin: 'customer-1' },
+      sender: { app: 'example_chat.waiter', pin: 'bot-agent' },
+      receiver: { app: 'example_chat.customer', pin: 'customer-1' },
       metadata: {
         channelAccount: '628123456789',
         senderType: PacketSenderTypeEnum.Chatbot,
@@ -405,7 +405,7 @@ export const OutgoingSupplementInfoOrder= {
 };
 
 // 客户消息展示发送号码尾号
-export const IncomingWithChannelAccount= {
+export const IncomingWithChannelAccount = {
   args: {
     message: {
       conversationId: 'conv-123',
@@ -416,8 +416,8 @@ export const IncomingWithChannelAccount= {
       timestamp: Date.now(),
       type: MessageTypeEnum.Text,
       content: { text: '客户回复到了另一个 WABA 账号' },
-      sender: { app: 'fox_collect.customer', pin: 'customer-1' },
-      receiver: { app: 'fox_collect.waiter', pin: 'agent-1' },
+      sender: { app: 'example_chat.customer', pin: 'customer-1' },
+      receiver: { app: 'example_chat.waiter', pin: 'agent-1' },
       metadata: {
         channelAccount: '628987654321',
       },
@@ -427,7 +427,7 @@ export const IncomingWithChannelAccount= {
 };
 
 // 图片消息（发送失败）
-export const FailedImage= {
+export const FailedImage = {
   args: {
     message: {
       conversationId: 'conv-123',

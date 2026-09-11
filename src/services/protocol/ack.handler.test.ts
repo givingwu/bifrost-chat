@@ -13,7 +13,7 @@ describe('AckHandler', () => {
     it('应该创建正确的已读 ACK 消息', () => {
       const params: AckPacketBody = {
         sender: 'customer-001',
-        app: 'fox_collect.customer',
+        app: 'example_chat.customer',
         mid: 'msg-456',
         chatId: 'conv-789',
         timestamp: 1234567890,
@@ -21,7 +21,7 @@ describe('AckHandler', () => {
 
       const ackPacket = AckHandler.createReadAck(
         {
-          app: 'fox_collect.waiter',
+          app: 'example_chat.waiter',
           pin: 'agent-123',
         },
         params,
@@ -30,14 +30,14 @@ describe('AckHandler', () => {
       expect(ackPacket).toBeDefined();
       // ✅ 修改：应该使用 msg_read_ack 而不是 ack
       expect(ackPacket.ptype).toBe(AckMessageTypeEnum.MsgReadAck);
-      expect(ackPacket.from.app).toBe('fox_collect.waiter');
+      expect(ackPacket.from.app).toBe('example_chat.waiter');
       expect(ackPacket.from.pin).toBe('agent-123');
       // to 字段使用 from 的值
       expect(ackPacket.to.app).toBe('');
       expect(ackPacket.to.pin).toBe('');
       // body 表示被 ACK 的原消息标识（含原消息发送方）
       expect(ackPacket.body.sender).toBe('customer-001');
-      expect(ackPacket.body.app).toBe('fox_collect.customer');
+      expect(ackPacket.body.app).toBe('example_chat.customer');
       expect(ackPacket.body.mid).toBe('msg-456');
       expect(ackPacket.body.chatId).toBe('conv-789');
       expect(ackPacket.body.timestamp).toBe(1234567890);
@@ -50,7 +50,7 @@ describe('AckHandler', () => {
     it('应该生成唯一的 ACK ID', () => {
       const params: AckPacketBody = {
         sender: 'customer-001',
-        app: 'fox_collect.customer',
+        app: 'example_chat.customer',
         mid: 'msg-456',
         chatId: 'conv-789',
         timestamp: Date.now(),
@@ -58,14 +58,14 @@ describe('AckHandler', () => {
 
       const ack1 = AckHandler.createReadAck(
         {
-          app: 'fox_collect.waiter',
+          app: 'example_chat.waiter',
           pin: 'agent-123',
         },
         params,
       );
       const ack2 = AckHandler.createReadAck(
         {
-          app: 'fox_collect.waiter',
+          app: 'example_chat.waiter',
           pin: 'agent-123',
         },
         params,
@@ -77,12 +77,12 @@ describe('AckHandler', () => {
     it('应该支持自定义 requestId', () => {
       const ackPacket = AckHandler.createReadAck(
         {
-          app: 'fox_collect.waiter',
+          app: 'example_chat.waiter',
           pin: 'agent-123',
         },
         {
           sender: 'customer-001',
-          app: 'fox_collect.customer',
+          app: 'example_chat.customer',
           mid: 'msg-456',
           chatId: 'conv-789',
           timestamp: 1234567890,
@@ -100,7 +100,7 @@ describe('AckHandler', () => {
     it('应该创建正确的收到消息 ACK', () => {
       const params: AckPacketBody = {
         sender: 'customer-001',
-        app: 'fox_collect.customer',
+        app: 'example_chat.customer',
         mid: 'msg-456',
         chatId: 'conv-789',
         timestamp: 1234567890,
@@ -108,7 +108,7 @@ describe('AckHandler', () => {
 
       const ackPacket = AckHandler.createReceiveAck(
         {
-          app: 'fox_collect.waiter',
+          app: 'example_chat.waiter',
           pin: 'agent-123',
         },
         params,
@@ -117,14 +117,14 @@ describe('AckHandler', () => {
       expect(ackPacket).toBeDefined();
       // ✅ 应该使用 msg_receive_ack
       expect(ackPacket.ptype).toBe(AckMessageTypeEnum.MsgReceiveAck);
-      expect(ackPacket.from.app).toBe('fox_collect.waiter');
+      expect(ackPacket.from.app).toBe('example_chat.waiter');
       expect(ackPacket.from.pin).toBe('agent-123');
       // to 字段使用 from 的值
       expect(ackPacket.to.app).toBe('');
       expect(ackPacket.to.pin).toBe('');
       // body 表示被 ACK 的原消息标识（含原消息发送方）
       expect(ackPacket.body.sender).toBe('customer-001');
-      expect(ackPacket.body.app).toBe('fox_collect.customer');
+      expect(ackPacket.body.app).toBe('example_chat.customer');
       expect(ackPacket.body.mid).toBe('msg-456');
       expect(ackPacket.body.chatId).toBe('conv-789');
       expect(ackPacket.body.timestamp).toBe(1234567890);
@@ -137,7 +137,7 @@ describe('AckHandler', () => {
     it('应该生成唯一的收到 ACK ID', () => {
       const params: AckPacketBody = {
         sender: 'customer-001',
-        app: 'fox_collect.customer',
+        app: 'example_chat.customer',
         mid: 'msg-456',
         chatId: 'conv-789',
         timestamp: Date.now(),
@@ -145,14 +145,14 @@ describe('AckHandler', () => {
 
       const ack1 = AckHandler.createReceiveAck(
         {
-          app: 'fox_collect.waiter',
+          app: 'example_chat.waiter',
           pin: 'agent-123',
         },
         params,
       );
       const ack2 = AckHandler.createReceiveAck(
         {
-          app: 'fox_collect.waiter',
+          app: 'example_chat.waiter',
           pin: 'agent-123',
         },
         params,
@@ -164,12 +164,12 @@ describe('AckHandler', () => {
     it('应该支持自定义 requestId', () => {
       const ackPacket = AckHandler.createReceiveAck(
         {
-          app: 'fox_collect.waiter',
+          app: 'example_chat.waiter',
           pin: 'agent-123',
         },
         {
           sender: 'customer-001',
-          app: 'fox_collect.customer',
+          app: 'example_chat.customer',
           mid: 'msg-456',
           chatId: 'conv-789',
           timestamp: 1234567890,

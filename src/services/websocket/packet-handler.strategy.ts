@@ -33,7 +33,7 @@ import type { WebSocketManager } from './websocket-manager.service';
  * const strategy = new PacketHandlerStrategy(wsManager);
  * const result = strategy.handle({
  *   packet: rawPacket,
- *   currentApp: 'fox_collect.waiter',
+ *   currentApp: 'example_chat.waiter',
  * });
  * ```
  */

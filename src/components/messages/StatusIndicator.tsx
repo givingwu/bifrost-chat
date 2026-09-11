@@ -54,7 +54,7 @@ interface StatusConfig {
  *
  * 图标与颜色对应 WhatsApp 语义：
  *   Created / Sending / Queued → 转圈动画（灰色）
- *   Sent      → 一√ 灰色（Fox 已入队，WA 尚未确认）
+ *   Sent      → 一√ 灰色（服务端已入队，WA 尚未确认）
  *   Delivered → 两√ 灰色（客户手机已收，未读）
  *   Read      → 两√ 蓝色（客户已读）
  *   Clicked   → 点击图标（客户点击消息内链接或按钮）
@@ -101,7 +101,7 @@ export const StatusIndicator = memo(
           colorClass: 'text-gray-400',
           animate: true,
         },
-        // ── 一√ 灰色：Fox 入队，WA 尚未确认（WhatsApp 一√灰） ──────────
+        // ── 一√ 灰色：服务端入队，WA 尚未确认（WhatsApp 一√灰） ──────────
         [MessageStatusEnum.Sent]: {
           icon: Check,
           size: 'h-4 w-4',

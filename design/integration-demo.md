@@ -54,7 +54,7 @@ import {
 /**
  * 电催场景配置
  */
-interface FoxCollectConfig {
+interface ExampleConfig {
   endpoint: string;
   wsEndpoint: string;
   token: string;
@@ -64,12 +64,12 @@ interface FoxCollectConfig {
 /**
  * 电催场景模板服务实现
  */
-class FoxCollectTemplateService 
+class ExampleTemplateService
   implements ITemplateService<any, any> {
   
-  private config: FoxCollectConfig;
+  private config: ExampleConfig;
   
-  constructor(config: FoxCollectConfig) {
+  constructor(config: ExampleConfig) {
     this.config = config;
   }
   
@@ -152,14 +152,14 @@ class FoxCollectTemplateService
 /**
  * 电催场景消息服务实现
  */
-class FoxCollectMessageService implements IMessageService<any, any, any, any, any> {
+class ExampleMessageService implements IMessageService<any, any, any, any, any> {
   
-  private config: FoxCollectConfig;
+  private config: ExampleConfig;
   private wsManager: WebSocketManager;
   private messageListeners: Array<(event: any) => void> = [];
   private statusListeners: Array<(event: any) => void> = [];
   
-  constructor(config: FoxCollectConfig, wsManager: WebSocketManager) {
+  constructor(config: ExampleConfig, wsManager: WebSocketManager) {
     this.config = config;
     this.wsManager = wsManager;
     
@@ -229,7 +229,7 @@ class FoxCollectMessageService implements IMessageService<any, any, any, any, an
       content: params.content || { text: '' },
       sender: {
         id: this.config.agentPin,
-        app: 'fox_collect.waiter',
+        app: 'example_chat.waiter',
       },
       receiver: {
         id: params.receiverPin,
@@ -241,7 +241,7 @@ class FoxCollectMessageService implements IMessageService<any, any, any, any, an
     // 使用 SDK 提供的协议转换器
     const rawPacket = PacketConverter.toRawPacket(
       standardMessage,
-      'fox_collect.waiter',
+      'example_chat.waiter',
       this.config.agentPin,
     );
     
@@ -278,7 +278,7 @@ class FoxCollectMessageService implements IMessageService<any, any, any, any, an
     // 使用 SDK 提供的 ACK 处理器创建已读 ACK
     const ackMessage = AckHandler.createReadAck(
       {
-        app: 'fox_collect.waiter',
+        app: 'example_chat.waiter',
         pin: this.config.agentPin,
         channelType: params.channelType,
       },
@@ -331,11 +331,11 @@ class FoxCollectMessageService implements IMessageService<any, any, any, any, an
 /**
  * 电催场景会话服务实现
  */
-class FoxCollectConversationService implements IConversationService<any, any, any> {
+class ExampleConversationService implements IConversationService<any, any, any> {
   
-  private config: FoxCollectConfig;
+  private config: ExampleConfig;
   
-  constructor(config: FoxCollectConfig) {
+  constructor(config: ExampleConfig) {
     this.config = config;
   }
   
@@ -347,7 +347,7 @@ class FoxCollectConversationService implements IConversationService<any, any, an
         'Authorization': `Bearer ${this.config.token}`,
       },
       body: JSON.stringify({
-        app: 'fox_collect.waiter',
+        app: 'example_chat.waiter',
         pin: this.config.agentPin,
       }),
     });
@@ -376,20 +376,20 @@ class FoxCollectConversationService implements IConversationService<any, any, an
 /**
  * 电催场景聊天应用
  */
-function FoxCollectChatApp() {
+function ExampleChatApp() {
   // 创建服务实例
   const services = useMemo(() => {
-    const config: FoxCollectConfig = {
-      endpoint: 'https://api.fox-collect.com',
-      wsEndpoint: 'wss://api.fox-collect.com/ws',
+    const config: ExampleConfig = {
+      endpoint: 'https://api.example.com',
+      wsEndpoint: 'wss://api.example.com/ws',
       token: 'your-token-here',
       agentPin: 'agent-123',
     };
     
     const wsManager = new WebSocketManager(config.wsEndpoint);
-    const templateService = new FoxCollectTemplateService(config);
-    const messageService = new FoxCollectMessageService(config, wsManager);
-    const conversationService = new FoxCollectConversationService(config);
+    const templateService = new ExampleTemplateService(config);
+    const messageService = new ExampleMessageService(config, wsManager);
+    const conversationService = new ExampleConversationService(config);
     
     return {
       templateService,
@@ -476,7 +476,7 @@ function FoxCollectChatApp() {
   );
 }
 
-export default FoxCollectChatApp;
+export default ExampleChatApp;
 ```
 
 ## 使用步骤
@@ -498,16 +498,16 @@ npm install @feoe/bifrost-chat
 
 ```typescript
 const config = {
-  endpoint: 'https://api.fox-collect.com',
-  wsEndpoint: 'wss://api.fox-collect.com/ws',
+  endpoint: 'https://api.example.com',
+  wsEndpoint: 'wss://api.example.com/ws',
   token: 'your-token-here',
   agentPin: 'agent-123',
 };
 
 const wsManager = new WebSocketManager(config.wsEndpoint);
-const templateService = new FoxCollectTemplateService(config);
-const messageService = new FoxCollectMessageService(config, wsManager);
-const conversationService = new FoxCollectConversationService(config);
+const templateService = new ExampleTemplateService(config);
+const messageService = new ExampleMessageService(config, wsManager);
+const conversationService = new ExampleConversationService(config);
 ```
 
 ### 4. 使用 SDK 组件

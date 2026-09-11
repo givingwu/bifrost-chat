@@ -18,7 +18,7 @@ import type {
  *
  * @example
  * ```tsx
- * const { data } = useUnreadCount({ app: 'fox', pin: '123' });
+ * const { data } = useUnreadCount({ app: 'example', pin: '123' });
  * // data?.[ChannelTypeEnum.SMS]   → SMS 渠道未读数
  * // data?.[ChannelTypeEnum.WhatsApp] → WhatsApp 渠道未读数
  * ```

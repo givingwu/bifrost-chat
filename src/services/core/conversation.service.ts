@@ -173,7 +173,7 @@ export interface IConversationService<
    * 获取未读数量
    *
    * @description
-   * 对应后端接口 /bifrost-hermod/chat/unread。
+   * 后端接口由宿主定义，下方 /messaging/chat/unread 仅为示例。
    * 业务方在实现时自行注入 app/pin 等鉴权参数；
    * SDK 只传递可选的 channelType 和 conversationIds 过滤条件。
    *
@@ -184,7 +184,7 @@ export interface IConversationService<
    * ```typescript
    * class MyConversationService implements IConversationService {
    *   async getUnreadCount(params) {
-   *     const res = await fetch('/bifrost-hermod/chat/unread', {
+   *     const res = await fetch('/messaging/chat/unread', {
    *       method: 'POST',
    *       body: JSON.stringify({ app: this.app, pin: this.pin, ...params }),
    *     });

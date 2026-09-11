@@ -75,7 +75,7 @@ export interface AckFromParticipant
  * // 创建上行已读 ACK
  * const ackMessage = AckHandler.createReadAck({
  *   sender: 'agent-123',
- *   app: 'fox_collect.waiter',
+ *   app: 'example_chat.waiter',
  *   mid: 'msg-456',
  *   chatId: 'conv-123',
  *   timestamp: Date.now(),
@@ -85,7 +85,7 @@ export interface AckFromParticipant
  * // 创建上行收到消息 ACK
  * const receiveAck = AckHandler.createReceiveAck({
  *   sender: 'agent-123',
- *   app: 'fox_collect.waiter',
+ *   app: 'example_chat.waiter',
  *   mid: 'msg-456',
  *   chatId: 'conv-123',
  *   timestamp: Date.now(),

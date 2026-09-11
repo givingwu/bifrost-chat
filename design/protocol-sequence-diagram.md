@@ -6,26 +6,26 @@
 
 ## 场景差异对比
 
-### 电催场景（Fox Collect）
+### 电催场景（示例业务）
 
 | 字段 | 值 | 说明 |
 |------|-----|------|
 | SESSION ID | `chatId` | 由 `session/info/query` 返回的会话标识 |
-| from.app | `fox_collect.waiter` | 催收坐席 |
+| from.app | `example_chat.waiter` | 催收坐席 |
 | to.app | `im.waiter` | 用户 |
-| entry | `fox.collect.detail` | 电催详情入口 |
+| entry | `example.chat.detail` | 电催详情入口 |
 | 模板查询 | `/chat/v2/template/query` | 基于渠道类型查询 |
 | 消息检查 | `/chat/v2/message/check` | 频次检查 |
 | 消息发送 | `/chat/v2/message/send` | 模板/自定义消息 |
 
-### 客服场景（Argus Customer Service）
+### 客服场景（示例客服 Customer Service）
 
 | 字段 | 值 | 说明 |
 |------|-----|------|
 | SESSION ID | 用户 ID | 用户 ID = 客户身份证+包 |
-| from.app | `fox_argus.customer` | 客户端用户 |
-| to.app | `fox_argus.waiter` | Argus 客服客诉坐席 |
-| entry | `fox.system` | 系统入口 |
+| from.app | `support_chat.customer` | 客户端用户 |
+| to.app | `support_chat.waiter` | 示例客服 客服客诉坐席 |
+| entry | `example.system` | 系统入口 |
 | 模板查询 | 待定义 | 客服场景模板查询接口 |
 | 消息检查 | 待定义 | 客服场景消息检查接口 |
 | 消息发送 | 待定义 | 客服场景消息发送接口 |
@@ -385,11 +385,11 @@ sequenceDiagram
     UI->>Hook: 初始化
     Hook->>ConvSvc: list({ app, pin, clientVersion })
     ConvSvc->>API: GET /chat/v2/session/list
-    Note over API: {<br/>  app: 'fox_collect.waiter',<br/>  pin: '坐席UID',<br/>  clientVersion: '2.0.0'<br/>}
+    Note over API: {<br/>  app: 'example_chat.waiter',<br/>  pin: '坐席UID',<br/>  clientVersion: '2.0.0'<br/>}
     
     API->>Server: 查询会话列表
     Server-->>API: 会话数据
-    Note over API: {<br/>  code: 0,<br/>  data: [{<br/>    newUnreadCount: true,<br/>    app: 'fox_collect.waiter',<br/>    sid: '56ed75a3...',<br/>    pin: '435345',<br/>    name: 'username',<br/>    subjectId: '资产id',<br/>    time: 1768984512862,<br/>    lastMessage: { Packet }<br/>  }]<br/>}
+    Note over API: {<br/>  code: 0,<br/>  data: [{<br/>    newUnreadCount: true,<br/>    app: 'example_chat.waiter',<br/>    sid: '56ed75a3...',<br/>    pin: '435345',<br/>    name: 'username',<br/>    subjectId: '资产id',<br/>    time: 1768984512862,<br/>    lastMessage: { Packet }<br/>  }]<br/>}
     
     API-->>ConvSvc: 会话列表
     ConvSvc->>ConvSvc: 映射为 Conversation 对象
@@ -452,7 +452,7 @@ flowchart TD
 
     K --> L{"messageQueue.handleAck<br/>能否命中队列?"}
 
-    L -- "命中 outgoing" --> M{"是否是状态回调<br/>body.status / fox status?"}
+    L -- "命中 outgoing" --> M{"是否是状态回调<br/>body.status / channel status?"}
     M -- "是" --> M1["resolveDeliveryStatus<br/>UN_SEND/SEND_FAIL/DELIVER_FAIL/UN_READ/READ/REVOKE/DELETE"]
     M -- "否" --> M2{"ACK 类型"}
     M2 -- "chat_message / msg_send_failed" --> M3["更新 sent/failed<br/>必要时继续绑定 serverMessageId"]
@@ -562,10 +562,10 @@ interface MessageSendParams {
 
 ## 场景化服务接口
 
-### 电催场景（Fox Collect）
+### 电催场景（示例业务）
 
 ```typescript
-interface FoxCollectTemplateService extends ITemplateService {
+interface ExampleTemplateService extends ITemplateService {
   /** 查询模板（电催场景） */
   list(params: { chatId: string; channelType: ChannelTypeEnum }): Promise<Template[]>;
   
@@ -578,7 +578,7 @@ interface FoxCollectTemplateService extends ITemplateService {
   }): Promise<MessageSendResult>;
 }
 
-interface FoxCollectMessageService extends IMessageService {
+interface ExampleMessageService extends IMessageService {
   /** 消息检查（电催场景 - 频次检查） */
   checkMessage(params: MessageCheckParams): Promise<MessageCheckResult>;
   
@@ -587,10 +587,10 @@ interface FoxCollectMessageService extends IMessageService {
 }
 ```
 
-### 客服场景（Argus Customer Service）
+### 客服场景（示例客服 Customer Service）
 
 ```typescript
-interface ArgusTemplateService extends ITemplateService {
+interface 示例客服TemplateService extends ITemplateService {
   /** 查询模板（客服场景） */
   list(params: { conversationId: string; category?: string }): Promise<Template[]>;
   
@@ -602,7 +602,7 @@ interface ArgusTemplateService extends ITemplateService {
   }): Promise<MessageSendResult>;
 }
 
-interface ArgusMessageService extends IMessageService {
+interface 示例客服MessageService extends IMessageService {
   /** 消息检查（客服场景 - 敏感词检查等） */
   checkMessage(params: {
     conversationId: string;

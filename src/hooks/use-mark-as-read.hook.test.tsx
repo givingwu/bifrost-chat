@@ -22,7 +22,7 @@ import { useMarkAsRead } from './use-mark-as-read.hook';
 const { currentUserRef } = vi.hoisted(() => ({
   currentUserRef: {
     current: {
-      app: 'fox_collect.waiter',
+      app: 'example_chat.waiter',
       pin: 'agent-001',
       status: 'online',
     },
@@ -78,11 +78,11 @@ function createMessage(
     type: MessageTypeEnum.Text,
     content: { text: `message-${id}` },
     sender: {
-      app: 'fox_collect.customer',
+      app: 'example_chat.customer',
       pin: `customer-${id}`,
     },
     receiver: {
-      app: 'fox_collect.waiter',
+      app: 'example_chat.waiter',
       pin: 'agent-001',
     },
   };
@@ -143,7 +143,7 @@ describe('useMarkAsRead Hook', () => {
     messageQueue.clear();
     mockMessageService.markAsRead = vi.fn();
     currentUserRef.current = {
-      app: 'fox_collect.waiter',
+      app: 'example_chat.waiter',
       pin: 'agent-001',
       status: AgentStatusEnum.Online,
     };
@@ -204,7 +204,7 @@ describe('useMarkAsRead Hook', () => {
       expect(mockMessageService.markAsRead).toHaveBeenCalledWith(
         expect.objectContaining({
           sender: 'customer-msg-1',
-          app: 'fox_collect.customer',
+          app: 'example_chat.customer',
           mid: 'msg-1',
           chatId: conversationId,
           timestamp: expect.any(Number),
@@ -334,11 +334,11 @@ describe('useMarkAsRead Hook', () => {
     const selfSentMessage: StandardMessage = {
       ...createMessage('msg-self', MessageStatusEnum.Delivered),
       sender: {
-        app: 'fox_collect.waiter',
+        app: 'example_chat.waiter',
         pin: 'agent-001',
       },
       receiver: {
-        app: 'fox_collect.customer',
+        app: 'example_chat.customer',
         pin: 'customer-001',
       },
     };

@@ -243,15 +243,15 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
 
         manager.send({
           id: 'chat_1780021677296_hscxzcrfb',
-          chatId: 'fox_collect_a37498',
+          chatId: 'example_chat_a37498',
           from: {
-            app: 'fox_collect.waiter',
+            app: 'example_chat.waiter',
             pin: '409c78f524334c2d9f95a03c2f93b14d',
             channelType: ChannelTypeEnum.WaAgent,
             clientType: 'web',
           },
           to: {
-            app: 'fox_collect.customer',
+            app: 'example_chat.customer',
             pin: 'enc_01_6030214241767168000_135',
             channelType: ChannelTypeEnum.WaAgent,
             clientType: 'web',
@@ -274,13 +274,13 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
               upid: null,
               chatId: null,
               from: {
-                app: 'fox_collect.waiter',
-                pin: '@im.kn.com',
+                app: 'example_chat.waiter',
+                pin: 'system@example.com',
                 clientType: null,
                 channelType: ChannelTypeEnum.WaAgent,
               },
               to: {
-                app: 'fox_collect.waiter',
+                app: 'example_chat.waiter',
                 pin: '409c78f524334c2d9f95a03c2f93b14d',
                 clientType: 'web',
                 channelType: ChannelTypeEnum.WaAgent,
@@ -303,7 +303,7 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
           expect.objectContaining({
             type: WebSocketEventTypeEnum.MessageStatus,
             data: expect.objectContaining({
-              conversationId: 'fox_collect_a37498',
+              conversationId: 'example_chat_a37498',
               messageId: 'chat_1780021677296_hscxzcrfb',
               status: MessageStatusEnum.Sent,
             }),
@@ -315,7 +315,7 @@ describe('WebSocketManager - 协议层 Helper 集成测试', () => {
             messageId: 'chat_1780021677296_hscxzcrfb',
             packetChatId: null,
             bodyChatId: undefined,
-            conversationId: 'fox_collect_a37498',
+            conversationId: 'example_chat_a37498',
           }),
         );
       } finally {

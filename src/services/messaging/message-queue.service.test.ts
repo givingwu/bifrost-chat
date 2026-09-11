@@ -165,7 +165,7 @@ describe('MessageQueueService', () => {
     });
 
     const orphanAck: AckData = {
-      id: 'fox-ack-1',
+      id: 'channel-ack-1',
       ptype: PacketMessageTypeEnum.FoxMessageAck,
       body: {
         type: PacketMessageTypeEnum.FoxMessageAck,
@@ -206,8 +206,8 @@ describe('MessageQueueService', () => {
         timestamp: 1_000,
         type: MessageTypeEnum.Text,
         content: { text: 'template' },
-        sender: { app: 'fox_collect.waiter', pin: 'agent-1' },
-        receiver: { app: 'fox_collect.customer', pin: 'customer-1' },
+        sender: { app: 'example_chat.waiter', pin: 'agent-1' },
+        receiver: { app: 'example_chat.customer', pin: 'customer-1' },
       },
     });
     queue.bindServerMessageId('temp-123', '789');

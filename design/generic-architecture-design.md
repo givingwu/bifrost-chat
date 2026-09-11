@@ -324,29 +324,29 @@ import {
   I18nProvider,
   DefaultChatLayout,
 } from '@feoe/bifrost-chat';
-import { FoxCollectConversationService } from './services/conversation.service';
-import { FoxCollectMessageService } from './services/message.service';
-import { FoxCollectTemplateService } from './services/template.service';
+import { ExampleConversationService } from './services/conversation.service';
+import { ExampleMessageService } from './services/message.service';
+import { ExampleTemplateService } from './services/template.service';
 import { WebSocketManager } from '@feoe/bifrost-chat';
 
 function App() {
   // 1. 创建通信管理器（业务方选择 WebSocket / SSE / HTTP）
-  const wsManager = new WebSocketManager('wss://api.fox-collect.com/ws');
+  const wsManager = new WebSocketManager('wss://api.example.com/ws');
   
   // 2. 创建服务实例（业务方自行实现）
-  const conversationService = new FoxCollectConversationService({
-    endpoint: 'https://api.fox-collect.com',
+  const conversationService = new ExampleConversationService({
+    endpoint: 'https://api.example.com',
     token: 'your-token',
   });
   
-  const messageService = new FoxCollectMessageService({
-    endpoint: 'https://api.fox-collect.com',
+  const messageService = new ExampleMessageService({
+    endpoint: 'https://api.example.com',
     token: 'your-token',
     agentPin: 'agent-123',
   }, wsManager);
   
-  const templateService = new FoxCollectTemplateService({
-    endpoint: 'https://api.fox-collect.com',
+  const templateService = new ExampleTemplateService({
+    endpoint: 'https://api.example.com',
     token: 'your-token',
   });
   
@@ -373,7 +373,7 @@ function App() {
 
 不同业务场景的核心差异体现在以下维度：
 
-| 维度 | 电催场景（FoxCollect） | 客服场景（Argus） | 通用场景 |
+| 维度 | 电催场景（Example） | 客服场景（示例客服） | 通用场景 |
 |------|----------------------|------------------|----------|
 | **通信协议** | WebSocket + Packet 协议 | HTTP + SSE | HTTP / WebSocket |
 | **鉴权方式** | JWT Token + agentPin | OAuth2 + Cookie | 自定义 |
@@ -381,22 +381,22 @@ function App() {
 | **实时订阅** | WebSocket onMessage | SSE EventSource | 自定义 |
 | **渠道策略** | SMS / WhatsApp / VoIP | Web Chat / Email / 电话 | 自定义 |
 | **DTO 映射** | Packet ↔ StandardMessage | REST DTO ↔ StandardMessage | 自定义 |
-| **from.app** | `fox_collect.waiter` | `fox_argus.waiter` | 自定义 |
-| **to.app** | `im.waiter` | `fox_argus.customer` | 自定义 |
+| **from.app** | `example_chat.waiter` | `support_chat.waiter` | 自定义 |
+| **to.app** | `im.waiter` | `support_chat.customer` | 自定义 |
 | **Session ID** | `chatId`（由 `session/info/query` 返回） | 用户 ID（身份证+包） | 会话 ID |
 
 ### 接入差异架构图
 
 ```mermaid
 graph TB
-    subgraph "电催场景（FoxCollect）"
-        FC1[FoxCollectMessageService]
+    subgraph "电催场景（Example）"
+        FC1[ExampleMessageService]
         FC2[WebSocket + Packet]
         FC3[频次检查 API]
     end
     
-    subgraph "客服场景（Argus）"
-        AS1[ArgusMessageService]
+    subgraph "客服场景（示例客服）"
+        AS1[示例客服MessageService]
         AS2[HTTP + SSE]
         AS3[敏感词检查]
     end
@@ -419,7 +419,7 @@ graph TB
 
 ## 场景接入示例
 
-### 电催场景（FoxCollect）
+### 电催场景（Example）
 
 **业务特点**：
 - 坐席向客户发送催收消息
@@ -437,13 +437,13 @@ graph TB
 | 消息发送 | `POST /chat/v2/message/send` | 模板消息 |
 | 模板查询 | `POST /chat/v2/template/query` | 按渠道类型 |
 
-### 客服场景（Argus）
+### 客服场景（示例客服）
 
 **业务特点**：
 - 客服与客户之间的沟通
 - 需要敏感词检查，确保合规
 - Session ID 使用用户 ID（身份证+包）
-- 支持多种渠道（金银花 App、微信、电话）
+- 支持多种渠道（示例 App、微信、电话）
 
 **接口差异**：
 

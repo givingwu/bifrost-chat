@@ -70,7 +70,7 @@ export function mapServerMessageStatusToLocal(
  * 渠道/供应商回调状态 → SDK MessageStatusEnum 映射。
  *
  * @description
- * FOX-8642 要求 RCS 等渠道的链接、按钮、reply/action 回调展示为
+ * RCS 等渠道的链接、按钮、reply/action 回调展示为
  * “点击”，且可以覆盖已读状态。该函数集中处理供应商原始回调值，
  * 避免 WebSocket handler、ACK handler 与消息队列各自维护映射。
  *

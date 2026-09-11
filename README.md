@@ -418,4 +418,4 @@ This check validates asset paths, not browser rendering.
 
 ## License
 
-[MIT](LICENSE) © FEOF
+[MIT](LICENSE)

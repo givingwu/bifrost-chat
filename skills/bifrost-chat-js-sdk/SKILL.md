@@ -1,7 +1,6 @@
 ---
 name: bifrost-chat-js-sdk
 version: "1.0"
-author: "FEOF Team"
 description: 开发与维护 Bifrost-Chat JS SDK。用于接口抽象、依赖注入、React Query 与 Zustand 边界治理、Conversation 语义统一、Storybook/Vitest 联动与代码审查场景。
 language: "zh-CN"
 ---

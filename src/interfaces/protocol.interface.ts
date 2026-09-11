@@ -174,13 +174,13 @@ export interface RichMediaPacketBody extends PacketBodyBase {
  * const rawPacket: RawPacket = {
  *   id: 'msg-123',
  *   mid: 'server-msg-456',
- *   from: { app: 'fox_collect.waiter', pin: 'agent-123' },
- *   to: { app: 'fox_collect.customer', pin: 'customer-001' },
+ *   from: { app: 'example_chat.waiter', pin: 'agent-123' },
+ *   to: { app: 'example_chat.customer', pin: 'customer-001' },
  *   ptype: 'chat_message',
  *   body: { type: 'text', content: '你好' },
  *   ver: '1.0',
  *   timestamp: 1234567890000,
- *   entry: 'fox.collect',
+ *   entry: 'example.chat',
  *   chatId: 'chat-789',
  * };
  * ```
@@ -240,9 +240,8 @@ export interface BaseRawPacket {
   /** 服务端生成时间戳 */
   timestamp: number;
   /**
-   * 该字段暂未使用，SDK 入口(枚举)：
-   *  - fox.system, fox.collect 电催详情
-   *  - fox.telesales 电销
+   * 宿主自定义的入口标识，SDK 不限定其取值。
+   * 示例：example.system、example.chat、example.sales。
    */
   entry?: string;
   /** 会话 ID（chat_message 类型必填） */

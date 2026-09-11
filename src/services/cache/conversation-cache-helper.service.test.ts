@@ -366,7 +366,7 @@ describe('ConversationCacheHelper', () => {
       channel: ChannelTypeEnum.WhatsApp,
       metadata: {
         name: '张三',
-        assetFromApp: 'fox.collect',
+        assetFromApp: 'example.chat',
         customerPin: 'pin-1',
       },
     });
@@ -382,7 +382,7 @@ describe('ConversationCacheHelper', () => {
 
     expect(fromList?.metadata).toMatchObject({
       name: '张三',
-      assetFromApp: 'fox.collect',
+      assetFromApp: 'example.chat',
       customerPin: 'pin-1',
       owner: 'kept-from-list',
     });

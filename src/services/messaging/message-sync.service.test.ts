@@ -325,17 +325,17 @@ describe('MessageSyncService', () => {
       direction: MessageDirectionEnum.Outgoing,
       status: MessageStatusEnum.Read,
       metadata: {
-        chatId: 'fox_collect_w37507',
+        chatId: 'example_chat_w37507',
         existingFlag: true,
       },
     });
 
-    queryClient.setQueryData(queryKeys.messages.list('fox_collect_w37507'), {
+    queryClient.setQueryData(queryKeys.messages.list('example_chat_w37507'), {
       pages: [{ items: [existing] }],
       pageParams: [undefined],
     });
     queryClient.setQueryData(
-      queryKeys.messages.list('fox_collect_w37507', ChannelTypeEnum.WhatsApp),
+      queryKeys.messages.list('example_chat_w37507', ChannelTypeEnum.WhatsApp),
       {
         pages: [{ items: [existing] }],
         pageParams: [undefined],
@@ -345,15 +345,15 @@ describe('MessageSyncService', () => {
     const packet = {
       id: 'fd7d0e23d4c349758d847bb5c5e7308c',
       upid: null,
-      chatId: 'fox_collect_w37507',
+      chatId: 'example_chat_w37507',
       from: {
-        app: 'fox_collect.waiter',
-        pin: '@im.kn.com',
+        app: 'example_chat.waiter',
+        pin: 'system@example.com',
         clientType: null,
         channelType: ChannelTypeEnum.WhatsApp,
       },
       to: {
-        app: 'fox_collect.waiter',
+        app: 'example_chat.waiter',
         pin: '0535286044634614ac8356a72d727228',
         clientType: null,
         channelType: ChannelTypeEnum.WhatsApp,
@@ -361,10 +361,10 @@ describe('MessageSyncService', () => {
       ptype: PacketMessageTypeEnum.MessageStatusAck,
       body: {
         mid: 0,
-        app: 'fox_collect.waiter',
+        app: 'example_chat.waiter',
         sender: '0535286044634614ac8356a72d727228',
         id: 'chat_1781695112582_rfdb77bnz',
-        chatId: 'fox_collect_w37507',
+        chatId: 'example_chat_w37507',
         status: 'un_send',
         timestamp: 1_781_695_113_819,
         errorInfo: 'send msg fail',
@@ -385,16 +385,18 @@ describe('MessageSyncService', () => {
 
     const unscopedData = queryClient.getQueryData<{
       pages: Array<{ items: StandardMessage[] }>;
-    }>(queryKeys.messages.list('fox_collect_w37507'));
+    }>(queryKeys.messages.list('example_chat_w37507'));
     const channelData = queryClient.getQueryData<{
       pages: Array<{ items: StandardMessage[] }>;
-    }>(queryKeys.messages.list('fox_collect_w37507', ChannelTypeEnum.WhatsApp));
+    }>(
+      queryKeys.messages.list('example_chat_w37507', ChannelTypeEnum.WhatsApp),
+    );
 
     for (const data of [unscopedData, channelData]) {
       expect(data?.pages[0]?.items[0]).toMatchObject({
         status: MessageStatusEnum.Read,
         metadata: {
-          chatId: 'fox_collect_w37507',
+          chatId: 'example_chat_w37507',
           existingFlag: true,
           channelAccount: 'whatsapp-account-001',
           senderType: PacketSenderTypeEnum.Chatbot,

@@ -9,7 +9,7 @@
 ## 1. 背景
 
 当前 SDK 使用
-[`ConversationCacheHelper`](/Users/cheng/Development/WorkSpace/feoe/Bifrost-Chat/src/services/cache/conversation-cache-helper.service.ts)
+[`ConversationCacheHelper`](../../../src/services/cache/conversation-cache-helper.service.ts)
 统一管理以下能力：
 
 1. React Query 会话列表缓存
@@ -46,10 +46,10 @@
 
 相关依据：
 
-- [README.md](/Users/cheng/Development/WorkSpace/feoe/Bifrost-Chat/README.md)
-- [specs/电催接口.md](/Users/cheng/Development/WorkSpace/feoe/Bifrost-Chat/specs/电催接口.md)
-- [design/conversation-list-render-sequence.md](/Users/cheng/Development/WorkSpace/feoe/Bifrost-Chat/design/conversation-list-render-sequence.md)
-- [design/unread-usage.md](/Users/cheng/Development/WorkSpace/feoe/Bifrost-Chat/design/unread-usage.md)
+- [README.md](../../../README.md)
+- [specs/电催接口.md](../../../specs/电催接口.md)
+- [design/conversation-list-render-sequence.md](../../../design/conversation-list-render-sequence.md)
+- [design/unread-usage.md](../../../design/unread-usage.md)
 
 ## 3. 目标
 

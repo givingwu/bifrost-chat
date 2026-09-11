@@ -28,7 +28,7 @@ describe('FoxMessageAckHandler', () => {
 
     const result = handler.handle({
       packet: {
-        id: 'fox-ack-1',
+        id: 'channel-ack-1',
         chatId: 'conv-456',
         ptype: PacketMessageTypeEnum.FoxMessageAck,
         from: { app: 'test', pin: 'server' },
@@ -56,7 +56,7 @@ describe('FoxMessageAckHandler', () => {
   it('队列未命中时应保留原始事件，并在可解析时追加状态事件', () => {
     const result = handler.handle({
       packet: {
-        id: 'fox-ack-2',
+        id: 'channel-ack-2',
         chatId: 'conv-456',
         ptype: PacketMessageTypeEnum.FoxMessageAck,
         from: { app: 'test', pin: 'server' },

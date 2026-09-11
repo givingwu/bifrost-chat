@@ -30,8 +30,8 @@ function createOfflineMessage(id: string): OfflineMessage {
       timestamp: Date.now(),
       type: MessageTypeEnum.Text,
       content: { text: 'hello' },
-      sender: { app: 'fox', pin: '10001' },
-      receiver: { app: 'fox', pin: '10002' },
+      sender: { app: 'example', pin: '10001' },
+      receiver: { app: 'example', pin: '10002' },
     },
   };
 }

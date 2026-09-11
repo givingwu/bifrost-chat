@@ -19,7 +19,7 @@ export enum MessageStatusEnum {
   Created = 'created',
   /** 消息发送中 */
   Sending = 'sending',
-  /** 消息已发送（Fox 后台已入队，等待 WA 投递确认，对应 WA 一√灰色） */
+  /** 消息已发送（服务端已入队，等待 WA 投递确认，对应 WA 一√灰色） */
   Sent = 'sent',
   /** 消息已送达（对方设备已接收） */
   Delivered = 'delivered',

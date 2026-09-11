@@ -92,8 +92,8 @@ graph TB
     
     subgraph "服务层"
         subgraph "场景化服务"
-            FoxCollectSvc[FoxCollect Services<br/>电催场景]
-            ArgusSvc[Argus Services<br/>客服场景]
+            ExampleSvc[Example Services<br/>电催场景]
+            示例客服Svc[示例客服 Services<br/>客服场景]
             GenericSvc[Generic Services<br/>通用场景]
         end
         
@@ -123,25 +123,25 @@ graph TB
     MessageList --> useConversations
     TemplatePanel --> useTemplates
     
-    useSendMessage --> FoxCollectSvc
-    useSendMessage --> ArgusSvc
+    useSendMessage --> ExampleSvc
+    useSendMessage --> 示例客服Svc
     useSendMessage --> GenericSvc
     
-    useTemplates --> FoxCollectSvc
-    useTemplates --> ArgusSvc
+    useTemplates --> ExampleSvc
+    useTemplates --> 示例客服Svc
     useTemplates --> GenericSvc
     
-    useConversations --> FoxCollectSvc
-    useConversations --> ArgusSvc
+    useConversations --> ExampleSvc
+    useConversations --> 示例客服Svc
     useConversations --> GenericSvc
     
-    FoxCollectSvc --> ITemplateSvc
-    FoxCollectSvc --> IMessageSvc
-    FoxCollectSvc --> IConversationSvc
+    ExampleSvc --> ITemplateSvc
+    ExampleSvc --> IMessageSvc
+    ExampleSvc --> IConversationSvc
     
-    ArgusSvc --> ITemplateSvc
-    ArgusSvc --> IMessageSvc
-    ArgusSvc --> IConversationSvc
+    示例客服Svc --> ITemplateSvc
+    示例客服Svc --> IMessageSvc
+    示例客服Svc --> IConversationSvc
     
     GenericSvc --> ITemplateSvc
     GenericSvc --> IMessageSvc
@@ -199,9 +199,9 @@ flowchart TD
 | 特性 | 电催场景 | 客服场景 | 通用场景 |
 |------|----------|----------|----------|
 | **Session ID** | `chatId`（由 `session/info/query` 返回） | 用户 ID（身份证+包） | 会话 ID |
-| **from.app** | `fox_collect.waiter` | `fox_argus.waiter` | 自定义 |
-| **to.app** | `im.waiter` | `fox_argus.customer` | 自定义 |
-| **entry** | `fox.collect.detail` | `fox.system` | 自定义 |
+| **from.app** | `example_chat.waiter` | `support_chat.waiter` | 自定义 |
+| **to.app** | `im.waiter` | `support_chat.customer` | 自定义 |
+| **entry** | `example.chat.detail` | `example.system` | 自定义 |
 | **模板查询** | `/chat/v2/template/query` | 待定义 | `/templates` |
 | **消息检查** | `/chat/v2/message/check`<br/>（频次检查） | 待定义<br/>（敏感词检查） | 可选 |
 | **消息发送** | `/chat/v2/message/send` | 待定义 | `/conversations/{id}/messages` |
@@ -250,7 +250,7 @@ export interface MessageCheckResult {
 /**
  * 电催场景模板服务
  */
-export interface FoxCollectTemplateService {
+export interface ExampleTemplateService {
   /**
    * 查询模板列表
    * 接口: POST /chat/v2/template/query
@@ -277,7 +277,7 @@ export interface FoxCollectTemplateService {
 /**
  * 客服场景模板服务
  */
-export interface ArgusTemplateService {
+export interface 示例客服TemplateService {
   /**
    * 查询模板列表
    * 接口: 待定义
@@ -313,7 +313,7 @@ export interface ArgusTemplateService {
 /**
  * 电催场景消息服务
  */
-export interface FoxCollectMessageService {
+export interface ExampleMessageService {
   /**
    * 消息检查（频次检查）
    * 接口: POST /chat/v2/message/check
@@ -375,7 +375,7 @@ export interface FoxCollectMessageService {
 /**
  * 客服场景消息服务
  */
-export interface ArgusMessageService {
+export interface 示例客服MessageService {
   /**
    * 消息检查（敏感词检查）
    * 接口: 待定义
@@ -438,17 +438,17 @@ export class ScenarioServiceFactory {
   /**
    * 创建电催场景服务
    */
-  static createFoxCollectServices(config: FoxCollectConfig): {
-    templateService: FoxCollectTemplateService;
-    messageService: FoxCollectMessageService;
+  static createExampleServices(config: ExampleConfig): {
+    templateService: ExampleTemplateService;
+    messageService: ExampleMessageService;
   };
   
   /**
    * 创建客服场景服务
    */
-  static createArgusServices(config: ArgusConfig): {
-    templateService: ArgusTemplateService;
-    messageService: ArgusMessageService;
+  static create示例客服Services(config: 示例客服Config): {
+    templateService: 示例客服TemplateService;
+    messageService: 示例客服MessageService;
   };
   
   /**

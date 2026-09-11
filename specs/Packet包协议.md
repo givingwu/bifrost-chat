@@ -1,7 +1,5 @@
 # Packet包协议
 
-实时文档见 https://kylith.atlassian.net/wiki/spaces/m78rqGL1Q4UV/pages/387679131/Packet
-
 ## 标准消息体
 
 ```ts
@@ -10,7 +8,7 @@
     "mid": "234234", // 投递服务生成消息服务端 id
     "upid" : "234234" // 上一条消息id
     "from": { // 发送人
-        "app": "fox_collect.waiter", // 租户
+        "app": "example_chat.waiter", // 租户
         "pin": "123323",  // 用户/UID/电话/邮箱
         "clientType" : "pc", // 可选字段，设备类型
         "channelType": "SMS", // 渠道
@@ -30,7 +28,7 @@
     },
     "ver": "1.0", // 协议版本
     "timestamp": "124324242"， // 服务端生成时间戳
-    "entry": "", // SDK 入口(枚举)：fox.system, fox.collect 电催详情, fox.telesales 电销
+    "entry": "", // SDK 入口(枚举)：example.system, example.chat 电催详情, example.sales 电销
     "chatId" : "" // 会话id
 }
 ```
@@ -47,7 +45,7 @@ SESSION ID: 债务 ID
 ```json
 {
   "from": { // 发送人
-        "app": "fox_collect.waiter", // fox 租户
+        "app": "example_chat.waiter", // 示例租户
         "pin": "8dn48fd30djr42de3",  // UID：坐席 ID
         "clientType" : "pc", // 可选字段，设备类型
         "channelType": "WhatsApp", // 渠道
@@ -68,16 +66,16 @@ SESSION ID: 用户 ID （用户 ID = 客户身份证+包）
 ```json
 {
   "from": { // 发送人
-        "app": "fox_argus.customer", // 客户端用户
+        "app": "support_chat.customer", // 客户端用户
         "pin": "8dn48fd30djr42de3",  // UID：用户 ID = 客户身份证+包
         "clientType" : "h5", // 可选字段，设备类型
-        "channelType": "金银花 App", // 渠道
+        "channelType": "示例 App", // 渠道
     },
     "to": {  // 接收人
-        "app": "fox_argus.waiter", // Argus 客服客诉坐席
+        "app": "support_chat.waiter", // 示例客服坐席
         "pin": "${WAITER_UID}", // UID: 动态分配客服 ID
         "clientType" : "pc", // 可选字段
-        "channelType": "金银花 App", // 渠道
+        "channelType": "示例 App", // 渠道
     },
 }
 ```
@@ -86,7 +84,7 @@ SESSION ID: 用户 ID （用户 ID = 客户身份证+包）
 
 ```json
 {
-  "entry": "fox.system", // SDK 入口(枚举)：fox.system, fox.collect.detail 电催详情, fox.telesales.detail 电销
+  "entry": "example.system", // SDK 入口(枚举)：example.system, example.chat.detail 电催详情, example.sales.detail 电销
 }
 ```
 
@@ -109,8 +107,8 @@ ack ： ack
 定义规则：`{业务}.{角色}`
 
 ```
-催收坐席端：fox_collect.waiter / 用户：fox_collect.customer
-Argus 客服客诉坐席：fox_argus.waiter / 用户：fox_argus.customer
+催收坐席端：example_chat.waiter / 用户：example_chat.customer
+示例客服坐席：support_chat.waiter / 用户：support_chat.customer
 ```
 
 ## chatInfo 数据结构

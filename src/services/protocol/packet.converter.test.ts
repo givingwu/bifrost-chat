@@ -27,7 +27,7 @@ describe('PacketConverter', () => {
         content: { text: 'Hello World' },
         sender: {
           pin: 'agent-123',
-          app: 'fox_collect.waiter',
+          app: 'example_chat.waiter',
         },
         receiver: {
           pin: 'customer-456',
@@ -38,14 +38,14 @@ describe('PacketConverter', () => {
 
       const rawPacket = PacketConverter.toRawPacket(
         standardMessage,
-        'fox_collect.waiter',
+        'example_chat.waiter',
         'agent-123',
       );
 
       expect(rawPacket).toBeDefined();
       expect(rawPacket.id).toBe('msg-123');
       expect(rawPacket.chatId).toBe('chat-789');
-      expect(rawPacket.from.app).toBe('fox_collect.waiter');
+      expect(rawPacket.from.app).toBe('example_chat.waiter');
       expect(rawPacket.from.pin).toBe('agent-123');
       expect(rawPacket.from.channelType).toBe('whatsapp');
       expect(rawPacket.to.app).toBe('im.waiter');
@@ -67,7 +67,7 @@ describe('PacketConverter', () => {
         content: { text: 'Test message' },
         sender: {
           pin: 'agent-123',
-          app: 'fox_collect.waiter',
+          app: 'example_chat.waiter',
         },
         receiver: {
           pin: 'customer-456',
@@ -78,7 +78,7 @@ describe('PacketConverter', () => {
 
       const rawPacket = PacketConverter.toRawPacket(
         message,
-        'fox_collect.waiter',
+        'example_chat.waiter',
         'agent-123',
       );
 
@@ -102,29 +102,29 @@ describe('PacketConverter', () => {
         content: { text: 'Chatbot message' },
         sender: {
           pin: 'agent-123',
-          app: 'fox_collect.waiter',
+          app: 'example_chat.waiter',
         },
         receiver: {
           pin: 'customer-456',
-          app: 'fox_collect.customer',
+          app: 'example_chat.customer',
           channelType: ChannelTypeEnum.WhatsApp,
         },
         metadata: {
           channelAccount: '628123456789',
           senderType: PacketSenderTypeEnum.Chatbot,
-          entry: 'fox.collect.detail',
+          entry: 'example.chat.detail',
         },
       };
 
       const rawPacket = PacketConverter.toRawPacket(
         message,
-        'fox_collect.waiter',
+        'example_chat.waiter',
         'agent-123',
       );
 
       expect(rawPacket.channelAccount).toBe('628123456789');
       expect(rawPacket.senderType).toBe(PacketSenderTypeEnum.Chatbot);
-      expect(rawPacket.entry).toBe('fox.collect.detail');
+      expect(rawPacket.entry).toBe('example.chat.detail');
     });
   });
 
@@ -140,7 +140,7 @@ describe('PacketConverter', () => {
           channelType: ChannelTypeEnum.WhatsApp,
         },
         to: {
-          app: 'fox_collect.waiter',
+          app: 'example_chat.waiter',
           pin: 'agent-123',
           channelType: ChannelTypeEnum.WhatsApp,
         },
@@ -156,7 +156,7 @@ describe('PacketConverter', () => {
       const standardMessage = PacketConverter.toStandardMessage(
         rawPacket,
         MessageDirectionEnum.Incoming,
-        'fox_collect.waiter',
+        'example_chat.waiter',
       );
 
       expect(standardMessage).toBeDefined();
@@ -171,7 +171,7 @@ describe('PacketConverter', () => {
       expect(standardMessage.sender?.pin).toBe('customer-456');
       expect(standardMessage.sender?.app).toBe('im.waiter');
       expect(standardMessage.receiver?.pin).toBe('agent-123');
-      expect(standardMessage.receiver?.app).toBe('fox_collect.waiter');
+      expect(standardMessage.receiver?.app).toBe('example_chat.waiter');
     });
 
     it('应该自动判断消息方向', () => {
@@ -179,7 +179,7 @@ describe('PacketConverter', () => {
         id: 'packet-123',
         chatId: 'chat-789',
         from: {
-          app: 'fox_collect.waiter',
+          app: 'example_chat.waiter',
           pin: 'agent-123',
           channelType: ChannelTypeEnum.WhatsApp,
         },
@@ -200,7 +200,7 @@ describe('PacketConverter', () => {
       const message = PacketConverter.toStandardMessage(
         rawPacket,
         undefined,
-        'fox_collect.waiter',
+        'example_chat.waiter',
       );
 
       expect(message.direction).toBe(MessageDirectionEnum.Outgoing);
@@ -215,7 +215,7 @@ describe('PacketConverter', () => {
           pin: 'customer-456',
         },
         to: {
-          app: 'fox_collect.waiter',
+          app: 'example_chat.waiter',
           pin: 'agent-123',
         },
         ptype: PacketMessageTypeEnum.ChatMessage,
@@ -242,7 +242,7 @@ describe('PacketConverter', () => {
           pin: 'customer-456',
         },
         to: {
-          app: 'fox_collect.waiter',
+          app: 'example_chat.waiter',
           pin: 'agent-123',
         },
         ptype: PacketMessageTypeEnum.ChatMessage,
@@ -278,7 +278,7 @@ describe('PacketConverter', () => {
           channelType: 'unknown_channel' as ChannelTypeEnum,
         },
         to: {
-          app: 'fox_collect.waiter',
+          app: 'example_chat.waiter',
           pin: 'agent-123',
         },
         ptype: PacketMessageTypeEnum.ChatMessage,
@@ -306,7 +306,7 @@ describe('PacketConverter', () => {
           channelType: ChannelTypeEnum.SMS,
         },
         to: {
-          app: 'fox_collect.waiter',
+          app: 'example_chat.waiter',
           pin: 'agent-123',
           channelType: ChannelTypeEnum.SMS,
         },
@@ -329,14 +329,14 @@ describe('PacketConverter', () => {
         chatId: 'chat-789',
         channelAccount: '628123456789',
         senderType: PacketSenderTypeEnum.Chatbot,
-        entry: 'fox.collect.detail',
+        entry: 'example.chat.detail',
         from: {
-          app: 'fox_collect.waiter',
+          app: 'example_chat.waiter',
           pin: 'agent-123',
           channelType: ChannelTypeEnum.WhatsApp,
         },
         to: {
-          app: 'fox_collect.customer',
+          app: 'example_chat.customer',
           pin: 'customer-456',
           channelType: ChannelTypeEnum.WhatsApp,
         },
@@ -355,7 +355,7 @@ describe('PacketConverter', () => {
         expect.objectContaining({
           channelAccount: '628123456789',
           senderType: PacketSenderTypeEnum.Chatbot,
-          entry: 'fox.collect.detail',
+          entry: 'example.chat.detail',
           chatId: 'chat-789',
         }),
       );
@@ -367,12 +367,12 @@ describe('PacketConverter', () => {
         chatId: 'chat-789',
         senderType: 1,
         from: {
-          app: 'fox_collect.waiter',
+          app: 'example_chat.waiter',
           pin: 'agent-123',
           channelType: ChannelTypeEnum.WhatsApp,
         },
         to: {
-          app: 'fox_collect.customer',
+          app: 'example_chat.customer',
           pin: 'customer-456',
           channelType: ChannelTypeEnum.WhatsApp,
         },
@@ -405,7 +405,7 @@ describe('PacketConverter', () => {
         content: { text: 'Test message' },
         sender: {
           pin: 'agent-123',
-          app: 'fox_collect.waiter',
+          app: 'example_chat.waiter',
         },
         receiver: {
           pin: 'customer-456',
@@ -417,7 +417,7 @@ describe('PacketConverter', () => {
       // 转换为 RawPacket
       const rawPacket = PacketConverter.toRawPacket(
         originalMessage,
-        'fox_collect.waiter',
+        'example_chat.waiter',
         'agent-123',
       );
 

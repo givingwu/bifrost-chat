@@ -1,8 +1,10 @@
 # Conversation 数据流 Review 报告
 
+> 通用宿主集成示例（To-Be）：宿主组件及路径仅用于说明接入方式，不属于当前 SDK 实现（As-Is）。
+
 ## 概述
 
-本文档对比分析 `specs/Conversation 数据流.md` 设计文档与宿主实际实现之间的差异，并识别需要修复的问题。
+本文档对比分析 `specs/Conversation 数据流.md` 与示例宿主实现之间的差异，说明接入时需要检查的问题。
 
 ---
 
@@ -13,7 +15,7 @@
 **文档描述**:
 > 判断 conversationMetadata.supportedChannels 是否支持 activeChannel，若不支持则需要 setActiveChannel 更新到 conversationMetadata.supportedChannels[0] 调整
 
-**实际实现** ([`create-chat.hook.ts:99-101`](../../fox/fox-admin-ui/packages/components/src/hooks/create-chat.hook.ts:99)):
+**示例实现** (`create-chat.hook.ts`):
 ```typescript
 const channelType = config.supportedChannels?.includes(activeChannel)
   ? activeChannel
@@ -53,7 +55,7 @@ if (!config.supportedChannels?.includes(activeChannel)) {
 > 判断 conversationMetadata.supportedChannelSessions 中在该渠道下 activeChannel 是否已存在该会话，若存在则直接走 get 查询会话信息。若不存在则需要执行 create 创建新会话
 
 **实际实现**:
-- [`create-chat.hook.ts`](../../fox/fox-admin-ui/packages/components/src/hooks/create-chat.hook.ts) 只检查本地 cache
+- `create-chat.hook.ts` 只检查本地 cache
 - 没有利用 `config.supportedChannelSessions` 元数据判断是否已存在该渠道的会话
 - 可能导致重复创建会话
 
@@ -118,7 +120,7 @@ if (!exists) {
 
 ### ✅ channelFilterEnabled 配置
 
-**实现位置**: [`chat.util.ts:42-43`](../../fox/fox-admin-ui/packages/components/src/utils/chat.util.ts:42)
+**实现位置**: `chat.util.ts:42-43`
 ```typescript
 channelFilterEnabled: mode !== 'system',
 ```
@@ -139,7 +141,7 @@ sequenceDiagram
     participant RQ as React Query
     participant Service as IConversationService
 
-    Host->>SDK: 打开 FoxChat Modal
+    Host->>SDK: 打开 HostChat Modal
     SDK->>RQ: useConversations
     RQ->>Service: list 全量会话
     Service-->>RQ: Conversation[]
@@ -204,12 +206,12 @@ sequenceDiagram
 
 | 文件 | 职责 | 路径 |
 |------|------|------|
-| AuthLayout.tsx | UI 层入口 | [`apps/shell/src/routes/__auth/AuthLayout.tsx`](../../fox/fox-admin-ui/apps/shell/src/routes/__auth/AuthLayout.tsx) |
-| FoxChatShell.tsx | Provider 树搭建 | [`packages/components/src/components/FoxChat/FoxChatShell.tsx`](../../fox/fox-admin-ui/packages/components/src/components/FoxChat/FoxChatShell.tsx) |
-| FoxChatLayout.tsx | UI 渲染 + hook 调用 | [`packages/components/src/components/FoxChat/FoxChatLayout.tsx`](../../fox/fox-admin-ui/packages/components/src/components/FoxChat/FoxChatLayout.tsx) |
-| create-chat.hook.ts | customer 模式会话初始化 | [`packages/components/src/hooks/create-chat.hook.ts`](../../fox/fox-admin-ui/packages/components/src/hooks/create-chat.hook.ts) |
+| AuthLayout.tsx | UI 层入口 | `apps/shell/src/routes/__auth/AuthLayout.tsx` |
+| HostChatShell.tsx | Provider 树搭建 | `packages/components/src/components/HostChat/HostChatShell.tsx` |
+| HostChatLayout.tsx | UI 渲染 + hook 调用 | `packages/components/src/components/HostChat/HostChatLayout.tsx` |
+| create-chat.hook.ts | customer 模式会话初始化 | `packages/components/src/hooks/create-chat.hook.ts` |
 | DefaultChatLayout.tsx | system 模式自动激活 | [`src/components/layout/DefaultChatLayout.tsx`](src/components/layout/DefaultChatLayout.tsx) |
-| chat.util.ts | SDK 配置生成 | [`packages/components/src/utils/chat.util.ts`](../../fox/fox-admin-ui/packages/components/src/utils/chat.util.ts) |
+| chat.util.ts | SDK 配置生成 | `packages/components/src/utils/chat.util.ts` |
 
 ---
 

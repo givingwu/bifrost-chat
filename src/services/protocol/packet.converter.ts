@@ -115,7 +115,7 @@ function buildRawPacketBusinessFields(
  * // StandardMessage -> RawPacket（发送）
  * const rawPacket = PacketConverter.toRawPacket(
  *   standardMessage,
- *   'fox_collect.waiter',
+ *   'example_chat.waiter',
  *   'agent-123'
  * );
  *

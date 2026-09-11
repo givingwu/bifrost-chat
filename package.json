@@ -11,7 +11,7 @@
     "React Omni-channel",
     "React Omni-channel chat"
   ],
-  "author": "mountainwu@kn.group",
+  "author": "mountainwu",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -67,9 +67,7 @@
     "test": "vitest run",
     "prepublishOnly": "pnpm run build && pnpm run test && pnpm run lint",
     "release": "pnpm run test && pnpm run build && pnpm publish",
-    "release:dry": "pnpm run test && pnpm run build && pnpm publish --dry-run",
-    "sync:fox": "bash scripts/sync-to-fox-admin.sh",
-    "sync:install": "bash scripts/install-sync-hook.sh"
+    "release:dry": "pnpm run test && pnpm run build && pnpm publish --dry-run"
   },
   "devDependencies": {
     "@biomejs/biome": "2.3.8",

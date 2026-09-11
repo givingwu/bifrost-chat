@@ -1,7 +1,6 @@
 ---
 name: bifrost-chat-ui-design
 version: "1.0"
-author: "FEOF Team"
 description: 落地 Bifrost-Chat 组件视觉与交互设计。用于主题 token 调整、组件状态语义统一、Storybook 视觉验收、可访问性检查与跨主题一致性治理。
 language: "zh-CN"
 ---

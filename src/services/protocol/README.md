@@ -66,7 +66,7 @@ const standardMessage: StandardMessage = {
   type: MessageTypeEnum.Text,
   content: { text: 'Hello World' },
   sender: {
-    app: 'fox_collect.waiter',
+    app: 'example_chat.waiter',
     pin: 'agent-123',
   },
   receiver: {
@@ -78,7 +78,7 @@ const standardMessage: StandardMessage = {
 
 const rawPacket = PacketConverter.toRawPacket(
   standardMessage,
-  'fox_collect.waiter',
+  'example_chat.waiter',
   'agent-123'
 );
 
@@ -92,7 +92,7 @@ const incomingPacket = {
     channelType: 'whatsapp',
   },
   to: {
-    app: 'fox_collect.waiter',
+    app: 'example_chat.waiter',
     pin: 'agent-123',
     channelType: 'whatsapp',
   },
@@ -108,7 +108,7 @@ const incomingPacket = {
 const standardMessage = PacketConverter.toStandardMessage(
   incomingPacket,
   MessageDirectionEnum.Incoming,
-  'fox_collect.waiter'
+  'example_chat.waiter'
 );
 ```
 
@@ -134,7 +134,7 @@ import { AckHandler, ChannelTypeEnum } from '@feoe/bifrost-chat';
 
 // 创建已读 ACK
 const ackMessage = AckHandler.createReadAck({
-  app: 'fox_collect.waiter',
+  app: 'example_chat.waiter',
   pin: 'agent-123',
   channelType: ChannelTypeEnum.WhatsApp,
 }, {
@@ -188,7 +188,7 @@ import { WebSocketManager } from '@feoe/bifrost-chat';
 
 // 创建心跳消息
 const heartbeat = HeartbeatManager.createHeartbeat({
-  fromApp: 'fox_collect.waiter',
+  fromApp: 'example_chat.waiter',
   fromPin: 'agent-123',
   toApp: 'im.waiter',
   toPin: 'customer-456',
@@ -205,7 +205,7 @@ wsManager.onMessage((data) => {
 // 定时发送心跳
 setInterval(() => {
   const heartbeat = HeartbeatManager.createHeartbeat({
-    fromApp: 'fox_collect.waiter',
+    fromApp: 'example_chat.waiter',
     fromPin: 'agent-123',
     toApp: 'im.waiter',
     toPin: 'customer-456',
@@ -216,7 +216,7 @@ setInterval(() => {
 
 ## 完整使用示例
 
-### 电催场景（FoxCollect）
+### 电催场景（Example）
 
 ```typescript
 import {
@@ -233,10 +233,10 @@ import {
   WebSocketManager,
 } from '@feoe/bifrost-chat';
 
-class FoxCollectMessageService implements IMessageService {
+class ExampleMessageService implements IMessageService {
   private wsManager: WebSocketManager;
   
-  constructor(config: FoxCollectConfig, wsManager: WebSocketManager) {
+  constructor(config: ExampleConfig, wsManager: WebSocketManager) {
     this.wsManager = wsManager;
     this.setupWebSocketListeners();
   }
@@ -281,7 +281,7 @@ class FoxCollectMessageService implements IMessageService {
       type: MessageTypeEnum.Text,
       content: params.content || { text: '' },
       sender: {
-        app: 'fox_collect.waiter',
+        app: 'example_chat.waiter',
         pin: this.config.agentPin,
       },
       receiver: {
@@ -294,7 +294,7 @@ class FoxCollectMessageService implements IMessageService {
     // 使用协议转换器
     const rawPacket = PacketConverter.toRawPacket(
       standardMessage,
-      'fox_collect.waiter',
+      'example_chat.waiter',
       this.config.agentPin,
     );
 
@@ -311,7 +311,7 @@ class FoxCollectMessageService implements IMessageService {
     // 使用 ACK 处理器创建已读 ACK
     const ackMessage = AckHandler.createReadAck(
       {
-        app: 'fox_collect.waiter',
+        app: 'example_chat.waiter',
         pin: this.config.agentPin,
         channelType: params.channelType,
       },

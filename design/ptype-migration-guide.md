@@ -186,8 +186,8 @@ if (ptype) {
 // ❌ 错误（旧格式）
 {
   "id": "msg-123",
-  "from": { "app": "fox_collect.waiter", "pin": "agent-456" },
-  "to": { "app": "fox_collect.customer", "pin": "customer-789" },
+  "from": { "app": "example_chat.waiter", "pin": "agent-456" },
+  "to": { "app": "example_chat.customer", "pin": "customer-789" },
   "type": "chat_message",
   "body": {
     "type": "text",
@@ -200,8 +200,8 @@ if (ptype) {
 // ✅ 正确（新格式）
 {
   "id": "msg-123",
-  "from": { "app": "fox_collect.waiter", "pin": "agent-456" },
-  "to": { "app": "fox_collect.customer", "pin": "customer-789" },
+  "from": { "app": "example_chat.waiter", "pin": "agent-456" },
+  "to": { "app": "example_chat.customer", "pin": "customer-789" },
   "ptype": "chat_message",
   "body": {
     "type": "text",
@@ -219,8 +219,8 @@ if (ptype) {
 {
   "id": "heartbeat-123",
   "type": "client_heartbeat",
-  "from": { "app": "fox_collect.waiter", "pin": "agent-456" },
-  "to": { "app": "fox.collect" },
+  "from": { "app": "example_chat.waiter", "pin": "agent-456" },
+  "to": { "app": "example.chat" },
   "body": {},
   "ver": "1.0",
   "timestamp": 1769063279192
@@ -230,8 +230,8 @@ if (ptype) {
 {
   "id": "heartbeat-123",
   "ptype": "client_heartbeat",
-  "from": { "app": "fox_collect.waiter", "pin": "agent-456" },
-  "to": { "app": "fox.collect" },
+  "from": { "app": "example_chat.waiter", "pin": "agent-456" },
+  "to": { "app": "example.chat" },
   "body": {},
   "ver": "1.0",
   "timestamp": 1769063279192
@@ -245,7 +245,7 @@ if (ptype) {
 {
   "id": "ack-123",
   "type": "ack",
-  "from": { "app": "fox_collect.waiter", "pin": "agent-456" },
+  "from": { "app": "example_chat.waiter", "pin": "agent-456" },
   "to": { "app": "im.waiter", "pin": "customer-789" },
   "body": {
     "type": "msg_read_ack"
@@ -258,7 +258,7 @@ if (ptype) {
 {
   "id": "ack-123",
   "ptype": "ack",
-  "from": { "app": "fox_collect.waiter", "pin": "agent-456" },
+  "from": { "app": "example_chat.waiter", "pin": "agent-456" },
   "to": { "app": "im.waiter", "pin": "customer-789" },
   "body": {
     "type": "msg_read_ack"
