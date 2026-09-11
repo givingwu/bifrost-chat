@@ -38,14 +38,9 @@ jobs:
 
       - name: Build Storybook
         run: pnpm run build:storybook
-        env:
-          # 动态获取仓库名作为 base path，例如 /my-repo/
-          BASE_PATH: /${{ github.event.repository.name }}/
 
-      - name: Add base tag for subdirectory
-        run: |
-          sed -i 's|<head>|<head><base href="/bifrost-chat/">|' storybook-static/index.html
-          sed -i 's|<head>|<head><base href="/bifrost-chat/">|' storybook-static/iframe.html
+      - name: Check Storybook asset paths
+        run: pnpm run check:storybook
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
